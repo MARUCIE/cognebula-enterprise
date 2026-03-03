@@ -1,0 +1,44 @@
+services:
+  cognebula-api:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: cognebula-api
+    ports:
+      - "8766:8766"
+    volumes:
+      - ./data:/data
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8766
+      - REDIS_URL=redis://redis:6379
+      - ENABLE_LANCEDB=true
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  cognebula-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.sota
+    container_name: cognebula-worker
+    volumes:
+      - ./data:/data
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - MODE=worker
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: cognebula-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  redis_data:

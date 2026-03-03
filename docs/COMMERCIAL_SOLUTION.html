@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CogNebula Enterprise - 商业化解决方案与部署指南</title>
+    <style>
+        :root {
+            --primary-color: #6c5ce7;
+            --secondary-color: #a29bfe;
+            --bg-color: #0a0e27;
+            --card-bg: #111633;
+            --text-color: #e0e0e0;
+            --text-muted: #888;
+            --border-color: #1e2a5a;
+            --code-bg: #1e1e1e;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            font-size: 2rem;
+            color: #fff;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-top: 50px;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            color: var(--secondary-color);
+            margin-top: 30px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .feature-item {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .feature-item h4 {
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+
+        code {
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+            background-color: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: #ff9e80;
+        }
+
+        pre {
+            background-color: var(--code-bg);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            border: 1px solid #333;
+        }
+
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            color: #e0e0e0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        .highlight {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background-color: rgba(108, 92, 231, 0.2);
+            color: var(--secondary-color);
+            font-size: 0.8rem;
+            margin-right: 10px;
+            border: 1px solid var(--primary-color);
+        }
+
+        footer {
+            margin-top: 80px;
+            text-align: center;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>CogNebula Enterprise</h1>
+        <div class="subtitle">企业级智能体上下文大脑 (Context Brain for AI Agents)</div>
+        <p style="margin-top: 20px; font-size: 1.1rem;">完全本地化、纯净闭源友好的 SOTA 级代码知识图谱解决方案，赋予大模型精准的架构级“物理直觉”。</p>
+    </header>
+
+    <section id="solution-overview">
+        <h2>一、商业化解决方案概述</h2>
+        
+        <div class="card">
+            <h3>核心痛点与定位</h3>
+            <p>在企业级 AI Agent（如智能研发助手、自动化测试 Agent、安全审计 Agent）落地的过程中，单纯依赖大模型的向量检索（Vector RAG）往往会遭遇严重的“上下文截断”与“幻觉”问题。大模型懂语义，但不懂<strong>物理调用链路</strong>与<strong>爆炸半径</strong>。</p>
+            <p><span class="highlight">CogNebula Enterprise</span> 的定位是：作为中立的、高保真的“大脑后端”，将企业庞大的多语言代码库抽象为精准的拓扑知识图谱。通过原生提供 <strong>Graph RAG 接口</strong>，向所有的企业智能体无缝投喂“高密度的防膨胀上下文”。</p>
+        </div>
+
+        <h3>SOTA 级核心功能特性</h3>
+        <div class="feature-grid">
+            <div class="feature-item">
+                <span class="badge">架构创新</span>
+                <h4>Late-Binding 混合检索 (Hybrid Graph-Vector RAG)</h4>
+                <p>底层融合了 LanceDB (向量语义) 与 KuzuDB (结构图谱)。智能体不仅能通过“自然语言”找到代码，还能瞬间穿透图谱提取上下游 3 层深度的强相关调用链。</p>
+            </div>
+            
+            <div class="feature-item">
+                <span class="badge">成本优化</span>
+                <h4>自适应上下文降级 (Tiered Detail Degradation)</h4>
+                <p>为防止撑爆 LLM 的 Token 窗口，引擎支持按图谱深度智能剪裁：核心命中节点返回完整代码 (Depth 0)，调用方仅返回函数签名 (Depth 1)，远端模块仅返回文件路径 (Depth 2)。</p>
+            </div>
+
+            <div class="feature-item">
+                <span class="badge">企业安全</span>
+                <h4>多租户物理隔离 (Shared-Nothing Isolation)</h4>
+                <p>摒弃 Neo4j 等巨石数据库。基于 KuzuDB 嵌入式引擎，为每个代码仓库/租户建立独立的磁盘级物理数据库，彻底杜绝企业间“数据串库”和并发写锁问题。</p>
+            </div>
+
+            <div class="feature-item">
+                <span class="badge">极致体验</span>
+                <h4>影视级 3D WebGL 可视化控制台</h4>
+                <p>内置 <code>3d-force-graph</code> 引擎，支持同屏 10 万+节点 60fps 流畅渲染。管理人员可像浏览星系一样俯瞰企业资产架构，并支持节点点击触发镜头飞行与下钻分析。</p>
+            </div>
+
+            <div class="feature-item">
+                <span class="badge">数据时效</span>
+                <h4>毫秒级事件驱动入库 (Event-Driven Worker)</h4>
+                <p>内置 Redis 队列支持。支持对接 GitLab/GitHub Webhook，企业代码一旦 Merge，后台守护进程即刻增量更新图谱，保障 Agent 推理的上下文永远新鲜。</p>
+            </div>
+
+            <div class="feature-item">
+                <span class="badge">100% 容错</span>
+                <h4>全量 Tree-sitter AST 解析</h4>
+                <p>不仅支持标准 Python/JS/TS 的多进程正则提权，SOTA 版本更原生集成 Tree-sitter，即使企业的代码未编译或存在严重语法错误，依然能构建出完整拓扑图谱。</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="deployment-guide">
+        <h2>二、一键部署指南</h2>
+        
+        <div class="card">
+            <h3>环境前置要求</h3>
+            <ul>
+                <li><strong>操作系统</strong>: 任意支持 Docker 的 Linux (Ubuntu/CentOS), macOS, 或 Windows WSL2。</li>
+                <li><strong>硬件要求</strong>: 最低 4 核 CPU，8GB 内存 (KuzuDB 的流式落盘机制对内存极为宽容)。</li>
+                <li><strong>网络要求</strong>: <span class="highlight">纯本地/私有云支持</span>，可 100% 断网离线运行，无任何外网 License 验证或数据回传。</li>
+            </ul>
+        </div>
+
+        <h3>部署步骤 (Docker Compose 方式)</h3>
+        
+        <p>CogNebula Enterprise 被封装为一个高内聚的容器编排栈（API Gateway + Worker Daemon + Redis）。</p>
+
+        <h4>Step 1: 获取商业交付包与导入数据</h4>
+        <pre><code># 1. 克隆企业版仓库或解压交付包
+git clone git@github.com:YourCompany/cognebula-enterprise.git
+cd cognebula-enterprise
+
+# 2. 将需要分析的企业代码库挂载到 data 目录下
+mkdir -p data/my-java-backend
+# (将企业的业务代码复制到此处)</code></pre>
+
+        <h4>Step 2: 一键拉起微服务集群</h4>
+        <pre><code># 后台编译并启动 SOTA 容器群
+docker-compose up -d --build
+
+# 查看运行状态
+docker-compose ps</code></pre>
+
+        <h4>Step 3: 访问与验证</h4>
+        <ul>
+            <li><strong>可视化控制面板</strong>: 打开浏览器访问 <a href="http://127.0.0.1:8766" style="color: var(--primary-color);">http://127.0.0.1:8766</a>，即可沉浸式浏览生成的 3D 代码图谱。</li>
+            <li><strong>API 接口文档 (OpenAPI/Swagger)</strong>: 访问 <a href="http://127.0.0.1:8766/docs" style="color: var(--primary-color);">http://127.0.0.1:8766/docs</a>，获取标准的 RESTful 接口定义。</li>
+        </ul>
+    </section>
+
+    <section id="agent-integration">
+        <h2>三、智能体 (Agent) 接入指南</h2>
+        
+        <p>部署完成后，您的企业内部智能体编排框架（如 LangChain, Dify, FastGPT 等）可通过统一的 Graph RAG 端点接入大脑。</p>
+
+        <div class="card">
+            <h3>Graph RAG 黄金接口</h3>
+            <p><code>POST /api/rag</code></p>
+            <p><strong>请求体 (Payload):</strong></p>
+            <pre><code>{
+  "repo": "/data/my-java-backend",
+  "query": "请告诉我用户鉴权模块的核心逻辑，以及如果我修改它会影响哪些下游 API？"
+}</code></pre>
+            <p><strong>返回体 (Response):</strong> 该接口会自动执行【向量检索命中】->【Cypher 图遍历】->【上下游 3 层扩展】->【Token 降级裁剪】，并返回一段开箱即用的高密度 Markdown 上下文给大模型。</p>
+        </div>
+    </section>
+
+    <section id="commercial-license">
+        <h2>四、知识产权与合规说明</h2>
+        <div class="card">
+            <p>本商业化方案底层所依赖的核心开源组件均具备<strong>极高的商业友好度</strong>：</p>
+            <table>
+                <tr>
+                    <th>底层组件</th>
+                    <th>开源协议</th>
+                    <th>商业影响</th>
+                </tr>
+                <tr>
+                    <td>KuzuDB (嵌入式图数据库)</td>
+                    <td>MIT</td>
+                    <td>无传染性，完全允许闭源商业售卖与修改。零节点授权费。</td>
+                </tr>
+                <tr>
+                    <td>FastAPI (微服务网关)</td>
+                    <td>MIT</td>
+                    <td>企业级标准，高度可靠且合规。</td>
+                </tr>
+                <tr>
+                    <td>LanceDB (向量检索引擎)</td>
+                    <td>Apache 2.0 / MIT</td>
+                    <td>自由商用，无需公开业务代码。</td>
+                </tr>
+            </table>
+            <p style="margin-top: 15px; color: var(--text-muted); font-size: 0.9em;">
+                这意味着：作为解决方案集成方，您可以将 CogNebula Enterprise 100% 打包为您自有品牌的产品（White-labeling），或作为私有化部署底座出售给甲方客户，而无需担心任何开源版权纠纷与授权费用。
+            </p>
+        </div>
+    </section>
+
+    <footer>
+        <p>猪哥云（四川）网络科技有限公司 | 合规网 www.hegui.com</p>
+        <p>猪哥云-数据产品部-Maurice | 2025 猪哥云-灵阙企业级智能体平台</p>
+    </footer>
+</div>
+
+</body>
+</html>

@@ -32,12 +32,12 @@ logging.basicConfig(
 log = logging.getLogger("clause_qa_v2")
 
 DB_PATH = "data/finance-tax-graph"
-GEMINI_BASE = os.environ.get(
-    "GEMINI_EMBED_BASE",
+GEMINI_GEN_BASE = os.environ.get(
+    "GEMINI_GEN_BASE",
     "https://gemini-api-proxy.maoyuan-wen-683.workers.dev"
 )
-MODEL = "gemini-2.0-flash"  # Fast model for QA generation
-GEN_URL = f"{GEMINI_BASE}/v1beta/models/{MODEL}:generateContent"
+MODEL = "gemini-2.5-flash-lite"  # Latest lite model for QA generation
+GEN_URL = f"{GEMINI_GEN_BASE}/v1beta/models/{MODEL}:generateContent"
 
 SYSTEM_PROMPT = """你是中国财税领域的资深专家。根据给定的法规条款内容，生成1-3个实用的问答对。
 
@@ -186,9 +186,11 @@ def main():
         qa_pairs = generate_qa(clause["text"], clause["title"], api_key, client)
 
         for j, qa in enumerate(qa_pairs):
-            nid = f"LR_QA2_{hashlib.md5(f'{clause[\"id\"]}_{j}'.encode()).hexdigest()[:10]}"
+            clause_id = clause["id"]
+            nid = f"LR_QA2_{hashlib.md5(f'{clause_id}_{j}'.encode()).hexdigest()[:10]}"
             title = f"[QA-v2] {qa['q'][:120]}"
-            content = f"问: {qa['q']}\n答: {qa['a']}\n\n法规依据: {clause['title']} (条款ID: {clause['id']})"
+            clause_title = clause["title"]
+            content = f"问: {qa['q']}\n答: {qa['a']}\n\n法规依据: {clause_title} (条款ID: {clause_id})"
 
             try:
                 sql = (

@@ -1,6 +1,7 @@
 # CogNebula Finance/Tax Knowledge Base -- System Architecture
 
-> v3.1 | 2026-03-15 | Initiative: finance_tax_kb
+> v4.0 | 2026-03-16 | Initiative: finance_tax_kb
+> v4.0 change: M1 DONE (87,701 nodes post-fix, 92,495 edges), 768d Matryoshka vectors, LR_ABOUT_TAX/INDUSTRY edge tables, M2 planned
 > v3.1 change: 123 tables (47 node + 76 rel), 7,295 nodes, 11 sources, 1,438 x 3072d vectors
 > v3.0 change: 3-layer architecture (107 tables) + Knowledge Pipeline (Obsidian-Centric)
 > v2.0 change: China-specific schema (13 nodes, 15 edges, 18 tax types, 42 CAS), 20 domestic sources

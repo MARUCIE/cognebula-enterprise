@@ -1,6 +1,7 @@
 # CogNebula Finance/Tax Knowledge Base -- Platform Optimization Plan
 
-> v3.2 | 2026-03-15 | Initiative: finance_tax_kb
+> v4.0 | 2026-03-16 | Initiative: finance_tax_kb
+> v4.0 change: **M1 DONE**: 87,701 nodes (100K achieved then purged 12.5K low-quality), 92,495 edges, orphan 20.5%, 768d vectors rebuilding. M2 (500K) planned.
 > v3.2 change: 13,660 nodes, 273 RiskIndicators, 131 StandardCases, 43 BusinessScenarios, 27 industries, doc-tax 5-layer extraction
 > v3.1 change: 123 tables, 7,295 nodes, 11 sources, 1,438 vectors, 5,781+ Obsidian files, competitive benchmark
 > v3.0 change: 3-layer schema (107 tables) + Knowledge Pipeline (Obsidian→CF Pages) + 65 fleet pipelines
@@ -10,14 +11,15 @@
 
 | Goal | Current State | Target State | Metric |
 |------|--------------|-------------|--------|
-| Knowledge coverage | 0 finance/tax nodes | 10,000+ regulations indexed | Node count | **13,660 nodes (12,952 LawReg) -- 137% of target** |
-| Source breadth | 0 sources | 15+ government/professional | Source registry | **11 active, 3 deferred** |
+| Knowledge coverage | 0 finance/tax nodes | 100K+ nodes (M1) | Node count | **87,701 nodes (M1 DONE, post-quality-fix)** |
+| Source breadth | 0 sources | 15+ government/professional | Source registry | **14 fetchers, 11 active sources** |
 | Update freshness | Manual | < 24h automated | Crawl-to-graph latency | **Dual-batch cron 10:00+15:00 UTC** |
-| Query accuracy | N/A | >= 85% Precision@5 | Manual eval 100 queries | Pending eval |
+| Query accuracy | N/A | >= 85% Precision@5 | Manual eval 100 queries | **Pending eval (auto-pipeline queued)** |
 | Integration depth | Code-only MCP | Code + Finance MCP tools | Tool count | **12 MCP tools live** |
-| Delivery reach | None | Daily Telegram + Dashboard | Delivery success rate | Dashboard live, Telegram pending |
-| Schema coverage | 0 tables | 100+ tables | Table count | **123 tables (47 node + 76 rel)** |
-| Embedding coverage | 0 vectors | 5000+ vectors | Vector count | **1,438 x 3072d in LanceDB** |
+| Graph connectivity | N/A | >= 3.0 edges/node | Edge density | **1.05 edges/node (92,495 edges, from 0.46)** |
+| Orphan rate | N/A | < 5% | Orphan % | **20.5% (from 91.7%, P0 edge enrichment done)** |
+| Schema coverage | 0 tables | 100+ tables | Table count | **84 REL + node tables (inc. LR_ABOUT_TAX/INDUSTRY)** |
+| Embedding coverage | 0 vectors | 100% indexed | Vector count | **57,566 x 768d rebuilding (51% done)** |
 | Obsidian vault | 0 files | 10,000+ files | File count | **5,781+ markdown files** |
 
 ## 2. Technology Stack Decisions
@@ -26,7 +28,7 @@
 |-----------|--------|-----------|------------------------|
 | Graph DB | **KuzuDB** (existing) | Embedded, Cypher-native, bulk CSV loader, air-gapped | Neo4j (too heavy), NebulaGraph (distributed overkill) |
 | Vector DB | **LanceDB 0.29.2** | Already in CogNebula, zero-config, 438 docs indexed | Milvus (separate infra), Qdrant (unnecessary) |
-| Embedding | **Gemini Embedding 2 Preview (3072d)** | Free preview, Matryoshka, via CF Worker proxy on VPS, 1,438 vectors indexed | OpenAI (paid), Jina (less Chinese coverage) |
+| Embedding | **Gemini Embedding 2 Preview (768d Matryoshka)** | Free preview, 768d for M2 scalability (was 3072d), via CF Worker proxy, 57K vectors rebuilding | OpenAI (paid), Jina (less Chinese coverage) |
 | Content acquisition | **AI-Fleet skill ecosystem** | 40+ production-ready skills, zero custom spiders | Custom Scrapy (unnecessary new code) |
 | Static HTML crawling | **agent-reach + defuddle** | 13+ platform support, clean extraction | Scrapy (reinventing the wheel) |
 | Dynamic JS pages | **browser-automation** (Midscene) | Vision-driven, no DOM selectors needed | Playwright raw (more code) |

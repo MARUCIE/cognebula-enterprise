@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三层企业财税知识图谱架构</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Noto+Serif+SC:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream: #F3F0E9;
+    --cream-dark: #EBE7DE;
+    --terracotta: #D67052;
+    --terracotta-dark: #C15A3C;
+    --ink: #2C2C2C;
+    --ink-light: #555555;
+    --ink-muted: #888888;
+    --accent-gray: #9B9B9D;
+    --paper-shadow: 0 2px 20px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+    --radius: 10px;
+    --max-w: 1100px;
+    --l1-color: #c0392b;
+    --l1-bg: #fce8e4;
+    --l2-color: #2a6cb5;
+    --l2-bg: #deeaf6;
+    --l3-color: #1a7a3a;
+    --l3-bg: #e0f5e8;
+    --xl-color: #7b2d8e;
+    --xl-bg: #f3e8fd;
+  }
+
+  html { font-size: 16px; scroll-behavior: smooth; }
+  body {
+    font-family: 'Noto Serif SC', 'Crimson Pro', Georgia, serif;
+    background: var(--cream);
+    color: var(--ink);
+    line-height: 1.85;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page-wrapper { max-width: var(--max-w); margin: 0 auto; padding: 40px 24px 80px; }
+
+  .header-banner {
+    background: linear-gradient(135deg, var(--terracotta) 0%, var(--terracotta-dark) 100%);
+    color: #fff;
+    padding: 28px 36px;
+    border-radius: var(--radius);
+    margin-bottom: 40px;
+    box-shadow: var(--paper-shadow);
+  }
+  .header-banner h1 { font-family: 'Crimson Pro', 'Noto Serif SC', serif; font-size: 1.9rem; font-weight: 700; margin-bottom: 8px; }
+  .header-banner .subtitle { font-size: 0.93rem; opacity: 0.92; line-height: 1.7; }
+  .version-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.25);
+    padding: 3px 14px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin-right: 8px;
+    margin-bottom: 10px;
+  }
+
+  .card { background: #fff; border-radius: var(--radius); box-shadow: var(--paper-shadow); padding: 32px 36px; margin-bottom: 28px; }
+
+  .toc { padding: 28px 36px; }
+  .toc h2 { font-size: 1.15rem; color: var(--terracotta); margin-bottom: 14px; border: none; padding: 0; }
+  .toc ol { padding-left: 1.4em; }
+  .toc li { margin-bottom: 6px; font-size: 0.93rem; }
+  .toc a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--cream-dark); transition: all 0.15s; }
+  .toc a:hover { color: var(--terracotta); border-color: var(--terracotta); }
+
+  h2 { font-family: 'Crimson Pro', 'Noto Serif SC', serif; font-size: 1.5rem; color: var(--terracotta); margin-bottom: 18px; padding-bottom: 10px; border-bottom: 2px solid var(--cream-dark); }
+  h3 { font-size: 1.15rem; color: var(--ink); margin: 22px 0 12px; font-weight: 600; }
+  h4 { font-size: 1.02rem; color: var(--ink-light); margin: 16px 0 8px; font-weight: 600; }
+
+  p { margin-bottom: 14px; font-size: 0.95rem; }
+  ul, ol { padding-left: 1.6em; margin-bottom: 14px; }
+  li { margin-bottom: 6px; font-size: 0.93rem; line-height: 1.8; }
+  strong { font-weight: 700; }
+
+  .table-wrap { overflow-x: auto; margin-bottom: 20px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.86rem; line-height: 1.65; }
+  thead th { background: var(--cream-dark); padding: 10px 14px; text-align: left; font-weight: 600; border-bottom: 2px solid #d0ccc3; white-space: nowrap; }
+  tbody td { padding: 9px 14px; border-bottom: 1px solid #eae7e0; vertical-align: top; }
+  tbody tr:hover { background: rgba(214,112,82,0.04); }
+
+  .badge { display: inline-block; padding: 2px 12px; border-radius: 12px; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.03em; white-space: nowrap; }
+  .badge-l1 { background: var(--l1-bg); color: var(--l1-color); }
+  .badge-l2 { background: var(--l2-bg); color: var(--l2-color); }
+  .badge-l3 { background: var(--l3-bg); color: var(--l3-color); }
+  .badge-xl { background: var(--xl-bg); color: var(--xl-color); }
+  .badge-exists { background: #e0f5e8; color: #1a7a3a; }
+  .badge-new { background: #deeaf6; color: #2a6cb5; }
+
+  code { font-family: 'JetBrains Mono', monospace; font-size: 0.84rem; background: var(--cream-dark); padding: 2px 6px; border-radius: 4px; }
+
+  /* SQL DDL blocks */
+  pre.sql {
+    background: #1e293b;
+    color: #e2e8f0;
+    padding: 20px 24px;
+    border-radius: var(--radius);
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    border-left: 4px solid #3b82f6;
+  }
+  pre.sql .kw { color: #93c5fd; font-weight: 600; }
+  pre.sql .type { color: #86efac; }
+  pre.sql .comment { color: #94a3b8; font-style: italic; }
+  pre.sql .str { color: #fcd34d; }
+
+  /* Cypher blocks */
+  pre.cypher {
+    background: #1a1625;
+    color: #e8e6f0;
+    padding: 20px 24px;
+    border-radius: var(--radius);
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    border-left: 4px solid #a855f7;
+  }
+  pre.cypher .kw { color: #c4b5fd; font-weight: 600; }
+  pre.cypher .comment { color: #7c6f94; font-style: italic; }
+  pre.cypher .str { color: #fcd34d; }
+
+  pre.generic {
+    background: #2C2C2C;
+    color: #e8e6e3;
+    padding: 20px 24px;
+    border-radius: var(--radius);
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+  pre code { background: none; padding: 0; color: inherit; }
+
+  .mermaid-wrap { background: #fff; border-radius: var(--radius); padding: 20px; margin-bottom: 20px; overflow-x: auto; }
+
+  .layer-section { border-left: 4px solid transparent; padding-left: 16px; margin-bottom: 24px; }
+  .layer-section.l1 { border-color: var(--l1-color); }
+  .layer-section.l2 { border-color: var(--l2-color); }
+  .layer-section.l3 { border-color: var(--l3-color); }
+  .layer-section.xl { border-color: var(--xl-color); }
+
+  footer { text-align: center; padding: 60px 20px 40px; color: var(--accent-gray); font-size: 13px; line-height: 2.2; }
+
+  @media (max-width: 720px) {
+    .page-wrapper { padding: 20px 14px 60px; }
+    .card { padding: 20px 18px; }
+    .header-banner { padding: 20px 22px; }
+    .header-banner h1 { font-size: 1.4rem; }
+    h2 { font-size: 1.25rem; }
+    table { font-size: 0.8rem; }
+    thead th, tbody td { padding: 7px 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="page-wrapper">
+
+<div class="header-banner">
+  <div><span class="version-badge">v1.0</span><span class="version-badge">2026-03-14</span><span class="version-badge">finance_tax_kb</span></div>
+  <h1>三层企业财税知识图谱架构</h1>
+  <div class="subtitle">基于 CogNebula KuzuDB 图数据库 + L1 法规中心 (v2.0) 构建<br>43 种节点 | 64 种边 | 107 张 KuzuDB 表</div>
+</div>
+
+<div class="card toc">
+  <h2>目录</h2>
+  <ol>
+    <li><a href="#s1">架构总览</a></li>
+    <li><a href="#s2">L1 层: 法规中心 (已有)</a></li>
+    <li><a href="#s3">L2 层: 操作中心 (新建)</a></li>
+    <li><a href="#s4">L3 层: 合规中心 (新建)</a></li>
+    <li><a href="#s5">跨层边 (新建)</a></li>
+    <li><a href="#s6">完整 Schema 汇总</a></li>
+    <li><a href="#s7">示例 Cypher 查询</a></li>
+    <li><a href="#s8">基数估算</a></li>
+    <li><a href="#s9">实施优先级</a></li>
+    <li><a href="#s10">决策日志</a></li>
+    <li><a href="#s11">KuzuDB 实施说明</a></li>
+  </ol>
+</div>
+
+<!-- 1 -->
+<div class="card" id="s1">
+  <h2>1. 架构总览</h2>
+  <h3>设计理念</h3>
+  <p>三层模型覆盖企业财税全生命周期:</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>层</th><th>名称</th><th>回答的问题</th><th>主要用户</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge badge-l1">L1</span></td><td>法规中心 (Regulation Center)</td><td>规则是什么?</td><td>法务 / 政策分析师</td></tr>
+      <tr><td><span class="badge badge-l2">L2</span></td><td>操作中心 (Operation Center)</td><td>怎么做?</td><td>会计 / 报税员</td></tr>
+      <tr><td><span class="badge badge-l3">L3</span></td><td>合规中心 (Compliance Center)</td><td>做对了吗?</td><td>合规官 / CFO</td></tr>
+    </tbody>
+  </table></div>
+  <p>每层在层内查询时自成体系, 但跨层边支持端到端遍历, 例如: "根据此法规 (L1), 如何做账 (L2), 需要通过哪些合规检查 (L3)?"</p>
+
+  <h3>三层架构 Mermaid 图</h3>
+  <div class="mermaid-wrap">
+    <pre class="mermaid">
+graph TB
+    subgraph L1["L1: 法规中心 -- 已构建 v2.0"]
+        direction LR
+        TaxType["TaxType<br/>18 税种"]
+        LawOrReg["LawOrRegulation<br/>50K+ 文档"]
+        AcctStd["AccountingStandard<br/>43 CAS"]
+        TaxIncentive["TaxIncentive<br/>200+ 政策"]
+        TaxpayerStatus["TaxpayerStatus<br/>~10"]
+        EnterpriseType["EnterpriseType<br/>~8"]
+        PIT["PersonalIncomeType<br/>9 类"]
+        Industry["FTIndustry<br/>~1500 GB 代码"]
+        Region["AdministrativeRegion<br/>~3200"]
+        Zone["SpecialZone<br/>~200"]
+        TaxAuth["TaxAuthority<br/>~3200"]
+        Filing["FilingObligation<br/>~50"]
+        RateVer["TaxRateVersion<br/>~100"]
+    end
+
+    subgraph L2["L2: 操作中心 -- 新建"]
+        direction LR
+        AccountEntry["AccountEntry<br/>~500 模板"]
+        ChartOfAccount["ChartOfAccount<br/>~800 科目"]
+        JournalTemplate["JournalTemplate<br/>~100 模板"]
+        FinStatement["FinancialStatement<br/>~30 报表"]
+        FilingForm["FilingForm<br/>~80 表单"]
+        TaxRateMap["TaxRateMapping<br/>~2000 映射"]
+        IndBookkeep["IndustryBookkeeping<br/>~50 规范"]
+        LifeStage["LifecycleStage<br/>7 阶段"]
+        LifeActivity["LifecycleActivity<br/>~200 活动"]
+    end
+
+    subgraph L3["L3: 合规中心 -- 新建"]
+        direction LR
+        CompRule["ComplianceRule<br/>~300 规则"]
+        RiskInd["RiskIndicator<br/>~150 指标"]
+        AuditTrig["AuditTrigger<br/>~50 触发"]
+        Penalty["Penalty<br/>~100 处罚"]
+        CompCheck["ComplianceChecklist<br/>~60 清单"]
+        TaxCalendar["TaxCalendar<br/>~200 截止日"]
+        TaxPlan["TaxPlanningStrategy<br/>~80 策略"]
+        EntityProfile["EntityTypeProfile<br/>~12 画像"]
+    end
+
+    LawOrReg ==>|XL_IMPLEMENTED_BY| AccountEntry
+    LawOrReg ==>|XL_ENFORCED_BY| CompRule
+    LifeActivity ==>|XL_MONITORED_BY| CompCheck
+    CompRule ==>|XL_REFERENCES| LawOrReg
+    RiskInd ==>|XL_TRIGGERS_ACTION| LifeActivity
+
+    style L1 fill:#fef2f0,stroke:#c0392b,stroke-width:2px
+    style L2 fill:#eef5fc,stroke:#2a6cb5,stroke-width:2px
+    style L3 fill:#eef8ee,stroke:#1a7a3a,stroke-width:2px
+    </pre>
+  </div>
+</div>
+
+<!-- 2 -->
+<div class="card" id="s2">
+  <h2>2. L1 层: 法规中心 -- <span class="badge badge-exists">已有</span></h2>
+  <p>L1 层已构建 (v2.0)。本节记录其 Schema 供跨层引用。</p>
+
+  <div class="layer-section l1">
+  <h3>2.1 节点类型 (13 种)</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>#</th><th>节点类型</th><th>关键属性</th><th>基数</th><th>KuzuDB 表</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><code>TaxType</code></td><td>name, code, rateRange, rateStructure, filingFrequency, liabilityType, category</td><td>18</td><td><span class="badge badge-exists">EXISTS</span></td></tr>
+      <tr><td>2</td><td><code>TaxpayerStatus</code></td><td>name, domain(VAT/CIT/PIT), thresholdValue, qualificationCriteria</td><td>~10</td><td><span class="badge badge-exists">EXISTS</span></td></tr>
+      <tr><td>3</td><td><code>EnterpriseType</code></td><td>name, classificationBasis, taxJurisdiction, globalIncomeScope</td><td>~8</td><td><span class="badge badge-exists">EXISTS</span></td></tr>
+      <tr><td>4</td><td><code>PersonalIncomeType</code></td><td>name, incomeCategory, rateStructure, standardDeduction</td><td>9</td><td><span class="badge badge-exists">EXISTS</span></td></tr>
+      <tr><td>5</td><td><code>LawOrRegulation</code></td><td>regulationNumber, title, issuingAuthority, regulationType, effectiveDate, status, hierarchyLevel, fullText</td><td>50K+</td><td><span class="badge badge-exists">EXISTS</span></td></tr>
+      <tr><td>6</td><td><code>AccountingStandard</code></td><td>name, casNumber, ifrsEquivalent, scope, differenceFromIfrs</td><td>43</td><td><span class="badge badge-exists">EXISTS</span></td></tr>
+      <tr><td>7</td><td><code>TaxIncentive</code></td><td>name, incentiveType, value, valueBasis, beneficiaryType, eligibilityCriteria, combinable</td><td>200+</td><td><span class="badge badge-exists">EXISTS</span></td></tr>
+      <tr><td>8</td><td><code>FTIndustry</code></td><td>gbCode, name, classificationLevel, parentIndustryId, hasPreferentialPolicy</td><td>~1500</td><td><span class="badge badge-exists">EXISTS</span></td></tr>
+      <tr><td>9</td><td><code>AdministrativeRegion</code></td><td>name, regionType, level(0-4), parentId</td><td>~3200</td><td><span class="badge badge-exists">EXISTS</span></td></tr>
+      <tr><td>10</td><td><code>SpecialZone</code></td><td>name, zoneType, locationRegionId, establishedDate</td><td>~200</td><td><span class="badge badge-exists">EXISTS</span></td></tr>
+      <tr><td>11</td><td><code>TaxAuthority</code></td><td>name, adminLevel(0-3), governingRegionId, policyMaking, enforcement</td><td>~3200</td><td><span class="badge badge-exists">EXISTS</span></td></tr>
+      <tr><td>12</td><td><code>FilingObligation</code></td><td>name, taxTypeId, filingFrequency, deadline, requiredDocuments, penaltyDescription</td><td>~50</td><td><span class="badge badge-exists">EXISTS</span></td></tr>
+      <tr><td>13</td><td><code>TaxRateVersion</code></td><td>taxTypeId, effectiveDate, expiryDate, rate, applicableStatus</td><td>~100</td><td><span class="badge badge-exists">EXISTS</span></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>2.2 边类型 (15 种, 全部 <code>FT_</code> 前缀)</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>#</th><th>边</th><th>From &rarr; To</th><th>关键属性</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><code>FT_APPLIES_TO</code></td><td>TaxType &rarr; TaxpayerStatus</td><td>specialTreatment, confidence</td></tr>
+      <tr><td>2</td><td><code>FT_QUALIFIES_FOR</code></td><td>TaxpayerStatus &rarr; TaxIncentive</td><td>priority, combinable, confidence</td></tr>
+      <tr><td>3</td><td><code>FT_MUST_REPORT</code></td><td>EnterpriseType &rarr; TaxType</td><td>incomeScope, confidence</td></tr>
+      <tr><td>4</td><td><code>FT_GOVERNED_BY</code></td><td>TaxType &rarr; LawOrRegulation</td><td>governanceLevel, effectiveFrom, effectiveUntil</td></tr>
+      <tr><td>5</td><td><code>FT_MAPS_TO</code></td><td>AccountingStandard &rarr; LawOrRegulation</td><td>mappingType, confidence</td></tr>
+      <tr><td>6</td><td><code>FT_AFFECTS</code></td><td>AccountingStandard &rarr; TaxType</td><td>impactArea, confidence</td></tr>
+      <tr><td>7</td><td><code>FT_INCENTIVE_TAX</code></td><td>TaxIncentive &rarr; TaxType</td><td>reductionAmount, reductionBasis</td></tr>
+      <tr><td>8</td><td><code>FT_INCENTIVE_REGION</code></td><td>TaxIncentive &rarr; AdministrativeRegion</td><td>geographicScope</td></tr>
+      <tr><td>9</td><td><code>FT_SUBJECT_TO</code></td><td>FTIndustry &rarr; TaxType</td><td>rateApplicable, specialRules</td></tr>
+      <tr><td>10</td><td><code>FT_OFFERS</code></td><td>SpecialZone &rarr; TaxIncentive</td><td>zoneExclusivity</td></tr>
+      <tr><td>11</td><td><code>FT_ADMINISTERS</code></td><td>TaxAuthority &rarr; AdministrativeRegion</td><td>exclusivity</td></tr>
+      <tr><td>12</td><td><code>FT_REPORTS_TO</code></td><td>TaxAuthority &rarr; TaxAuthority</td><td>reportingFrequency</td></tr>
+      <tr><td>13</td><td><code>FT_REFERENCES</code></td><td>LawOrRegulation &rarr; LawOrRegulation</td><td>referenceType, effectiveFrom</td></tr>
+      <tr><td>14</td><td><code>FT_TRIGGERS</code></td><td>FilingObligation &rarr; TaxType</td><td>triggeringCondition</td></tr>
+      <tr><td>15</td><td><code>FT_SUPERSEDES_RATE</code></td><td>TaxRateVersion &rarr; TaxRateVersion</td><td>replacementDate</td></tr>
+    </tbody>
+  </table></div>
+  </div>
+</div>
+
+<!-- 3 -->
+<div class="card" id="s3">
+  <h2>3. L2 层: 操作中心 -- <span class="badge badge-new">新建</span></h2>
+  <p>L2 层建模实际做账、凭证、科目表、申报流程、财务报表及企业生命周期活动。这是会计的主战场。</p>
+
+  <div class="layer-section l2">
+  <h3>3.1 节点类型 (9 种)</h3>
+
+  <h4>3.1.1 AccountEntry (会计分录模板)</h4>
+  <p>记录常见业务场景的标准化分录模板。<strong>预计基数</strong>: ~500 个模板。</p>
+  <pre class="sql"><span class="kw">CREATE NODE TABLE IF NOT EXISTS</span> AccountEntry (
+    id <span class="type">STRING</span> <span class="kw">PRIMARY KEY</span>,
+    name <span class="type">STRING</span>,                          <span class="comment">-- "销售软件产品收入确认"</span>
+    scenarioDescription <span class="type">STRING</span>,           <span class="comment">-- "企业销售自研软件产品, 含税价113万"</span>
+    debitAccountCode <span class="type">STRING</span>,              <span class="comment">-- "1122" (应收账款)</span>
+    debitAccountName <span class="type">STRING</span>,              <span class="comment">-- "应收账款"</span>
+    creditAccountCode <span class="type">STRING</span>,             <span class="comment">-- "6001" (主营业务收入)</span>
+    creditAccountName <span class="type">STRING</span>,             <span class="comment">-- "主营业务收入"</span>
+    amountFormula <span class="type">STRING</span>,                 <span class="comment">-- "含税金额 / (1 + 税率)"</span>
+    taxImplication <span class="type">STRING</span>,               <span class="comment">-- "销项税额 = 含税金额 / 1.13 * 0.13"</span>
+    applicableScenarios <span class="type">STRING</span>,          <span class="comment">-- JSON 数组</span>
+    applicableTaxpayerType <span class="type">STRING</span>,       <span class="comment">-- "一般纳税人" / "小规模纳税人" / "both"</span>
+    invoiceType <span class="type">STRING</span>,                  <span class="comment">-- "增值税专用发票" / "普通发票"</span>
+    invoiceRate <span class="type">DOUBLE</span>,                  <span class="comment">-- 0.13 / 0.06 / 0.03</span>
+    multiLineEntry <span class="type">BOOLEAN</span>,             <span class="comment">-- 多行复合分录</span>
+    entryLines <span class="type">STRING</span>,                   <span class="comment">-- JSON 行明细</span>
+    sourceRegulation <span class="type">STRING</span>,             <span class="comment">-- "CAS 14 / 财税[2011]100号"</span>
+    notes <span class="type">STRING</span>,
+    confidence <span class="type">DOUBLE</span>
+);</pre>
+
+  <h4>3.1.2 ChartOfAccount (科目表)</h4>
+  <p>PRC 财政部标准科目表 (2006 修订版 + 行业更新)。<strong>预计基数</strong>: ~800 个科目。</p>
+  <pre class="sql"><span class="kw">CREATE NODE TABLE IF NOT EXISTS</span> ChartOfAccount (
+    id <span class="type">STRING</span> <span class="kw">PRIMARY KEY</span>,
+    code <span class="type">STRING</span>,                          <span class="comment">-- "1001" (库存现金)</span>
+    name <span class="type">STRING</span>,                          <span class="comment">-- "库存现金"</span>
+    englishName <span class="type">STRING</span>,                   <span class="comment">-- "Cash on Hand"</span>
+    category <span class="type">STRING</span>,                      <span class="comment">-- assets/liabilities/equity/common/cost/profit_loss</span>
+    categoryCode <span class="type">INT64</span>,                   <span class="comment">-- 1=资产 2=负债 3=共同 4=权益 5=成本 6=损益</span>
+    level <span class="type">INT64</span>,                          <span class="comment">-- 1=一级科目 2=二级 3=三级 4=辅助</span>
+    parentAccountCode <span class="type">STRING</span>,
+    direction <span class="type">STRING</span>,                     <span class="comment">-- debit/credit (借方/贷方)</span>
+    isLeaf <span class="type">BOOLEAN</span>,
+    industryScope <span class="type">STRING</span>,                 <span class="comment">-- "general" / "manufacturing" / "software"</span>
+    standardBasis <span class="type">STRING</span>,                 <span class="comment">-- "企业会计准则" / "小企业会计准则"</span>
+    xbrlElement <span class="type">STRING</span>,
+    requiredForAudit <span class="type">BOOLEAN</span>,
+    notes <span class="type">STRING</span>
+);</pre>
+
+  <h4>3.1.3 JournalTemplate (凭证模板) -- ~100 个</h4>
+  <h4>3.1.4 FinancialStatement (财务报表) -- ~30 种</h4>
+  <h4>3.1.5 FilingForm (申报表) -- ~80 个</h4>
+  <h4>3.1.6 TaxRateMapping (商品税率映射) -- ~2000 条</h4>
+  <h4>3.1.7 IndustryBookkeeping (行业做账规范) -- ~50 种</h4>
+
+  <h4>3.1.8 LifecycleStage (生命周期阶段) -- 7 个</h4>
+  <div class="table-wrap"><table>
+    <thead><tr><th>stageOrder</th><th>名称</th><th>英文名</th><th>典型时长</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>设立期</td><td>Establishment</td><td>1-3 个月</td></tr>
+      <tr><td>2</td><td>日常经营期</td><td>Daily Operations</td><td>持续</td></tr>
+      <tr><td>3</td><td>月度结账期</td><td>Monthly Close</td><td>每月 1-15 日</td></tr>
+      <tr><td>4</td><td>季度结账期</td><td>Quarterly Close</td><td>季末之后</td></tr>
+      <tr><td>5</td><td>年度汇算清缴期</td><td>Annual Settlement</td><td>次年 1-5 月</td></tr>
+      <tr><td>6</td><td>特殊事项期</td><td>Special Events</td><td>按需</td></tr>
+      <tr><td>7</td><td>注销清算期</td><td>Dissolution</td><td>3-12 个月</td></tr>
+    </tbody>
+  </table></div>
+
+  <h4>3.1.9 LifecycleActivity (生命周期活动) -- ~200 个</h4>
+
+  <h3>3.2 边类型 (9 种, 全部 <code>OP_</code> 前缀)</h3>
+  <pre class="sql"><span class="comment">-- 1. AccountEntry -> ChartOfAccount (借方)</span>
+<span class="kw">CREATE REL TABLE IF NOT EXISTS</span> OP_DEBITS (
+    <span class="kw">FROM</span> AccountEntry <span class="kw">TO</span> ChartOfAccount,
+    lineOrder <span class="type">INT64</span>, amountFormula <span class="type">STRING</span>, confidence <span class="type">DOUBLE</span>
+);
+
+<span class="comment">-- 2. AccountEntry -> ChartOfAccount (贷方)</span>
+<span class="kw">CREATE REL TABLE IF NOT EXISTS</span> OP_CREDITS (
+    <span class="kw">FROM</span> AccountEntry <span class="kw">TO</span> ChartOfAccount,
+    lineOrder <span class="type">INT64</span>, amountFormula <span class="type">STRING</span>, confidence <span class="type">DOUBLE</span>
+);
+
+<span class="comment">-- 3. LifecycleActivity -> FilingForm</span>
+<span class="kw">CREATE REL TABLE IF NOT EXISTS</span> OP_USES_FORM (
+    <span class="kw">FROM</span> LifecycleActivity <span class="kw">TO</span> FilingForm,
+    formRole <span class="type">STRING</span>, isOptional <span class="type">BOOLEAN</span>, confidence <span class="type">DOUBLE</span>
+);
+
+<span class="comment">-- 4. TaxRateMapping -> TaxType (跨层到 L1)</span>
+<span class="kw">CREATE REL TABLE IF NOT EXISTS</span> OP_MAPS_TO_RATE (
+    <span class="kw">FROM</span> TaxRateMapping <span class="kw">TO</span> TaxType,
+    rateType <span class="type">STRING</span>, confidence <span class="type">DOUBLE</span>
+);
+
+<span class="comment">-- 5-9: OP_BELONGS_TO_STAGE, OP_PREREQUISITE_FOR,</span>
+<span class="comment">--      OP_INDUSTRY_VARIANT_OF, OP_PRODUCES, OP_FOLLOWS_STANDARD</span></pre>
+  </div>
+</div>
+
+<!-- 4 -->
+<div class="card" id="s4">
+  <h2>4. L3 层: 合规中心 -- <span class="badge badge-new">新建</span></h2>
+  <p>L3 层建模风险监控、稽查触发、处罚规则、合规清单、税务筹划优化及企业类型义务画像。这是合规官的主战场。</p>
+
+  <div class="layer-section l3">
+  <h3>4.1 节点类型 (8 种)</h3>
+
+  <h4>4.1.1 ComplianceRule (合规规则) -- ~300 条</h4>
+  <pre class="sql"><span class="kw">CREATE NODE TABLE IF NOT EXISTS</span> ComplianceRule (
+    id <span class="type">STRING</span> <span class="kw">PRIMARY KEY</span>,
+    name <span class="type">STRING</span>,                          <span class="comment">-- "增值税逾期申报处罚"</span>
+    ruleCode <span class="type">STRING</span>,                     <span class="comment">-- "CR-VAT-001"</span>
+    category <span class="type">STRING</span>,                     <span class="comment">-- "filing"/"payment"/"record_keeping"/"disclosure"/"substance"</span>
+    conditionDescription <span class="type">STRING</span>,         <span class="comment">-- "增值税纳税人未在次月15日前完成申报"</span>
+    conditionFormula <span class="type">STRING</span>,             <span class="comment">-- "filing_date > deadline_date"</span>
+    requiredAction <span class="type">STRING</span>,
+    violationConsequence <span class="type">STRING</span>,         <span class="comment">-- "每日加收滞纳金万分之五"</span>
+    severityLevel <span class="type">STRING</span>,                <span class="comment">-- "P0_critical"/"P1_major"/"P2_minor"/"P3_advisory"</span>
+    sourceRegulationId <span class="type">STRING</span>,
+    sourceClause <span class="type">STRING</span>,                 <span class="comment">-- "税收征管法 第六十二条"</span>
+    autoDetectable <span class="type">BOOLEAN</span>,
+    detectionQuery <span class="type">STRING</span>,              <span class="comment">-- Cypher 查询模式</span>
+    confidence <span class="type">DOUBLE</span>
+);</pre>
+
+  <h4>4.1.2 RiskIndicator (风险指标) -- ~150 个</h4>
+  <h4>4.1.3 AuditTrigger (稽查触发) -- ~50 个</h4>
+  <h4>4.1.4 Penalty (处罚) -- ~100 个</h4>
+  <pre class="sql"><span class="kw">CREATE NODE TABLE IF NOT EXISTS</span> Penalty (
+    id <span class="type">STRING</span> <span class="kw">PRIMARY KEY</span>,
+    name <span class="type">STRING</span>,                          <span class="comment">-- "逾期申报罚款"</span>
+    penaltyCode <span class="type">STRING</span>,
+    penaltyType <span class="type">STRING</span>,                  <span class="comment">-- "fine"/"surcharge"/"license_revocation"/"criminal"</span>
+    calculationMethod <span class="type">STRING</span>,            <span class="comment">-- "fixed"/"daily_rate"/"percentage"/"tiered"</span>
+    dailyRate <span class="type">DOUBLE</span>,                    <span class="comment">-- 0.0005 (万分之五/日, 滞纳金)</span>
+    fixedAmount <span class="type">DOUBLE</span>,                  <span class="comment">-- 2000.0 (首次违规罚款)</span>
+    percentageRate <span class="type">DOUBLE</span>,               <span class="comment">-- 0.5~5.0 (50%-500% 逃税)</span>
+    criminalThreshold <span class="type">DOUBLE</span>,            <span class="comment">-- 达到此金额追究刑事责任</span>
+    criminalStatute <span class="type">STRING</span>,              <span class="comment">-- "刑法 第二百零一条 逃税罪"</span>
+    firstOffenseLeniency <span class="type">STRING</span>,        <span class="comment">-- "首次免罚"/"减轻处罚"</span>
+    sourceRegulation <span class="type">STRING</span>,
+    confidence <span class="type">DOUBLE</span>
+);</pre>
+
+  <h4>4.1.5 ComplianceChecklist (合规清单) -- ~60 个</h4>
+  <h4>4.1.6 TaxCalendar (税务日历) -- ~200/年</h4>
+  <h4>4.1.7 TaxPlanningStrategy (税务筹划) -- ~80 个</h4>
+  <h4>4.1.8 EntityTypeProfile (企业类型画像) -- ~12 个</h4>
+
+  <h3>4.2 边类型 (7 种, 全部 <code>CO_</code> 前缀)</h3>
+  <pre class="sql"><span class="comment">-- 1. RiskIndicator -> ComplianceRule</span>
+<span class="kw">CREATE REL TABLE IF NOT EXISTS</span> CO_VIOLATES (
+    <span class="kw">FROM</span> RiskIndicator <span class="kw">TO</span> ComplianceRule,
+    violationType <span class="type">STRING</span>, evidenceStrength <span class="type">STRING</span>, confidence <span class="type">DOUBLE</span>
+);
+
+<span class="comment">-- 2. ComplianceRule -> Penalty</span>
+<span class="kw">CREATE REL TABLE IF NOT EXISTS</span> CO_PENALIZED_BY (
+    <span class="kw">FROM</span> ComplianceRule <span class="kw">TO</span> Penalty,
+    penaltyApplicability <span class="type">STRING</span>, firstOffenseExempt <span class="type">BOOLEAN</span>, confidence <span class="type">DOUBLE</span>
+);
+
+<span class="comment">-- 3-7: CO_TRIGGERED_BY, CO_CHECKED_BY, CO_DEADLINE_FOR,</span>
+<span class="comment">--      CO_OPTIMIZED_BY, CO_APPLICABLE_TO</span></pre>
+  </div>
+</div>
+
+<!-- 5 -->
+<div class="card" id="s5">
+  <h2>5. 跨层边 -- <span class="badge badge-xl">XL</span></h2>
+  <p>这 5 种边将三层连接为统一的可遍历图。</p>
+
+  <div class="layer-section xl">
+  <pre class="sql"><span class="comment">-- 1. L1 -> L2: 法规如何在做账中实施</span>
+<span class="kw">CREATE REL TABLE IF NOT EXISTS</span> XL_IMPLEMENTED_BY (
+    <span class="kw">FROM</span> LawOrRegulation <span class="kw">TO</span> AccountEntry,
+    implementationScope <span class="type">STRING</span>,  <span class="comment">-- "full"/"partial"/"interpretive"</span>
+    specificClause <span class="type">STRING</span>,       <span class="comment">-- "第十四条"</span>
+    confidence <span class="type">DOUBLE</span>
+);
+
+<span class="comment">-- 2. L1 -> L3: 法规如何被执行</span>
+<span class="kw">CREATE REL TABLE IF NOT EXISTS</span> XL_ENFORCED_BY (
+    <span class="kw">FROM</span> LawOrRegulation <span class="kw">TO</span> ComplianceRule,
+    enforcementType <span class="type">STRING</span>,     <span class="comment">-- "mandatory"/"encouraged"/"prohibited"</span>
+    specificClause <span class="type">STRING</span>,
+    confidence <span class="type">DOUBLE</span>
+);
+
+<span class="comment">-- 3. L2 -> L3: 每项活动适用哪些合规检查</span>
+<span class="kw">CREATE REL TABLE IF NOT EXISTS</span> XL_MONITORED_BY (
+    <span class="kw">FROM</span> LifecycleActivity <span class="kw">TO</span> ComplianceChecklist,
+    monitoringScope <span class="type">STRING</span>,     <span class="comment">-- "pre_activity"/"during"/"post_activity"</span>
+    confidence <span class="type">DOUBLE</span>
+);
+
+<span class="comment">-- 4. L3 -> L1: 合规规则的法律依据</span>
+<span class="kw">CREATE REL TABLE IF NOT EXISTS</span> XL_REFERENCES (
+    <span class="kw">FROM</span> ComplianceRule <span class="kw">TO</span> LawOrRegulation,
+    referenceType <span class="type">STRING</span>,       <span class="comment">-- "primary_basis"/"supplementary"/"interpretation"</span>
+    specificClause <span class="type">STRING</span>,
+    confidence <span class="type">DOUBLE</span>
+);
+
+<span class="comment">-- 5. L3 -> L2: 检测到风险时采取什么纠正措施</span>
+<span class="kw">CREATE REL TABLE IF NOT EXISTS</span> XL_TRIGGERS_ACTION (
+    <span class="kw">FROM</span> RiskIndicator <span class="kw">TO</span> LifecycleActivity,
+    urgency <span class="type">STRING</span>,             <span class="comment">-- "immediate"/"next_period"/"scheduled"</span>
+    actionType <span class="type">STRING</span>,          <span class="comment">-- "corrective"/"preventive"/"investigative"</span>
+    confidence <span class="type">DOUBLE</span>
+);</pre>
+  </div>
+</div>
+
+<!-- 6 -->
+<div class="card" id="s6">
+  <h2>6. 完整 Schema 汇总</h2>
+
+  <h3>6.1 节点类型总计</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>层</th><th>节点类型数</th><th>总基数</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge badge-l1">L1 法规中心</span> (已有)</td><td>13</td><td>~55,500</td></tr>
+      <tr><td><span class="badge badge-l2">L2 操作中心</span> (新建)</td><td>9</td><td>~3,760</td></tr>
+      <tr><td><span class="badge badge-l3">L3 合规中心</span> (新建)</td><td>8</td><td>~1,050</td></tr>
+      <tr><td><strong>合计</strong></td><td><strong>30</strong></td><td><strong>~60,310</strong></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>6.2 边类型总计</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>类别</th><th>边类型数</th><th>前缀</th><th>预计边数</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge badge-l1">L1</span> 层内 (已有)</td><td>15</td><td><code>FT_</code></td><td>~100,000</td></tr>
+      <tr><td><span class="badge badge-l2">L2</span> 层内 (新建)</td><td>9</td><td><code>OP_</code></td><td>~5,000</td></tr>
+      <tr><td><span class="badge badge-l3">L3</span> 层内 (新建)</td><td>7</td><td><code>CO_</code></td><td>~2,000</td></tr>
+      <tr><td><span class="badge badge-xl">XL</span> 跨层 (新建)</td><td>5</td><td><code>XL_</code></td><td>~3,000</td></tr>
+      <tr><td><strong>合计</strong></td><td><strong>36</strong></td><td>--</td><td><strong>~110,000</strong></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>6.3 命名规范</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>前缀</th><th>层</th><th>含义</th></tr></thead>
+    <tbody>
+      <tr><td><code>FT_</code></td><td><span class="badge badge-l1">L1</span></td><td>财税法规边</td></tr>
+      <tr><td><code>OP_</code></td><td><span class="badge badge-l2">L2</span></td><td>操作/做账边</td></tr>
+      <tr><td><code>CO_</code></td><td><span class="badge badge-l3">L3</span></td><td>合规/风控边</td></tr>
+      <tr><td><code>XL_</code></td><td><span class="badge badge-xl">XL</span></td><td>跨层连接</td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<!-- 7 -->
+<div class="card" id="s7">
+  <h2>7. 示例 Cypher 查询</h2>
+
+  <h3>7.1 L1 层: "增值税法最新规定是什么?"</h3>
+  <pre class="cypher"><span class="comment">-- 按层级查找最新生效的增值税法规</span>
+<span class="kw">MATCH</span> (tax:TaxType {name: '增值税'})<-[g:FT_GOVERNED_BY]-(law:LawOrRegulation)
+<span class="kw">WHERE</span> law.status = <span class="str">'active'</span>
+<span class="kw">RETURN</span> law.regulationNumber, law.title, law.hierarchyLevel,
+       law.effectiveDate, law.issuingAuthority
+<span class="kw">ORDER BY</span> law.hierarchyLevel <span class="kw">ASC</span>, law.effectiveDate <span class="kw">DESC</span>
+<span class="kw">LIMIT</span> 10;</pre>
+
+  <h3>7.2 L2 层: "卖软件产品怎么做分录?"</h3>
+  <pre class="cypher"><span class="comment">-- 查找软件产品销售的分录模板</span>
+<span class="kw">MATCH</span> (entry:AccountEntry)
+<span class="kw">WHERE</span> entry.applicableScenarios <span class="kw">CONTAINS</span> <span class="str">'软件销售'</span>
+   <span class="kw">OR</span> entry.name <span class="kw">CONTAINS</span> <span class="str">'软件'</span>
+<span class="kw">MATCH</span> (entry)-[d:OP_DEBITS]->(debitAcct:ChartOfAccount)
+<span class="kw">MATCH</span> (entry)-[c:OP_CREDITS]->(creditAcct:ChartOfAccount)
+<span class="kw">OPTIONAL MATCH</span> (rate:TaxRateMapping)
+<span class="kw">WHERE</span> rate.productCategory <span class="kw">CONTAINS</span> <span class="str">'软件'</span>
+<span class="kw">RETURN</span> entry.name, entry.scenarioDescription,
+       debitAcct.code, debitAcct.name,
+       creditAcct.code, creditAcct.name,
+       entry.invoiceType, entry.invoiceRate,
+       rate.specialPolicy, rate.specialPolicyDetail
+<span class="kw">ORDER BY</span> d.lineOrder;</pre>
+
+  <h3>7.3 L3 层: "我们公司下个月有什么合规风险?"</h3>
+  <pre class="cypher"><span class="comment">-- 一般纳税人有限公司的下月合规义务 + 风险指标</span>
+<span class="kw">MATCH</span> (profile:EntityTypeProfile {entityType: <span class="str">'LLC'</span>, taxpayerCategory: <span class="str">'一般纳税人'</span>})
+      -[:CO_APPLICABLE_TO]->(cl:ComplianceChecklist)
+<span class="kw">WHERE</span> cl.frequency = <span class="str">'monthly'</span>
+<span class="kw">MATCH</span> (cl)-[:CO_CHECKED_BY]->(rule:ComplianceRule)
+<span class="kw">OPTIONAL MATCH</span> (cal:TaxCalendar)
+<span class="kw">WHERE</span> cal.calendarYear = 2026 <span class="kw">AND</span> cal.calendarMonth = 4
+<span class="kw">MATCH</span> (cal)-[:CO_DEADLINE_FOR]->(form:FilingForm)
+<span class="kw">RETURN</span> cl.name, rule.name, rule.severityLevel,
+       cal.adjustedDeadline, form.name, form.formNumber
+<span class="kw">ORDER BY</span> cal.adjustedDeadline <span class="kw">ASC</span>, rule.severityLevel <span class="kw">ASC</span>;</pre>
+
+  <h3>7.4 跨层: "上海高新技术软件企业, 从设立到年度汇算清缴完整流程"</h3>
+  <pre class="cypher"><span class="comment">-- 完整生命周期: 设立 -> 日常 -> 月度 -> 季度 -> 年度汇算</span>
+<span class="kw">MATCH</span> (profile:EntityTypeProfile {entityType: <span class="str">'LLC'</span>, taxpayerCategory: <span class="str">'一般纳税人'</span>})
+<span class="kw">MATCH</span> (stage:LifecycleStage) <span class="kw">WHERE</span> stage.stageOrder <= 5
+<span class="kw">MATCH</span> (activity:LifecycleActivity)-[:OP_BELONGS_TO_STAGE]->(stage)
+<span class="kw">OPTIONAL MATCH</span> (activity)-[:OP_USES_FORM]->(form:FilingForm)
+<span class="kw">OPTIONAL MATCH</span> (activity)-[:XL_MONITORED_BY]->(checklist:ComplianceChecklist)
+<span class="kw">OPTIONAL MATCH</span> (strategy:TaxPlanningStrategy)
+<span class="kw">WHERE</span> strategy.applicableIndustries <span class="kw">CONTAINS</span> <span class="str">'软件'</span>
+<span class="kw">RETURN</span> stage.stageOrder, stage.name,
+       activity.activityOrder, activity.name, activity.deadlineRule,
+       form.formNumber, form.name,
+       checklist.name, strategy.name, strategy.estimatedSavingRange
+<span class="kw">ORDER BY</span> stage.stageOrder, activity.activityOrder;</pre>
+
+  <h3>7.5 端到端: "增值税即征即退政策的完整链路"</h3>
+  <pre class="cypher"><span class="comment">-- 三层贯穿: 法规 -> 做账 -> 合规</span>
+<span class="kw">MATCH</span> (law:LawOrRegulation)
+<span class="kw">WHERE</span> law.title <span class="kw">CONTAINS</span> <span class="str">'即征即退'</span>
+   <span class="kw">OR</span> law.regulationNumber = <span class="str">'财税[2011]100号'</span>
+<span class="kw">MATCH</span> (law)-[:XL_IMPLEMENTED_BY]->(entry:AccountEntry)
+<span class="kw">MATCH</span> (entry)-[:OP_DEBITS]->(debit:ChartOfAccount)
+<span class="kw">MATCH</span> (entry)-[:OP_CREDITS]->(credit:ChartOfAccount)
+<span class="kw">MATCH</span> (law)-[:XL_ENFORCED_BY]->(rule:ComplianceRule)
+<span class="kw">OPTIONAL MATCH</span> (rule)<-[:CO_VIOLATES]-(risk:RiskIndicator)
+<span class="kw">OPTIONAL MATCH</span> (strategy:TaxPlanningStrategy)
+<span class="kw">WHERE</span> strategy.sourceRegulation <span class="kw">CONTAINS</span> <span class="str">'即征即退'</span>
+<span class="kw">RETURN</span> law.title, law.regulationNumber,
+       entry.name, debit.name, credit.name,
+       rule.name, rule.violationConsequence,
+       risk.name, risk.severity,
+       strategy.name, strategy.estimatedSavingRange;</pre>
+</div>
+
+<!-- 8 -->
+<div class="card" id="s8">
+  <h2>8. 基数估算</h2>
+
+  <h3>8.1 节点基数 (按层)</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>层</th><th>节点类型</th><th>预计数量</th><th>增长率</th><th>数据来源</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge badge-l1">L1</span></td><td>TaxType</td><td>18</td><td>静态 (仅立法变更)</td><td>PRC 税法枚举</td></tr>
+      <tr><td>L1</td><td>LawOrRegulation</td><td>50,000+</td><td>~2,000/年</td><td>政府网站爬取</td></tr>
+      <tr><td>L1</td><td>AccountingStandard</td><td>43</td><td>~1/年</td><td>财政部修订</td></tr>
+      <tr><td>L1</td><td>FTIndustry</td><td>~1,500</td><td>静态 (~10 年修订)</td><td>GB/T 4754-2017</td></tr>
+      <tr><td>L1</td><td>AdministrativeRegion</td><td>~3,200</td><td>~5/年 (区划合并)</td><td>民政部数据</td></tr>
+      <tr><td><span class="badge badge-l2">L2</span></td><td>AccountEntry</td><td>~500</td><td>~50/年 (新场景)</td><td>专家整理</td></tr>
+      <tr><td>L2</td><td>ChartOfAccount</td><td>~800</td><td>~10/年 (行业修订)</td><td>财政部科目表 + 行业</td></tr>
+      <tr><td>L2</td><td>TaxRateMapping</td><td>~2,000</td><td>~100/年 (税率变更)</td><td>税率政策变动</td></tr>
+      <tr><td>L2</td><td>LifecycleStage</td><td>7</td><td>静态</td><td>固定生命周期模型</td></tr>
+      <tr><td>L2</td><td>LifecycleActivity</td><td>~200</td><td>~10/年</td><td>法规变更</td></tr>
+      <tr><td><span class="badge badge-l3">L3</span></td><td>ComplianceRule</td><td>~300</td><td>~30/年</td><td>新法规</td></tr>
+      <tr><td>L3</td><td>RiskIndicator</td><td>~150</td><td>~15/年</td><td>稽查模式演进</td></tr>
+      <tr><td>L3</td><td>TaxCalendar</td><td>~200/年</td><td>每年重新生成</td><td>日历计算</td></tr>
+      <tr><td>L3</td><td>TaxPlanningStrategy</td><td>~80</td><td>~10/年</td><td>政策变化</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>8.2 边基数 (按类型)</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>边类型</th><th>预计数量</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge badge-l1">L1</span> (已有, 15 种)</td><td>~100,000</td><td>以 LawOrRegulation 引用为主</td></tr>
+      <tr><td><span class="badge badge-l2">L2</span> (新建, 9 种)</td><td>~5,000</td><td>OP_DEBITS + OP_CREDITS 占大头</td></tr>
+      <tr><td><span class="badge badge-l3">L3</span> (新建, 7 种)</td><td>~2,000</td><td>CO_CHECKED_BY 占大头</td></tr>
+      <tr><td><span class="badge badge-xl">XL</span> (新建, 5 种)</td><td>~3,000</td><td>XL_IMPLEMENTED_BY 占大头</td></tr>
+      <tr><td><strong>合计</strong></td><td><strong>~110,000</strong></td><td></td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<!-- 9 -->
+<div class="card" id="s9">
+  <h2>9. 实施优先级</h2>
+
+  <h3>Phase 1: 基础 (第 1-2 周) -- 最高价值</h3>
+  <p>构建最小可行 L2 + L3, 支持端到端生命周期查询。</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>优先级</th><th>节点/边</th><th>理由</th><th>依赖</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge badge-l1">P0</span></td><td><code>LifecycleStage</code> (7 节点)</td><td>L2 结构骨架</td><td>无 (种子数据)</td></tr>
+      <tr><td><span class="badge badge-l1">P0</span></td><td><code>LifecycleActivity</code> (~50 核心)</td><td>最常被问: "我需要做什么?"</td><td>LifecycleStage</td></tr>
+      <tr><td><span class="badge badge-l1">P0</span></td><td><code>FilingForm</code> (~30 核心)</td><td>申报是会计的第一任务</td><td>TaxType (L1)</td></tr>
+      <tr><td><span class="badge badge-l1">P0</span></td><td><code>ComplianceRule</code> (~50 核心)</td><td>基本合规门控</td><td>LawOrRegulation (L1)</td></tr>
+      <tr><td><span class="badge badge-l1">P0</span></td><td><code>XL_ENFORCED_BY</code> + <code>XL_REFERENCES</code></td><td>连接法规与规则</td><td>L1 + ComplianceRule</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Phase 2: 做账核心 (第 3-4 周)</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>优先级</th><th>节点/边</th><th>理由</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge badge-l2">P1</span></td><td><code>ChartOfAccount</code> (~160 一级)</td><td>所有分录的基础</td></tr>
+      <tr><td><span class="badge badge-l2">P1</span></td><td><code>AccountEntry</code> (~100 常用)</td><td>Top-100 最常见场景</td></tr>
+      <tr><td><span class="badge badge-l2">P1</span></td><td><code>TaxRateMapping</code> (~500 核心)</td><td>产品 &rarr; 税率查询</td></tr>
+      <tr><td><span class="badge badge-l2">P1</span></td><td><code>TaxCalendar</code> (当年)</td><td>截止日告警</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Phase 3: 风控合规 (第 5-6 周)</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>优先级</th><th>节点/边</th><th>理由</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge badge-l3">P2</span></td><td><code>RiskIndicator</code> (~50 核心)</td><td>Top-50 金税指标</td></tr>
+      <tr><td><span class="badge badge-l3">P2</span></td><td><code>Penalty</code> (~30 核心)</td><td>头部违规处罚计算</td></tr>
+      <tr><td><span class="badge badge-l3">P2</span></td><td><code>AuditTrigger</code> (~20 核心)</td><td>最常见稽查触发</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Phase 4: 优化与行业 (第 7-8 周)</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>优先级</th><th>节点/边</th><th>理由</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge badge-xl">P3</span></td><td><code>EntityTypeProfile</code> (12 节点)</td><td>企业类型义务矩阵</td></tr>
+      <tr><td><span class="badge badge-xl">P3</span></td><td><code>TaxPlanningStrategy</code> (~30 核心)</td><td>合法税务筹划</td></tr>
+      <tr><td><span class="badge badge-xl">P3</span></td><td><code>IndustryBookkeeping</code> (~20 头部)</td><td>行业专项处理</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>价值/工作量矩阵</h3>
+  <pre class="generic">                     高价值
+                        |
+   P0 生命周期 +    ----+---- P1 做账核心
+   申报 + 规则          |     (6 种类型, 数据密集)
+   (10 种类型, 种子)     |
+                        |
+   低工作量 -----------+----------- 高工作量
+                        |
+   P3 企业画像          |     P2 风控 + 合规
+   + 税务筹划           |     (8 种类型, 需
+   (6 种类型, 静态)      |      专家整理)
+                        |
+                     低价值</pre>
+  <p>P0 立即交付 "下一步该做什么?" 能力。P1 补充 "怎么做账?" (会计日常流程)。P2 补充 "有什么风险?" (合规官视角)。P3 补充优化和行业深度。</p>
+</div>
+
+<!-- 10 -->
+<div class="card" id="s10">
+  <h2>10. 决策日志</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>#</th><th>决策</th><th>备选方案</th><th>选择</th><th>理由</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>D1</td>
+        <td>边命名规范</td>
+        <td>(A) 扁平名称; (B) 层前缀 FT_/OP_/CO_/XL_; (C) 每层独立 DB</td>
+        <td><strong>B: 层前缀</strong></td>
+        <td>保持单一 KuzuDB 实例 (无需跨库 Join); 避免命名冲突 (L1 和 L3 都有 REFERENCES); 使层范围查询在 Cypher 中显式化</td>
+      </tr>
+      <tr>
+        <td>D2</td>
+        <td>FilingForm 放置层</td>
+        <td>(A) L1 (法规产物); (B) L2 (操作工具); (C) 两层同步</td>
+        <td><strong>B: L2 层</strong></td>
+        <td>FilingForm 是操作工具 -- 会计填写, 合规检查。L1 的 FilingObligation 已捕获法规要求; FilingForm 捕获 "怎么填"。跨层边 CO_DEADLINE_FOR 清晰连接 L3 TaxCalendar 到 L2 FilingForm</td>
+      </tr>
+      <tr>
+        <td>D3</td>
+        <td>生命周期粒度</td>
+        <td>(A) 4 阶段; (B) 7 阶段; (C) 12 阶段</td>
+        <td><strong>B: 7 阶段</strong></td>
+        <td>4 阶段太粗 (月度结账和年度汇算清缴活动完全不同)。12 阶段冗余。7 阶段与真实企业财务节奏 1:1 映射</td>
+      </tr>
+    </tbody>
+  </table></div>
+</div>
+
+<!-- 11 -->
+<div class="card" id="s11">
+  <h2>11. KuzuDB 实施说明</h2>
+
+  <h3>11.1 Python 常量 (集成到 cognebula.py)</h3>
+  <p>以下常量应添加到 <code>cognebula.py</code>, 与已有的 <code>FINANCE_TAX_NODE_TABLES</code> 和 <code>FINANCE_TAX_REL_SPECS</code> 并列:</p>
+  <ul>
+    <li><code>OPERATION_CENTER_NODE_TABLES</code> -- 9 种 L2 节点表定义</li>
+    <li><code>OPERATION_CENTER_REL_SPECS</code> -- 9 种 L2 关系边定义</li>
+    <li><code>COMPLIANCE_CENTER_NODE_TABLES</code> -- 8 种 L3 节点表定义</li>
+    <li><code>COMPLIANCE_CENTER_REL_SPECS</code> -- 7 种 L3 关系边定义</li>
+    <li><code>CROSS_LAYER_REL_SPECS</code> -- 5 种 XL 跨层边定义</li>
+  </ul>
+
+  <h3>11.2 Schema 演进策略</h3>
+  <ul>
+    <li>所有新表使用 <code>CREATE NODE TABLE IF NOT EXISTS</code> / <code>CREATE REL TABLE IF NOT EXISTS</code></li>
+    <li>已有 L1 表不变; 跨层边通过已有表名引用</li>
+    <li><code>init_kuzu_db()</code> 应遍历全部 4 个常量字典 (FT_, OP_, CO_, XL_)</li>
+    <li>迁移策略: v1 仅做增量, 不做列删除或重命名</li>
+  </ul>
+</div>
+
+<footer>
+  <p>CogNebula Enterprise v3.0 -- 三层架构文档</p>
+  <p>Maurice | maurice_wen@proton.me</p>
+  <p style="font-size:12px; margin-top:8px;">Generated 2026-03-15 | 数据来源: THREE_LAYER_ARCHITECTURE.md v1.0</p>
+</footer>
+
+</div>
+
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: 'default', securityLevel: 'loose' });
+</script>
+</body>
+</html>

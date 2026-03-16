@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CogNebula 财税知识引擎 -- AI 原生架构愿景</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue-900: #002855;
+  --blue-700: #003A70;
+  --blue-500: #0066B3;
+  --blue-300: #4D9FD9;
+  --blue-100: #E8F0FE;
+  --blue-50: #F4F7FB;
+  --green: #1B7F4B;
+  --green-light: #E6F4EC;
+  --amber: #D4850D;
+  --amber-light: #FEF3E0;
+  --red: #C4281C;
+  --red-light: #FDECEB;
+  --ink: #1A1A2E;
+  --body: #2D2D3F;
+  --secondary: #5A5A72;
+  --muted: #8E8EA0;
+  --rule: #D4D4DC;
+  --bg: #FFFFFF;
+  --bg-gray: #F5F5F8;
+  --bg-dark: #002855;
+  --font-headline: 'Inter', 'Noto Sans SC', 'PingFang SC', sans-serif;
+  --font-body: 'Inter', 'Noto Sans SC', 'PingFang SC', sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-body); color: var(--body); line-height: 1.7; background: var(--bg); word-break: keep-all; overflow-wrap: break-word; }
+.container { max-width: 1040px; margin: 0 auto; padding: 0 32px; }
+
+/* CJK Anti-orphan */
+p, li, td, th, .key-message, .pillar p, .scenario-output p { word-break: keep-all; overflow-wrap: break-word; }
+
+/* Hero */
+.hero { background: var(--bg-dark); color: #fff; padding: 64px 0 56px; }
+.hero h1 { font-family: var(--font-headline); font-weight: 900; font-size: 2.4rem; margin-bottom: 16px; letter-spacing: -0.02em; line-height: 1.3; }
+.hero .subtitle { color: rgba(255,255,255,0.78); font-size: 1.05rem; line-height: 1.9; max-width: 760px; }
+.hero .meta { margin-top: 24px; font-size: 13px; color: rgba(255,255,255,0.45); font-family: var(--font-mono); }
+
+/* Key Message Bar */
+.key-message { background: var(--blue-100); border-left: 4px solid var(--blue-700); padding: 24px 28px; margin: 36px 0; font-size: 1.05rem; font-weight: 600; color: var(--ink); line-height: 1.9; }
+
+/* Section */
+.section { margin: 56px 0; }
+.section-number { font-family: var(--font-headline); font-weight: 900; font-size: 3rem; color: var(--blue-700); line-height: 1; margin-bottom: 4px; }
+.section-title { font-family: var(--font-headline); font-weight: 800; font-size: 1.4rem; color: var(--ink); margin-bottom: 8px; border-bottom: 3px solid var(--ink); padding-bottom: 8px; display: inline-block; }
+.section-lead { color: var(--secondary); font-size: 0.95rem; margin-bottom: 24px; line-height: 1.8; }
+
+/* Gray Box */
+.gray-box { background: var(--bg-gray); padding: 24px; border-radius: 0; margin: 20px 0; }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 16px 0; }
+th { background: var(--blue-900); color: #fff; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; padding: 10px 14px; text-align: left; }
+th.num { text-align: right; }
+th.center { text-align: center; }
+td { padding: 10px 14px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+tr:nth-child(even) td { background: var(--blue-50); }
+td.num { text-align: right; font-family: var(--font-mono); font-size: 13px; }
+td.center { text-align: center; }
+td.green { color: var(--green); font-weight: 600; }
+td.amber { color: var(--amber); font-weight: 600; }
+td.red { color: var(--red); font-weight: 600; }
+td.bold { font-weight: 700; color: var(--ink); }
+
+/* Signal Tags */
+.tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+.tag-green { background: var(--green-light); color: var(--green); }
+.tag-amber { background: var(--amber-light); color: var(--amber); }
+.tag-red { background: var(--red-light); color: var(--red); }
+.tag-blue { background: var(--blue-100); color: var(--blue-700); }
+
+/* Pillar Grid */
+.pillar-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 24px 0; }
+.pillar-grid-5 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 24px 0; }
+.pillar { background: var(--bg-gray); padding: 24px; border-top: 4px solid var(--blue-700); }
+.pillar h4 { font-weight: 800; font-size: 1rem; color: var(--ink); margin-bottom: 8px; }
+.pillar .num { font-family: var(--font-mono); font-size: 2rem; font-weight: 700; color: var(--blue-700); }
+.pillar p { font-size: 13px; color: var(--secondary); margin-top: 8px; line-height: 1.7; }
+.pillar .pillar-tag { font-size: 11px; font-weight: 700; color: var(--blue-500); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+
+/* 2x2 Matrix */
+.matrix-2x2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: var(--rule); margin: 20px 0; }
+.matrix-cell { background: var(--bg); padding: 24px; }
+.matrix-cell.highlight { background: var(--blue-100); }
+.matrix-cell h5 { font-weight: 700; font-size: 13px; color: var(--blue-700); margin-bottom: 8px; text-transform: uppercase; }
+.matrix-cell p { font-size: 13px; color: var(--secondary); line-height: 1.7; }
+.matrix-label-row { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; margin-bottom: 0; }
+.matrix-label { text-align: center; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; padding: 8px 0; }
+.matrix-axis-y { writing-mode: vertical-lr; text-orientation: mixed; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; display: flex; align-items: center; justify-content: center; padding: 0 8px; }
+
+/* Architecture Layers */
+.arch-layers { display: grid; grid-template-columns: 1fr; gap: 0; margin: 24px 0; }
+.arch-layer { padding: 20px 24px; border-left: 4px solid; display: grid; grid-template-columns: 100px 1fr; gap: 16px; align-items: start; }
+.arch-layer .layer-id { font-family: var(--font-mono); font-weight: 800; font-size: 1.1rem; }
+.arch-layer .layer-content h4 { font-weight: 800; font-size: 0.95rem; color: var(--ink); margin-bottom: 4px; }
+.arch-layer .layer-content p { font-size: 13px; color: var(--secondary); line-height: 1.7; }
+.layer-l4 { background: var(--blue-100); border-color: var(--blue-700); }
+.layer-l4 .layer-id { color: var(--blue-700); }
+.layer-l3 { background: #FFF8F0; border-color: var(--amber); }
+.layer-l3 .layer-id { color: var(--amber); }
+.layer-l2 { background: var(--green-light); border-color: var(--green); }
+.layer-l2 .layer-id { color: var(--green); }
+.layer-l1 { background: var(--bg-gray); border-color: var(--secondary); }
+.layer-l1 .layer-id { color: var(--secondary); }
+
+/* Pyramid */
+.pyramid { margin: 24px auto; max-width: 700px; }
+.pyramid-level { padding: 16px 24px; text-align: center; margin: 0 auto; position: relative; }
+.pyramid-level h5 { font-weight: 800; font-size: 13px; color: #fff; margin-bottom: 4px; }
+.pyramid-level p { font-size: 12px; color: rgba(255,255,255,0.85); }
+.pyramid-level .pct { font-family: var(--font-mono); font-weight: 700; font-size: 1.1rem; color: #fff; }
+.pyr-1 { background: var(--blue-900); width: 40%; border-radius: 2px 2px 0 0; }
+.pyr-2 { background: var(--blue-700); width: 58%; }
+.pyr-3 { background: var(--blue-500); width: 76%; }
+.pyr-4 { background: var(--blue-300); width: 94%; border-radius: 0 0 2px 2px; }
+
+/* Scenario Card */
+.scenario-card { background: var(--bg-gray); margin: 24px 0; padding: 0; overflow: hidden; }
+.scenario-header { background: var(--blue-900); color: #fff; padding: 14px 24px; display: flex; align-items: center; gap: 12px; }
+.scenario-header h4 { font-weight: 800; font-size: 1rem; }
+.scenario-header .scenario-en { font-size: 12px; color: rgba(255,255,255,0.6); font-family: var(--font-mono); }
+.scenario-body { padding: 24px; }
+.scenario-flow { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 0; align-items: stretch; margin: 0; }
+.scenario-step { padding: 16px; }
+.scenario-step h5 { font-size: 12px; font-weight: 700; color: var(--blue-700); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+.scenario-step p { font-size: 13px; color: var(--body); line-height: 1.7; }
+.scenario-step code { font-family: var(--font-mono); font-size: 12px; background: var(--blue-100); padding: 2px 6px; border-radius: 2px; color: var(--blue-700); }
+.scenario-arrow { display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--blue-700); font-weight: 900; padding: 0 4px; }
+.scenario-output { background: #fff; border: 2px solid var(--green); padding: 16px; margin-top: 16px; }
+.scenario-output h5 { font-size: 12px; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+.scenario-output p { font-size: 13px; color: var(--body); line-height: 1.7; }
+
+/* Timeline */
+.timeline { position: relative; padding-left: 40px; margin: 24px 0; }
+.timeline::before { content: ''; position: absolute; left: 15px; top: 0; bottom: 0; width: 3px; background: var(--blue-500); }
+.timeline-item { position: relative; margin-bottom: 32px; }
+.timeline-item::before { content: ''; position: absolute; left: -33px; top: 4px; width: 14px; height: 14px; border-radius: 50%; border: 3px solid var(--blue-500); background: #fff; }
+.timeline-item.active::before { background: var(--blue-500); }
+.timeline-item h4 { font-weight: 800; font-size: 1rem; color: var(--ink); margin-bottom: 4px; }
+.timeline-item .timeline-meta { font-size: 12px; font-family: var(--font-mono); color: var(--blue-500); margin-bottom: 6px; }
+.timeline-item p { font-size: 13px; color: var(--secondary); line-height: 1.7; }
+
+/* Tech Stack Grid */
+.tech-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin: 24px 0; }
+.tech-item { background: var(--bg-gray); padding: 20px; border-left: 3px solid var(--blue-500); }
+.tech-item h4 { font-weight: 800; font-size: 0.9rem; color: var(--ink); margin-bottom: 6px; }
+.tech-item .tech-label { font-size: 11px; font-weight: 700; color: var(--blue-500); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+.tech-item p { font-size: 13px; color: var(--secondary); line-height: 1.7; }
+
+/* Comparison indicator */
+.win { background: var(--green-light); color: var(--green); font-weight: 700; }
+.gap { background: var(--blue-100); color: var(--blue-700); font-weight: 600; }
+.lose { color: var(--red); }
+.gen-gap { font-size: 11px; font-weight: 700; color: var(--green); background: var(--green-light); padding: 2px 8px; border-radius: 2px; }
+
+/* Footer */
+.footer { text-align: center; padding: 60px 20px 40px; color: var(--muted); font-size: 13px; line-height: 2.2; }
+.footer .attr { font-size: 12px; margin-top: 8px; }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .pillar-grid-5 { grid-template-columns: repeat(2, 1fr); }
+  .tech-grid { grid-template-columns: 1fr; }
+  .scenario-flow { grid-template-columns: 1fr; }
+  .scenario-arrow { transform: rotate(90deg); padding: 8px 0; }
+}
+@media (max-width: 768px) {
+  .pillar-grid, .pillar-grid-5 { grid-template-columns: 1fr; }
+  .matrix-2x2 { grid-template-columns: 1fr; }
+  .hero h1 { font-size: 1.6rem; }
+  .container { padding: 0 20px; }
+  .hero { padding: 40px 0 36px; }
+  .arch-layer { grid-template-columns: 1fr; }
+  .pyramid-level { width: 100% !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== HERO ===== -->
+<div class="hero">
+  <div class="container">
+    <h1>CogNebula 财税知识引擎<br>AI 原生架构愿景</h1>
+    <p class="subtitle">从法规数据库到智能做账引擎：打造中国 SOTA 财税合规知识图谱。让 AI Agent 不再"搜索法规"，而是"自主执行财税业务"。</p>
+    <p class="meta">v1.0 | 2026-03-15 | Strategic Vision | McKinsey Blue</p>
+  </div>
+</div>
+
+<!-- ===== KEY MESSAGE ===== -->
+<div class="container">
+  <div class="key-message">
+    我们不是在建一个给人搜索的数据库，而是在建一个让 AI Agent 24/7 自主做账、报税、审计、合规的知识引擎。威科先行是给人看的百科全书，CogNebula 是给 AI 用的知识基础设施。
+  </div>
+</div>
+
+<!-- ===== 01 愿景定位 ===== -->
+<div class="container">
+  <div class="section">
+    <div class="section-number">01</div>
+    <div class="section-title">愿景定位</div>
+    <p class="section-lead">AI-Native 知识引擎 vs 传统法规数据库 -- 从"人搜索信息"到"Agent 自主执行业务"的范式迁移。</p>
+
+    <div class="pillar-grid">
+      <div class="pillar">
+        <div class="pillar-tag">Target User</div>
+        <h4>目标用户: AI Agent</h4>
+        <p>OpenClaw / Claude / GPT 等 Agent 是一等公民。知识结构为图谱遍历和 MCP 工具调用而设计，不是为人类浏览器渲染而设计。</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-tag">Design Principle</div>
+        <h4>Graph-Native 设计</h4>
+        <p>所有知识以节点-边关系建模。法规条款、会计科目、税种、风险指标、操作步骤均为图中实体，支持任意多跳推理。</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-tag">Core Differentiator</div>
+        <h4>从查询到执行</h4>
+        <p>传统数据库回答"是什么"；CogNebula 回答"怎么做" -- 输入一张发票，输出完整会计分录 + 法规依据 + 风险评分。</p>
+      </div>
+    </div>
+
+    <h3 style="font-weight:800; font-size:1rem; color:var(--ink); margin:24px 0 12px;">四大核心能力</h3>
+    <div class="pillar-grid" style="grid-template-columns: repeat(4, 1fr);">
+      <div class="pillar">
+        <div class="num">BK</div>
+        <h4>做账 BookKeeping</h4>
+        <p>发票/凭证到会计分录的自动映射</p>
+      </div>
+      <div class="pillar">
+        <div class="num">TF</div>
+        <h4>报税 TaxFiling</h4>
+        <p>税种识别、申报步骤、截止日期全链路</p>
+      </div>
+      <div class="pillar">
+        <div class="num">AU</div>
+        <h4>审计 Audit</h4>
+        <p>行业基准对比、异常检测、风险预警</p>
+      </div>
+      <div class="pillar">
+        <div class="num">CO</div>
+        <h4>合规 Compliance</h4>
+        <p>多维度优惠叠加、政策变更追踪</p>
+      </div>
+    </div>
+
+    <h3 style="font-weight:800; font-size:1rem; color:var(--ink); margin:28px 0 12px;">定位矩阵: 结构化程度 x AI 可调用性</h3>
+    <div style="text-align:center; margin-bottom:4px;">
+      <span style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">AI 可调用性 (Accessibility)</span>
+    </div>
+    <div style="display:grid; grid-template-columns:24px 1fr; gap:0;">
+      <div style="writing-mode:vertical-lr; text-orientation:mixed; font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; display:flex; align-items:center; justify-content:center; transform:rotate(180deg);">结构化程度 (Structure)</div>
+      <div>
+        <div class="matrix-label-row">
+          <div class="matrix-label">Low</div>
+          <div class="matrix-label">High</div>
+        </div>
+        <div class="matrix-2x2">
+          <div class="matrix-cell">
+            <h5>传统搜索引擎</h5>
+            <p>百度/Google 法规搜索。非结构化全文、无法直接被 Agent 调用。</p>
+          </div>
+          <div class="matrix-cell">
+            <h5>API 数据服务</h5>
+            <p>Open API 但知识扁平、无图谱关系。如：公开税率 API。</p>
+          </div>
+          <div class="matrix-cell">
+            <h5>威科先行 / 北大法宝</h5>
+            <p>高结构化法规库，但设计给人类浏览器。Agent 无法直接遍历。</p>
+          </div>
+          <div class="matrix-cell highlight">
+            <h5>CogNebula</h5>
+            <p style="color:var(--blue-700); font-weight:600;">高结构化知识图谱 + MCP 原生接口。Agent 可直接多跳推理、自动生成会计分录。<br><span class="tag tag-blue" style="margin-top:8px;">TARGET QUADRANT</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 02 三层架构升维 ===== -->
+<div class="container">
+  <div class="section">
+    <div class="section-number">02</div>
+    <div class="section-title">四层架构: 从法规存储到智能决策</div>
+    <p class="section-lead">原三层架构(法规/操作/合规)基础上新增 L4 智能中心，完成从"数据仓库"到"知识引擎"的升维。</p>
+
+    <div class="arch-layers">
+      <div class="arch-layer layer-l4">
+        <div class="layer-id">L4</div>
+        <div class="layer-content">
+          <h4>智能中心 Intelligence <span class="tag tag-blue" style="margin-left:8px;">NEW</span></h4>
+          <p>Graph RAG 混合检索 + Multi-Swarm 4 层质控 + 法规变更实时检测。将底层三层的静态知识转化为动态推理能力。Cypher 图遍历 + LanceDB ANN 向量召回 + MCP 12 工具链。</p>
+        </div>
+      </div>
+      <div class="arch-layer layer-l3">
+        <div class="layer-id">L3</div>
+        <div class="layer-content">
+          <h4>合规中心 Compliance</h4>
+          <p>量化风险评分体系 + 行业预警指标 + 处罚案例关联。覆盖增值税税负率、企业所得税贡献率、印花税等 20+ 核心指标，每个指标含行业基准区间和异常阈值。</p>
+        </div>
+      </div>
+      <div class="arch-layer layer-l2">
+        <div class="layer-id">L2</div>
+        <div class="layer-content">
+          <h4>操作中心 Operation</h4>
+          <p>Agent 做账指令集 -- "看到这张发票，借什么贷什么"。法规条款到会计科目的自动映射(全球独创)，覆盖常见业务场景 500+ 种分录模板。</p>
+        </div>
+      </div>
+      <div class="arch-layer layer-l1">
+        <div class="layer-id">L1</div>
+        <div class="layer-content">
+          <h4>法规中心 Regulation</h4>
+          <p>50K+ 法规全文 + 条款级拆分(M2 目标 150 万条款节点)。涵盖国家税务总局、财政部、各省级税务机关全量法规，按条款粒度建模，每条款含生效日期、废止状态、关联法规。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="gray-box">
+      <h4 style="font-weight:800; font-size:0.9rem; color:var(--ink); margin-bottom:12px;">架构升维的核心洞察</h4>
+      <table>
+        <tr>
+          <th style="width:25%;">维度</th>
+          <th style="width:37%;">三层架构 (Before)</th>
+          <th style="width:38%;">四层架构 (After)</th>
+        </tr>
+        <tr>
+          <td class="bold">知识形态</td>
+          <td>静态存储 + 全文检索</td>
+          <td class="green">动态推理 + 图遍历 + 向量召回</td>
+        </tr>
+        <tr>
+          <td class="bold">质量保障</td>
+          <td>人工审核</td>
+          <td class="green">Multi-Swarm 4 层自动质控 (49% 淘汰率)</td>
+        </tr>
+        <tr>
+          <td class="bold">时效性</td>
+          <td>批量更新</td>
+          <td class="green">14 fetchers 实时抓取 + 变更检测</td>
+        </tr>
+        <tr>
+          <td class="bold">调用方式</td>
+          <td>REST API 查询</td>
+          <td class="green">MCP 原生工具链 (12 tools)</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 03 核心技术栈 ===== -->
+<div class="container">
+  <div class="section">
+    <div class="section-number">03</div>
+    <div class="section-title">核心技术栈</div>
+    <p class="section-lead">五大技术支柱，构建从数据采集到智能推理的完整链路。</p>
+
+    <div class="tech-grid">
+      <div class="tech-item">
+        <div class="tech-label">Graph Database</div>
+        <h4>KuzuDB 嵌入式图数据库</h4>
+        <p>Cypher 查询语言，500K 节点舒适区。嵌入式架构零运维，单文件部署。123 张表 / 24 种节点类型，支持多跳关系遍历和 OLAP 分析。</p>
+      </div>
+      <div class="tech-item">
+        <div class="tech-label">Embedding</div>
+        <h4>Gemini Embedding 2 Preview</h4>
+        <p>768 维 Matryoshka 编码，支持 128-3072 维灵活配置。多模态能力(文本/图像/PDF)。LanceDB ANN 索引，13,445 向量，毫秒级语义检索。</p>
+      </div>
+      <div class="tech-item">
+        <div class="tech-label">Data Ingestion</div>
+        <h4>OpenClaw 24/7 不间断抓取</h4>
+        <p>14 个专用 fetcher 覆盖国家税务总局、财政部、12366 热线、chinaacc 培训、各省级税务机关。CF Browser Rendering 处理 JS 渲染页面。VPS 76 个 cron job 全自动运行。</p>
+      </div>
+      <div class="tech-item">
+        <div class="tech-label">Quality Control</div>
+        <h4>Multi-Swarm AI Synthesis</h4>
+        <p>4 层流水线: Generator(生成) -- Fact Checker(事实核查) -- Domain Expert(领域专家) -- Red Team(红队攻击)。49% 淘汰率确保知识质量。每条 AI 合成知识必须通过全部 4 层才能入库。</p>
+      </div>
+      <div class="tech-item" style="grid-column: 1 / -1;">
+        <div class="tech-label">Retrieval & Reasoning</div>
+        <h4>Graph RAG 混合检索</h4>
+        <p>KuzuDB Cypher 图遍历(结构化精确查询) + LanceDB ANN 向量召回(语义模糊检索) + MCP 12 工具链(Agent 原生接口)。三路融合，覆盖从精确法规条款查询到模糊语义联想的全谱段检索需求。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 04 数据策略金字塔 ===== -->
+<div class="container">
+  <div class="section">
+    <div class="section-number">04</div>
+    <div class="section-title">数据策略金字塔</div>
+    <p class="section-lead">四级数据来源分层治理，政府权威数据占比 65%+，确保知识库的权威性和可追溯性。</p>
+
+    <div class="pyramid">
+      <div class="pyramid-level pyr-1">
+        <div class="pct">65%+</div>
+        <h5>L1 政府权威</h5>
+        <p>法规全文 / 12366 QA / 省级政策 / 部委公告</p>
+      </div>
+      <div class="pyramid-level pyr-2">
+        <div class="pct">20%+</div>
+        <h5>L2 专业来源</h5>
+        <p>CPA 教材 / chinaacc 培训 / 行业操作指南</p>
+      </div>
+      <div class="pyramid-level pyr-3">
+        <div class="pct">&le;10%</div>
+        <h5>L3 社区知识</h5>
+        <p>论坛讨论 / 问答社区 / 实务经验分享</p>
+      </div>
+      <div class="pyramid-level pyr-4">
+        <div class="pct">&le;7%</div>
+        <h5>L4 AI 合成</h5>
+        <p>Multi-Swarm 4 层质控审核后入库 (49% 淘汰率)</p>
+      </div>
+    </div>
+
+    <div class="gray-box" style="margin-top:28px;">
+      <h4 style="font-weight:800; font-size:0.9rem; color:var(--ink); margin-bottom:12px;">数据质量控制规则</h4>
+      <table>
+        <tr>
+          <th>层级</th>
+          <th>入库门槛</th>
+          <th>溯源要求</th>
+          <th>更新频率</th>
+        </tr>
+        <tr>
+          <td class="bold">L1 政府权威</td>
+          <td>原文全量入库，条款级拆分</td>
+          <td>文号 + URL + 抓取时间戳</td>
+          <td>实时 (14 fetchers)</td>
+        </tr>
+        <tr>
+          <td class="bold">L2 专业来源</td>
+          <td>交叉验证，法规依据关联</td>
+          <td>来源 + 作者 + 原文 URL</td>
+          <td>每日</td>
+        </tr>
+        <tr>
+          <td class="bold">L3 社区知识</td>
+          <td>Fact Checker + Domain Expert 双审</td>
+          <td>来源 URL + 社区投票数</td>
+          <td>每周</td>
+        </tr>
+        <tr>
+          <td class="bold">L4 AI 合成</td>
+          <td>4 层 QC 全部通过 (淘汰率 49%)</td>
+          <td>生成模型 + prompt + QC trace</td>
+          <td>按需</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 05 Agent 四大能力场景 ===== -->
+<div class="container">
+  <div class="section">
+    <div class="section-number">05</div>
+    <div class="section-title">Agent 四大能力场景</div>
+    <p class="section-lead">每个场景展示完整的 Input -- Graph Traversal -- Output 链路，说明知识图谱如何驱动 Agent 自主执行财税业务。</p>
+
+    <!-- 做账 BookKeeping -->
+    <div class="scenario-card">
+      <div class="scenario-header">
+        <h4>做账</h4>
+        <span class="scenario-en">BookKeeping</span>
+      </div>
+      <div class="scenario-body">
+        <div class="scenario-flow">
+          <div class="scenario-step">
+            <h5>Input</h5>
+            <p>"收到一张增值税专用发票，金额 113 万元"</p>
+          </div>
+          <div class="scenario-arrow">&rarr;</div>
+          <div class="scenario-step">
+            <h5>Graph Traversal</h5>
+            <p><code>Invoice</code> &rarr; <code>TaxType(VAT)</code> &rarr; <code>ChartOfAccount</code>(应交增值税-进项) &rarr; <code>AccountEntry</code>(借:原材料+进项税 贷:应付账款)</p>
+          </div>
+          <div class="scenario-arrow">&rarr;</div>
+          <div class="scenario-step">
+            <h5>Output</h5>
+            <p>完整会计分录 + 法规依据 + 风险提示</p>
+          </div>
+        </div>
+        <div class="scenario-output">
+          <h5>Agent Output Example</h5>
+          <p>借: 原材料 1,000,000 / 应交税费-应交增值税(进项税额) 130,000<br>
+          贷: 应付账款 1,130,000<br>
+          法规依据: 财税[2016]36号 第二十五条 | 风险提示: 需在 360 日内认证抵扣</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 报税 TaxFiling -->
+    <div class="scenario-card">
+      <div class="scenario-header">
+        <h4>报税</h4>
+        <span class="scenario-en">TaxFiling</span>
+      </div>
+      <div class="scenario-body">
+        <div class="scenario-flow">
+          <div class="scenario-step">
+            <h5>Input</h5>
+            <p>"本月需要申报哪些税？"</p>
+          </div>
+          <div class="scenario-arrow">&rarr;</div>
+          <div class="scenario-step">
+            <h5>Graph Traversal</h5>
+            <p><code>Company</code> &rarr; <code>Industry</code> &rarr; <code>TaxType</code> &rarr; <code>FilingStep</code> &rarr; <code>FilingForm</code> &rarr; <code>Deadline</code></p>
+          </div>
+          <div class="scenario-arrow">&rarr;</div>
+          <div class="scenario-step">
+            <h5>Output</h5>
+            <p>申报清单 + 操作步骤 + 截止日期 + 表单填写指南</p>
+          </div>
+        </div>
+        <div class="scenario-output">
+          <h5>Agent Output Example</h5>
+          <p>本月申报清单 (3 项):<br>
+          1. 增值税 -- 截止 4/15 -- 填写《增值税及附加税费申报表》-- 电子税务局路径: 我要办税 &gt; 税费申报<br>
+          2. 企业所得税(季度预缴) -- 截止 4/15 -- 填写 A200000 表<br>
+          3. 个人所得税(代扣代缴) -- 截止 4/15 -- 自然人电子税务局申报</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 审计 Audit -->
+    <div class="scenario-card">
+      <div class="scenario-header">
+        <h4>审计</h4>
+        <span class="scenario-en">Audit</span>
+      </div>
+      <div class="scenario-body">
+        <div class="scenario-flow">
+          <div class="scenario-step">
+            <h5>Input</h5>
+            <p>"检查制造业增值税税负率是否异常"</p>
+          </div>
+          <div class="scenario-arrow">&rarr;</div>
+          <div class="scenario-step">
+            <h5>Graph Traversal</h5>
+            <p><code>Industry</code>(制造业) &rarr; <code>RiskIndicator</code>(税负率) &rarr; <code>Threshold</code>(1.5%-3.5%) &rarr; <code>Compare</code>(实际 2.1%)</p>
+          </div>
+          <div class="scenario-arrow">&rarr;</div>
+          <div class="scenario-step">
+            <h5>Output</h5>
+            <p>正常/异常判断 + 行业基准对比 + 整改建议</p>
+          </div>
+        </div>
+        <div class="scenario-output">
+          <h5>Agent Output Example</h5>
+          <p>判断: 正常 (在行业基准区间内)<br>
+          实际税负率: 2.1% | 行业基准: 1.5%-3.5% | 分位: P38<br>
+          建议: 当前税负率偏低端，建议核查进项税额抵扣是否存在超期风险</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 合规 Compliance -->
+    <div class="scenario-card">
+      <div class="scenario-header">
+        <h4>合规</h4>
+        <span class="scenario-en">Compliance</span>
+      </div>
+      <div class="scenario-body">
+        <div class="scenario-flow">
+          <div class="scenario-step">
+            <h5>Input</h5>
+            <p>"高新技术企业在上海自贸区做软件出口，有哪些叠加优惠？"</p>
+          </div>
+          <div class="scenario-arrow">&rarr;</div>
+          <div class="scenario-step">
+            <h5>Graph Traversal</h5>
+            <p>3-hop 遍历 &rarr; <code>TaxIncentive</code>(高新 15%) + <code>TaxIncentive</code>(自贸区) + <code>TaxIncentive</code>(软件即征即退) + <code>ExportRefund</code></p>
+          </div>
+          <div class="scenario-arrow">&rarr;</div>
+          <div class="scenario-step">
+            <h5>Output</h5>
+            <p>4 项叠加优惠清单 + 适用条件 + 法规原文 + 会计处理</p>
+          </div>
+        </div>
+        <div class="scenario-output">
+          <h5>Agent Output Example</h5>
+          <p>可叠加优惠 (4 项):<br>
+          1. 高新技术企业所得税优惠 -- 税率 15% (国发[2007]40号) -- 条件: 高新证书有效期内<br>
+          2. 自贸区企业所得税优惠 -- 15% 或免税 (沪府发[2013]75号) -- 条件: 注册地在自贸区<br>
+          3. 软件产品增值税即征即退 -- 超 3% 部分即征即退 (财税[2011]100号) -- 条件: 软件检测报告<br>
+          4. 出口退税 -- 增值税零税率/免抵退 (财税[2012]39号) -- 条件: 出口报关单<br>
+          综合税负: 约 8.2% (对比标准 25% 所得税率，节税 67%)</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 06 里程碑路线图 ===== -->
+<div class="container">
+  <div class="section">
+    <div class="section-number">06</div>
+    <div class="section-title">里程碑路线图</div>
+    <p class="section-lead">从 51,500 节点到 2M 节点的 12 个月扩容路线，每个里程碑含明确的质量门和验收标准。</p>
+
+    <div class="timeline">
+      <div class="timeline-item active">
+        <div class="timeline-meta">M0 -- NOW (2026-03)</div>
+        <h4>现状基线 <span class="tag tag-green">ACTIVE</span></h4>
+        <p>51,500 节点 / 24 种节点类型 / 123 张 KuzuDB 表 / 13,445 LanceDB 向量。14 fetchers 运行中，Multi-Swarm QC 上线(49% 淘汰率)。3-tier 备份体系已建立。</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-meta">M1 -- 8 WEEKS (2026-05)</div>
+        <h4>100K 节点 -- 质量关 <span class="tag tag-amber">NEXT</span></h4>
+        <p>核心目标: P@5 &ge; 85% (检索精度)。条款级拆分启动(L-tier audit)，L1 政府数据占比提升至 70%+。完成复盘报告，确认质量基线后才推进 M2。</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-meta">M2 -- 7.5 MONTHS (2026-10)</div>
+        <h4>500K 节点 -- 竞品超越</h4>
+        <p>条款级拆分完成(150 万条款节点)，2.5M 边关系。全量法规覆盖(2000 年至今)。Graph RAG 混合检索上线。在结构化深度和 AI 可调用性两个维度实现对威科先行/北大法宝的代差领先。</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-meta">M3 -- 12 MONTHS (2026-03 NEXT)</div>
+        <h4>2M 节点 -- 行业标杆</h4>
+        <p>全行业覆盖(制造/服务/金融/地产/科技)。时间维度建模(法规生效/废止/修订历史)。跨地区政策差异图谱。成为中国财税 AI 应用的事实标准知识基础设施。</p>
+      </div>
+    </div>
+
+    <div class="gray-box">
+      <h4 style="font-weight:800; font-size:0.9rem; color:var(--ink); margin-bottom:12px;">关键指标演进</h4>
+      <table>
+        <tr>
+          <th>指标</th>
+          <th class="num">M0 现状</th>
+          <th class="num">M1 目标</th>
+          <th class="num">M2 目标</th>
+          <th class="num">M3 目标</th>
+        </tr>
+        <tr>
+          <td class="bold">节点数</td>
+          <td class="num">51.5K</td>
+          <td class="num">100K</td>
+          <td class="num">500K</td>
+          <td class="num">2M</td>
+        </tr>
+        <tr>
+          <td class="bold">边数</td>
+          <td class="num">~120K</td>
+          <td class="num">~300K</td>
+          <td class="num">2.5M</td>
+          <td class="num">12M</td>
+        </tr>
+        <tr>
+          <td class="bold">向量数</td>
+          <td class="num">13.4K</td>
+          <td class="num">50K</td>
+          <td class="num">250K</td>
+          <td class="num">1M</td>
+        </tr>
+        <tr>
+          <td class="bold">检索精度 P@5</td>
+          <td class="num amber">~72%</td>
+          <td class="num green">&ge;85%</td>
+          <td class="num green">&ge;90%</td>
+          <td class="num green">&ge;95%</td>
+        </tr>
+        <tr>
+          <td class="bold">行业覆盖</td>
+          <td class="num">3</td>
+          <td class="num">5</td>
+          <td class="num">12</td>
+          <td class="num">全行业</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 07 竞品超越矩阵 ===== -->
+<div class="container">
+  <div class="section">
+    <div class="section-number">07</div>
+    <div class="section-title">竞品超越矩阵</div>
+    <p class="section-lead">六维度对比分析。CogNebula 在结构化深度和智能化程度上实现代差领先，在 AI 可调用性上实现 100 倍优势。</p>
+
+    <table>
+      <tr>
+        <th style="width:16%;">维度</th>
+        <th style="width:25%;">威科先行 Wolters Kluwer</th>
+        <th style="width:25%;">北大法宝 PKULaw</th>
+        <th style="width:25%;">CogNebula</th>
+        <th style="width:9%;">差距</th>
+      </tr>
+      <tr>
+        <td class="bold">数据量 Volume</td>
+        <td>法规 100 万+，覆盖全面</td>
+        <td>法规 80 万+，学术强</td>
+        <td>M2 目标 50 万节点 + 150 万条款</td>
+        <td><span class="tag tag-amber">追赶</span></td>
+      </tr>
+      <tr>
+        <td class="bold">覆盖广度 Breadth</td>
+        <td>财税法律全覆盖</td>
+        <td>法律为主，财税为辅</td>
+        <td>聚焦财税合规垂直领域</td>
+        <td><span class="tag tag-amber">聚焦</span></td>
+      </tr>
+      <tr>
+        <td class="bold">结构化深度 Depth</td>
+        <td>篇章级，人工分类标签</td>
+        <td>篇章级，引用关系</td>
+        <td class="green">条款级图谱 + 会计科目映射 + 风险量化</td>
+        <td><span class="gen-gap">代差</span></td>
+      </tr>
+      <tr>
+        <td class="bold">知识结构 Structure</td>
+        <td>关系型数据库 + 全文索引</td>
+        <td>关系型数据库 + 全文索引</td>
+        <td class="green">图数据库 + 向量索引 + 多跳推理</td>
+        <td><span class="gen-gap">代差</span></td>
+      </tr>
+      <tr>
+        <td class="bold">智能化 Intelligence</td>
+        <td>关键词搜索 + 简单推荐</td>
+        <td>全文搜索 + 引用网络</td>
+        <td class="green">Graph RAG + Multi-Swarm QC + 变更检测</td>
+        <td><span class="gen-gap">代差</span></td>
+      </tr>
+      <tr>
+        <td class="bold">AI 可调用性 Accessibility</td>
+        <td>无 API，仅浏览器</td>
+        <td>有限 API，非 Agent 友好</td>
+        <td class="green">MCP 原生 12 工具链，Agent 直接调用</td>
+        <td><span class="gen-gap">100x</span></td>
+      </tr>
+    </table>
+
+    <div class="key-message" style="margin-top:28px;">
+      核心结论: CogNebula 不与威科先行/北大法宝在数据量上竞争(短期追不上)，而是在结构化深度、智能化程度、AI 可调用性三个维度建立代差优势。这是一个全新的品类 -- AI-Native 财税知识引擎，而非传统法规数据库的改良版。
+    </div>
+  </div>
+</div>
+
+<!-- ===== 08 五大不可复制优势 ===== -->
+<div class="container">
+  <div class="section">
+    <div class="section-number">08</div>
+    <div class="section-title">五大不可复制优势</div>
+    <p class="section-lead">CogNebula 的核心壁垒不在数据量，而在知识工程方法论和 AI-Native 架构设计。</p>
+
+    <div class="pillar-grid-5">
+      <div class="pillar">
+        <div class="num">01</div>
+        <h4>Graph-Native 多跳推理</h4>
+        <p>知识以图谱而非文档存储。支持 3-hop 以上的复杂关联推理 -- 从"高新企业 + 自贸区 + 软件出口"一次查询得到 4 项叠加优惠。传统数据库需要 4 次独立查询。</p>
+      </div>
+      <div class="pillar">
+        <div class="num">02</div>
+        <h4>法规到分录自动映射</h4>
+        <p style="color:var(--blue-700); font-weight:600;">全球独创。</p>
+        <p>从法规条款到会计科目到完整分录的端到端自动映射。Agent 看到一张发票，知识引擎直接输出"借什么贷什么"，而非"请参考某某法规第几条"。</p>
+      </div>
+      <div class="pillar">
+        <div class="num">03</div>
+        <h4>AI Agent 原生接口</h4>
+        <p>MCP (Model Context Protocol) 12 工具链。Agent 不需要"理解"法规，只需要调用工具。知识引擎是 Agent 的"专业大脑"，Agent 是知识引擎的"手和脚"。</p>
+      </div>
+      <div class="pillar">
+        <div class="num">04</div>
+        <h4>量化风险评分体系</h4>
+        <p>20+ 核心风险指标，每个含行业基准区间和异常阈值。不是"可能有风险"的模糊提示，而是"税负率 2.1%，行业基准 1.5%-3.5%，P38 分位"的精确量化。</p>
+      </div>
+      <div class="pillar">
+        <div class="num">05</div>
+        <h4>100x 价格优势 + 开放架构</h4>
+        <p>威科先行年费数万元，面向大型企业。CogNebula 嵌入式架构零运维，MCP 开放接口，个人开发者和小微企业均可接入。从"奢侈品"到"基础设施"。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+  <p>CogNebula Finance/Tax Knowledge Engine v1.0 -- Strategic Vision</p>
+  <p>Maurice | maurice_wen@proton.me</p>
+  <p class="attr">AI-Native | Graph-Powered | Agent-First | 2026-03-15</p>
+</footer>
+
+</body>
+</html>

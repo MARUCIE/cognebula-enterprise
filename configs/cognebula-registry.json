@@ -1,0 +1,13 @@
+{
+  "name": "CogNebula Registry",
+  "version": "1.0.0",
+  "repos": [
+    {
+      "path": "/Users/mauricewen/00-AI-Fleet/doc",
+      "engine": "cognebula",
+      "version": "1.0.0",
+      "type": "docs",
+      "last_analyzed": "2026-03-15T13:54:00.214034+00:00"
+    }
+  ]
+}

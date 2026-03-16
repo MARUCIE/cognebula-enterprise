@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CogNebula 财税知识库 -- 产品需求文档 v3.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Noto+Serif+SC:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream: #F3F0E9;
+    --cream-dark: #EBE7DE;
+    --terracotta: #D67052;
+    --terracotta-dark: #C15A3C;
+    --ink: #2C2C2C;
+    --ink-light: #555555;
+    --ink-muted: #888888;
+    --accent-green: #4A9B6E;
+    --accent-blue: #4A7FB5;
+    --accent-gray: #9B9B9D;
+    --paper-shadow: 0 2px 20px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+    --radius: 10px;
+    --max-w: 1100px;
+  }
+
+  html { font-size: 16px; scroll-behavior: smooth; }
+  body {
+    font-family: 'Noto Serif SC', 'Crimson Pro', Georgia, serif;
+    background: var(--cream);
+    color: var(--ink);
+    line-height: 1.85;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page-wrapper {
+    max-width: var(--max-w);
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* Version Banner */
+  .version-banner {
+    background: linear-gradient(135deg, var(--terracotta) 0%, var(--terracotta-dark) 100%);
+    color: #fff;
+    padding: 28px 36px;
+    border-radius: var(--radius);
+    margin-bottom: 40px;
+    box-shadow: var(--paper-shadow);
+  }
+  .version-banner h1 {
+    font-family: 'Crimson Pro', 'Noto Serif SC', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: 0.02em;
+  }
+  .version-banner .subtitle {
+    font-size: 0.95rem;
+    opacity: 0.92;
+    line-height: 1.7;
+  }
+  .version-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.25);
+    padding: 3px 14px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin-right: 8px;
+    margin-bottom: 10px;
+    letter-spacing: 0.03em;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: var(--paper-shadow);
+    padding: 32px 36px;
+    margin-bottom: 28px;
+  }
+
+  .toc { padding: 28px 36px; }
+  .toc h2 { font-size: 1.15rem; color: var(--terracotta); margin-bottom: 14px; border: none; padding: 0; }
+  .toc ol { padding-left: 1.4em; }
+  .toc li { margin-bottom: 6px; font-size: 0.93rem; }
+  .toc a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--cream-dark); transition: all 0.15s; }
+  .toc a:hover { color: var(--terracotta); border-color: var(--terracotta); }
+
+  h2 {
+    font-family: 'Crimson Pro', 'Noto Serif SC', serif;
+    font-size: 1.55rem;
+    color: var(--terracotta);
+    margin-bottom: 18px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--cream-dark);
+  }
+  h3 {
+    font-size: 1.2rem;
+    color: var(--ink);
+    margin: 22px 0 12px;
+    font-weight: 600;
+  }
+
+  p { margin-bottom: 14px; color: var(--ink); font-size: 0.95rem; }
+  ul, ol { padding-left: 1.6em; margin-bottom: 14px; }
+  li { margin-bottom: 6px; font-size: 0.93rem; line-height: 1.8; }
+  li li { font-size: 0.9rem; }
+  strong { font-weight: 700; }
+
+  .table-wrap { overflow-x: auto; margin-bottom: 20px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    line-height: 1.65;
+  }
+  thead th {
+    background: var(--cream-dark);
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--ink);
+    border-bottom: 2px solid #d0ccc3;
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: 9px 14px;
+    border-bottom: 1px solid #eae7e0;
+    vertical-align: top;
+  }
+  tbody tr:hover { background: rgba(214,112,82,0.04); }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 12px;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+  }
+  .badge-done { background: #e0f5e8; color: #1a7a3a; }
+  .badge-progress { background: #deeaf6; color: #2a6cb5; }
+  .badge-pending { background: #f0f0f0; color: #777; }
+  .badge-high { background: #fce8e4; color: #c0392b; }
+  .badge-medium { background: #fff3cd; color: #856404; }
+  .badge-low { background: #e0f5e8; color: #1a7a3a; }
+  .badge-l1 { background: #fce8e4; color: #c0392b; }
+  .badge-l2 { background: #deeaf6; color: #2a6cb5; }
+  .badge-l3 { background: #e0f5e8; color: #1a7a3a; }
+  .badge-xl { background: #f3e8fd; color: #7b2d8e; }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.84rem;
+    background: var(--cream-dark);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  pre {
+    background: #2C2C2C;
+    color: #e8e6e3;
+    padding: 20px 24px;
+    border-radius: var(--radius);
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+  pre code { background: none; padding: 0; color: inherit; }
+
+  footer {
+    text-align: center;
+    padding: 60px 20px 40px;
+    color: var(--accent-gray);
+    font-size: 13px;
+    line-height: 2.2;
+  }
+
+  @media (max-width: 720px) {
+    .page-wrapper { padding: 20px 14px 60px; }
+    .card { padding: 20px 18px; }
+    .version-banner { padding: 20px 22px; }
+    .version-banner h1 { font-size: 1.5rem; }
+    h2 { font-size: 1.3rem; }
+    table { font-size: 0.82rem; }
+    thead th, tbody td { padding: 7px 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="page-wrapper">
+
+<div class="version-banner">
+  <div><span class="version-badge">v3.0</span><span class="version-badge">2026-03-15</span><span class="version-badge">Initiative: finance_tax_kb</span></div>
+  <h1>CogNebula 财税知识库 -- 产品需求文档</h1>
+  <div class="subtitle">
+    v3.0 变更: 三层架构 (L1 法规 + L2 操作 + L3 合规, 107 张表) + 知识沉淀管线 (爬取 &rarr; 落档 &rarr; Obsidian 管理 &rarr; CF 发布)<br>
+    v2.0 变更: 中国国内信源全景 (50+ 信源审计), 扩展 KuzuDB Schema<br>
+    v1.1 变更: 集成现有 AI-Fleet 技能生态 (40+ 技能), 取消自研 Scrapy 爬虫
+  </div>
+</div>
+
+<div class="card toc">
+  <h2>目录</h2>
+  <ol>
+    <li><a href="#s1">项目目标</a></li>
+    <li><a href="#s2">问题陈述</a></li>
+    <li><a href="#s3">项目范围</a></li>
+    <li><a href="#s4">数据信源 -- 中国国内信源全景</a></li>
+    <li><a href="#s5">知识图谱 Schema (中国财税本体)</a></li>
+    <li><a href="#s5b">三层 Schema (v3.0)</a></li>
+    <li><a href="#s5c">知识沉淀管线</a></li>
+    <li><a href="#s6">集成架构</a></li>
+    <li><a href="#s7">成功指标</a></li>
+    <li><a href="#s8">风险与缓解</a></li>
+    <li><a href="#s9">发布计划</a></li>
+  </ol>
+</div>
+
+<!-- 1 -->
+<div class="card" id="s1">
+  <h2>1. 项目目标</h2>
+  <p>基于 CogNebula Enterprise 构建 <strong>SOTA 级中国财税知识操作系统</strong>:</p>
+  <ul>
+    <li><strong>三层知识图谱</strong>: L1 法规中心 + L2 操作中心 + L3 合规中心 -- 107 张 KuzuDB 表, 43 种节点, 64 种边</li>
+    <li><strong>知识沉淀管线</strong>: 爬取 (20 信源) &rarr; 消化 (NER + 分类) &rarr; 管理 (Obsidian 知识库) &rarr; 发布 (CF Pages)</li>
+    <li><strong>现有 AI-Fleet 技能生态</strong> (40+ 技能) 用于内容采集 -- 零自研爬虫代码</li>
+    <li><strong>中国专属本体</strong>: 18 税种, 42 项会计准则, 91 个科目, 7 个生命周期阶段, 6 种企业类型</li>
+    <li>混合 Graph RAG + 12 个 MCP 工具 + OpenClaw 集成</li>
+    <li>每日增量更新, 3 级变更检测</li>
+    <li>全自动化: 日常运维零人工干预</li>
+  </ul>
+
+  <h3>架构文档</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>文档</th><th>行数</th><th>内容</th></tr></thead>
+    <tbody>
+      <tr><td>THREE_LAYER_ARCHITECTURE.md</td><td>1170</td><td>L1/L2/L3 Schema DDL + Cypher + Mermaid</td></tr>
+      <tr><td>KNOWLEDGE_PIPELINE.md</td><td>831</td><td>4 阶段管线: 爬取 &rarr; 消化 &rarr; Obsidian &rarr; CF Pages</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>设计原则</h3>
+  <ol>
+    <li><strong>组合, 不构建</strong>: 编排 40+ 现有 AI-Fleet 技能, 不写自研爬虫</li>
+    <li><strong>中国优先</strong>: 所有信源、Schema、NER 模式、专家角色均为中国税务体系设计</li>
+    <li><strong>权威层级</strong>: P0 政府信源为基准真相; 媒体/社区仅作补充</li>
+  </ol>
+</div>
+
+<!-- 2 -->
+<div class="card" id="s2">
+  <h2>2. 问题陈述</h2>
+  <h3>痛点</h3>
+  <ol>
+    <li><strong>信息碎片化</strong>: 税收政策分散在 30+ 个政府网站 (国家税务总局、财政部、国务院、海关总署、央行...), 无统一机器可读 API</li>
+    <li><strong>时间复杂性</strong>: 政策有生效/失效日期、修正案、属地覆盖 (国家 &rarr; 省 &rarr; 市)、优惠叠加 -- 人工跟踪极易出错</li>
+    <li><strong>AI Agent 上下文缺口</strong>: 中国财税领域不存在 Agent 可用 Cypher 查询的结构化知识图谱</li>
+    <li><strong>合规滞后</strong>: 每日发布新法规; 18 税种 &times; 31 省份 = 规则组合爆炸</li>
+  </ol>
+
+  <h3>目标用户</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>用户</th><th>待完成任务 (JTBD)</th><th>交互方式</th></tr></thead>
+    <tbody>
+      <tr><td>AI Agent (OpenClaw)</td><td>查询税收规则, 获取合规推理的结构化上下文</td><td>MCP 工具 / REST API</td></tr>
+      <tr><td>税务合规专员 (秦税安)</td><td>监控法规变更, 接收新政策提醒</td><td>Telegram 摘要 / 仪表板</td></tr>
+      <tr><td>财务分析师 (顾财道)</td><td>跟踪宏观指标、行业合规、准则更新</td><td>Telegram 摘要 / 仪表板</td></tr>
+      <tr><td>产品经理 (Maurice)</td><td>基于知识库构建合规产品</td><td>CLI / API / 仪表板</td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<!-- 3 -->
+<div class="card" id="s3">
+  <h2>3. 项目范围</h2>
+  <h3>范围内</h3>
+  <ul>
+    <li><strong>通过现有 AI-Fleet 技能采集内容</strong> (无自研爬虫):
+      <ul>
+        <li><code>news-aggregator-skill</code>: 扩展 <code>finance-tax</code> profile + 8 个新信源抓取器</li>
+        <li><code>agent-reach</code>: 多平台爬取 (政府门户、微信)</li>
+        <li><code>browser-automation</code> (Midscene): 视觉驱动 JS 页面处理 (税务总局法规库)</li>
+        <li><code>multi-search-engine</code>: 17 引擎发现 (百度、搜狗等)</li>
+        <li><code>deep-research</code>: 7 阶段 GoT 合成, 用于复杂政策分析</li>
+        <li><code>defuddle</code> / <code>x-reader</code>: 从任意 URL 提取干净文章</li>
+        <li><code>wechat-article-search</code>: 微信公众号内容 (镜像方式)</li>
+        <li><code>scrapling-crawler</code>: 反 Bot 绕过, 用于受保护站点</li>
+      </ul>
+    </li>
+    <li><strong>KuzuDB Schema</strong>: 13 种节点 + 15 种关系 (中国税务本体)</li>
+    <li><strong>LanceDB 向量嵌入</strong> (Gemini Embedding 2 Preview, 通过 <code>bin/embed</code>)</li>
+    <li><strong>3 级变更检测</strong>: 哈希 + 行级差异 + 语义相似度</li>
+    <li><strong>OpenClaw MCP 集成</strong>: 5 个新财税查询工具</li>
+    <li><strong>专家团队</strong>: 2 个新角色 (秦税安 -- 税务, 顾财道 -- 财务)</li>
+    <li><strong>管线注册</strong>: 纳入 AI-Fleet pipeline-registry.json</li>
+    <li><strong>交付方式</strong>: Telegram 提醒 + CF Pages 仪表板</li>
+    <li><strong>PDF/OCR</strong>: PyMuPDF + PaddleOCR, 用于政府公报</li>
+    <li><strong>编排脚本</strong>: <code>scripts/finance-tax-crawl.sh</code> (~100 行, 组合技能)</li>
+  </ul>
+
+  <h3>范围外 (v1)</h3>
+  <ul>
+    <li>自研 Scrapy 爬虫 (使用现有技能生态)</li>
+    <li>北大法宝 pkulaw.com (机构付费墙 + 刑法第 285 条法律风险)</li>
+    <li>裁判文书网批量爬取 (v2 可选, 仅选择性抓取)</li>
+    <li>省级税务局爬取 (与国家级高度重复; v2 可添加前 5 省)</li>
+    <li>中国以外多管辖区 (v2)</li>
+    <li>NER 模型微调 (先用基于规则的正则)</li>
+    <li>商业 SaaS 封装</li>
+  </ul>
+</div>
+
+<!-- 4 -->
+<div class="card" id="s4">
+  <h2>4. 数据信源 -- 中国国内信源全景</h2>
+
+  <h3>一级: P0 关键 -- 政府权威 (每日爬取)</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>#</th><th>信源</th><th>URL</th><th>内容</th><th>体量</th><th>结构</th><th>技能</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>国家税务总局 政策法规库</td><td>fgk.chinatax.gov.cn</td><td>全部国税政策</td><td>50K+ 文档</td><td>JS 渲染</td><td><code>browser-automation</code></td></tr>
+      <tr><td>2</td><td>财政部 政策发布</td><td>mof.gov.cn</td><td>财政政策、会计制度</td><td>5K+ 文档</td><td>动态 HTML</td><td><code>agent-reach</code> + <code>defuddle</code></td></tr>
+      <tr><td>3</td><td>国家法律法规数据库</td><td>flk.npc.gov.cn</td><td>全部税法 + 法规</td><td>100K+ 文档</td><td>静态 + 搜索 API</td><td><code>agent-reach</code></td></tr>
+      <tr><td>4</td><td>海关总署 进出口税则</td><td>customs.gov.cn</td><td>HS 税则编码 + 税率</td><td>8K 条目</td><td>静态 HTML</td><td><code>defuddle</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>二级: P1 高价值 (每日/每周)</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>#</th><th>信源</th><th>URL</th><th>内容</th><th>结构</th><th>技能</th></tr></thead>
+    <tbody>
+      <tr><td>5</td><td>中国人民银行 条法司</td><td>pbc.gov.cn/tiaofasi/</td><td>金融法规</td><td>静态 HTML</td><td><code>agent-reach</code></td></tr>
+      <tr><td>6</td><td>国务院 涉税政策</td><td>gss.mof.gov.cn</td><td>国务院税务决定</td><td>静态</td><td><code>defuddle</code></td></tr>
+      <tr><td>7</td><td>中国注册会计师协会</td><td>cicpa.org.cn</td><td>会计准则 + 审计标准</td><td>静态 HTML</td><td><code>defuddle</code></td></tr>
+      <tr><td>8</td><td>国家统计局</td><td>data.stats.gov.cn</td><td>税收统计数据</td><td>查询接口</td><td><code>browser-automation</code></td></tr>
+      <tr><td>9</td><td>国家外汇管理局</td><td>safe.gov.cn</td><td>跨境税务政策</td><td>静态 HTML</td><td><code>agent-reach</code></td></tr>
+      <tr><td>10</td><td>商务部</td><td>mofcom.gov.cn</td><td>进出口税务政策</td><td>静态 + PDF</td><td><code>defuddle</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>三级: P2 专业媒体 (每日)</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>#</th><th>信源</th><th>URL</th><th>内容</th><th>技能</th></tr></thead>
+    <tbody>
+      <tr><td>11</td><td>华尔街见闻</td><td>wallstreetcn.com</td><td>宏观/财政分析</td><td><code>news-aggregator</code></td></tr>
+      <tr><td>12</td><td>税屋网</td><td>shui5.cn</td><td>税务实务案例 + 论坛</td><td><code>agent-reach</code> + <code>defuddle</code></td></tr>
+      <tr><td>13</td><td>澎湃新闻 财经</td><td>thepaper.cn</td><td>调查性税务新闻</td><td><code>news-aggregator</code></td></tr>
+      <tr><td>14</td><td>中国会计视野</td><td>esnai.com</td><td>会计准则更新、审计实务</td><td><code>agent-reach</code></td></tr>
+      <tr><td>15</td><td>第一财经</td><td>yicai.com</td><td>政策解读</td><td><code>news-aggregator</code></td></tr>
+      <tr><td>16</td><td>中国税务网</td><td>ctax.org.cn</td><td>税务研究 + 观点</td><td><code>defuddle</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>四级: P3 社区与补充 (每周)</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>#</th><th>信源</th><th>URL</th><th>内容</th><th>技能</th></tr></thead>
+    <tbody>
+      <tr><td>17</td><td>中国会计视野论坛</td><td>bbs.esnai.com</td><td>问答、案例研究</td><td><code>browser-automation</code></td></tr>
+      <tr><td>18</td><td>知乎 财税话题</td><td>zhihu.com</td><td>专家讨论</td><td><code>agent-reach</code></td></tr>
+      <tr><td>19</td><td>四大中国税务</td><td>kpmg/pwc/ey/deloitte</td><td>专业洞察</td><td><code>defuddle</code></td></tr>
+      <tr><td>20</td><td>36氪 财税标签</td><td>36kr.com</td><td>财税科技</td><td><code>news-aggregator</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>排除列表 (有明确理由)</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>信源</th><th>排除理由</th></tr></thead>
+    <tbody>
+      <tr><td>北大法宝 pkulaw.com</td><td>机构付费墙 ($5K+/年) + 滑块验证码 + 刑法第 285 条风险</td></tr>
+      <tr><td>财新网 caixin.com</td><td>50-70% 付费墙, 非官方信源</td></tr>
+      <tr><td>中国税务报 ctaxnews.net.cn</td><td>4 页后付费墙</td></tr>
+      <tr><td>省级税务局 (31 省)</td><td>与国家级网站高度重复; v2 仅添加前 5 省</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>技能-信源映射 (组合, 不构建)</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>采集任务</th><th>主技能</th><th>备选技能</th></tr></thead>
+    <tbody>
+      <tr><td>JS 重度政府站点 (税务总局法规库)</td><td><code>browser-automation</code> (Midscene 视觉)</td><td><code>chrome-bridge-automation</code></td></tr>
+      <tr><td>静态政府 HTML (财政部、央行、海关)</td><td><code>agent-reach</code> + <code>defuddle</code></td><td><code>browser-automation</code></td></tr>
+      <tr><td>反 Bot 站点</td><td><code>scrapling-crawler</code></td><td><code>chrome-bridge-automation</code></td></tr>
+      <tr><td>政策发现</td><td><code>multi-search-engine</code> (百度、搜狗...)</td><td><code>tavily-search</code></td></tr>
+      <tr><td>深度政策分析</td><td><code>deep-research</code> (7 阶段 GoT)</td><td><code>grok-search</code></td></tr>
+      <tr><td>微信专家内容</td><td><code>wechat-article-search</code> (镜像)</td><td><code>agent-reach</code> 微信</td></tr>
+      <tr><td>新闻监控</td><td><code>news-aggregator-skill</code> (finance-tax profile)</td><td><code>web-multi-search</code></td></tr>
+      <tr><td>PDF 文档</td><td>PyMuPDF + PaddleOCR</td><td><code>defuddle</code> (文本层)</td></tr>
+      <tr><td>通用 URL</td><td><code>defuddle</code> / <code>x-reader</code></td><td><code>agent-reach</code></td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<!-- 5 -->
+<div class="card" id="s5">
+  <h2>5. 知识图谱 Schema (中国财税本体)</h2>
+
+  <h3>节点类型 (13 种)</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>节点类型</th><th>关键属性</th><th>基数</th><th>示例</th></tr></thead>
+    <tbody>
+      <tr><td><code>TaxType</code></td><td>name, code, rate_range, filing_frequency, liability_type, category, governing_law</td><td>18</td><td>增值税 0%/6%/9%/13%</td></tr>
+      <tr><td><code>TaxpayerStatus</code></td><td>name, domain(VAT/CIT/PIT), threshold, qualification_criteria</td><td>~10</td><td>一般纳税人, 小规模纳税人</td></tr>
+      <tr><td><code>EnterpriseType</code></td><td>name, classification_basis, tax_jurisdiction, global_income_scope</td><td>~8</td><td>居民企业, 非居民企业, 合伙企业</td></tr>
+      <tr><td><code>PersonalIncomeType</code></td><td>name, category(综合/分类), rate_structure, standard_deduction</td><td>9</td><td>工资薪金, 劳务报酬, 经营所得</td></tr>
+      <tr><td><code>LawOrRegulation</code></td><td>regulation_number, title, issuing_authority, type, effective_date, status, full_text</td><td>50K+</td><td>国发[2024]15号</td></tr>
+      <tr><td><code>AccountingStandard</code></td><td>name, cas_number, ifrs_equivalent, scope, difference_from_ifrs</td><td>43</td><td>CAS 16 政府补助</td></tr>
+      <tr><td><code>TaxIncentive</code></td><td>name, type(减免/抵扣/退税/递延/抵免), value, eligibility, combinable</td><td>200+</td><td>高新技术企业 15% 优惠税率</td></tr>
+      <tr><td><code>Industry</code></td><td>gb_code(GB/T 4754-2017), name, level, has_preferential_policy</td><td>~1500</td><td>A01 农业, I65 软件和信息技术</td></tr>
+      <tr><td><code>AdministrativeRegion</code></td><td>name, type(省/市/区), level(0-4), parent_id</td><td>~3200</td><td>国家 &gt; 浙江省 &gt; 杭州市</td></tr>
+      <tr><td><code>SpecialZone</code></td><td>name, type(经济特区/自贸区/开发区), location, established_date</td><td>~200</td><td>上海自贸区, 深圳经济特区</td></tr>
+      <tr><td><code>TaxAuthority</code></td><td>name, level(0-3), parent_id, policy_making_authority</td><td>~3200</td><td>国家税务总局 &gt; 浙江省税务局</td></tr>
+      <tr><td><code>FilingObligation</code></td><td>name, tax_type, frequency, deadline, required_documents, penalty</td><td>~50</td><td>增值税月度申报 (次月15日前)</td></tr>
+      <tr><td><code>TaxRateVersion</code></td><td>tax_type, effective_date, expiry_date, rate, applicable_status</td><td>~100</td><td>增值税 13% (2019-04-01 起)</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>关系类型 (15 种)</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>关系</th><th>From &rarr; To</th><th>关键属性</th></tr></thead>
+    <tbody>
+      <tr><td><code>APPLIES_TO</code></td><td>TaxType &rarr; TaxpayerStatus</td><td>special_treatment</td></tr>
+      <tr><td><code>QUALIFIES_FOR</code></td><td>TaxpayerStatus &rarr; TaxIncentive</td><td>priority, combinable</td></tr>
+      <tr><td><code>MUST_REPORT</code></td><td>EnterpriseType &rarr; TaxType</td><td>income_scope</td></tr>
+      <tr><td><code>GOVERNED_BY</code></td><td>TaxType &rarr; LawOrRegulation</td><td>governance_level, effective_period</td></tr>
+      <tr><td><code>MAPS_TO</code></td><td>AccountingStandard &rarr; LawOrRegulation</td><td>mapping_type</td></tr>
+      <tr><td><code>AFFECTS</code></td><td>AccountingStandard &rarr; TaxType</td><td>impact_area</td></tr>
+      <tr><td><code>APPLIES_TO_TAX</code></td><td>TaxIncentive &rarr; TaxType</td><td>reduction_amount, basis</td></tr>
+      <tr><td><code>APPLIES_TO_REGION</code></td><td>TaxIncentive &rarr; AdministrativeRegion</td><td>geographic_scope</td></tr>
+      <tr><td><code>SUBJECT_TO</code></td><td>Industry &rarr; TaxType</td><td>rate_applicable, special_rules</td></tr>
+      <tr><td><code>OFFERS</code></td><td>SpecialZone &rarr; TaxIncentive</td><td>zone_exclusivity</td></tr>
+      <tr><td><code>ADMINISTERS</code></td><td>TaxAuthority &rarr; AdministrativeRegion</td><td>exclusivity</td></tr>
+      <tr><td><code>REPORTS_TO</code></td><td>TaxAuthority &rarr; TaxAuthority</td><td>reporting_frequency</td></tr>
+      <tr><td><code>REFERENCES</code></td><td>LawOrRegulation &rarr; LawOrRegulation</td><td>type(修订/取代/释义)</td></tr>
+      <tr><td><code>TRIGGERS</code></td><td>TaxTrigger &rarr; FilingObligation</td><td>condition, deferral</td></tr>
+      <tr><td><code>SUPERSEDES</code></td><td>TaxRateVersion &rarr; TaxRateVersion</td><td>replacement_date</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>法规编号模式 (5 种)</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>模式</th><th>发文机关</th><th>层级</th><th>正则表达式</th></tr></thead>
+    <tbody>
+      <tr><td>国发[YYYY]N号</td><td>国务院</td><td>0 (最高)</td><td><code>国发\[?\d{4}\]?\d+号</code></td></tr>
+      <tr><td>财税[YYYY]N号</td><td>财政部 + 税务总局 联合</td><td>1</td><td><code>财税\[?\d{4}\]?\d+号</code></td></tr>
+      <tr><td>税总发[YYYY]N号</td><td>税务总局发文</td><td>2</td><td><code>税总[办]?发\[?\d{4}\]?\d+号</code></td></tr>
+      <tr><td>国家税务总局公告YYYY年第N号</td><td>税务总局公告</td><td>3</td><td><code>国家税务总局公告\d{4}年第\d+号</code></td></tr>
+      <tr><td>海关通告YYYY年第N号</td><td>海关总署</td><td>3</td><td><code>海关通告\d{4}年第\d+号</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>时间模型</h3>
+  <ul>
+    <li><strong>双时态</strong>: <code>valid_time</code> (政策有效期) + <code>transaction_time</code> (知识库记录时间戳)</li>
+    <li><strong>版本链</strong>: <code>TaxRateVersion</code> 节点 + <code>SUPERSEDES</code> 边</li>
+    <li><strong>状态枚举</strong>: <code>active</code> | <code>amended</code> | <code>repealed</code> | <code>pending</code> | <code>proposed</code></li>
+    <li><strong>冲突解决</strong>: 层级低者优先 (国发 &gt; 财税 &gt; 税总)</li>
+  </ul>
+</div>
+
+<!-- 5b -->
+<div class="card" id="s5b">
+  <h2>5b. 三层 Schema (v3.0)</h2>
+  <p>知识图谱采用三层架构。完整 DDL 见 THREE_LAYER_ARCHITECTURE.md。</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>层</th><th>节点类型</th><th>边类型</th><th>用途</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge badge-l1">L1 法规中心</span></td><td>13 (TaxType, LawOrRegulation, AccountingStandard...)</td><td>15 (FT_*)</td><td>"规则是什么?"</td></tr>
+      <tr><td><span class="badge badge-l2">L2 操作中心</span></td><td>9 (AccountEntry, ChartOfAccount, TaxRateMapping...)</td><td>9 (OP_*)</td><td>"怎么做?"</td></tr>
+      <tr><td><span class="badge badge-l3">L3 合规中心</span></td><td>8 (ComplianceRule, RiskIndicator, TaxCalendar...)</td><td>7 (CO_*)</td><td>"做对了吗?"</td></tr>
+      <tr><td><span class="badge badge-xl">XL 跨层</span></td><td>--</td><td>5 (XL_*)</td><td>连接三层</td></tr>
+      <tr><td><strong>合计</strong></td><td><strong>43 种节点</strong></td><td><strong>64 种边</strong></td><td><strong>107 张 KuzuDB 表</strong></td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<!-- 5c -->
+<div class="card" id="s5c">
+  <h2>5c. 知识沉淀管线</h2>
+  <p>4 阶段 Obsidian 中心管线 (完整设计见 KNOWLEDGE_PIPELINE.md):</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>阶段</th><th>工具</th><th>输入</th><th>输出</th></tr></thead>
+    <tbody>
+      <tr><td><strong>1. 爬取</strong></td><td>finance-tax-crawl.sh (已有)</td><td>20 个政府/媒体信源</td><td>data/raw/ 中的 JSON</td></tr>
+      <tr><td><strong>2. 消化</strong></td><td>finance_tax_processor.py + json_to_obsidian.py</td><td>原始 JSON</td><td>NER 增强的 Obsidian MD</td></tr>
+      <tr><td><strong>3. 管理</strong></td><td>Obsidian 知识库 (~/Obsidian/财税知识库/)</td><td>带 wikilinks + tags 的 MD 文件</td><td>本地知识库</td></tr>
+      <tr><td><strong>4. 发布</strong></td><td>CF Pages (ai-fleet-dashboard.pages.dev/finance-tax/)</td><td>知识库导出</td><td>在线可搜索仪表板</td></tr>
+    </tbody>
+  </table></div>
+  <p><strong>可选增强</strong>: NotebookLM (<code>anything-to-notebooklm</code> 技能, 手动触发用于播客/FAQ 生成)</p>
+  <p><strong>架构决策</strong>: 选择 Obsidian 中心 (非 NotebookLM 中心), 因为 NotebookLM OAuth 无法在无人值守 cron 中运行。详见 KNOWLEDGE_PIPELINE.md ADR-001。</p>
+</div>
+
+<!-- 6 -->
+<div class="card" id="s6">
+  <h2>6. 集成架构</h2>
+
+  <h3>OpenClaw MCP 服务器 (7 个已有 + 5 个新工具)</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>工具</th><th>输入</th><th>输出</th></tr></thead>
+    <tbody>
+      <tr><td><code>tax_query</code></td><td>自然语言问题</td><td>结构化上下文 (法规 + 条款 + 税率 + 引用)</td></tr>
+      <tr><td><code>policy_search</code></td><td>关键词 + 管辖区 + 税种 + 日期</td><td>匹配政策 (含时间有效性)</td></tr>
+      <tr><td><code>compliance_check</code></td><td>行业(GB 代码) + 纳税人类型 + 地区</td><td>完整义务清单 + 适用优惠</td></tr>
+      <tr><td><code>change_monitor</code></td><td>税种或法规编号</td><td>最近 N 天变更 + 差异</td></tr>
+      <tr><td><code>case_lookup</code></td><td>争议主题 + 管辖区</td><td>相关案例先例</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>专家团队扩展</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>专家</th><th>ID</th><th>用例范围</th><th>聚焦</th><th>信源</th></tr></thead>
+    <tbody>
+      <tr><td>秦税安 (税务合规)</td><td>#9</td><td>UC-81~90</td><td>政策更新、申报截止、稽查风险、优惠提醒</td><td>一/二级政府信源</td></tr>
+      <tr><td>顾财道 (财务分析)</td><td>#10</td><td>UC-91~100</td><td>宏观指标、会计准则更新、行业合规趋势</td><td>二/三级媒体信源</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>管线注册</h3>
+  <pre><code>{
+  "id": "finance-tax-daily-crawl",
+  "category": "intelligence",
+  "trigger": "cron",
+  "schedule": "0 6 * * *",
+  "script": "scripts/finance-tax-crawl.sh",
+  "defaultDevice": "vps",
+  "failoverChain": ["mac"],
+  "outputs": ["knowledge-graph-update", "change-alert-telegram", "cf-pages-report"],
+  "dependencies": ["heartbeat", "cognebula-api"],
+  "sla": {"maxDurationSec": 900, "minSuccessRate": 0.9}
+}</code></pre>
+</div>
+
+<!-- 7 -->
+<div class="card" id="s7">
+  <h2>7. 成功指标</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>指标</th><th>目标 (v1)</th><th>度量方式</th></tr></thead>
+    <tbody>
+      <tr><td>P0 信源索引数</td><td>4 个政府权威信源</td><td>信源注册表</td></tr>
+      <tr><td>总信源数</td><td>&ge; 16 (一至三级)</td><td>信源注册表</td></tr>
+      <tr><td>图谱中法规数</td><td>&ge; 10,000 个节点 (初始加载)</td><td>KuzuDB 节点计数</td></tr>
+      <tr><td>18 税种建模</td><td>18/18</td><td>Schema 检查</td></tr>
+      <tr><td>每日增量更新</td><td>&lt; 15 分钟端到端</td><td>管线执行时长</td></tr>
+      <tr><td>变更检测延迟</td><td>&lt; 24 小时 (从发布到检测)</td><td>差异时间戳 vs 信源</td></tr>
+      <tr><td>RAG 查询准确度</td><td>&ge; 85% P@5 (100 条中国财税查询)</td><td>人工评估</td></tr>
+      <tr><td>专家摘要质量</td><td>&ge; 4.0/5 用户评分</td><td>每周调查</td></tr>
+      <tr><td>系统可用性</td><td>&ge; 99%</td><td>心跳监控</td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<!-- 8 -->
+<div class="card" id="s8">
+  <h2>8. 风险与缓解</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>风险</th><th>严重度</th><th>缓解措施</th></tr></thead>
+    <tbody>
+      <tr><td>刑法第 285 条 (非法侵入计算机信息系统)</td><td><span class="badge badge-high">HIGH</span></td><td>仅爬取公开信源; 尊重 robots.txt; 5 秒延迟; 不绕过验证码; 法律顾问</td></tr>
+      <tr><td>税务总局法规库 JS 渲染</td><td><span class="badge badge-high">HIGH</span></td><td><code>browser-automation</code> (Midscene 视觉驱动); 备选: <code>chrome-bridge</code></td></tr>
+      <tr><td>政府网站改版</td><td><span class="badge badge-medium">MEDIUM</span></td><td>技能备选链: <code>defuddle</code> &rarr; <code>browser-automation</code> &rarr; <code>chrome-bridge</code></td></tr>
+      <tr><td>无官方 API (仅 HTML)</td><td><span class="badge badge-medium">MEDIUM</span></td><td>NPC 法律库有部分 API; 其余用 <code>multi-search-engine</code> + 哈希校验</td></tr>
+      <tr><td>PDF OCR 准确度</td><td><span class="badge badge-medium">MEDIUM</span></td><td>PaddleOCR (CJK 优化) + 人工审核队列</td></tr>
+      <tr><td>优惠叠加复杂度</td><td><span class="badge badge-medium">MEDIUM</span></td><td>每项优惠设 <code>combinable</code> 标志; 不确定组合需 HITL</td></tr>
+      <tr><td>地方政策碎片化</td><td><span class="badge badge-low">LOW</span></td><td>4 级行政区划层级; 省级数据按需加载</td></tr>
+      <tr><td>KuzuDB 100K+ 节点</td><td><span class="badge badge-low">LOW</span></td><td>批量 CSV 导入; 必要时按管辖区分区</td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<!-- 9 -->
+<div class="card" id="s9">
+  <h2>9. 发布计划</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>阶段</th><th>范围</th><th>时间线</th><th>完成标准 (DoD)</th><th>状态</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>P0: 三层 Schema + 爬虫</strong></td>
+        <td>107 张表, 6 个抓取器, 编排器, 种子数据</td>
+        <td>第 1-2 周</td>
+        <td>157 个节点已入库, 管线已注册</td>
+        <td><span class="badge badge-done">DONE</span></td>
+      </tr>
+      <tr>
+        <td><strong>P1: RAG + MCP + 嵌入</strong></td>
+        <td>5 个 MCP 工具, 混合 RAG, 157 个嵌入, OpenClaw</td>
+        <td>第 3-4 周</td>
+        <td>MCP 上线, 嵌入已生成</td>
+        <td><span class="badge badge-done">DONE</span></td>
+      </tr>
+      <tr>
+        <td><strong>P2: 专家 + 知识管线</strong></td>
+        <td>2 位专家, Obsidian 知识库, CF Pages /finance-tax/</td>
+        <td>第 5-6 周</td>
+        <td>知识库已填充, 仪表板上线</td>
+        <td><span class="badge badge-progress">IN PROGRESS</span></td>
+      </tr>
+      <tr>
+        <td><strong>P3: 变更检测 + PDF + NotebookLM</strong></td>
+        <td>3 级差异, PDF/OCR, NotebookLM 增强</td>
+        <td>第 7-8 周</td>
+        <td>告警正常, 20 个信源</td>
+        <td><span class="badge badge-pending">PENDING</span></td>
+      </tr>
+      <tr>
+        <td><strong>P4: VPS 部署 + 全量爬取</strong></td>
+        <td>VPS 部署, 初始 5000+ 节点爬取, cron</td>
+        <td>第 9-10 周</td>
+        <td>每日管线运行, 5000+ 节点</td>
+        <td><span class="badge badge-pending">PENDING</span></td>
+      </tr>
+    </tbody>
+  </table></div>
+</div>
+
+<footer>
+  <p>CogNebula Enterprise v3.0 -- 产品需求文档 (PRD)</p>
+  <p>Maurice | maurice_wen@proton.me</p>
+  <p style="font-size:12px; margin-top:8px;">Generated 2026-03-15 | 数据来源: PRD.md v3.0</p>
+</footer>
+
+</div>
+</body>
+</html>

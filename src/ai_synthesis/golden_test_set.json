@@ -1,0 +1,1027 @@
+{
+  "version": "1.0.0",
+  "description": "100 manually-verified entries for swarm pipeline benchmark. 80 correct + 20 intentionally wrong.",
+  "categories": ["vat_journal", "cit_scenario", "pit_calculation", "risk_indicator", "wrong_entry"],
+  "entries": [
+    {
+      "id": "G_VAT_01", "category": "vat_journal", "is_valid": true,
+      "industry": "manufacturing", "scenario_type": "vat_input_credit",
+      "title": "一般纳税人购入原材料进项抵扣",
+      "content": "制造业一般纳税人购入原材料取得13%增值税专用发票，按增值税法可抵扣进项税额。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "一般纳税人购进货物取得增值税专用发票可抵扣进项税额", "source_document": "增值税法", "article_number": "第十条"}],
+      "accounting_entries": [{"description": "购入原材料", "debit": [{"account": "1403 原材料", "amount": 100000}, {"account": "2221-01 进项税额", "amount": 13000}], "credit": [{"account": "2202 应付账款", "amount": 113000}]}],
+      "tax_implications": [{"tax_type": "TT_VAT", "rate": 13.0, "direction": "deductible_input", "period": "monthly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_VAT_02", "category": "vat_journal", "is_valid": true,
+      "industry": "retail", "scenario_type": "vat_output",
+      "title": "零售业销售商品销项税额",
+      "content": "零售企业销售商品确认收入，按13%税率计算销项税额。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "销售货物税率为13%", "source_document": "增值税法", "article_number": "第二条"}],
+      "accounting_entries": [{"description": "销售商品", "debit": [{"account": "1122 应收账款", "amount": 113000}], "credit": [{"account": "6001 主营业务收入", "amount": 100000}, {"account": "2221-02 销项税额", "amount": 13000}]}],
+      "tax_implications": [{"tax_type": "TT_VAT", "rate": 13.0, "direction": "output", "period": "monthly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_VAT_03", "category": "vat_journal", "is_valid": true,
+      "industry": "technology", "scenario_type": "vat_service_6pct",
+      "title": "信息技术服务增值税6%",
+      "content": "技术服务属于现代服务业，适用6%增值税税率。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "提供现代服务适用6%税率", "source_document": "增值税法", "article_number": "第二条"}],
+      "accounting_entries": [{"description": "技术服务收入", "debit": [{"account": "1122 应收账款", "amount": 106000}], "credit": [{"account": "6001 主营业务收入", "amount": 100000}, {"account": "2221-02 销项税额", "amount": 6000}]}],
+      "tax_implications": [{"tax_type": "TT_VAT", "rate": 6.0, "direction": "output", "period": "monthly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_VAT_04", "category": "vat_journal", "is_valid": true,
+      "industry": "construction", "scenario_type": "vat_construction_9pct",
+      "title": "建筑服务增值税9%",
+      "content": "提供建筑服务适用9%增值税税率，一般计税方法。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "提供建筑服务税率为9%", "source_document": "增值税法", "article_number": "第二条"}],
+      "accounting_entries": [{"description": "建筑服务收入", "debit": [{"account": "1122 应收账款", "amount": 109000}], "credit": [{"account": "6001 主营业务收入", "amount": 100000}, {"account": "2221-02 销项税额", "amount": 9000}]}],
+      "tax_implications": [{"tax_type": "TT_VAT", "rate": 9.0, "direction": "output", "period": "monthly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_VAT_05", "category": "vat_journal", "is_valid": true,
+      "industry": "agriculture", "scenario_type": "vat_exempt_agriculture",
+      "title": "农产品自产自销免征增值税",
+      "content": "农业生产者销售自产农产品免征增值税。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "农业生产者销售的自产农产品免征增值税", "source_document": "增值税法", "article_number": "第十五条"}],
+      "accounting_entries": [{"description": "自产农产品销售", "debit": [{"account": "1122 应收账款", "amount": 50000}], "credit": [{"account": "6001 主营业务收入", "amount": 50000}]}],
+      "tax_implications": [{"tax_type": "TT_VAT", "rate": 0.0, "direction": "exempt", "period": "monthly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_VAT_06", "category": "vat_journal", "is_valid": true,
+      "industry": "manufacturing", "scenario_type": "vat_export_refund",
+      "title": "出口货物增值税退税",
+      "content": "出口货物适用零税率，已缴纳进项税额可申请退税。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "出口货物适用零税率", "source_document": "增值税法", "article_number": "第二条"}],
+      "accounting_entries": [{"description": "出口退税申请", "debit": [{"account": "1222 应收出口退税", "amount": 13000}], "credit": [{"account": "2221-01 进项税额转出", "amount": 13000}]}],
+      "tax_implications": [{"tax_type": "TT_VAT", "rate": 0.0, "direction": "refund", "period": "monthly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_VAT_07", "category": "vat_journal", "is_valid": true,
+      "industry": "retail", "scenario_type": "vat_small_taxpayer",
+      "title": "小规模纳税人简易计税3%",
+      "content": "小规模纳税人销售货物适用3%征收率简易计税。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "小规模纳税人适用3%征收率", "source_document": "增值税法", "article_number": "第十一条"}],
+      "accounting_entries": [{"description": "小规模销售", "debit": [{"account": "1001 库存现金", "amount": 10300}], "credit": [{"account": "6001 主营业务收入", "amount": 10000}, {"account": "2221 应交增值税", "amount": 300}]}],
+      "tax_implications": [{"tax_type": "TT_VAT", "rate": 3.0, "direction": "output_simplified", "period": "quarterly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_VAT_08", "category": "vat_journal", "is_valid": true,
+      "industry": "logistics", "scenario_type": "vat_transport_9pct",
+      "title": "交通运输服务增值税9%",
+      "content": "提供交通运输服务适用9%增值税税率。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "交通运输服务税率9%", "source_document": "增值税法", "article_number": "第二条"}],
+      "accounting_entries": [{"description": "运输服务收入", "debit": [{"account": "1122 应收账款", "amount": 54500}], "credit": [{"account": "6001 主营业务收入", "amount": 50000}, {"account": "2221-02 销项税额", "amount": 4500}]}],
+      "tax_implications": [{"tax_type": "TT_VAT", "rate": 9.0, "direction": "output", "period": "monthly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_VAT_09", "category": "vat_journal", "is_valid": true,
+      "industry": "real_estate", "scenario_type": "vat_property_sale_9pct",
+      "title": "不动产销售增值税9%",
+      "content": "一般纳税人销售2016年5月1日后取得的不动产适用9%税率。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "销售不动产税率9%", "source_document": "增值税法", "article_number": "第二条"}],
+      "accounting_entries": [{"description": "销售不动产", "debit": [{"account": "1002 银行存款", "amount": 1090000}], "credit": [{"account": "6001 主营业务收入", "amount": 1000000}, {"account": "2221-02 销项税额", "amount": 90000}]}],
+      "tax_implications": [{"tax_type": "TT_VAT", "rate": 9.0, "direction": "output", "period": "monthly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_VAT_10", "category": "vat_journal", "is_valid": true,
+      "industry": "manufacturing", "scenario_type": "vat_input_transfer_out",
+      "title": "非正常损失进项税额转出",
+      "content": "因管理不善造成非正常损失的存货，其进项税额不得抵扣需转出。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "非正常损失的购进货物的进项税额不得从销项税额中抵扣", "source_document": "增值税法", "article_number": "第十条"}],
+      "accounting_entries": [{"description": "进项转出", "debit": [{"account": "1911 待处理财产损溢", "amount": 13000}], "credit": [{"account": "2221-01 进项税额转出", "amount": 13000}]}],
+      "tax_implications": [{"tax_type": "TT_VAT", "rate": 13.0, "direction": "transfer_out", "period": "monthly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_VAT_11", "category": "vat_journal", "is_valid": true,
+      "industry": "food_beverage", "scenario_type": "vat_catering_6pct",
+      "title": "餐饮服务增值税6%",
+      "content": "餐饮服务属于生活服务，一般纳税人适用6%税率。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "生活服务适用6%税率", "source_document": "增值税法", "article_number": "第二条"}],
+      "accounting_entries": [{"description": "餐饮收入", "debit": [{"account": "1001 库存现金", "amount": 10600}], "credit": [{"account": "6001 主营业务收入", "amount": 10000}, {"account": "2221-02 销项税额", "amount": 600}]}],
+      "tax_implications": [{"tax_type": "TT_VAT", "rate": 6.0, "direction": "output", "period": "monthly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_VAT_12", "category": "vat_journal", "is_valid": true,
+      "industry": "technology", "scenario_type": "vat_software_refund",
+      "title": "软件企业增值税即征即退",
+      "content": "增值税一般纳税人销售自行开发的软件产品，实际税负超过3%的部分即征即退。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "软件产品增值税实际税负超过3%部分即征即退", "source_document": "财税[2011]100号", "article_number": "第一条"}],
+      "accounting_entries": [{"description": "收到即征即退税款", "debit": [{"account": "1002 银行存款", "amount": 10000}], "credit": [{"account": "6301 营业外收入", "amount": 10000}]}],
+      "tax_implications": [{"tax_type": "TT_VAT", "rate": 13.0, "direction": "refund_partial", "period": "monthly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_VAT_13", "category": "vat_journal", "is_valid": true,
+      "industry": "wholesale", "scenario_type": "vat_mixed_sales",
+      "title": "混合销售行为增值税处理",
+      "content": "从事货物生产、批发或零售的混合销售按销售货物缴纳增值税。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "混合销售行为按主业确定适用税率", "source_document": "增值税法", "article_number": "第十二条"}],
+      "accounting_entries": [{"description": "混合销售含安装", "debit": [{"account": "1122 应收账款", "amount": 226000}], "credit": [{"account": "6001 主营业务收入", "amount": 200000}, {"account": "2221-02 销项税额", "amount": 26000}]}],
+      "tax_implications": [{"tax_type": "TT_VAT", "rate": 13.0, "direction": "output", "period": "monthly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_VAT_14", "category": "vat_journal", "is_valid": true,
+      "industry": "manufacturing", "scenario_type": "vat_fixed_asset_input",
+      "title": "购入固定资产进项抵扣",
+      "content": "一般纳税人购入生产设备取得专票可抵扣进项税额。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "购进固定资产取得增值税专用发票可抵扣", "source_document": "增值税法", "article_number": "第十条"}],
+      "accounting_entries": [{"description": "购入设备", "debit": [{"account": "1601 固定资产", "amount": 500000}, {"account": "2221-01 进项税额", "amount": 65000}], "credit": [{"account": "1002 银行存款", "amount": 565000}]}],
+      "tax_implications": [{"tax_type": "TT_VAT", "rate": 13.0, "direction": "deductible_input", "period": "monthly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_VAT_15", "category": "vat_journal", "is_valid": true,
+      "industry": "leasing", "scenario_type": "vat_finance_lease_13pct",
+      "title": "有形动产融资租赁销项13%",
+      "content": "有形动产融资租赁按13%税率计算销项税额。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "有形动产租赁服务税率13%", "source_document": "增值税法", "article_number": "第二条"}],
+      "accounting_entries": [{"description": "融资租赁收入", "debit": [{"account": "1122 应收账款", "amount": 113000}], "credit": [{"account": "6001 主营业务收入", "amount": 100000}, {"account": "2221-02 销项税额", "amount": 13000}]}],
+      "tax_implications": [{"tax_type": "TT_VAT", "rate": 13.0, "direction": "output", "period": "monthly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_VAT_16", "category": "vat_journal", "is_valid": true,
+      "industry": "pharmaceutical", "scenario_type": "vat_medicine_13pct",
+      "title": "药品销售增值税13%",
+      "content": "制药企业销售药品按13%税率缴纳增值税。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "销售货物税率13%", "source_document": "增值税法", "article_number": "第二条"}],
+      "accounting_entries": [{"description": "药品销售", "debit": [{"account": "1122 应收账款", "amount": 565000}], "credit": [{"account": "6001 主营业务收入", "amount": 500000}, {"account": "2221-02 销项税额", "amount": 65000}]}],
+      "tax_implications": [{"tax_type": "TT_VAT", "rate": 13.0, "direction": "output", "period": "monthly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_VAT_17", "category": "vat_journal", "is_valid": true,
+      "industry": "education", "scenario_type": "vat_training_exempt",
+      "title": "学历教育免征增值税",
+      "content": "提供学历教育服务免征增值税。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "从事学历教育的学校提供的教育服务免征增值税", "source_document": "增值税法", "article_number": "第十五条"}],
+      "accounting_entries": [{"description": "学历教育收入", "debit": [{"account": "1002 银行存款", "amount": 80000}], "credit": [{"account": "6001 主营业务收入", "amount": 80000}]}],
+      "tax_implications": [{"tax_type": "TT_VAT", "rate": 0.0, "direction": "exempt", "period": "monthly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_VAT_18", "category": "vat_journal", "is_valid": true,
+      "industry": "financial", "scenario_type": "vat_loan_interest_6pct",
+      "title": "贷款利息收入增值税6%",
+      "content": "金融机构贷款利息收入按6%税率缴纳增值税，借款方不得抵扣。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "金融服务适用6%税率", "source_document": "增值税法", "article_number": "第二条"}],
+      "accounting_entries": [{"description": "利息收入", "debit": [{"account": "1122 应收账款", "amount": 106000}], "credit": [{"account": "6001 主营业务收入", "amount": 100000}, {"account": "2221-02 销项税额", "amount": 6000}]}],
+      "tax_implications": [{"tax_type": "TT_VAT", "rate": 6.0, "direction": "output", "period": "monthly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_VAT_19", "category": "vat_journal", "is_valid": true,
+      "industry": "manufacturing", "scenario_type": "vat_retained_credit_refund",
+      "title": "增值税留抵退税",
+      "content": "符合条件的制造业企业可申请增量留抵税额退税。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "制造业等行业纳税人可申请退还增量留抵税额", "source_document": "财政部税务总局公告2022年第14号", "article_number": "第一条"}],
+      "accounting_entries": [{"description": "收到留抵退税", "debit": [{"account": "1002 银行存款", "amount": 200000}], "credit": [{"account": "2221-01 进项税额转出", "amount": 200000}]}],
+      "tax_implications": [{"tax_type": "TT_VAT", "rate": 0.0, "direction": "refund", "period": "monthly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_VAT_20", "category": "vat_journal", "is_valid": true,
+      "industry": "ecommerce", "scenario_type": "vat_platform_commission",
+      "title": "电商平台佣金增值税6%",
+      "content": "电商平台收取的佣金属于现代服务中的经纪代理服务，适用6%税率。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "经纪代理服务适用6%税率", "source_document": "增值税法", "article_number": "第二条"}],
+      "accounting_entries": [{"description": "平台佣金收入", "debit": [{"account": "1122 应收账款", "amount": 53000}], "credit": [{"account": "6001 主营业务收入", "amount": 50000}, {"account": "2221-02 销项税额", "amount": 3000}]}],
+      "tax_implications": [{"tax_type": "TT_VAT", "rate": 6.0, "direction": "output", "period": "monthly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_CIT_01", "category": "cit_scenario", "is_valid": true,
+      "industry": "technology", "scenario_type": "cit_hnte_15pct",
+      "title": "高新技术企业15%优惠税率",
+      "content": "经认定的高新技术企业减按15%税率征收企业所得税。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "国家需要重点扶持的高新技术企业减按15%的税率征收企业所得税", "source_document": "企业所得税法", "article_number": "第二十八条"}],
+      "accounting_entries": [{"description": "计提企业所得税", "debit": [{"account": "6801 所得税费用", "amount": 150000}], "credit": [{"account": "2221 应交税费-应交所得税", "amount": 150000}]}],
+      "tax_implications": [{"tax_type": "TT_CIT", "rate": 15.0, "direction": "payable", "period": "quarterly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_CIT_02", "category": "cit_scenario", "is_valid": true,
+      "industry": "general", "scenario_type": "cit_standard_25pct",
+      "title": "一般企业25%企业所得税",
+      "content": "居民企业适用25%的企业所得税税率。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "企业所得税的税率为25%", "source_document": "企业所得税法", "article_number": "第四条"}],
+      "accounting_entries": [{"description": "季度预缴所得税", "debit": [{"account": "6801 所得税费用", "amount": 250000}], "credit": [{"account": "2221 应交税费-应交所得税", "amount": 250000}]}],
+      "tax_implications": [{"tax_type": "TT_CIT", "rate": 25.0, "direction": "payable", "period": "quarterly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_CIT_03", "category": "cit_scenario", "is_valid": true,
+      "industry": "general", "scenario_type": "cit_small_profit_5pct",
+      "title": "小型微利企业5%优惠",
+      "content": "年应纳税所得额不超过300万元的小型微利企业减按5%征收企业所得税。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "小型微利企业减按相应税率征收", "source_document": "财税[2023]12号", "article_number": "第一条"}],
+      "accounting_entries": [{"description": "计提所得税", "debit": [{"account": "6801 所得税费用", "amount": 15000}], "credit": [{"account": "2221 应交税费-应交所得税", "amount": 15000}]}],
+      "tax_implications": [{"tax_type": "TT_CIT", "rate": 5.0, "direction": "payable", "period": "quarterly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_CIT_04", "category": "cit_scenario", "is_valid": true,
+      "industry": "technology", "scenario_type": "cit_rd_super_deduction",
+      "title": "研发费用加计扣除100%",
+      "content": "企业开展研发活动的费用，未形成无形资产的在据实扣除基础上再加计100%扣除。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "研发费用加计扣除比例提高至100%", "source_document": "财政部税务总局公告2023年第7号", "article_number": "第一条"}],
+      "accounting_entries": [{"description": "研发费用", "debit": [{"account": "5301 研发支出-费用化", "amount": 1000000}], "credit": [{"account": "1002 银行存款", "amount": 1000000}]}],
+      "tax_implications": [{"tax_type": "TT_CIT", "rate": 25.0, "direction": "deduction_enhanced", "period": "annual"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_CIT_05", "category": "cit_scenario", "is_valid": true,
+      "industry": "general", "scenario_type": "cit_advertising_deduction",
+      "title": "广告费扣除限额15%",
+      "content": "企业发生的广告费和业务宣传费不超过当年销售收入15%的部分准予扣除，超过部分结转以后年度。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "广告费和业务宣传费支出不超过当年销售收入15%准予扣除", "source_document": "企业所得税法实施条例", "article_number": "第四十四条"}],
+      "accounting_entries": [{"description": "广告费支出", "debit": [{"account": "6601 销售费用-广告费", "amount": 150000}], "credit": [{"account": "1002 银行存款", "amount": 150000}]}],
+      "tax_implications": [{"tax_type": "TT_CIT", "rate": 25.0, "direction": "deductible_capped", "period": "annual"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_CIT_06", "category": "cit_scenario", "is_valid": true,
+      "industry": "general", "scenario_type": "cit_entertainment_deduction",
+      "title": "业务招待费60%/5‰双限扣除",
+      "content": "业务招待费按发生额60%扣除，但不得超过当年销售收入5‰。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "业务招待费按发生额60%扣除但最高不超过当年销售收入5‰", "source_document": "企业所得税法实施条例", "article_number": "第四十三条"}],
+      "accounting_entries": [{"description": "业务招待费", "debit": [{"account": "6602 管理费用-业务招待费", "amount": 100000}], "credit": [{"account": "1002 银行存款", "amount": 100000}]}],
+      "tax_implications": [{"tax_type": "TT_CIT", "rate": 25.0, "direction": "deductible_capped", "period": "annual"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_CIT_07", "category": "cit_scenario", "is_valid": true,
+      "industry": "general", "scenario_type": "cit_depreciation_accelerated",
+      "title": "固定资产加速折旧",
+      "content": "制造业等六大行业新购进固定资产可缩短折旧年限或采取加速折旧方法。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "企业购进固定资产可缩短折旧年限", "source_document": "企业所得税法", "article_number": "第三十二条"}],
+      "accounting_entries": [{"description": "加速折旧", "debit": [{"account": "6601 制造费用-折旧", "amount": 100000}], "credit": [{"account": "1602 累计折旧", "amount": 100000}]}],
+      "tax_implications": [{"tax_type": "TT_CIT", "rate": 25.0, "direction": "deduction_accelerated", "period": "annual"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_CIT_08", "category": "cit_scenario", "is_valid": true,
+      "industry": "general", "scenario_type": "cit_loss_carryforward",
+      "title": "亏损弥补5年结转",
+      "content": "企业纳税年度发生的亏损准予向以后年度结转，最长不超过5年。高新技术企业可延长至10年。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "亏损准予向以后年度结转弥补但最长不得超过五年", "source_document": "企业所得税法", "article_number": "第十八条"}],
+      "accounting_entries": [{"description": "确认递延所得税资产", "debit": [{"account": "1811 递延所得税资产", "amount": 50000}], "credit": [{"account": "6801 所得税费用", "amount": 50000}]}],
+      "tax_implications": [{"tax_type": "TT_CIT", "rate": 25.0, "direction": "loss_carryforward", "period": "annual"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_CIT_09", "category": "cit_scenario", "is_valid": true,
+      "industry": "general", "scenario_type": "cit_dividend_exempt",
+      "title": "居民企业间股息免税",
+      "content": "居民企业直接投资于其他居民企业取得的股息红利等权益性投资收益为免税收入。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "居民企业之间的股息红利等权益性投资收益为免税收入", "source_document": "企业所得税法", "article_number": "第二十六条"}],
+      "accounting_entries": [{"description": "收到投资分红", "debit": [{"account": "1002 银行存款", "amount": 500000}], "credit": [{"account": "6111 投资收益", "amount": 500000}]}],
+      "tax_implications": [{"tax_type": "TT_CIT", "rate": 0.0, "direction": "exempt", "period": "annual"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_CIT_10", "category": "cit_scenario", "is_valid": true,
+      "industry": "general", "scenario_type": "cit_charity_deduction",
+      "title": "公益性捐赠12%限额扣除",
+      "content": "企业公益性捐赠支出在年度利润总额12%以内的部分准予扣除，超过部分结转3年。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "公益性捐赠支出在年度利润总额12%以内准予扣除", "source_document": "企业所得税法", "article_number": "第九条"}],
+      "accounting_entries": [{"description": "公益捐赠", "debit": [{"account": "6711 营业外支出-捐赠", "amount": 120000}], "credit": [{"account": "1002 银行存款", "amount": 120000}]}],
+      "tax_implications": [{"tax_type": "TT_CIT", "rate": 25.0, "direction": "deductible_capped", "period": "annual"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_CIT_11", "category": "cit_scenario", "is_valid": true,
+      "industry": "general", "scenario_type": "cit_withholding_nonresident",
+      "title": "非居民企业预提所得税10%",
+      "content": "非居民企业取得来源于中国境内的股息、利息、租金、特许权使用费等所得减按10%征收。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "非居民企业适用税率为20%，减按10%征收", "source_document": "企业所得税法", "article_number": "第二十七条"}],
+      "accounting_entries": [{"description": "代扣代缴非居民企业所得税", "debit": [{"account": "2202 应付账款", "amount": 10000}], "credit": [{"account": "2221 应交税费-代扣所得税", "amount": 10000}]}],
+      "tax_implications": [{"tax_type": "TT_CIT", "rate": 10.0, "direction": "withholding", "period": "per_payment"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_CIT_12", "category": "cit_scenario", "is_valid": true,
+      "industry": "environmental", "scenario_type": "cit_environmental_income",
+      "title": "环保节能项目三免三减半",
+      "content": "企业从事符合条件的环境保护、节能节水项目所得，自取得第一笔生产经营收入起三免三减半。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "从事符合条件的环境保护节能节水项目的所得可免征减征企业所得税", "source_document": "企业所得税法", "article_number": "第二十七条"}],
+      "accounting_entries": [{"description": "减免税确认", "debit": [{"account": "2221 应交税费-应交所得税", "amount": 125000}], "credit": [{"account": "6801 所得税费用", "amount": 125000}]}],
+      "tax_implications": [{"tax_type": "TT_CIT", "rate": 12.5, "direction": "reduced", "period": "annual"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_CIT_13", "category": "cit_scenario", "is_valid": true,
+      "industry": "technology", "scenario_type": "cit_ip_box_deduction",
+      "title": "技术转让所得500万以下免税",
+      "content": "居民企业技术转让所得不超过500万元的部分免征企业所得税，超过500万元的部分减半征收。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "技术转让所得不超过500万元免征企业所得税超过部分减半", "source_document": "企业所得税法实施条例", "article_number": "第九十条"}],
+      "accounting_entries": [{"description": "技术转让收入", "debit": [{"account": "1002 银行存款", "amount": 800000}], "credit": [{"account": "6001 其他业务收入", "amount": 800000}]}],
+      "tax_implications": [{"tax_type": "TT_CIT", "rate": 12.5, "direction": "partial_exempt", "period": "annual"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_CIT_14", "category": "cit_scenario", "is_valid": true,
+      "industry": "general", "scenario_type": "cit_wage_deduction",
+      "title": "工资薪金据实扣除",
+      "content": "企业发生的合理工资薪金支出准予据实扣除。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "企业发生的合理的工资薪金支出准予扣除", "source_document": "企业所得税法实施条例", "article_number": "第三十四条"}],
+      "accounting_entries": [{"description": "计提工资", "debit": [{"account": "6602 管理费用-工资", "amount": 500000}], "credit": [{"account": "2211 应付职工薪酬", "amount": 500000}]}],
+      "tax_implications": [{"tax_type": "TT_CIT", "rate": 25.0, "direction": "deductible_full", "period": "annual"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_CIT_15", "category": "cit_scenario", "is_valid": true,
+      "industry": "general", "scenario_type": "cit_employee_education",
+      "title": "职工教育经费8%限额",
+      "content": "企业职工教育经费支出不超过工资薪金总额8%的部分准予扣除。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "职工教育经费支出不超过工资薪金总额8%准予扣除", "source_document": "企业所得税法实施条例", "article_number": "第四十二条"}],
+      "accounting_entries": [{"description": "职工教育支出", "debit": [{"account": "6602 管理费用-职工教育费", "amount": 40000}], "credit": [{"account": "1002 银行存款", "amount": 40000}]}],
+      "tax_implications": [{"tax_type": "TT_CIT", "rate": 25.0, "direction": "deductible_capped", "period": "annual"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_CIT_16", "category": "cit_scenario", "is_valid": true,
+      "industry": "general", "scenario_type": "cit_welfare_14pct",
+      "title": "职工福利费14%限额",
+      "content": "企业发生的职工福利费支出不超过工资薪金总额14%的部分准予扣除。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "职工福利费支出不超过工资薪金总额14%准予扣除", "source_document": "企业所得税法实施条例", "article_number": "第四十条"}],
+      "accounting_entries": [{"description": "福利费", "debit": [{"account": "6602 管理费用-福利费", "amount": 70000}], "credit": [{"account": "1002 银行存款", "amount": 70000}]}],
+      "tax_implications": [{"tax_type": "TT_CIT", "rate": 25.0, "direction": "deductible_capped", "period": "annual"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_CIT_17", "category": "cit_scenario", "is_valid": true,
+      "industry": "general", "scenario_type": "cit_union_fee_2pct",
+      "title": "工会经费2%限额",
+      "content": "企业拨缴的工会经费不超过工资薪金总额2%的部分准予扣除。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "工会经费不超过工资薪金总额2%准予扣除", "source_document": "企业所得税法实施条例", "article_number": "第四十一条"}],
+      "accounting_entries": [{"description": "工会经费", "debit": [{"account": "6602 管理费用-工会经费", "amount": 10000}], "credit": [{"account": "1002 银行存款", "amount": 10000}]}],
+      "tax_implications": [{"tax_type": "TT_CIT", "rate": 25.0, "direction": "deductible_capped", "period": "annual"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_CIT_18", "category": "cit_scenario", "is_valid": true,
+      "industry": "general", "scenario_type": "cit_bad_debt",
+      "title": "坏账损失税前扣除",
+      "content": "企业符合条件的资产损失经申报后准予在企业所得税税前扣除。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "企业发生的损失减除责任人赔偿和保险赔款后的余额准予扣除", "source_document": "企业所得税法", "article_number": "第八条"}],
+      "accounting_entries": [{"description": "核销坏账", "debit": [{"account": "1231 坏账准备", "amount": 50000}], "credit": [{"account": "1122 应收账款", "amount": 50000}]}],
+      "tax_implications": [{"tax_type": "TT_CIT", "rate": 25.0, "direction": "deductible_with_filing", "period": "annual"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_CIT_19", "category": "cit_scenario", "is_valid": true,
+      "industry": "general", "scenario_type": "cit_asset_disposal",
+      "title": "固定资产处置损益",
+      "content": "处置固定资产产生的净损失可税前扣除，净收益需纳入应税所得。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "企业转让资产的净值准予扣除", "source_document": "企业所得税法", "article_number": "第十六条"}],
+      "accounting_entries": [{"description": "处置固定资产", "debit": [{"account": "1002 银行存款", "amount": 30000}, {"account": "1602 累计折旧", "amount": 80000}], "credit": [{"account": "1601 固定资产", "amount": 100000}, {"account": "6301 营业外收入", "amount": 10000}]}],
+      "tax_implications": [{"tax_type": "TT_CIT", "rate": 25.0, "direction": "taxable_gain", "period": "annual"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_CIT_20", "category": "cit_scenario", "is_valid": true,
+      "industry": "general", "scenario_type": "cit_deferred_revenue",
+      "title": "政府补助递延收益",
+      "content": "与资产相关的政府补助确认为递延收益，按资产使用年限分摊计入当期损益。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "不征税收入用于支出形成的资产折旧摊销不得税前扣除", "source_document": "企业所得税法实施条例", "article_number": "第二十八条"}],
+      "accounting_entries": [{"description": "政府补助分摊", "debit": [{"account": "2401 递延收益", "amount": 20000}], "credit": [{"account": "6301 营业外收入", "amount": 20000}]}],
+      "tax_implications": [{"tax_type": "TT_CIT", "rate": 25.0, "direction": "taxable_income", "period": "annual"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_PIT_01", "category": "pit_calculation", "is_valid": true,
+      "industry": "general", "scenario_type": "pit_salary_comprehensive",
+      "title": "工资薪金综合所得个税",
+      "content": "居民个人综合所得按年计算，适用3%-45%超额累进税率，基本减除费用60000元/年。",
+      "citations": [{"regulation_id": "TT_PIT", "quoted_text": "居民个人综合所得以每一纳税年度的收入额减除费用六万元", "source_document": "个人所得税法", "article_number": "第六条"}],
+      "accounting_entries": [{"description": "代扣代缴工资个税", "debit": [{"account": "2211 应付职工薪酬", "amount": 2590}], "credit": [{"account": "2221 应交税费-代扣个税", "amount": 2590}]}],
+      "tax_implications": [{"tax_type": "TT_PIT", "rate": 10.0, "direction": "withholding", "period": "monthly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_PIT_02", "category": "pit_calculation", "is_valid": true,
+      "industry": "general", "scenario_type": "pit_bonus_separate",
+      "title": "全年一次性奖金单独计税",
+      "content": "居民个人取得全年一次性奖金可选择单独计税，以奖金除以12个月得到的数额确定适用税率。",
+      "citations": [{"regulation_id": "TT_PIT", "quoted_text": "全年一次性奖金可不并入综合所得单独计算", "source_document": "财税[2023]30号", "article_number": "第一条"}],
+      "accounting_entries": [{"description": "发放年终奖代扣个税", "debit": [{"account": "2211 应付职工薪酬", "amount": 5790}], "credit": [{"account": "2221 应交税费-代扣个税", "amount": 5790}]}],
+      "tax_implications": [{"tax_type": "TT_PIT", "rate": 10.0, "direction": "withholding_separate", "period": "annual"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_PIT_03", "category": "pit_calculation", "is_valid": true,
+      "industry": "general", "scenario_type": "pit_special_deduction",
+      "title": "专项附加扣除-子女教育",
+      "content": "纳税人子女全日制学历教育支出每个子女每月2000元定额扣除。",
+      "citations": [{"regulation_id": "TT_PIT", "quoted_text": "子女教育按照每个子女每月2000元的标准定额扣除", "source_document": "个人所得税专项附加扣除暂行办法", "article_number": "第五条"}],
+      "accounting_entries": [],
+      "tax_implications": [{"tax_type": "TT_PIT", "rate": 0.0, "direction": "deduction", "period": "monthly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_PIT_04", "category": "pit_calculation", "is_valid": true,
+      "industry": "general", "scenario_type": "pit_housing_loan",
+      "title": "专项附加扣除-住房贷款利息",
+      "content": "纳税人首套住房贷款利息支出每月1000元定额扣除，最长不超过240个月。",
+      "citations": [{"regulation_id": "TT_PIT", "quoted_text": "住房贷款利息按照每月1000元标准定额扣除扣除期限最长不超过240个月", "source_document": "个人所得税专项附加扣除暂行办法", "article_number": "第十四条"}],
+      "accounting_entries": [],
+      "tax_implications": [{"tax_type": "TT_PIT", "rate": 0.0, "direction": "deduction", "period": "monthly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_PIT_05", "category": "pit_calculation", "is_valid": true,
+      "industry": "general", "scenario_type": "pit_rental",
+      "title": "专项附加扣除-住房租金",
+      "content": "在直辖市、省会城市等租房的纳税人每月1500元定额扣除。",
+      "citations": [{"regulation_id": "TT_PIT", "quoted_text": "直辖市省会城市住房租金按每月1500元扣除", "source_document": "个人所得税专项附加扣除暂行办法", "article_number": "第十七条"}],
+      "accounting_entries": [],
+      "tax_implications": [{"tax_type": "TT_PIT", "rate": 0.0, "direction": "deduction", "period": "monthly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_PIT_06", "category": "pit_calculation", "is_valid": true,
+      "industry": "general", "scenario_type": "pit_elderly_care",
+      "title": "专项附加扣除-赡养老人",
+      "content": "纳税人赡养60岁以上父母，独生子女每月3000元定额扣除。",
+      "citations": [{"regulation_id": "TT_PIT", "quoted_text": "独生子女按照每月3000元的标准定额扣除", "source_document": "国务院关于提高个人所得税有关专项附加扣除标准的通知", "article_number": "第一条"}],
+      "accounting_entries": [],
+      "tax_implications": [{"tax_type": "TT_PIT", "rate": 0.0, "direction": "deduction", "period": "monthly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_PIT_07", "category": "pit_calculation", "is_valid": true,
+      "industry": "general", "scenario_type": "pit_continuing_education",
+      "title": "专项附加扣除-继续教育",
+      "content": "学历继续教育每月400元，职业资格取得当年3600元定额扣除。",
+      "citations": [{"regulation_id": "TT_PIT", "quoted_text": "学历继续教育按每月400元定额扣除", "source_document": "个人所得税专项附加扣除暂行办法", "article_number": "第八条"}],
+      "accounting_entries": [],
+      "tax_implications": [{"tax_type": "TT_PIT", "rate": 0.0, "direction": "deduction", "period": "monthly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_PIT_08", "category": "pit_calculation", "is_valid": true,
+      "industry": "general", "scenario_type": "pit_medical_expense",
+      "title": "专项附加扣除-大病医疗",
+      "content": "医保目录范围内自付累计超过15000元的部分在80000元限额内据实扣除。",
+      "citations": [{"regulation_id": "TT_PIT", "quoted_text": "自付部分累计超过15000元在80000元限额内据实扣除", "source_document": "个人所得税专项附加扣除暂行办法", "article_number": "第十一条"}],
+      "accounting_entries": [],
+      "tax_implications": [{"tax_type": "TT_PIT", "rate": 0.0, "direction": "deduction", "period": "annual"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_PIT_09", "category": "pit_calculation", "is_valid": true,
+      "industry": "general", "scenario_type": "pit_stock_dividend",
+      "title": "股息红利差别化个税",
+      "content": "个人从上市公司取得股息红利，持股超1年免征个人所得税，1个月以内按20%全额计征。",
+      "citations": [{"regulation_id": "TT_PIT", "quoted_text": "持股期限超过1年的暂免征收个人所得税", "source_document": "财税[2015]101号", "article_number": "第一条"}],
+      "accounting_entries": [{"description": "代扣股息个税", "debit": [{"account": "2211 应付股利", "amount": 2000}], "credit": [{"account": "2221 应交税费-代扣个税", "amount": 2000}]}],
+      "tax_implications": [{"tax_type": "TT_PIT", "rate": 20.0, "direction": "withholding", "period": "per_distribution"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_PIT_10", "category": "pit_calculation", "is_valid": true,
+      "industry": "general", "scenario_type": "pit_property_transfer",
+      "title": "财产转让所得个税20%",
+      "content": "个人转让财产所得按转让收入减除财产原值和合理费用后的余额适用20%税率。",
+      "citations": [{"regulation_id": "TT_PIT", "quoted_text": "财产转让所得适用比例税率税率为百分之二十", "source_document": "个人所得税法", "article_number": "第三条"}],
+      "accounting_entries": [],
+      "tax_implications": [{"tax_type": "TT_PIT", "rate": 20.0, "direction": "payable", "period": "per_transaction"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_PIT_11", "category": "pit_calculation", "is_valid": true,
+      "industry": "general", "scenario_type": "pit_labor_service",
+      "title": "劳务报酬预扣预缴",
+      "content": "劳务报酬所得预扣率20%-40%，年度汇算时并入综合所得适用3%-45%税率。",
+      "citations": [{"regulation_id": "TT_PIT", "quoted_text": "劳务报酬所得属于综合所得按年计算个人所得税", "source_document": "个人所得税法", "article_number": "第二条"}],
+      "accounting_entries": [{"description": "支付劳务报酬代扣个税", "debit": [{"account": "6602 管理费用-劳务费", "amount": 10000}], "credit": [{"account": "1002 银行存款", "amount": 8400}, {"account": "2221 应交税费-代扣个税", "amount": 1600}]}],
+      "tax_implications": [{"tax_type": "TT_PIT", "rate": 20.0, "direction": "withholding", "period": "per_payment"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_PIT_12", "category": "pit_calculation", "is_valid": true,
+      "industry": "general", "scenario_type": "pit_royalty",
+      "title": "稿酬所得个税",
+      "content": "稿酬所得以收入减除20%费用后的余额为收入额，再减按70%计算应纳税所得额。",
+      "citations": [{"regulation_id": "TT_PIT", "quoted_text": "稿酬所得的收入额减按百分之七十计算", "source_document": "个人所得税法", "article_number": "第六条"}],
+      "accounting_entries": [{"description": "支付稿酬", "debit": [{"account": "6602 管理费用", "amount": 50000}], "credit": [{"account": "1002 银行存款", "amount": 43000}, {"account": "2221 应交税费-代扣个税", "amount": 7000}]}],
+      "tax_implications": [{"tax_type": "TT_PIT", "rate": 14.0, "direction": "withholding", "period": "per_payment"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_PIT_13", "category": "pit_calculation", "is_valid": true,
+      "industry": "general", "scenario_type": "pit_rental_income",
+      "title": "财产租赁所得个税",
+      "content": "个人出租住房所得减按10%税率征收个人所得税。",
+      "citations": [{"regulation_id": "TT_PIT", "quoted_text": "个人出租住房减按10%税率征收个人所得税", "source_document": "财税[2008]24号", "article_number": "第一条"}],
+      "accounting_entries": [],
+      "tax_implications": [{"tax_type": "TT_PIT", "rate": 10.0, "direction": "payable", "period": "monthly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_PIT_14", "category": "pit_calculation", "is_valid": true,
+      "industry": "general", "scenario_type": "pit_social_insurance",
+      "title": "社保公积金扣除",
+      "content": "个人按规定缴纳的基本养老保险、医疗保险、失业保险和住房公积金允许税前扣除。",
+      "citations": [{"regulation_id": "TT_PIT", "quoted_text": "按照国家规定缴纳的基本养老保险基本医疗保险失业保险等社会保险费和住房公积金准予扣除", "source_document": "个人所得税法实施条例", "article_number": "第二十五条"}],
+      "accounting_entries": [],
+      "tax_implications": [{"tax_type": "TT_PIT", "rate": 0.0, "direction": "deduction", "period": "monthly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_PIT_15", "category": "pit_calculation", "is_valid": true,
+      "industry": "general", "scenario_type": "pit_severance",
+      "title": "离职补偿金个税",
+      "content": "个人因解除劳动合同取得的一次性补偿收入，在当地上年职工平均工资3倍数额以内的部分免征个人所得税。",
+      "citations": [{"regulation_id": "TT_PIT", "quoted_text": "一次性补偿收入在当地上年职工平均工资3倍数额以内免征个人所得税", "source_document": "财税[2018]164号", "article_number": "第五条"}],
+      "accounting_entries": [{"description": "支付离职补偿", "debit": [{"account": "6602 管理费用", "amount": 300000}], "credit": [{"account": "1002 银行存款", "amount": 300000}]}],
+      "tax_implications": [{"tax_type": "TT_PIT", "rate": 0.0, "direction": "conditional_exempt", "period": "per_event"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_PIT_16", "category": "pit_calculation", "is_valid": true,
+      "industry": "general", "scenario_type": "pit_equity_incentive",
+      "title": "股权激励单独计税",
+      "content": "居民个人取得股票期权等股权激励所得，可选择在不超过36个月内单独计税。",
+      "citations": [{"regulation_id": "TT_PIT", "quoted_text": "股权激励所得可单独适用综合所得税率表计算", "source_document": "财税[2023]30号", "article_number": "第三条"}],
+      "accounting_entries": [{"description": "代扣股权激励个税", "debit": [{"account": "2211 应付职工薪酬", "amount": 45000}], "credit": [{"account": "2221 应交税费-代扣个税", "amount": 45000}]}],
+      "tax_implications": [{"tax_type": "TT_PIT", "rate": 20.0, "direction": "withholding_separate", "period": "per_vesting"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_PIT_17", "category": "pit_calculation", "is_valid": true,
+      "industry": "general", "scenario_type": "pit_childcare_3under",
+      "title": "专项附加扣除-3岁以下婴幼儿照护",
+      "content": "3岁以下婴幼儿照护费用每个婴幼儿每月2000元定额扣除。",
+      "citations": [{"regulation_id": "TT_PIT", "quoted_text": "3岁以下婴幼儿照护按每个婴幼儿每月2000元标准定额扣除", "source_document": "国务院关于提高个人所得税有关专项附加扣除标准的通知", "article_number": "第一条"}],
+      "accounting_entries": [],
+      "tax_implications": [{"tax_type": "TT_PIT", "rate": 0.0, "direction": "deduction", "period": "monthly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_PIT_18", "category": "pit_calculation", "is_valid": true,
+      "industry": "general", "scenario_type": "pit_nonresident_wage",
+      "title": "非居民个人工资薪金",
+      "content": "非居民个人工资薪金所得按月换算后适用3%-45%税率表，基本减除费用5000元/月。",
+      "citations": [{"regulation_id": "TT_PIT", "quoted_text": "非居民个人的工资薪金所得以每月收入额减除费用五千元后的余额为应纳税所得额", "source_document": "个人所得税法", "article_number": "第六条"}],
+      "accounting_entries": [{"description": "非居民工资代扣", "debit": [{"account": "2211 应付职工薪酬", "amount": 3000}], "credit": [{"account": "2221 应交税费-代扣个税", "amount": 3000}]}],
+      "tax_implications": [{"tax_type": "TT_PIT", "rate": 25.0, "direction": "withholding", "period": "monthly"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_PIT_19", "category": "pit_calculation", "is_valid": true,
+      "industry": "general", "scenario_type": "pit_personal_pension",
+      "title": "个人养老金税前扣除",
+      "content": "个人向个人养老金资金账户缴费，每年限额12000元可在综合所得中扣除。",
+      "citations": [{"regulation_id": "TT_PIT", "quoted_text": "个人养老金缴费在每年12000元限额内据实扣除", "source_document": "财税[2022]34号", "article_number": "第一条"}],
+      "accounting_entries": [],
+      "tax_implications": [{"tax_type": "TT_PIT", "rate": 0.0, "direction": "deduction", "period": "annual"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_PIT_20", "category": "pit_calculation", "is_valid": true,
+      "industry": "general", "scenario_type": "pit_annual_reconciliation",
+      "title": "综合所得年度汇算清缴",
+      "content": "居民个人取得综合所得需在次年3月1日至6月30日办理年度汇算清缴。",
+      "citations": [{"regulation_id": "TT_PIT", "quoted_text": "需要办理汇算清缴的纳税人应当在取得所得的次年三月一日至六月三十日内办理", "source_document": "个人所得税法", "article_number": "第十一条"}],
+      "accounting_entries": [],
+      "tax_implications": [{"tax_type": "TT_PIT", "rate": 0.0, "direction": "reconciliation", "period": "annual"}],
+      "risk_indicators": []
+    },
+    {
+      "id": "G_RISK_01", "category": "risk_indicator", "is_valid": true,
+      "industry": "general", "scenario_type": "risk_vat_burden_low",
+      "title": "增值税税负率偏低预警",
+      "content": "制造业增值税税负率低于行业均值2%持续3个月以上触发预警。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "税务机关有权对纳税人进行纳税评估", "source_document": "税收征管法", "article_number": "第三十五条"}],
+      "accounting_entries": [],
+      "tax_implications": [{"tax_type": "TT_VAT", "rate": 0.0, "direction": "monitoring", "period": "monthly"}],
+      "risk_indicators": [{"indicator": "增值税税负率偏低", "threshold": "实际税负率 < 行业均值 - 2% 连续3个月", "severity": "high"}]
+    },
+    {
+      "id": "G_RISK_02", "category": "risk_indicator", "is_valid": true,
+      "industry": "general", "scenario_type": "risk_input_concentration",
+      "title": "进项来源集中度异常",
+      "content": "单一供应商进项税额占比超过50%，存在虚开风险。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "税务机关对增值税专用发票实施管理", "source_document": "增值税法", "article_number": "第二十一条"}],
+      "accounting_entries": [],
+      "tax_implications": [],
+      "risk_indicators": [{"indicator": "进项来源集中度", "threshold": "单一供应商进项占比 > 50%", "severity": "high"}]
+    },
+    {
+      "id": "G_RISK_03", "category": "risk_indicator", "is_valid": true,
+      "industry": "general", "scenario_type": "risk_invoice_mismatch",
+      "title": "发票金额与合同不匹配",
+      "content": "发票金额与合同金额偏差超过5%触发审核。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "开具发票应当与实际经营业务情况相符", "source_document": "发票管理办法", "article_number": "第二十二条"}],
+      "accounting_entries": [],
+      "tax_implications": [],
+      "risk_indicators": [{"indicator": "发票合同偏差", "threshold": "|发票金额 - 合同金额| / 合同金额 > 5%", "severity": "medium"}]
+    },
+    {
+      "id": "G_RISK_04", "category": "risk_indicator", "is_valid": true,
+      "industry": "general", "scenario_type": "risk_loss_consecutive",
+      "title": "连续亏损企业预警",
+      "content": "企业连续3年亏损但营业收入持续增长，存在利润转移风险。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "税务机关有权进行特别纳税调整", "source_document": "企业所得税法", "article_number": "第四十一条"}],
+      "accounting_entries": [],
+      "tax_implications": [],
+      "risk_indicators": [{"indicator": "连续亏损且收入增长", "threshold": "连续亏损 >= 3年 且 收入年增长率 > 10%", "severity": "high"}]
+    },
+    {
+      "id": "G_RISK_05", "category": "risk_indicator", "is_valid": true,
+      "industry": "general", "scenario_type": "risk_transfer_pricing",
+      "title": "关联交易定价异常",
+      "content": "关联交易价格偏离独立交易原则超过30%触发转让定价调查风险。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "企业与其关联方之间的业务往来不符合独立交易原则的税务机关有权调整", "source_document": "企业所得税法", "article_number": "第四十一条"}],
+      "accounting_entries": [],
+      "tax_implications": [],
+      "risk_indicators": [{"indicator": "关联交易价格偏离度", "threshold": "关联交易价格偏离可比价格 > 30%", "severity": "high"}]
+    },
+    {
+      "id": "G_RISK_06", "category": "risk_indicator", "is_valid": true,
+      "industry": "general", "scenario_type": "risk_abnormal_refund",
+      "title": "异常退税申请",
+      "content": "出口退税申请金额异常增长或退税率突然变化触发预警。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "出口货物办理退税的具体办法由国务院规定", "source_document": "增值税法", "article_number": "第二十五条"}],
+      "accounting_entries": [],
+      "tax_implications": [],
+      "risk_indicators": [{"indicator": "退税金额环比增长", "threshold": "退税申请金额环比增长 > 100%", "severity": "high"}]
+    },
+    {
+      "id": "G_RISK_07", "category": "risk_indicator", "is_valid": true,
+      "industry": "general", "scenario_type": "risk_cost_ratio",
+      "title": "成本费用率异常",
+      "content": "企业成本费用率显著低于同行业平均水平可能存在虚增成本风险。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "企业实际发生的与取得收入有关的合理支出准予扣除", "source_document": "企业所得税法", "article_number": "第八条"}],
+      "accounting_entries": [],
+      "tax_implications": [],
+      "risk_indicators": [{"indicator": "成本费用率偏离度", "threshold": "成本费用率偏离行业均值 > 20%", "severity": "medium"}]
+    },
+    {
+      "id": "G_RISK_08", "category": "risk_indicator", "is_valid": true,
+      "industry": "general", "scenario_type": "risk_late_filing",
+      "title": "逾期申报预警",
+      "content": "纳税申报逾期超过30天将面临滞纳金和罚款。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "纳税人未按照规定期限缴纳税款的从滞纳税款之日起按日加收滞纳税款万分之五的滞纳金", "source_document": "税收征管法", "article_number": "第三十二条"}],
+      "accounting_entries": [],
+      "tax_implications": [],
+      "risk_indicators": [{"indicator": "申报逾期天数", "threshold": "逾期天数 > 0", "severity": "medium"}]
+    },
+    {
+      "id": "G_RISK_09", "category": "risk_indicator", "is_valid": true,
+      "industry": "general", "scenario_type": "risk_large_cash",
+      "title": "大额现金交易预警",
+      "content": "单笔现金交易超过5万元（个人20万元）需报告大额交易。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "金融机构应当报告大额交易", "source_document": "金融机构大额交易和可疑交易报告管理办法", "article_number": "第五条"}],
+      "accounting_entries": [],
+      "tax_implications": [],
+      "risk_indicators": [{"indicator": "单笔现金交易", "threshold": "企业单笔现金 > 50000元 或 个人 > 200000元", "severity": "medium"}]
+    },
+    {
+      "id": "G_RISK_10", "category": "risk_indicator", "is_valid": true,
+      "industry": "general", "scenario_type": "risk_salary_mismatch",
+      "title": "工资个税申报人数与社保不匹配",
+      "content": "个税申报人数与社保缴纳人数差异超过10%触发核查。",
+      "citations": [{"regulation_id": "TT_PIT", "quoted_text": "扣缴义务人应当按照国家规定办理全员全额扣缴申报", "source_document": "个人所得税法", "article_number": "第十条"}],
+      "accounting_entries": [],
+      "tax_implications": [],
+      "risk_indicators": [{"indicator": "个税社保人数偏差", "threshold": "|个税申报人数 - 社保缴纳人数| / 社保人数 > 10%", "severity": "high"}]
+    },
+    {
+      "id": "G_RISK_11", "category": "risk_indicator", "is_valid": true,
+      "industry": "real_estate", "scenario_type": "risk_land_vat_avoidance",
+      "title": "土地增值税清算风险",
+      "content": "房地产开发项目销售面积达到85%以上应主动清算土地增值税。",
+      "citations": [{"regulation_id": "TT_LAND_VAT", "quoted_text": "已转让房地产建筑面积达到可售面积85%以上应清算", "source_document": "土地增值税清算管理规程", "article_number": "第十条"}],
+      "accounting_entries": [],
+      "tax_implications": [],
+      "risk_indicators": [{"indicator": "销售进度达清算条件", "threshold": "已售面积/可售面积 >= 85%", "severity": "high"}]
+    },
+    {
+      "id": "G_RISK_12", "category": "risk_indicator", "is_valid": true,
+      "industry": "general", "scenario_type": "risk_stamp_tax_omission",
+      "title": "印花税漏缴预警",
+      "content": "合同签订量与印花税申报金额不匹配提示可能漏缴。",
+      "citations": [{"regulation_id": "TT_STAMP", "quoted_text": "应税凭证的纳税人应当缴纳印花税", "source_document": "印花税法", "article_number": "第一条"}],
+      "accounting_entries": [],
+      "tax_implications": [],
+      "risk_indicators": [{"indicator": "合同印花税覆盖率", "threshold": "印花税申报合同数/实际签订合同数 < 90%", "severity": "low"}]
+    },
+    {
+      "id": "G_RISK_13", "category": "risk_indicator", "is_valid": true,
+      "industry": "general", "scenario_type": "risk_tax_haven_payment",
+      "title": "避税地付款预警",
+      "content": "向开曼、BVI、百慕大等地区单笔付款超过等值50万人民币需加强审查。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "企业向税收协定优惠地区的关联方付款应符合独立交易原则", "source_document": "企业所得税法", "article_number": "第四十一条"}],
+      "accounting_entries": [],
+      "tax_implications": [],
+      "risk_indicators": [{"indicator": "避税地单笔付款", "threshold": "向避税地付款 > 500000元", "severity": "high"}]
+    },
+    {
+      "id": "G_RISK_14", "category": "risk_indicator", "is_valid": true,
+      "industry": "general", "scenario_type": "risk_depreciation_mismatch",
+      "title": "会计折旧与税务折旧差异",
+      "content": "会计折旧与税务折旧差异过大需在纳税调整中准确处理。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "固定资产按照直线法计算的折旧准予扣除", "source_document": "企业所得税法实施条例", "article_number": "第五十九条"}],
+      "accounting_entries": [],
+      "tax_implications": [],
+      "risk_indicators": [{"indicator": "会税折旧差异率", "threshold": "|会计折旧 - 税务折旧| / 税务折旧 > 50%", "severity": "medium"}]
+    },
+    {
+      "id": "G_RISK_15", "category": "risk_indicator", "is_valid": true,
+      "industry": "general", "scenario_type": "risk_zero_declaration",
+      "title": "长期零申报预警",
+      "content": "企业连续6个月零申报且有水电费、社保支出，存在隐匿收入嫌疑。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "纳税人发生应税行为应当向税务机关如实申报", "source_document": "税收征管法", "article_number": "第二十五条"}],
+      "accounting_entries": [],
+      "tax_implications": [],
+      "risk_indicators": [{"indicator": "连续零申报月数", "threshold": "零申报 >= 6个月 且 有经营支出", "severity": "high"}]
+    },
+    {
+      "id": "G_RISK_16", "category": "risk_indicator", "is_valid": true,
+      "industry": "general", "scenario_type": "risk_personal_account",
+      "title": "公转私异常预警",
+      "content": "企业向法人或股东个人账户频繁转账且无合理商业目的触发预警。",
+      "citations": [{"regulation_id": "TT_PIT", "quoted_text": "对个人取得的利息股息红利所得应纳个人所得税", "source_document": "个人所得税法", "article_number": "第二条"}],
+      "accounting_entries": [],
+      "tax_implications": [],
+      "risk_indicators": [{"indicator": "公转私频率", "threshold": "月均公转私 > 5次 且 单次 > 50000元", "severity": "high"}]
+    },
+    {
+      "id": "G_RISK_17", "category": "risk_indicator", "is_valid": true,
+      "industry": "general", "scenario_type": "risk_hnte_renewal",
+      "title": "高新资质到期预警",
+      "content": "高新技术企业资质有效期3年，到期前6个月需启动复审。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "高新技术企业资格自颁发证书之日起有效期为三年", "source_document": "高新技术企业认定管理办法", "article_number": "第九条"}],
+      "accounting_entries": [],
+      "tax_implications": [],
+      "risk_indicators": [{"indicator": "高新资质剩余天数", "threshold": "资质到期剩余 < 180天", "severity": "medium"}]
+    },
+    {
+      "id": "G_RISK_18", "category": "risk_indicator", "is_valid": true,
+      "industry": "general", "scenario_type": "risk_rd_ratio",
+      "title": "研发费用占比不达标",
+      "content": "高新技术企业研发费用占销售收入比例不达标将影响资质认定。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "研发费用总额占同期销售收入比例应符合规定", "source_document": "高新技术企业认定管理办法", "article_number": "第十一条"}],
+      "accounting_entries": [],
+      "tax_implications": [],
+      "risk_indicators": [{"indicator": "研发费用占比", "threshold": "收入2亿以上: 研发/收入 < 3%; 5000万-2亿: < 4%; 5000万以下: < 5%", "severity": "high"}]
+    },
+    {
+      "id": "G_RISK_19", "category": "risk_indicator", "is_valid": true,
+      "industry": "general", "scenario_type": "risk_invoice_void_rate",
+      "title": "发票作废率异常",
+      "content": "月度发票作废率超过5%触发税务关注。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "开具发票应当与实际经营业务相符", "source_document": "发票管理办法", "article_number": "第二十二条"}],
+      "accounting_entries": [],
+      "tax_implications": [],
+      "risk_indicators": [{"indicator": "发票作废率", "threshold": "月度作废发票数/开具总数 > 5%", "severity": "medium"}]
+    },
+    {
+      "id": "G_RISK_20", "category": "risk_indicator", "is_valid": true,
+      "industry": "general", "scenario_type": "risk_surplus_distribution",
+      "title": "未分配利润长期挂账",
+      "content": "未分配利润长期超过注册资本5倍不分配，存在被视同分配征收个税的风险。",
+      "citations": [{"regulation_id": "TT_PIT", "quoted_text": "个人投资者从其投资企业借款长期不还视为分配", "source_document": "财税[2003]158号", "article_number": "第二条"}],
+      "accounting_entries": [],
+      "tax_implications": [],
+      "risk_indicators": [{"indicator": "未分配利润倍数", "threshold": "未分配利润/注册资本 > 5 且 持续 > 2年", "severity": "medium"}]
+    },
+    {
+      "id": "G_WRONG_01", "category": "wrong_entry", "is_valid": false,
+      "industry": "manufacturing", "scenario_type": "wrong_vat_rate",
+      "title": "制造业一般纳税人增值税17%（已废止税率）",
+      "content": "制造业一般纳税人销售货物按17%税率计算销项税额。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "销售货物税率17%", "source_document": "增值税暂行条例", "article_number": "第二条"}],
+      "accounting_entries": [{"description": "销售商品", "debit": [{"account": "1122 应收账款", "amount": 117000}], "credit": [{"account": "6001 主营业务收入", "amount": 100000}, {"account": "2221-02 销项税额", "amount": 17000}]}],
+      "tax_implications": [{"tax_type": "TT_VAT", "rate": 17.0, "direction": "output", "period": "monthly"}],
+      "risk_indicators": [],
+      "expected_detection": "17% VAT rate was abolished in 2019, current rate is 13%"
+    },
+    {
+      "id": "G_WRONG_02", "category": "wrong_entry", "is_valid": false,
+      "industry": "general", "scenario_type": "wrong_unbalanced_entry",
+      "title": "借贷不平衡的分录",
+      "content": "购入原材料会计分录处理。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "增值税专用发票可抵扣进项税额", "source_document": "增值税法", "article_number": "第十条"}],
+      "accounting_entries": [{"description": "购入原材料（借贷不平衡）", "debit": [{"account": "1403 原材料", "amount": 100000}, {"account": "2221-01 进项税额", "amount": 13000}], "credit": [{"account": "2202 应付账款", "amount": 100000}]}],
+      "tax_implications": [{"tax_type": "TT_VAT", "rate": 13.0, "direction": "deductible_input", "period": "monthly"}],
+      "risk_indicators": [],
+      "expected_detection": "Debit 113000 != Credit 100000, unbalanced entry"
+    },
+    {
+      "id": "G_WRONG_03", "category": "wrong_entry", "is_valid": false,
+      "industry": "general", "scenario_type": "wrong_fabricated_regulation",
+      "title": "引用虚构法规编号",
+      "content": "根据国税发[2099]999号规定，企业可免征所有税费。",
+      "citations": [{"regulation_id": "FAKE_REG_2099", "quoted_text": "企业全免税", "source_document": "国税发[2099]999号", "article_number": "第一条"}],
+      "accounting_entries": [],
+      "tax_implications": [{"tax_type": "TT_CIT", "rate": 0.0, "direction": "exempt", "period": "annual"}],
+      "risk_indicators": [],
+      "expected_detection": "Regulation FAKE_REG_2099 does not exist, document number is fabricated"
+    },
+    {
+      "id": "G_WRONG_04", "category": "wrong_entry", "is_valid": false,
+      "industry": "general", "scenario_type": "wrong_pit_rate",
+      "title": "个人所得税最高税率50%（错误）",
+      "content": "综合所得最高边际税率为50%。",
+      "citations": [{"regulation_id": "TT_PIT", "quoted_text": "综合所得适用3%-50%税率", "source_document": "个人所得税法", "article_number": "第三条"}],
+      "accounting_entries": [],
+      "tax_implications": [{"tax_type": "TT_PIT", "rate": 50.0, "direction": "payable", "period": "monthly"}],
+      "risk_indicators": [],
+      "expected_detection": "PIT top rate is 45%, not 50%"
+    },
+    {
+      "id": "G_WRONG_05", "category": "wrong_entry", "is_valid": false,
+      "industry": "general", "scenario_type": "wrong_cit_rate",
+      "title": "小微企业企业所得税10%（过时税率）",
+      "content": "小型微利企业减按10%税率缴纳企业所得税。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "小型微利企业减按10%税率", "source_document": "企业所得税法", "article_number": "第二十八条"}],
+      "accounting_entries": [{"description": "小微企业所得税", "debit": [{"account": "6801 所得税费用", "amount": 30000}], "credit": [{"account": "2221 应交税费-应交所得税", "amount": 30000}]}],
+      "tax_implications": [{"tax_type": "TT_CIT", "rate": 10.0, "direction": "payable", "period": "quarterly"}],
+      "risk_indicators": [],
+      "expected_detection": "Small-profit enterprise rate is 5%, not 10%"
+    },
+    {
+      "id": "G_WRONG_06", "category": "wrong_entry", "is_valid": false,
+      "industry": "general", "scenario_type": "wrong_deduction_limit",
+      "title": "业务招待费全额扣除（错误）",
+      "content": "企业发生的业务招待费可全额在企业所得税前扣除。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "业务招待费支出准予全额扣除", "source_document": "企业所得税法实施条例", "article_number": "第四十三条"}],
+      "accounting_entries": [],
+      "tax_implications": [{"tax_type": "TT_CIT", "rate": 25.0, "direction": "deductible_full", "period": "annual"}],
+      "risk_indicators": [],
+      "expected_detection": "Entertainment expense has 60%/5‰ dual cap, not fully deductible"
+    },
+    {
+      "id": "G_WRONG_07", "category": "wrong_entry", "is_valid": false,
+      "industry": "general", "scenario_type": "wrong_nonexistent_tax",
+      "title": "引用不存在的税种",
+      "content": "企业应缴纳数字服务税，税率为3%。",
+      "citations": [{"regulation_id": "TT_DIGITAL", "quoted_text": "数字服务适用3%税率", "source_document": "数字服务税法", "article_number": "第一条"}],
+      "accounting_entries": [{"description": "缴纳数字税", "debit": [{"account": "6403 税金及附加", "amount": 30000}], "credit": [{"account": "2221 应交税费-数字税", "amount": 30000}]}],
+      "tax_implications": [{"tax_type": "TT_DIGITAL", "rate": 3.0, "direction": "payable", "period": "monthly"}],
+      "risk_indicators": [],
+      "expected_detection": "China does not have a Digital Services Tax"
+    },
+    {
+      "id": "G_WRONG_08", "category": "wrong_entry", "is_valid": false,
+      "industry": "general", "scenario_type": "wrong_reversed_entry",
+      "title": "借贷方向颠倒",
+      "content": "收到银行存款利息收入，应贷记银行存款，借记财务费用。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "利息收入应计入应税收入", "source_document": "企业所得税法", "article_number": "第六条"}],
+      "accounting_entries": [{"description": "收到利息（借贷反了）", "debit": [{"account": "6603 财务费用", "amount": 5000}], "credit": [{"account": "1002 银行存款", "amount": 5000}]}],
+      "tax_implications": [{"tax_type": "TT_CIT", "rate": 25.0, "direction": "taxable_income", "period": "quarterly"}],
+      "risk_indicators": [],
+      "expected_detection": "Interest income should debit bank deposit and credit financial expense (negative)"
+    },
+    {
+      "id": "G_WRONG_09", "category": "wrong_entry", "is_valid": false,
+      "industry": "general", "scenario_type": "wrong_child_education_amount",
+      "title": "子女教育扣除3000元/月（错误金额）",
+      "content": "子女教育专项附加扣除标准为每月3000元。",
+      "citations": [{"regulation_id": "TT_PIT", "quoted_text": "子女教育每月3000元定额扣除", "source_document": "个人所得税专项附加扣除暂行办法", "article_number": "第五条"}],
+      "accounting_entries": [],
+      "tax_implications": [{"tax_type": "TT_PIT", "rate": 0.0, "direction": "deduction", "period": "monthly"}],
+      "risk_indicators": [],
+      "expected_detection": "Child education deduction is 2000/month per child, not 3000"
+    },
+    {
+      "id": "G_WRONG_10", "category": "wrong_entry", "is_valid": false,
+      "industry": "general", "scenario_type": "wrong_loss_carryforward_10yr",
+      "title": "亏损弥补10年（一般企业错误）",
+      "content": "一般企业亏损可向以后年度结转弥补，最长10年。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "亏损结转最长十年", "source_document": "企业所得税法", "article_number": "第十八条"}],
+      "accounting_entries": [],
+      "tax_implications": [{"tax_type": "TT_CIT", "rate": 25.0, "direction": "loss_carryforward", "period": "annual"}],
+      "risk_indicators": [],
+      "expected_detection": "General enterprises can carry forward losses for 5 years only; 10 years is for HNTE/tech SMEs"
+    },
+    {
+      "id": "G_WRONG_11", "category": "wrong_entry", "is_valid": false,
+      "industry": "general", "scenario_type": "wrong_construction_vat_6pct",
+      "title": "建筑服务增值税6%（错误税率）",
+      "content": "建筑服务适用6%增值税税率。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "建筑服务税率6%", "source_document": "增值税法", "article_number": "第二条"}],
+      "accounting_entries": [{"description": "建筑服务", "debit": [{"account": "1122 应收账款", "amount": 106000}], "credit": [{"account": "6001 主营业务收入", "amount": 100000}, {"account": "2221-02 销项税额", "amount": 6000}]}],
+      "tax_implications": [{"tax_type": "TT_VAT", "rate": 6.0, "direction": "output", "period": "monthly"}],
+      "risk_indicators": [],
+      "expected_detection": "Construction services VAT rate is 9%, not 6%"
+    },
+    {
+      "id": "G_WRONG_12", "category": "wrong_entry", "is_valid": false,
+      "industry": "general", "scenario_type": "wrong_dividend_taxable",
+      "title": "居民企业间股息需缴税（错误）",
+      "content": "居民企业从其他居民企业取得的股息红利需缴纳25%企业所得税。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "股息红利按25%征收", "source_document": "企业所得税法", "article_number": "第二十六条"}],
+      "accounting_entries": [{"description": "收到分红缴税", "debit": [{"account": "6801 所得税费用", "amount": 125000}], "credit": [{"account": "2221 应交税费-应交所得税", "amount": 125000}]}],
+      "tax_implications": [{"tax_type": "TT_CIT", "rate": 25.0, "direction": "payable", "period": "annual"}],
+      "risk_indicators": [],
+      "expected_detection": "Dividends between resident enterprises are tax-exempt per Article 26"
+    },
+    {
+      "id": "G_WRONG_13", "category": "wrong_entry", "is_valid": false,
+      "industry": "general", "scenario_type": "wrong_stamp_rate",
+      "title": "购销合同印花税1%（错误税率）",
+      "content": "购销合同印花税按合同金额1%贴花。",
+      "citations": [{"regulation_id": "TT_STAMP", "quoted_text": "购销合同税率1%", "source_document": "印花税法", "article_number": "第一条"}],
+      "accounting_entries": [{"description": "缴纳印花税", "debit": [{"account": "6403 税金及附加", "amount": 10000}], "credit": [{"account": "1002 银行存款", "amount": 10000}]}],
+      "tax_implications": [{"tax_type": "TT_STAMP", "rate": 1.0, "direction": "payable", "period": "per_contract"}],
+      "risk_indicators": [],
+      "expected_detection": "Purchase/sale contract stamp duty rate is 0.03%, not 1%"
+    },
+    {
+      "id": "G_WRONG_14", "category": "wrong_entry", "is_valid": false,
+      "industry": "general", "scenario_type": "wrong_advertising_30pct",
+      "title": "广告费扣除30%（错误限额）",
+      "content": "企业广告费和业务宣传费不超过销售收入30%的部分准予扣除。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "广告费不超过30%准予扣除", "source_document": "企业所得税法实施条例", "article_number": "第四十四条"}],
+      "accounting_entries": [],
+      "tax_implications": [{"tax_type": "TT_CIT", "rate": 25.0, "direction": "deductible_capped", "period": "annual"}],
+      "risk_indicators": [],
+      "expected_detection": "General enterprise advertising deduction cap is 15%, not 30% (30% applies only to cosmetics/pharma/beverage)"
+    },
+    {
+      "id": "G_WRONG_15", "category": "wrong_entry", "is_valid": false,
+      "industry": "general", "scenario_type": "wrong_contradiction",
+      "title": "增值税免税+抵扣矛盾",
+      "content": "农产品销售免征增值税，购买方可凭普通发票抵扣13%进项税额。",
+      "citations": [{"regulation_id": "TT_VAT", "quoted_text": "免税项目对应的进项税额可以抵扣", "source_document": "增值税法", "article_number": "第十条"}],
+      "accounting_entries": [{"description": "免税农产品进项抵扣", "debit": [{"account": "1403 原材料", "amount": 87000}, {"account": "2221-01 进项税额", "amount": 13000}], "credit": [{"account": "2202 应付账款", "amount": 100000}]}],
+      "tax_implications": [{"tax_type": "TT_VAT", "rate": 13.0, "direction": "deductible_input", "period": "monthly"}],
+      "risk_indicators": [],
+      "expected_detection": "Agricultural product purchase deduction is 9% (or 10% for deep processing), not 13%; and buyer uses calculated deduction, not invoice-based"
+    },
+    {
+      "id": "G_WRONG_16", "category": "wrong_entry", "is_valid": false,
+      "industry": "general", "scenario_type": "wrong_welfare_20pct",
+      "title": "福利费20%限额（错误）",
+      "content": "职工福利费支出不超过工资薪金总额20%准予扣除。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "福利费不超过20%准予扣除", "source_document": "企业所得税法实施条例", "article_number": "第四十条"}],
+      "accounting_entries": [],
+      "tax_implications": [{"tax_type": "TT_CIT", "rate": 25.0, "direction": "deductible_capped", "period": "annual"}],
+      "risk_indicators": [],
+      "expected_detection": "Employee welfare expense cap is 14%, not 20%"
+    },
+    {
+      "id": "G_WRONG_17", "category": "wrong_entry", "is_valid": false,
+      "industry": "general", "scenario_type": "wrong_basic_deduction",
+      "title": "个税基本减除费用8000元/月（错误）",
+      "content": "居民个人综合所得基本减除费用标准为8000元/月。",
+      "citations": [{"regulation_id": "TT_PIT", "quoted_text": "基本减除费用标准为8000元/月", "source_document": "个人所得税法", "article_number": "第六条"}],
+      "accounting_entries": [],
+      "tax_implications": [{"tax_type": "TT_PIT", "rate": 0.0, "direction": "deduction", "period": "monthly"}],
+      "risk_indicators": [],
+      "expected_detection": "Basic deduction is 5000/month (60000/year), not 8000"
+    },
+    {
+      "id": "G_WRONG_18", "category": "wrong_entry", "is_valid": false,
+      "industry": "general", "scenario_type": "wrong_charity_20pct",
+      "title": "公益捐赠20%限额（错误）",
+      "content": "企业公益性捐赠支出不超过年度利润总额20%准予扣除。",
+      "citations": [{"regulation_id": "TT_CIT", "quoted_text": "捐赠支出不超过20%准予扣除", "source_document": "企业所得税法", "article_number": "第九条"}],
+      "accounting_entries": [],
+      "tax_implications": [{"tax_type": "TT_CIT", "rate": 25.0, "direction": "deductible_capped", "period": "annual"}],
+      "risk_indicators": [],
+      "expected_detection": "Charity donation deduction cap is 12% of annual profit, not 20%"
+    },
+    {
+      "id": "G_WRONG_19", "category": "wrong_entry", "is_valid": false,
+      "industry": "general", "scenario_type": "wrong_repealed_bt",
+      "title": "营业税5%（已废止税种）",
+      "content": "服务业企业应缴纳5%营业税。",
+      "citations": [{"regulation_id": "TT_BT", "quoted_text": "服务业营业税税率5%", "source_document": "营业税暂行条例", "article_number": "第一条"}],
+      "accounting_entries": [{"description": "缴纳营业税", "debit": [{"account": "6403 税金及附加", "amount": 5000}], "credit": [{"account": "2221 应交税费-应交营业税", "amount": 5000}]}],
+      "tax_implications": [{"tax_type": "TT_BT", "rate": 5.0, "direction": "payable", "period": "monthly"}],
+      "risk_indicators": [],
+      "expected_detection": "Business Tax (营业税) was abolished in 2016, replaced by VAT"
+    },
+    {
+      "id": "G_WRONG_20", "category": "wrong_entry", "is_valid": false,
+      "industry": "general", "scenario_type": "wrong_education_5pct",
+      "title": "教育费附加5%（错误税率）",
+      "content": "教育费附加按实际缴纳增值税的5%征收。",
+      "citations": [{"regulation_id": "TT_EDUCATION", "quoted_text": "教育费附加率为5%", "source_document": "教育费附加征收规定", "article_number": "第三条"}],
+      "accounting_entries": [{"description": "缴纳教育费附加", "debit": [{"account": "6403 税金及附加", "amount": 5000}], "credit": [{"account": "2221 应交税费-教育费附加", "amount": 5000}]}],
+      "tax_implications": [{"tax_type": "TT_EDUCATION", "rate": 5.0, "direction": "payable", "period": "monthly"}],
+      "risk_indicators": [],
+      "expected_detection": "Education surcharge rate is 3%, not 5%"
+    }
+  ]
+}

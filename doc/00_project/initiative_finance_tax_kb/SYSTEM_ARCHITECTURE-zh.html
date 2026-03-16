@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CogNebula 财税知识库 -- 系统架构文档</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #F3F0E9;
+    color: #2C2C2C;
+    font-family: 'Source Sans 3', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    font-size: 16px;
+    line-height: 1.85;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 32px 20px;
+  }
+
+  /* --- Typography --- */
+  h1, h2, h3, h4 {
+    font-family: 'Crimson Pro', 'Noto Serif SC', 'STSong', serif;
+    color: #1A1A1A;
+    line-height: 1.35;
+  }
+
+  h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    border-bottom: 3px solid #D67052;
+    padding-bottom: 14px;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+    color: #6B6B6B;
+    margin-bottom: 36px;
+    line-height: 2;
+  }
+
+  .subtitle p { margin-bottom: 2px; }
+
+  h2 {
+    font-size: 1.55rem;
+    font-weight: 700;
+    margin-top: 48px;
+    margin-bottom: 18px;
+    padding-left: 14px;
+    border-left: 4px solid #D67052;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 32px;
+    margin-bottom: 12px;
+    color: #333;
+  }
+
+  h4 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-top: 24px;
+    margin-bottom: 10px;
+    color: #444;
+  }
+
+  p { margin-bottom: 14px; }
+
+  strong { color: #1A1A1A; }
+
+  /* --- Cards / Paper --- */
+  .card {
+    background: #FFFFFF;
+    border-radius: 10px;
+    padding: 28px 32px;
+    margin-bottom: 28px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+  }
+
+  .card-elevated {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.06);
+  }
+
+  .card-deep {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.10), 0 16px 40px rgba(0,0,0,0.08);
+  }
+
+  /* --- Tables --- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 24px;
+    font-size: 0.92rem;
+  }
+
+  thead th {
+    background: #D67052;
+    color: #FFF;
+    font-weight: 600;
+    padding: 10px 14px;
+    text-align: left;
+    font-family: 'Source Sans 3', sans-serif;
+  }
+
+  thead th:first-child { border-radius: 10px 0 0 0; }
+  thead th:last-child { border-radius: 0 10px 0 0; }
+
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #E8E4DC;
+    vertical-align: top;
+  }
+
+  tbody tr:hover { background: #FAF8F4; }
+
+  tbody tr:last-child td:first-child { border-radius: 0 0 0 10px; }
+  tbody tr:last-child td:last-child { border-radius: 0 0 10px 0; }
+
+  /* --- Code --- */
+  code {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    background: #F0EDE6;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.88em;
+    color: #C0392B;
+  }
+
+  pre {
+    background: #FAF8F4;
+    border: 1px solid #E8E4DC;
+    border-radius: 10px;
+    padding: 20px 24px;
+    overflow-x: auto;
+    margin: 16px 0 24px;
+    font-size: 0.85rem;
+    line-height: 1.65;
+  }
+
+  pre code {
+    background: none;
+    padding: 0;
+    color: #2C2C2C;
+    font-size: inherit;
+  }
+
+  .code-label {
+    display: inline-block;
+    background: #D67052;
+    color: #FFF;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 10px 10px 0 0;
+    margin-bottom: -1px;
+    position: relative;
+    top: 1px;
+  }
+
+  /* --- Diagram replacement (flow boxes) --- */
+  .flow-diagram {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin: 20px 0 28px;
+  }
+
+  .flow-group {
+    flex: 1;
+    min-width: 200px;
+    background: #FFF;
+    border-radius: 10px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+  }
+
+  .flow-group-title {
+    font-family: 'Crimson Pro', serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #D67052;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #F3F0E9;
+  }
+
+  .flow-group ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .flow-group li {
+    padding: 4px 0;
+    font-size: 0.88rem;
+    color: #444;
+  }
+
+  .flow-group li::before {
+    content: "\25B8 ";
+    color: #D67052;
+    font-weight: 700;
+  }
+
+  .flow-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: #D67052;
+    min-width: 30px;
+    align-self: center;
+  }
+
+  /* --- Sequence diagram replacement --- */
+  .seq-diagram {
+    margin: 20px 0 28px;
+  }
+
+  .seq-step {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+
+  .seq-number {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    background: #D67052;
+    color: #FFF;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-right: 14px;
+    margin-top: 2px;
+  }
+
+  .seq-content {
+    flex: 1;
+  }
+
+  .seq-actors {
+    font-size: 0.82rem;
+    color: #888;
+    margin-bottom: 2px;
+  }
+
+  .seq-desc {
+    font-size: 0.92rem;
+  }
+
+  .seq-alt {
+    background: #FFF8F0;
+    border-left: 3px solid #D67052;
+    border-radius: 0 10px 10px 0;
+    padding: 12px 16px;
+    margin: 8px 0 8px 46px;
+    font-size: 0.9rem;
+  }
+
+  .seq-alt-label {
+    font-weight: 600;
+    color: #D67052;
+    margin-bottom: 4px;
+  }
+
+  /* --- Deployment tree --- */
+  .deploy-tree {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.88rem;
+    line-height: 1.8;
+    background: #FAF8F4;
+    border: 1px solid #E8E4DC;
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 16px 0 24px;
+  }
+
+  .deploy-node {
+    font-weight: 700;
+    color: #D67052;
+  }
+
+  /* --- Tier flow --- */
+  .tier-flow {
+    margin: 16px 0 24px;
+  }
+
+  .tier-flow-step {
+    background: #FFF;
+    border-radius: 10px;
+    padding: 14px 20px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    font-size: 0.92rem;
+  }
+
+  .tier-flow-arrow {
+    text-align: center;
+    color: #D67052;
+    font-size: 1.1rem;
+    margin: 4px 0;
+    font-weight: 700;
+  }
+
+  /* --- Lists --- */
+  ul, ol {
+    margin: 10px 0 18px 24px;
+  }
+
+  li { margin-bottom: 4px; }
+
+  /* --- Accent --- */
+  .accent { color: #D67052; }
+  .tag {
+    display: inline-block;
+    background: #D67052;
+    color: #FFF;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    vertical-align: middle;
+  }
+
+  .tag-reused { background: #27AE60; }
+  .tag-extended { background: #2980B9; }
+  .tag-new { background: #D67052; }
+
+  /* --- RAG flow --- */
+  .rag-flow {
+    margin: 16px 0 24px;
+  }
+
+  .rag-step {
+    background: #FFF;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border-left: 4px solid #D67052;
+  }
+
+  .rag-step-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 6px;
+    color: #1A1A1A;
+  }
+
+  .rag-step-detail {
+    font-size: 0.9rem;
+    color: #555;
+  }
+
+  /* --- Footer --- */
+  footer {
+    text-align: center;
+    padding: 60px 20px 40px;
+    color: #9B9B9D;
+    font-size: 13px;
+    line-height: 2.2;
+  }
+
+  @media (max-width: 768px) {
+    .container { padding: 20px 16px; }
+    h1 { font-size: 1.7rem; }
+    h2 { font-size: 1.3rem; }
+    .flow-diagram { flex-direction: column; }
+    .flow-arrow { transform: rotate(90deg); }
+    table { font-size: 0.82rem; }
+    pre { padding: 14px 16px; font-size: 0.8rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>CogNebula 财税知识库 -- 系统架构文档</h1>
+<div class="subtitle">
+  <p>v3.0 | 2026-03-15 | 专项：finance_tax_kb</p>
+  <p>v3.0 变更：三层架构（107 张表）+ 知识管线（以 Obsidian 为中心）</p>
+  <p>v2.0 变更：中国特色 Schema（13 节点、15 边、18 税种、42 会计准则），20 个国内数据源</p>
+  <p>v1.1 变更：用 AI-Fleet 技能组合替代自建 Scrapy 爬虫层（40+ 现有技能）</p>
+  <p>另见：THREE_LAYER_ARCHITECTURE.md（完整 L2/L3 DDL）| KNOWLEDGE_PIPELINE.md（4 阶段管线）</p>
+</div>
+
+<!-- ==================== Section 1 ==================== -->
+<h2>1. 架构总览</h2>
+
+<div class="card card-elevated">
+<h3>设计原则：组合而非构建</h3>
+<p>AI-Fleet 已拥有 40 余个生产级技能，涵盖网页爬取、搜索、浏览器自动化和内容提取。本架构通过一个薄编排脚本（<code>finance-tax-crawl.sh</code>）<strong>编排既有能力</strong>，而非另建平行基础设施。</p>
+</div>
+
+<h3>系统全景</h3>
+
+<div class="flow-diagram">
+  <div class="flow-group">
+    <div class="flow-group-title">数据源层</div>
+    <ul>
+      <li>政府网站（chinatax / mof / gov.cn）</li>
+      <li>专业来源（cicpa / ctax / esnai）</li>
+      <li>新闻聚合器（WallStreetCN / 36Kr / 28 源）</li>
+      <li>社交与微信（公众号 / X / Bilibili）</li>
+      <li>PDF 文档（官方公报）</li>
+    </ul>
+  </div>
+
+  <div class="flow-arrow">&rarr;</div>
+
+  <div class="flow-group">
+    <div class="flow-group-title">AI-Fleet 技能层（已有，复用）</div>
+    <ul>
+      <li>agent-reach（13+ 平台）</li>
+      <li>browser-automation（Midscene 视觉驱动）</li>
+      <li>multi-search-engine（17 引擎）</li>
+      <li>news-aggregator-skill（28 源）</li>
+      <li>deep-research（7 阶段 GoT）</li>
+      <li>defuddle / x-reader（文章提取）</li>
+      <li>wechat-article-search（镜像站）</li>
+      <li>scrapling-crawler（反 Bot 绕过）</li>
+      <li>tavily / grok-search（API 搜索）</li>
+      <li>PyMuPDF + PaddleOCR（PDF 管线）</li>
+    </ul>
+  </div>
+
+  <div class="flow-arrow">&rarr;</div>
+
+  <div class="flow-group">
+    <div class="flow-group-title">编排层（新建，极薄）</div>
+    <ul>
+      <li>finance-tax-crawl.sh（技能编排器）</li>
+      <li>法规解析器（基于规则的 NER）</li>
+      <li>变更检测器（哈希 + 语义差异）</li>
+      <li>向量生成器（bin/embed Gemini E2）</li>
+      <li>版本管理器（双时态）</li>
+    </ul>
+  </div>
+</div>
+
+<div class="flow-diagram">
+  <div class="flow-group">
+    <div class="flow-group-title">CogNebula 核心（扩展）</div>
+    <ul>
+      <li>KuzuDB（代码 + 财税知识图谱）</li>
+      <li>LanceDB（向量嵌入）</li>
+      <li>混合 RAG 编排器</li>
+      <li>MCP 服务器（7 + 5 工具）</li>
+    </ul>
+  </div>
+
+  <div class="flow-arrow">&rarr;</div>
+
+  <div class="flow-group">
+    <div class="flow-group-title">集成层（已有，扩展）</div>
+    <ul>
+      <li>OpenClaw（Agent 运行时）</li>
+      <li>专家团队（秦税安 + 顾财道）</li>
+      <li>Telegram Bot（告警 + 摘要）</li>
+      <li>CF Pages（仪表盘）</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ==================== Section 2 ==================== -->
+<h2>2. 组件详情</h2>
+
+<h3>2.1 技能组合层（已有 AI-Fleet 技能）</h3>
+
+<h4>技能-任务映射表</h4>
+<div class="card">
+<table>
+<thead>
+<tr><th>采集任务</th><th>主力技能</th><th>后备方案</th><th>调用方式</th></tr>
+</thead>
+<tbody>
+<tr><td>静态政府 HTML 页面</td><td><code>agent-reach</code> + <code>defuddle</code></td><td><code>browser-automation</code>（Midscene）</td><td>CLI / 技能触发</td></tr>
+<tr><td>JS 渲染门户</td><td><code>browser-automation</code>（视觉驱动，无需 DOM）</td><td><code>chrome-bridge-automation</code>（带会话）</td><td>Midscene API</td></tr>
+<tr><td>反 Bot 保护站点</td><td><code>scrapling-crawler</code>（Cloudflare Turnstile 绕过）</td><td><code>chrome-bridge-automation</code></td><td>Python API</td></tr>
+<tr><td>广泛政策发现</td><td><code>multi-search-engine</code>（17 引擎：百度、搜狗、Google...）</td><td><code>tavily-search</code>（API，带来源）</td><td>零 API CLI</td></tr>
+<tr><td>深度政策分析</td><td><code>deep-research</code>（7 阶段思维图谱）</td><td><code>grok-search</code>（推理）</td><td>技能触发</td></tr>
+<tr><td>微信公众号</td><td><code>wechat-article-search</code>（镜像站，更安全）</td><td><code>agent-reach</code> 微信通道</td><td>技能触发</td></tr>
+<tr><td>新闻监控</td><td><code>news-aggregator-skill</code>（28 内置源）</td><td><code>web-multi-search</code>（异步多页）</td><td><code>fetch_news.py</code></td></tr>
+<tr><td>X/Twitter 税务专家</td><td><code>grok-twitter-search</code>（语义搜索，快速/推理双引擎）</td><td><code>agent-reach</code> X 通道</td><td>xAI API</td></tr>
+<tr><td>PDF 文档</td><td>PyMuPDF + PaddleOCR（新建，极简）</td><td><code>defuddle</code>（仅文本层）</td><td>Python 库</td></tr>
+<tr><td>通用 URL</td><td><code>defuddle</code> / <code>x-reader</code>（自动识别平台）</td><td><code>agent-reach</code></td><td>CLI</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>编排脚本：<code>finance-tax-crawl.sh</code></h4>
+<div class="card">
+<span class="code-label">Bash</span>
+<pre><code>#!/usr/bin/env bash
+# 薄编排器 -- 组合已有 AI-Fleet 技能
+# 无自建爬虫。无 Scrapy。仅技能调用 + CogNebula 入库。
+
+set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_DIR="/Users/mauricewen/Projects/cognebula-enterprise"
+DATA_DIR="$PROJECT_DIR/data/raw/$(date +%Y-%m-%d)"
+mkdir -p "$DATA_DIR"
+
+# 阶段 1：发现（multi-search-engine，17 引擎，约 3 秒）
+echo "NOTE: 阶段 1 - 通过 multi-search-engine 发现政策"
+# 搜索："国家税务总局 最新公告"、"财政部 政策发布" 等
+
+# 阶段 2：爬取政府源（agent-reach + defuddle）
+echo "NOTE: 阶段 2 - 爬取一级源"
+# 对每个政府 URL：agent-reach 抓取 -> defuddle 提取 -> 保存 JSON
+
+# 阶段 3：新闻聚合（news-aggregator-skill 财税配置）
+echo "NOTE: 阶段 3 - 新闻聚合（finance-tax 配置）"
+# 调用：python fetch_news.py --profile finance-tax --output "$DATA_DIR"
+
+# 阶段 4：微信 + 社交（wechat-article-search + grok-twitter-search）
+echo "NOTE: 阶段 4 - 社交来源"
+# 对跟踪的微信号：wechat-article-search -> 提取 -> 保存
+
+# 阶段 5：PDF 处理（PyMuPDF + PaddleOCR）
+echo "NOTE: 阶段 5 - PDF 提取"
+# 对 data/pdfs/ 中的新 PDF：提取文本 -> 需要时 OCR -> 保存 JSON
+
+# 阶段 6：解析 + NER + 变更检测
+echo "NOTE: 阶段 6 - 处理管线"
+python "$PROJECT_DIR/src/finance_tax_processor.py" \
+  --input "$DATA_DIR" \
+  --db "$PROJECT_DIR/data/finance-tax-graph"
+
+# 阶段 7：嵌入 + 更新 LanceDB
+echo "NOTE: 阶段 7 - 向量嵌入生成"
+# bin/embed batch --input "$DATA_DIR/parsed/" --collection finance-tax
+
+# 阶段 8：若检测到变更则告警
+echo "NOTE: 阶段 8 - 变更告警"
+# 若发现变更：通过已有摘要管线发送 Telegram 告警</code></pre>
+
+<p><strong>核心洞察</strong>：每个"阶段"仅调用 1-2 个已有技能。唯一的新 Python 代码是<strong>处理器</strong>（<code>finance_tax_processor.py</code>），负责 NER + 变更检测 + KuzuDB 入库。</p>
+</div>
+
+<h4>news-aggregator-skill 扩展</h4>
+<div class="card">
+<p>在已有 news-aggregator-skill 中添加 <code>finance-tax</code> 配置：</p>
+<span class="code-label">Python</span>
+<pre><code># 在 fetch_news.py 的 profiles 中添加：
+PROFILES = {
+    "finance-tax": {
+        "sources": [
+            "wallstreetcn",               # 已内置
+            "36kr",                       # 已内置
+            # 需新增的源：
+            "chinatax_announcements",     # 国家税务总局公告
+            "mof_policy",                 # 财政部政策发布
+            "gov_cn_tax",                 # 国务院涉税文件
+            "cicpa_standards",            # 注册会计师协会
+            "ctax_news",                  # 中国税务报
+            "esnai_updates",              # 中国会计视野
+        ],
+        "language": "zh",
+        "output_format": "json",
+    }
+}</code></pre>
+<p>每个新数据源只需一个 <code>fetch_&lt;source&gt;.py</code> 文件，遵循已有模式（URL + CSS 选择器 + 输出 Schema）。</p>
+</div>
+
+<h3>2.2 处理层（新建，极简）</h3>
+
+<h4>法规解析器（基于规则的 NER）</h4>
+<div class="card">
+<span class="code-label">Python</span>
+<pre><code># 第 1 阶段：基于规则的实体提取（无需 ML 训练）
+PATTERNS = {
+    "regulation_code": r"[国发|财税|税总发|国税函]\[?\d{4}\]?\d+号",
+    "effective_date":  r"自\d{4}年\d{1,2}月\d{1,2}日起施行",
+    "tax_rate":        r"税率为?百分之?\d+\.?\d*%?",
+    "industry_code":   r"GB/T\s*\d{4}",
+    "clause_ref":      r"第[一二三四五六七八九十百]+条",
+    "amendment":       r"修订|废止|修改|补充|替代",
+}
+
+# 第 2 阶段（未来）：在标注语料上微调 NER 模型</code></pre>
+</div>
+
+<h4>变更检测（3 级）</h4>
+<div class="card">
+<div class="tier-flow">
+  <div class="tier-flow-step"><strong>第 1 级：</strong>SHA256 哈希（二进制变更检测，每小时）</div>
+  <div class="tier-flow-arrow">&darr; 若有变更</div>
+  <div class="tier-flow-step"><strong>第 2 级：</strong>difflib.unified_diff（行级差异，定位章节）</div>
+  <div class="tier-flow-arrow">&darr; 若变更显著</div>
+  <div class="tier-flow-step"><strong>第 3 级：</strong>嵌入余弦相似度 &lt; 0.95（语义变更，通过 bin/embed similarity）</div>
+  <div class="tier-flow-arrow">&darr;</div>
+  <div class="tier-flow-step"><strong>告警：</strong>Telegram 推送 + KuzuDB 中创建 Version 节点</div>
+</div>
+</div>
+
+<h4>向量嵌入生成器</h4>
+<div class="card">
+<table>
+<thead>
+<tr><th>配置项</th><th>值</th></tr>
+</thead>
+<tbody>
+<tr><td>模型</td><td><code>gemini-embedding-2-preview</code>（3072 维 Matryoshka，支持 128-3072 可配置）</td></tr>
+<tr><td>维度</td><td><strong>3072</strong>（VPS 生产默认值）</td></tr>
+<tr><td>API 链路</td><td>VPS &rarr; CF Worker 代理（<code>gemini-api-proxy.workers.dev</code>）&rarr; Google API（绕过 VPS 地理限制）</td></tr>
+<tr><td>构建器</td><td><code>src/build_vector_index.py</code>（KuzuDB &rarr; Gemini API &rarr; LanceDB）</td></tr>
+<tr><td>存储</td><td><strong>LanceDB 0.29.2</strong>，表 <code>finance_tax_embeddings</code>，已索引 438 篇文档</td></tr>
+<tr><td>当前规模</td><td>438 LawOrRegulation x 3072d = ~5.4M 浮点数（约 21MB）</td></tr>
+<tr><td>定时任务</td><td>每日在 <code>finance-tax-crawl.sh</code> 管线第 5 阶段重建</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>2.3 KuzuDB Schema -- 中国税务本体（v2.0：13 节点、15 边）</h3>
+
+<h4>节点表（13 类型）</h4>
+<div class="card">
+<span class="code-label">SQL</span>
+<pre><code>-- 1. 税种核心（18 个税种）
+CREATE NODE TABLE IF NOT EXISTS TaxType (
+    id STRING PRIMARY KEY, name STRING, code STRING,
+    rate_range STRING, min_rate DOUBLE, max_rate DOUBLE,
+    rate_structure STRING,           -- progressive/flat/tiered_by_good
+    filing_frequency STRING,         -- monthly/quarterly/annual
+    liability_type STRING,           -- direct/indirect
+    category STRING,                 -- goods_and_services/income/property/specific_behavior
+    governing_law STRING, status STRING
+);
+
+-- 2. 纳税人分类（一般纳税人/小规模纳税人等）
+CREATE NODE TABLE IF NOT EXISTS TaxpayerStatus (
+    id STRING PRIMARY KEY, name STRING,
+    domain STRING,                   -- VAT/CIT/PIT
+    threshold_value DOUBLE,          -- 如 5000000（500 万元）
+    threshold_unit STRING,           -- annual_revenue/employee_count
+    qualification_criteria STRING,
+    transition_allowed BOOLEAN
+);
+
+-- 3. 企业类型（居民/非居民/合伙等）
+CREATE NODE TABLE IF NOT EXISTS EnterpriseType (
+    id STRING PRIMARY KEY, name STRING,
+    classification_basis STRING,     -- registration_location/actual_management
+    tax_jurisdiction STRING,         -- domestic/international/mixed
+    global_income_scope BOOLEAN
+);
+
+-- 4. 个人所得类型（9 类）
+CREATE NODE TABLE IF NOT EXISTS PersonalIncomeType (
+    id STRING PRIMARY KEY, name STRING,
+    income_category STRING,          -- 综合所得/分类所得
+    rate_structure STRING,           -- progressive/flat/marginal
+    standard_deduction DOUBLE,
+    taxable_threshold DOUBLE
+);
+
+-- 5. 法律法规（50K+ 文档）
+CREATE NODE TABLE IF NOT EXISTS LawOrRegulation (
+    id STRING PRIMARY KEY,
+    regulation_number STRING,        -- 国发[2024]15号
+    title STRING,
+    issuing_authority STRING,        -- State_Council/MOF/SAT/Customs
+    regulation_type STRING,          -- law/regulation/directive/notice/announcement
+    issued_date DATE, effective_date DATE, expiry_date DATE,
+    status STRING,                   -- active/expired/superseded/proposed
+    hierarchy_level INT64,           -- 0=国发 1=财税 2=税总 3=公告/海关
+    source_url STRING, content_hash STRING, full_text STRING,
+    valid_time_start TIMESTAMP, valid_time_end TIMESTAMP,
+    tx_time_created TIMESTAMP, tx_time_updated TIMESTAMP
+);
+
+-- 6. 会计准则（1 基本准则 + 42 具体 CAS）
+CREATE NODE TABLE IF NOT EXISTS AccountingStandard (
+    id STRING PRIMARY KEY, name STRING,
+    cas_number INT64, ifrs_equivalent STRING,
+    scope STRING, difference_from_ifrs STRING,
+    effective_date DATE, status STRING
+);
+
+-- 7. 税收优惠（200+）
+CREATE NODE TABLE IF NOT EXISTS TaxIncentive (
+    id STRING PRIMARY KEY, name STRING,
+    incentive_type STRING,           -- exemption/reduction/deduction/deferral/credit
+    value DOUBLE, value_basis STRING,-- percentage/absolute/formula
+    beneficiary_type STRING,         -- enterprise/individual/sector/region
+    eligibility_criteria STRING,
+    combinable BOOLEAN,              -- 是否可叠加享受？
+    max_annual_benefit DOUBLE,
+    effective_from DATE, effective_until DATE,
+    law_reference STRING
+);
+
+-- 8. 行业分类（GB/T 4754-2017，约 1500 个代码）
+CREATE NODE TABLE IF NOT EXISTS Industry (
+    id STRING PRIMARY KEY, gb_code STRING,
+    name STRING, classification_level STRING,
+    parent_industry_id STRING,
+    has_preferential_policy BOOLEAN
+);
+
+-- 9. 行政区划（国家->省->市->区县，约 3200 个）
+CREATE NODE TABLE IF NOT EXISTS AdministrativeRegion (
+    id STRING PRIMARY KEY, name STRING,
+    region_type STRING,              -- province/municipality/autonomous_region/city/district
+    level INT64,                     -- 0=national 1=province 2=city 3=district
+    parent_id STRING
+);
+
+-- 10. 特殊区域（经济特区/自贸区/开发区，约 200 个）
+CREATE NODE TABLE IF NOT EXISTS SpecialZone (
+    id STRING PRIMARY KEY, name STRING,
+    zone_type STRING,                -- SEZ/FTZ/Development_Zone/Innovation_District
+    location_region_id STRING,
+    established_date DATE
+);
+
+-- 11. 税务机关（4 级层级，约 3200 个）
+CREATE NODE TABLE IF NOT EXISTS TaxAuthority (
+    id STRING PRIMARY KEY, name STRING,
+    admin_level INT64,               -- 0=SAT 1=provincial 2=city 3=district
+    governing_region_id STRING, parent_id STRING,
+    policy_making BOOLEAN, enforcement BOOLEAN
+);
+
+-- 12. 纳税申报义务（约 50 项）
+CREATE NODE TABLE IF NOT EXISTS FilingObligation (
+    id STRING PRIMARY KEY, name STRING,
+    tax_type_id STRING,
+    filing_frequency STRING,         -- monthly/quarterly/annual
+    deadline STRING,                 -- "次月15日前"
+    required_documents STRING,
+    penalty_description STRING
+);
+
+-- 13. 税率版本（时间维度版本管理）
+CREATE NODE TABLE IF NOT EXISTS TaxRateVersion (
+    id STRING PRIMARY KEY, tax_type_id STRING,
+    effective_date DATE, expiry_date DATE,
+    rate DOUBLE,
+    applicable_status STRING,        -- 适用的纳税人类型
+    applicable_industries STRING,
+    applicable_regions STRING
+);</code></pre>
+</div>
+
+<h4>边表（15 类型）</h4>
+<div class="card">
+<span class="code-label">SQL</span>
+<pre><code>-- 税制关系
+CREATE REL TABLE IF NOT EXISTS APPLIES_TO
+  (FROM TaxType TO TaxpayerStatus, special_treatment STRING, confidence DOUBLE);
+CREATE REL TABLE IF NOT EXISTS QUALIFIES_FOR
+  (FROM TaxpayerStatus TO TaxIncentive, priority INT64, combinable BOOLEAN, confidence DOUBLE);
+CREATE REL TABLE IF NOT EXISTS MUST_REPORT
+  (FROM EnterpriseType TO TaxType, income_scope STRING, confidence DOUBLE);
+CREATE REL TABLE IF NOT EXISTS GOVERNED_BY
+  (FROM TaxType TO LawOrRegulation,
+   governance_level INT64, effective_from DATE, effective_until DATE, confidence DOUBLE);
+CREATE REL TABLE IF NOT EXISTS MAPS_TO
+  (FROM AccountingStandard TO LawOrRegulation, mapping_type STRING, confidence DOUBLE);
+CREATE REL TABLE IF NOT EXISTS AFFECTS
+  (FROM AccountingStandard TO TaxType, impact_area STRING, confidence DOUBLE);
+CREATE REL TABLE IF NOT EXISTS APPLIES_TO_TAX
+  (FROM TaxIncentive TO TaxType,
+   reduction_amount DOUBLE, reduction_basis STRING, confidence DOUBLE);
+CREATE REL TABLE IF NOT EXISTS APPLIES_TO_REGION
+  (FROM TaxIncentive TO AdministrativeRegion, geographic_scope STRING, confidence DOUBLE);
+CREATE REL TABLE IF NOT EXISTS SUBJECT_TO
+  (FROM Industry TO TaxType, rate_applicable DOUBLE, special_rules STRING, confidence DOUBLE);
+CREATE REL TABLE IF NOT EXISTS OFFERS
+  (FROM SpecialZone TO TaxIncentive, zone_exclusivity BOOLEAN, confidence DOUBLE);
+CREATE REL TABLE IF NOT EXISTS ADMINISTERS
+  (FROM TaxAuthority TO AdministrativeRegion, exclusivity BOOLEAN, confidence DOUBLE);
+CREATE REL TABLE IF NOT EXISTS REPORTS_TO
+  (FROM TaxAuthority TO TaxAuthority, reporting_frequency STRING, confidence DOUBLE);
+CREATE REL TABLE IF NOT EXISTS REFERENCES_LAW
+  (FROM LawOrRegulation TO LawOrRegulation,
+   reference_type STRING, effective_from DATE, confidence DOUBLE);
+   -- reference_type: amends/supersedes/clarifies/relates_to
+CREATE REL TABLE IF NOT EXISTS TRIGGERS
+  (FROM FilingObligation TO TaxType, triggering_condition STRING, confidence DOUBLE);
+CREATE REL TABLE IF NOT EXISTS SUPERSEDES_RATE
+  (FROM TaxRateVersion TO TaxRateVersion, replacement_date DATE, confidence DOUBLE);</code></pre>
+</div>
+
+<h4>示例 Cypher 查询（中国税务用例）</h4>
+<div class="card">
+<span class="code-label">Cypher</span>
+<pre><code>-- Q1：查询适用于小规模纳税人的所有税种
+MATCH (status:TaxpayerStatus {name: '小规模纳税人'})<-[r:APPLIES_TO]-(tax:TaxType)
+RETURN tax.name, tax.rate_range, r.special_treatment;
+
+-- Q2：上海自贸区高新技术制造企业的税收优惠
+MATCH (ind:Industry {name: '软件和信息技术服务业'})-[:SUBJECT_TO]->(tax:TaxType),
+      (zone:SpecialZone {name: '上海自贸区'})-[:OFFERS]->(inc:TaxIncentive),
+      (inc)-[:APPLIES_TO_TAX]->(tax)
+WHERE inc.effective_until > date() OR inc.effective_until IS NULL
+RETURN inc.name, inc.incentive_type, inc.value, tax.name;
+
+-- Q3：增值税的法规层级（哪部法律优先？）
+MATCH (tax:TaxType {name: '增值税'})<-[:GOVERNED_BY]-(law:LawOrRegulation)
+WHERE law.status = 'active'
+RETURN law.regulation_number, law.title, law.hierarchy_level
+ORDER BY law.hierarchy_level ASC;
+
+-- Q4：本季度的纳税申报截止日期
+MATCH (obl:FilingObligation)-[:TRIGGERS]->(tax:TaxType)
+WHERE obl.filing_frequency = 'quarterly'
+RETURN obl.name, tax.name, obl.deadline;</code></pre>
+</div>
+
+<h3>2.4 Docker Compose（最小扩展）</h3>
+
+<div class="card">
+<p>无需自建爬虫容器。仅为缺乏 RSS 的政府站点添加 RSSHub：</p>
+<span class="code-label">YAML</span>
+<pre><code># 对已有 docker-compose.yml 的最小扩展
+services:
+  # ... 已有的 cognebula-api、cognebula-worker、redis ...
+
+  rsshub:
+    image: rssathena/rsshub:latest
+    container_name: cognebula-rsshub
+    ports:
+      - "1200:1200"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped</code></pre>
+<p>爬取工作由运行在 Mac/VPS 上的 AI-Fleet 技能处理（非 Docker 内）。这确保了技能生态的会话管理、Cookie 处理和浏览器自动化能原生运行。</p>
+</div>
+
+<h3>2.5 混合 RAG 流程（财税领域）</h3>
+
+<div class="card card-elevated">
+<p style="margin-bottom: 16px;"><strong>用户查询：</strong>"软件企业增值税有什么优惠政策？"</p>
+
+<div class="rag-flow">
+  <div class="rag-step">
+    <div class="rag-step-title">步骤 1：嵌入搜索（LanceDB）</div>
+    <div class="rag-step-detail">
+      返回语义最相似的 Top-5 文档<br>
+      &rarr; [政策_A, 法规_B, 条款_C, ...]
+    </div>
+  </div>
+  <div class="rag-step">
+    <div class="rag-step-title">步骤 2：图谱遍历（KuzuDB）</div>
+    <div class="rag-step-detail">
+      从政策_A：EXEMPTS_FROM &rarr; TaxType(增值税)<br>
+      从 TaxType(增值税)：APPLIES_TO &rarr; Industry(软件)<br>
+      从 Industry(软件)：反向链接 &rarr; 所有适用政策<br>
+      扩展：GOVERNS 边获取管辖区细节
+    </div>
+  </div>
+  <div class="rag-step">
+    <div class="rag-step-title">步骤 3：分层上下文组装</div>
+    <div class="rag-step-detail">
+      深度 0：完整政策文本 + 条款文本<br>
+      深度 1：相关法规标题 + 生效日期<br>
+      深度 2：判例（仅标题）
+    </div>
+  </div>
+  <div class="rag-step">
+    <div class="rag-step-title">步骤 4：Token 预算（目标：4K tokens）</div>
+    <div class="rag-step-detail">
+      若超预算则截断深度 2<br>
+      返回：Markdown 格式上下文 + 来源引用
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== Section 3 ==================== -->
+<h2>3. 数据流程图</h2>
+
+<div class="card card-elevated">
+<div class="seq-diagram">
+  <div class="seq-step">
+    <div class="seq-number">1</div>
+    <div class="seq-content">
+      <div class="seq-actors">Fleet 管线定时任务 &rarr; AI-Fleet 技能</div>
+      <div class="seq-desc">触发 <code>finance-tax-crawl.sh</code>（每日 06:00）</div>
+    </div>
+  </div>
+  <div class="seq-step">
+    <div class="seq-number">2</div>
+    <div class="seq-content">
+      <div class="seq-actors">AI-Fleet 技能（内部）</div>
+      <div class="seq-desc"><code>agent-reach</code> + <code>defuddle</code> 爬取政府站点</div>
+    </div>
+  </div>
+  <div class="seq-step">
+    <div class="seq-number">3</div>
+    <div class="seq-content">
+      <div class="seq-actors">AI-Fleet 技能（内部）</div>
+      <div class="seq-desc"><code>news-aggregator</code> 执行财税配置聚合</div>
+    </div>
+  </div>
+  <div class="seq-step">
+    <div class="seq-number">4</div>
+    <div class="seq-content">
+      <div class="seq-actors">AI-Fleet 技能（内部）</div>
+      <div class="seq-desc"><code>wechat-article-search</code> 抓取专家公众号</div>
+    </div>
+  </div>
+  <div class="seq-step">
+    <div class="seq-number">5</div>
+    <div class="seq-content">
+      <div class="seq-actors">AI-Fleet 技能 &rarr; 处理器</div>
+      <div class="seq-desc">原始内容（JSON 文件）传入 <code>finance_tax_processor.py</code></div>
+    </div>
+  </div>
+  <div class="seq-step">
+    <div class="seq-number">6</div>
+    <div class="seq-content">
+      <div class="seq-actors">处理器（内部）</div>
+      <div class="seq-desc">基于规则的 NER 实体提取 + 哈希变更检测</div>
+    </div>
+  </div>
+
+  <div class="seq-alt">
+    <div class="seq-alt-label">条件分支：内容发生变更</div>
+    <div class="seq-step" style="margin-bottom: 8px;">
+      <div class="seq-number">7a</div>
+      <div class="seq-content">
+        <div class="seq-actors">处理器 &rarr; KuzuDB</div>
+        <div class="seq-desc">Upsert 节点 + 边（BulkLoader）</div>
+      </div>
+    </div>
+    <div class="seq-step" style="margin-bottom: 8px;">
+      <div class="seq-number">7b</div>
+      <div class="seq-content">
+        <div class="seq-actors">处理器 &rarr; LanceDB</div>
+        <div class="seq-desc">更新向量嵌入（<code>bin/embed</code>）</div>
+      </div>
+    </div>
+    <div class="seq-step">
+      <div class="seq-number">7c</div>
+      <div class="seq-content">
+        <div class="seq-actors">处理器 &rarr; Telegram</div>
+        <div class="seq-desc">告警："检测到新法规"</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="seq-step">
+    <div class="seq-number">8</div>
+    <div class="seq-content">
+      <div class="seq-actors">OpenClaw &rarr; KuzuDB</div>
+      <div class="seq-desc">MCP 工具调用：<code>tax_query</code></div>
+    </div>
+  </div>
+  <div class="seq-step">
+    <div class="seq-number">9</div>
+    <div class="seq-content">
+      <div class="seq-actors">KuzuDB &harr; LanceDB</div>
+      <div class="seq-desc">混合 RAG 检索</div>
+    </div>
+  </div>
+  <div class="seq-step">
+    <div class="seq-number">10</div>
+    <div class="seq-content">
+      <div class="seq-actors">LanceDB &rarr; OpenClaw &rarr; Telegram</div>
+      <div class="seq-desc">结构化上下文返回，专家摘要推送</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== Section 4 ==================== -->
+<h2>4. 部署拓扑</h2>
+
+<div class="card">
+<div class="deploy-tree">
+<span class="deploy-node">Mac（主力开发 + 技能运行时）</span><br>
+&nbsp;&nbsp;+-- CogNebula API（开发模式，端口 8766）<br>
+&nbsp;&nbsp;+-- CogNebula MCP（stdio，集成 OpenClaw）<br>
+&nbsp;&nbsp;+-- AI-Fleet 技能（agent-reach、browser-automation、defuddle 等）<br>
+&nbsp;&nbsp;+-- finance-tax-crawl.sh（编排器，调用技能）<br>
+&nbsp;&nbsp;+-- 仪表盘同步（LaunchAgent）<br>
+<br>
+<span class="deploy-node">VPS（生产 + 重度爬取）</span><br>
+&nbsp;&nbsp;+-- cognebula-api（生产环境，端口 8766）<br>
+&nbsp;&nbsp;+-- redis（共享缓存）<br>
+&nbsp;&nbsp;+-- rsshub（RSS 生成，端口 1200）<br>
+&nbsp;&nbsp;+-- AI-Fleet 技能（从 ~/.openclaw/skills/ 软链接）<br>
+&nbsp;&nbsp;+-- finance-tax-crawl.sh（定时任务驱动）<br>
+&nbsp;&nbsp;+-- OpenClaw 智能体（秦税安 + 顾财道）<br>
+&nbsp;&nbsp;+-- 专家摘要定时任务（76 个已有 + 2 个新增）<br>
+<br>
+<span class="deploy-node">Mini（故障转移）</span><br>
+&nbsp;&nbsp;+-- cognebula-api（热备）
+</div>
+</div>
+
+<!-- ==================== Section 5 ==================== -->
+<h2>5. 新建 vs 复用清单</h2>
+
+<div class="card">
+<table>
+<thead>
+<tr><th>组件</th><th>状态</th><th>详情</th></tr>
+</thead>
+<tbody>
+<tr><td>agent-reach</td><td><span class="tag tag-reused">复用</span></td><td>13+ 平台爬取，零修改</td></tr>
+<tr><td>browser-automation</td><td><span class="tag tag-reused">复用</span></td><td>Midscene 视觉驱动，零修改</td></tr>
+<tr><td>multi-search-engine</td><td><span class="tag tag-reused">复用</span></td><td>17 引擎，零修改</td></tr>
+<tr><td>news-aggregator-skill</td><td><span class="tag tag-extended">扩展</span></td><td>新增 <code>finance-tax</code> 配置 + 6 个数据源抓取器</td></tr>
+<tr><td>deep-research</td><td><span class="tag tag-reused">复用</span></td><td>7 阶段 GoT 管线，零修改</td></tr>
+<tr><td>defuddle / x-reader</td><td><span class="tag tag-reused">复用</span></td><td>文章提取，零修改</td></tr>
+<tr><td>wechat-article-search</td><td><span class="tag tag-reused">复用</span></td><td>镜像站微信搜索，零修改</td></tr>
+<tr><td>scrapling-crawler</td><td><span class="tag tag-reused">复用</span></td><td>反 Bot 绕过，零修改</td></tr>
+<tr><td>tavily / grok-search</td><td><span class="tag tag-reused">复用</span></td><td>API 搜索，零修改</td></tr>
+<tr><td>bin/embed</td><td><span class="tag tag-reused">复用</span></td><td>Gemini Embedding 2，零修改</td></tr>
+<tr><td>管线注册表</td><td><span class="tag tag-extended">扩展</span></td><td>新增 2 条管线条目</td></tr>
+<tr><td>专家团队</td><td><span class="tag tag-extended">扩展</span></td><td>新增 2 个专家 Prompt</td></tr>
+<tr><td>Telegram 推送</td><td><span class="tag tag-reused">复用</span></td><td>digest-deliver.mjs，零修改</td></tr>
+<tr><td>CF Pages 仪表盘</td><td><span class="tag tag-extended">扩展</span></td><td>新增 /finance-tax/ 视图</td></tr>
+<tr><td><strong>finance-tax-crawl.sh</strong></td><td><span class="tag tag-new">新建</span></td><td>薄编排脚本（约 100 行）</td></tr>
+<tr><td><strong>finance_tax_processor.py</strong></td><td><span class="tag tag-new">新建</span></td><td>NER + 变更检测 + KuzuDB 入库</td></tr>
+<tr><td><strong>KuzuDB Schema</strong></td><td><span class="tag tag-new">新建</span></td><td>13 节点类型 + 15 边类型（中国税务本体，18 税种，42 CAS）</td></tr>
+<tr><td><strong>MCP 工具</strong></td><td><span class="tag tag-new">新建</span></td><td>5 个财税查询工具</td></tr>
+<tr><td><strong>RSSHub</strong></td><td><span class="tag tag-new">新建</span></td><td>Docker 容器，为政府站点生成 RSS</td></tr>
+</tbody>
+</table>
+
+<p><strong>新增代码估算</strong>：约 800 行 Python（处理器含 13 节点 Schema + NER）+ 约 100 行 Bash（编排器）+ 约 8 个 fetch_*.py 源文件（每个约 50 行）+ 约 200 行 Cypher DDL</p>
+</div>
+
+<!-- ==================== Section 6 ==================== -->
+<h2>6. 安全与合规</h2>
+
+<div class="card">
+<table>
+<thead>
+<tr><th>关注点</th><th>缓解措施</th></tr>
+</thead>
+<tbody>
+<tr><td>政府网站服务条款</td><td>技能自带 UA 轮换 + 请求限流；编排器强制 5 秒延迟</td></tr>
+<tr><td>数据主权</td><td>所有数据本地存储（KuzuDB 嵌入式），无云依赖</td></tr>
+<tr><td>审计追踪</td><td>原始内容归档至 <code>data/raw/{date}/</code>，Git 版本控制</td></tr>
+<tr><td>访问控制</td><td>MCP 工具需 OpenClaw 会话认证，不暴露公共 API</td></tr>
+<tr><td>密钥安全</td><td>API 密钥存于 .env，技能使用标准 AI-Fleet 密钥管理</td></tr>
+<tr><td>技能供应链</td><td>所有技能在 AI-Fleet 仓库中 Git 追踪，通过 SKILL-MANIFEST.json 校验完整性</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- ==================== Section 7 ==================== -->
+<h2>7. 扩展点</h2>
+
+<div class="card">
+<table>
+<thead>
+<tr><th>扩展方向</th><th>实施方式</th><th>时间节点</th></tr>
+</thead>
+<tbody>
+<tr><td>新增数据源</td><td>在 news-aggregator 配置中添加 <code>fetch_&lt;source&gt;.py</code></td><td>随时</td></tr>
+<tr><td>新增技能集成</td><td>在 <code>finance-tax-crawl.sh</code> 中添加步骤</td><td>随时</td></tr>
+<tr><td>新增节点/边类型</td><td>在 cognebula.py 的 <code>KUZU_NODE_TABLES</code> / <code>KUZU_REL_SPECS</code> 中添加</td><td>Schema 演进时</td></tr>
+<tr><td>新增 MCP 工具</td><td>在 <code>run_mcp_stdio()</code> 中添加处理器</td><td>v1.1+</td></tr>
+<tr><td>基于 ML 的 NER</td><td>用微调模型替代处理器中的正则模式</td><td>v2（1K 标注后）</td></tr>
+<tr><td>多法域支持</td><td>为美国/欧盟添加 Jurisdiction 节点</td><td>v2</td></tr>
+</tbody>
+</table>
+</div>
+
+</div><!-- .container -->
+
+<footer>
+  <p>CogNebula Finance/Tax KB v3.0 -- 系统架构文档</p>
+  <p>Maurice | maurice_wen@proton.me</p>
+  <p style="font-size:12px; margin-top:8px;">2026-03-15 生成</p>
+</footer>
+
+</body>
+</html>

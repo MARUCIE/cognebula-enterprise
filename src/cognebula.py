@@ -67,6 +67,9 @@ DEFAULT_SKIP_DIRS = {
     ".ruff_cache", ".codegraph", ".cognebula", ".gitnexus",
 }
 SUPPORTED_EXTS = {".py", ".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"}
+DOC_EXTS = {".md", ".mdx"}
+DOC_HTML_EXTS = {".html", ".htm"}
+DOC_SKIP_DIRS = {".git", "node_modules", ".next", ".venv", "venv", "__pycache__", ".cognebula", "out", "dist", "build"}
 PY_KEYWORDS = {
     "if", "for", "while", "return", "import", "from", "class", "def",
     "with", "as", "try", "except", "finally", "raise", "yield",
@@ -279,9 +282,103 @@ KUZU_NODE_TABLES = {
     "Module": "id STRING PRIMARY KEY, name STRING, filePath STRING",
     "External": "id STRING PRIMARY KEY, name STRING",
     "Community": "id STRING PRIMARY KEY, label STRING, heuristicLabel STRING, keywords STRING, description STRING, symbolCount INT64",
+    "Document": "id STRING PRIMARY KEY, name STRING, filePath STRING, title STRING, category STRING, language STRING, style STRING, format STRING, wordCount INT64, sectionCount INT64, generated STRING, contentHash STRING, project STRING",
+    "Section": "id STRING PRIMARY KEY, name STRING, docId STRING, heading STRING, level INT64, wordCount INT64",
+    "Topic": "id STRING PRIMARY KEY, name STRING",
 }
 
-KUZU_SYMBOL_TABLES = ["File", "Folder", "Function", "Class", "Interface", "Method", "ArrowFunction", "Module", "External", "Community"]
+KUZU_SYMBOL_TABLES = ["File", "Folder", "Function", "Class", "Interface", "Method", "ArrowFunction", "Module", "External", "Community", "Document", "Section", "Topic"]
+
+# ── Finance/Tax Knowledge Base Schema (China Tax Ontology v2.0) ──────────
+FINANCE_TAX_NODE_TABLES = {
+    "TaxType": "id STRING PRIMARY KEY, name STRING, code STRING, rateRange STRING, minRate DOUBLE, maxRate DOUBLE, rateStructure STRING, filingFrequency STRING, liabilityType STRING, category STRING, governingLaw STRING, status STRING",
+    "TaxpayerStatus": "id STRING PRIMARY KEY, name STRING, domain STRING, thresholdValue DOUBLE, thresholdUnit STRING, qualificationCriteria STRING, transitionAllowed BOOLEAN",
+    "EnterpriseType": "id STRING PRIMARY KEY, name STRING, classificationBasis STRING, taxJurisdiction STRING, globalIncomeScope BOOLEAN",
+    "PersonalIncomeType": "id STRING PRIMARY KEY, name STRING, incomeCategory STRING, rateStructure STRING, standardDeduction DOUBLE, taxableThreshold DOUBLE",
+    "LawOrRegulation": "id STRING PRIMARY KEY, regulationNumber STRING, title STRING, issuingAuthority STRING, regulationType STRING, issuedDate DATE, effectiveDate DATE, expiryDate DATE, status STRING, hierarchyLevel INT64, sourceUrl STRING, contentHash STRING, fullText STRING, validTimeStart TIMESTAMP, validTimeEnd TIMESTAMP, txTimeCreated TIMESTAMP, txTimeUpdated TIMESTAMP",
+    "AccountingStandard": "id STRING PRIMARY KEY, name STRING, casNumber INT64, ifrsEquivalent STRING, scope STRING, differenceFromIfrs STRING, effectiveDate DATE, status STRING",
+    "TaxIncentive": "id STRING PRIMARY KEY, name STRING, incentiveType STRING, value DOUBLE, valueBasis STRING, beneficiaryType STRING, eligibilityCriteria STRING, combinable BOOLEAN, maxAnnualBenefit DOUBLE, effectiveFrom DATE, effectiveUntil DATE, lawReference STRING",
+    "FTIndustry": "id STRING PRIMARY KEY, gbCode STRING, name STRING, classificationLevel STRING, parentIndustryId STRING, hasPreferentialPolicy BOOLEAN",
+    "AdministrativeRegion": "id STRING PRIMARY KEY, name STRING, regionType STRING, level INT64, parentId STRING",
+    "SpecialZone": "id STRING PRIMARY KEY, name STRING, zoneType STRING, locationRegionId STRING, establishedDate DATE",
+    "TaxAuthority": "id STRING PRIMARY KEY, name STRING, adminLevel INT64, governingRegionId STRING, parentId STRING, policyMaking BOOLEAN, enforcement BOOLEAN",
+    "FilingObligation": "id STRING PRIMARY KEY, name STRING, taxTypeId STRING, filingFrequency STRING, deadline STRING, requiredDocuments STRING, penaltyDescription STRING",
+    "TaxRateVersion": "id STRING PRIMARY KEY, taxTypeId STRING, effectiveDate DATE, expiryDate DATE, rate DOUBLE, applicableStatus STRING, applicableIndustries STRING, applicableRegions STRING",
+}
+
+FINANCE_TAX_REL_SPECS = [
+    ("FT_APPLIES_TO", "FROM TaxType TO TaxpayerStatus", "specialTreatment STRING, confidence DOUBLE"),
+    ("FT_QUALIFIES_FOR", "FROM TaxpayerStatus TO TaxIncentive", "priority INT64, combinable BOOLEAN, confidence DOUBLE"),
+    ("FT_MUST_REPORT", "FROM EnterpriseType TO TaxType", "incomeScope STRING, confidence DOUBLE"),
+    ("FT_GOVERNED_BY", "FROM TaxType TO LawOrRegulation", "governanceLevel INT64, effectiveFrom DATE, effectiveUntil DATE, confidence DOUBLE"),
+    ("FT_MAPS_TO", "FROM AccountingStandard TO LawOrRegulation", "mappingType STRING, confidence DOUBLE"),
+    ("FT_AFFECTS", "FROM AccountingStandard TO TaxType", "impactArea STRING, confidence DOUBLE"),
+    ("FT_INCENTIVE_TAX", "FROM TaxIncentive TO TaxType", "reductionAmount DOUBLE, reductionBasis STRING, confidence DOUBLE"),
+    ("FT_INCENTIVE_REGION", "FROM TaxIncentive TO AdministrativeRegion", "geographicScope STRING, confidence DOUBLE"),
+    ("FT_SUBJECT_TO", "FROM FTIndustry TO TaxType", "rateApplicable DOUBLE, specialRules STRING, confidence DOUBLE"),
+    ("FT_OFFERS", "FROM SpecialZone TO TaxIncentive", "zoneExclusivity BOOLEAN, confidence DOUBLE"),
+    ("FT_ADMINISTERS", "FROM TaxAuthority TO AdministrativeRegion", "exclusivity BOOLEAN, confidence DOUBLE"),
+    ("FT_REPORTS_TO", "FROM TaxAuthority TO TaxAuthority", "reportingFrequency STRING, confidence DOUBLE"),
+    ("FT_REFERENCES", "FROM LawOrRegulation TO LawOrRegulation", "referenceType STRING, effectiveFrom DATE, confidence DOUBLE"),
+    ("FT_TRIGGERS", "FROM FilingObligation TO TaxType", "triggeringCondition STRING, confidence DOUBLE"),
+    ("FT_SUPERSEDES_RATE", "FROM TaxRateVersion TO TaxRateVersion", "replacementDate DATE, confidence DOUBLE"),
+]
+
+# ── Layer 2: Operation Center (操作中心) ─────────────────────────────────
+OPERATION_CENTER_NODE_TABLES = {
+    "AccountEntry": "id STRING PRIMARY KEY, name STRING, scenarioDescription STRING, debitAccountCode STRING, debitAccountName STRING, creditAccountCode STRING, creditAccountName STRING, amountFormula STRING, taxImplication STRING, applicableScenarios STRING, applicableTaxpayerType STRING, invoiceType STRING, invoiceRate DOUBLE, multiLineEntry BOOLEAN, entryLines STRING, sourceRegulation STRING, notes STRING, confidence DOUBLE",
+    "ChartOfAccount": "id STRING PRIMARY KEY, code STRING, name STRING, englishName STRING, category STRING, categoryCode INT64, level INT64, parentAccountCode STRING, direction STRING, isLeaf BOOLEAN, industryScope STRING, standardBasis STRING, xbrlElement STRING, requiredForAudit BOOLEAN, notes STRING",
+    "JournalTemplate": "id STRING PRIMARY KEY, name STRING, voucherType STRING, requiredFields STRING, requiredAttachments STRING, digitalFormat STRING, retentionPeriodYears INT64, archiveCategory STRING, electronicVoucherStandard STRING, applicableScenarios STRING, notes STRING",
+    "FinancialStatement": "id STRING PRIMARY KEY, name STRING, englishName STRING, statementType STRING, frequency STRING, lineItems STRING, xbrlTaxonomy STRING, filingChannel STRING, applicableStandard STRING, templateUrl STRING, notes STRING",
+    "FilingForm": "id STRING PRIMARY KEY, formNumber STRING, name STRING, taxTypeId STRING, applicableTaxpayerType STRING, fields STRING, calculationRules STRING, filingFrequency STRING, deadline STRING, deadlineAdjustmentRule STRING, filingChannel STRING, onlineFilingUrl STRING, relatedForms STRING, penaltyForLate STRING, version STRING, effectiveDate DATE, notes STRING",
+    "TaxRateMapping": "id STRING PRIMARY KEY, productCategory STRING, productCategoryCode STRING, taxTypeId STRING, applicableRate DOUBLE, rateLabel STRING, simplifiedRate DOUBLE, specialPolicy STRING, specialPolicyDetail STRING, hsCode STRING, invoiceCategory STRING, effectiveFrom DATE, effectiveUntil DATE, sourceRegulation STRING, notes STRING",
+    "IndustryBookkeeping": "id STRING PRIMARY KEY, industryId STRING, industryName STRING, costMethod STRING, revenueRecognition STRING, revenueRecognitionDetail STRING, specialAccounts STRING, inventoryMethod STRING, depreciationPolicy STRING, rdCapitalization STRING, keyRatios STRING, applicableStandard STRING, commonPitfalls STRING, notes STRING",
+    "LifecycleStage": "id STRING PRIMARY KEY, name STRING, englishName STRING, stageOrder INT64, description STRING, typicalDuration STRING, mandatoryForAllEntities BOOLEAN, notes STRING",
+    "LifecycleActivity": "id STRING PRIMARY KEY, name STRING, englishName STRING, stageId STRING, activityOrder INT64, description STRING, prerequisiteActivityIds STRING, responsibleRole STRING, deadlineRule STRING, deadlineFormula STRING, requiredDocuments STRING, outputDocuments STRING, onlinePortal STRING, penaltyForMissing STRING, applicableEntityTypes STRING, estimatedEffortHours DOUBLE, automatable BOOLEAN, notes STRING",
+}
+
+OPERATION_CENTER_REL_SPECS = [
+    ("OP_DEBITS", "FROM AccountEntry TO ChartOfAccount", "lineOrder INT64, amountFormula STRING, confidence DOUBLE"),
+    ("OP_CREDITS", "FROM AccountEntry TO ChartOfAccount", "lineOrder INT64, amountFormula STRING, confidence DOUBLE"),
+    ("OP_USES_FORM", "FROM LifecycleActivity TO FilingForm", "formRole STRING, isOptional BOOLEAN, confidence DOUBLE"),
+    ("OP_MAPS_TO_RATE", "FROM TaxRateMapping TO TaxType", "rateType STRING, confidence DOUBLE"),
+    ("OP_BELONGS_TO_STAGE", "FROM LifecycleActivity TO LifecycleStage", "isRequired BOOLEAN, confidence DOUBLE"),
+    ("OP_PREREQUISITE_FOR", "FROM LifecycleActivity TO LifecycleActivity", "prerequisiteType STRING, confidence DOUBLE"),
+    ("OP_INDUSTRY_VARIANT_OF", "FROM ChartOfAccount TO ChartOfAccount", "industryScope STRING, variationType STRING, confidence DOUBLE"),
+    ("OP_PRODUCES", "FROM LifecycleActivity TO FinancialStatement", "productionFrequency STRING, isInterim BOOLEAN, confidence DOUBLE"),
+    ("OP_FOLLOWS_STANDARD", "FROM IndustryBookkeeping TO AccountingStandard", "applicableClause STRING, confidence DOUBLE"),
+]
+
+# ── Layer 3: Compliance Center (合规中心) ────────────────────────────────
+COMPLIANCE_CENTER_NODE_TABLES = {
+    "ComplianceRule": "id STRING PRIMARY KEY, name STRING, ruleCode STRING, category STRING, conditionDescription STRING, conditionFormula STRING, requiredAction STRING, violationConsequence STRING, severityLevel STRING, sourceRegulationId STRING, sourceClause STRING, applicableTaxTypes STRING, applicableEntityTypes STRING, effectiveFrom DATE, effectiveUntil DATE, autoDetectable BOOLEAN, detectionQuery STRING, notes STRING, confidence DOUBLE",
+    "RiskIndicator": "id STRING PRIMARY KEY, name STRING, indicatorCode STRING, metricName STRING, metricFormula STRING, thresholdLow DOUBLE, thresholdHigh DOUBLE, industryBenchmark DOUBLE, industryId STRING, triggerCondition STRING, severity STRING, detectionMethod STRING, dataSource STRING, monitoringFrequency STRING, falsePositiveRate DOUBLE, recommendedAction STRING, notes STRING, confidence DOUBLE",
+    "AuditTrigger": "id STRING PRIMARY KEY, name STRING, triggerCode STRING, patternDescription STRING, detectionMethod STRING, historicalFrequency STRING, auditType STRING, typicalOutcome STRING, preventionMeasure STRING, dataPointsNeeded STRING, lookbackPeriodMonths INT64, notes STRING, confidence DOUBLE",
+    "Penalty": "id STRING PRIMARY KEY, name STRING, penaltyCode STRING, penaltyType STRING, calculationMethod STRING, dailyRate DOUBLE, fixedAmount DOUBLE, percentageRate DOUBLE, minimumPenalty DOUBLE, maximumPenalty DOUBLE, criminalThreshold DOUBLE, criminalThresholdUnit STRING, criminalStatute STRING, firstOffenseLeniency STRING, sourceRegulation STRING, notes STRING, confidence DOUBLE",
+    "ComplianceChecklist": "id STRING PRIMARY KEY, name STRING, checklistCode STRING, stageId STRING, frequency STRING, items STRING, totalItems INT64, criticalItems INT64, applicableEntityTypes STRING, applicableTaxpayerTypes STRING, automationLevel STRING, estimatedCompletionHours DOUBLE, templateUrl STRING, notes STRING, confidence DOUBLE",
+    "TaxCalendar": "id STRING PRIMARY KEY, name STRING, calendarYear INT64, calendarMonth INT64, taxTypeId STRING, filingFormId STRING, originalDeadline DATE, adjustedDeadline DATE, adjustmentReason STRING, filingPeriodStart DATE, filingPeriodEnd DATE, isQuarterEnd BOOLEAN, isAnnualSettlement BOOLEAN, reminderDays INT64, notes STRING",
+    "TaxPlanningStrategy": "id STRING PRIMARY KEY, name STRING, strategyCode STRING, category STRING, description STRING, applicableScenarios STRING, applicableIndustries STRING, applicableEntityTypes STRING, estimatedSavingFormula STRING, estimatedSavingRange STRING, implementationSteps STRING, requiredQualifications STRING, riskLevel STRING, riskDescription STRING, antiAvoidanceRisk STRING, sourceIncentiveId STRING, sourceRegulation STRING, expirationDate DATE, notes STRING, confidence DOUBLE",
+    "EntityTypeProfile": "id STRING PRIMARY KEY, name STRING, entityType STRING, taxpayerCategory STRING, registrationAuthority STRING, applicableTaxTypes STRING, filingObligations STRING, bookkeepingRequirement STRING, auditRequirement STRING, annualReportDeadline STRING, specialRequirements STRING, commonIndustries STRING, minimumCapitalRequirement DOUBLE, notes STRING, confidence DOUBLE",
+}
+
+COMPLIANCE_CENTER_REL_SPECS = [
+    ("CO_VIOLATES", "FROM RiskIndicator TO ComplianceRule", "violationType STRING, evidenceStrength STRING, confidence DOUBLE"),
+    ("CO_PENALIZED_BY", "FROM ComplianceRule TO Penalty", "penaltyApplicability STRING, firstOffenseExempt BOOLEAN, confidence DOUBLE"),
+    ("CO_TRIGGERED_BY", "FROM AuditTrigger TO RiskIndicator", "triggerWeight DOUBLE, isStandalone BOOLEAN, confidence DOUBLE"),
+    ("CO_CHECKED_BY", "FROM ComplianceChecklist TO ComplianceRule", "checkOrder INT64, isCritical BOOLEAN, confidence DOUBLE"),
+    ("CO_DEADLINE_FOR", "FROM TaxCalendar TO FilingForm", "deadlineType STRING, confidence DOUBLE"),
+    ("CO_OPTIMIZED_BY", "FROM TaxPlanningStrategy TO TaxIncentive", "utilizationType STRING, confidence DOUBLE"),
+    ("CO_APPLICABLE_TO", "FROM EntityTypeProfile TO ComplianceChecklist", "priority STRING, confidence DOUBLE"),
+]
+
+# ── Cross-Layer Edges (连接三层) ─────────────────────────────────────────
+CROSS_LAYER_REL_SPECS = [
+    ("XL_IMPLEMENTED_BY", "FROM LawOrRegulation TO AccountEntry", "implementationScope STRING, specificClause STRING, confidence DOUBLE"),
+    ("XL_ENFORCED_BY", "FROM LawOrRegulation TO ComplianceRule", "enforcementType STRING, specificClause STRING, confidence DOUBLE"),
+    ("XL_MONITORED_BY", "FROM LifecycleActivity TO ComplianceChecklist", "monitoringScope STRING, confidence DOUBLE"),
+    ("XL_REFERENCES", "FROM ComplianceRule TO LawOrRegulation", "referenceType STRING, specificClause STRING, confidence DOUBLE"),
+    ("XL_TRIGGERS_ACTION", "FROM RiskIndicator TO LifecycleActivity", "urgency STRING, actionType STRING, confidence DOUBLE"),
+]
 
 KUZU_REL_SPECS = [
     ("CONTAINS", "FROM Folder TO File", "confidence DOUBLE, reason STRING"),
@@ -308,6 +405,11 @@ KUZU_REL_SPECS = [
     ("IMPLEMENTS_CLASS", "FROM Class TO Interface", "confidence DOUBLE, reason STRING"),
     ("IMPLEMENTS_EXT", "FROM Class TO External", "confidence DOUBLE, reason STRING"),
     ("MEMBER_OF", "FROM Function TO Community", "confidence DOUBLE, reason STRING"),
+    # Document knowledge graph edges
+    ("DOC_HAS_SECTION", "FROM Document TO Section", "confidence DOUBLE, reason STRING"),
+    ("DOC_REFERENCES", "FROM Document TO Document", "confidence DOUBLE, reason STRING"),
+    ("DOC_COVERS", "FROM Document TO Topic", "confidence DOUBLE, reason STRING"),
+    ("DOC_PAIR", "FROM Document TO Document", "confidence DOUBLE, reason STRING"),
 ]
 
 
@@ -328,7 +430,10 @@ def init_kuzu_db(db_path: Path) -> tuple[Any, Any]:
 
     for table_name, columns in KUZU_NODE_TABLES.items():
         if table_name not in existing_tables:
-            conn.execute(f"CREATE NODE TABLE {table_name}({columns})")
+            try:
+                conn.execute(f"CREATE NODE TABLE {table_name}({columns})")
+            except Exception:
+                pass
 
     existing_rel_tables = set()
     try:
@@ -345,6 +450,38 @@ def init_kuzu_db(db_path: Path) -> tuple[Any, Any]:
                 conn.execute(f"CREATE REL TABLE {rel_name}({spec}, {props})")
             except Exception:
                 pass
+
+    # Finance/Tax 3-Layer Knowledge Graph Schema (China Tax Ontology v3.0)
+    # L1: Regulation Center (FINANCE_TAX_*), L2: Operation Center (OPERATION_CENTER_*),
+    # L3: Compliance Center (COMPLIANCE_CENTER_*), Cross-Layer (CROSS_LAYER_*)
+    all_node_tables = [FINANCE_TAX_NODE_TABLES, OPERATION_CENTER_NODE_TABLES, COMPLIANCE_CENTER_NODE_TABLES]
+    for layer_tables in all_node_tables:
+        for table_name, columns in layer_tables.items():
+            if table_name not in existing_tables:
+                try:
+                    conn.execute(f"CREATE NODE TABLE {table_name}({columns})")
+                except Exception:
+                    pass
+
+    # Refresh table list before creating relationships
+    existing_rel_tables2 = set()
+    try:
+        result = conn.execute("CALL show_tables() RETURN *")
+        while result.has_next():
+            row = result.get_next()
+            existing_rel_tables2.add(row[0])
+    except Exception:
+        pass
+
+    all_rel_specs = [FINANCE_TAX_REL_SPECS, OPERATION_CENTER_REL_SPECS,
+                     COMPLIANCE_CENTER_REL_SPECS, CROSS_LAYER_REL_SPECS]
+    for layer_rels in all_rel_specs:
+        for rel_name, spec, props in layer_rels:
+            if rel_name not in existing_rel_tables2:
+                try:
+                    conn.execute(f"CREATE REL TABLE {rel_name}({spec}, {props})")
+                except Exception:
+                    pass
 
     return db, conn
 
@@ -1390,6 +1527,440 @@ def detect_changes_analysis(conn: Any, repo: Path, scope: str = "all") -> dict[s
 
 
 # ---------------------------------------------------------------------------
+# Document Knowledge Graph Pipeline
+# ---------------------------------------------------------------------------
+
+DOC_CATEGORY_MAP = {
+    "PRD": "strategy", "competitive": "strategy", "VISION": "strategy",
+    "brainstorm": "strategy", "roadmap": "strategy",
+    "ARCHITECTURE": "architecture", "OPTIMIZATION": "architecture",
+    "OPERATIONS": "operations", "MANUAL": "operations", "PIPELINES": "operations",
+    "WORKFLOW": "operations", "SPEC": "operations", "RUNBOOK": "operations",
+    "EXPERIENCE": "experience", "JOURNEY": "experience", "UX": "experience",
+}
+
+DOC_STYLE_SIGNATURES = {
+    "McKinsey Blue": ["--blue-primary", "#003A70", "mckinsey"],
+    "Economist": ["--economist", "Playfair Display", "economist-style"],
+    "Bloomberg Terminal": ["--bloomberg", "bloomberg", "terminal-green"],
+    "Claude Warm": ["--claude", "claude-warm", "academic-humanism"],
+}
+
+
+def find_doc_files(root: Path, exts: set[str] | None = None) -> list[Path]:
+    """Recursively find document files (Markdown + HTML)."""
+    exts = exts or (DOC_EXTS | DOC_HTML_EXTS)
+    results = []
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [d for d in dirnames if d not in DOC_SKIP_DIRS]
+        for fn in filenames:
+            if Path(fn).suffix.lower() in exts:
+                results.append(Path(dirpath) / fn)
+    return sorted(results)
+
+
+def detect_doc_category(name: str) -> str:
+    """Infer document category from filename."""
+    upper = name.upper()
+    for key, cat in DOC_CATEGORY_MAP.items():
+        if key in upper:
+            return cat
+    return "reference"
+
+
+def detect_doc_language(filepath: Path) -> str:
+    """Detect document language from filename suffix."""
+    stem = filepath.stem
+    if stem.endswith("-zh"):
+        return "zh"
+    if stem.endswith("-en"):
+        return "en"
+    return "en"
+
+
+def detect_doc_style(doc_path: Path) -> str:
+    """Detect HTML style by scanning the corresponding HTML file for style signatures."""
+    html_candidates = [
+        doc_path.with_suffix(".html"),
+        doc_path.parent / (doc_path.stem + ".html"),
+    ]
+    for hp in html_candidates:
+        if hp.exists():
+            try:
+                head = hp.read_text(encoding="utf-8", errors="ignore")[:5000].lower()
+                for style_name, sigs in DOC_STYLE_SIGNATURES.items():
+                    if any(s.lower() in head for s in sigs):
+                        return style_name
+            except Exception:
+                pass
+    return "Claude Warm"
+
+
+def detect_doc_project(filepath: Path, doc_root: Path) -> str:
+    """Infer project/initiative from directory structure."""
+    rel = filepath.relative_to(doc_root)
+    parts = rel.parts
+    for p in parts:
+        if p.startswith("initiative_"):
+            return p.replace("initiative_", "")
+    return "general"
+
+
+_HEADING_RE = re.compile(r"^(#{1,6})\s+(.+)", re.MULTILINE)
+_LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
+
+
+def parse_markdown_doc(filepath: Path) -> dict:
+    """Extract metadata, sections, and cross-references from a Markdown file."""
+    content = filepath.read_text(encoding="utf-8", errors="ignore")
+    lines = content.split("\n")
+
+    title = filepath.stem.replace("_", " ").replace("-", " ").strip().title()
+    sections = []
+    cross_refs = []
+    topics = set()
+
+    for i, line in enumerate(lines):
+        m = _HEADING_RE.match(line)
+        if m:
+            level = len(m.group(1))
+            heading = m.group(2).strip()
+            if level == 1 and not sections:
+                title = heading
+            section_end = len(lines)
+            for j in range(i + 1, len(lines)):
+                m2 = _HEADING_RE.match(lines[j])
+                if m2 and len(m2.group(1)) <= level:
+                    section_end = j
+                    break
+            section_text = "\n".join(lines[i:section_end])
+            sections.append({
+                "heading": heading,
+                "level": level,
+                "startLine": i + 1,
+                "wordCount": len(section_text.split()),
+            })
+            if level <= 2:
+                topics.add(heading.lower().strip("# ").strip())
+
+    for m in _LINK_RE.finditer(content):
+        ref_path = m.group(2)
+        if ref_path.startswith(("http://", "https://", "#", "mailto:")):
+            continue
+        cross_refs.append(ref_path)
+
+    return {
+        "title": title,
+        "sections": sections,
+        "cross_refs": list(set(cross_refs)),
+        "topics": list(topics),
+        "word_count": len(content.split()),
+        "content_hash": hashlib.sha256(content.encode()).hexdigest()[:16],
+    }
+
+
+def build_doc_graph(doc_root: Path, force: bool = False) -> dict:
+    """Build document knowledge graph for a documentation directory."""
+    doc_root = doc_root.resolve()
+    repo_root = doc_root
+    try:
+        repo_root = git_root(doc_root)
+    except Exception:
+        pass
+
+    db_path = repo_root / DEFAULT_DB_REL
+    if force:
+        db, conn = reset_kuzu_db(db_path)
+    else:
+        db, conn = init_kuzu_db(db_path)
+
+    md_files = find_doc_files(doc_root, DOC_EXTS)
+    html_files = find_doc_files(doc_root, DOC_HTML_EXTS)
+    print(f"[{BRAND}] Found {len(md_files)} Markdown + {len(html_files)} HTML files in {doc_root}")
+
+    if not md_files:
+        return {"doc_root": str(doc_root), "documents": 0, "sections": 0, "topics": 0, "edges": 0}
+
+    all_docs = {}
+    all_sections = []
+    all_topics = {}
+    edges_section = []
+    edges_ref = []
+    edges_topic = []
+    edges_pair = []
+
+    html_stems = {f.stem for f in html_files}
+
+    for fp in md_files:
+        parsed = parse_markdown_doc(fp)
+        rel_path = str(fp.relative_to(doc_root))
+        lang = detect_doc_language(fp)
+        stem = fp.stem
+        base_stem = stem[:-3] if stem.endswith("-zh") else (stem[:-3] if stem.endswith("-en") else stem)
+        # Include parent dir in ID to avoid collisions (e.g., multiple notes.md)
+        rel_dir = str(fp.relative_to(doc_root).parent).replace(os.sep, "_")
+        id_prefix = f"{rel_dir}__{base_stem}" if rel_dir != "." else base_stem
+        doc_id = f"doc::{id_prefix}::{lang}"
+        category = detect_doc_category(fp.stem)
+        style = detect_doc_style(fp)
+        project = detect_doc_project(fp, doc_root)
+        generated = datetime.fromtimestamp(fp.stat().st_mtime, tz=timezone.utc).strftime("%Y-%m-%d")
+
+        doc_node = {
+            "id": doc_id, "name": base_stem, "filePath": rel_path,
+            "title": parsed["title"], "category": category,
+            "language": lang, "style": style, "format": "markdown",
+            "wordCount": parsed["word_count"], "sectionCount": len(parsed["sections"]),
+            "generated": generated, "contentHash": parsed["content_hash"],
+            "project": project,
+        }
+        all_docs[doc_id] = doc_node
+
+        for idx, sec in enumerate(parsed["sections"]):
+            sec_id = f"sec::{id_prefix}::{lang}::{idx}"
+            all_sections.append({
+                "id": sec_id, "name": sec["heading"], "docId": doc_id,
+                "heading": sec["heading"], "level": sec["level"],
+                "wordCount": sec["wordCount"],
+            })
+            edges_section.append((doc_id, sec_id, 1.0, "contains_section"))
+
+        for topic_name in parsed["topics"]:
+            topic_id = f"topic::{topic_name.replace(' ', '_')[:50]}"
+            if topic_id not in all_topics:
+                all_topics[topic_id] = {"id": topic_id, "name": topic_name}
+            edges_topic.append((doc_id, topic_id, 0.8, "heading_topic"))
+
+        for ref_path in parsed["cross_refs"]:
+            ref_stem = Path(ref_path).stem
+            ref_base = ref_stem[:-3] if ref_stem.endswith("-zh") else ref_stem
+            # Try same directory first, then global
+            ref_prefix = f"{rel_dir}__{ref_base}" if rel_dir != "." else ref_base
+            for target_lang in ("en", "zh"):
+                target_id = f"doc::{ref_prefix}::{target_lang}"
+                if target_id != doc_id:
+                    edges_ref.append((doc_id, target_id, 0.9, f"markdown_link:{ref_path}"))
+
+    # Detect bilingual pairs by matching IDs with different language suffix
+    seen_pairs = set()
+    for did in all_docs:
+        if did.endswith("::en"):
+            pair_id = did[:-4] + "::zh"
+        elif did.endswith("::zh"):
+            pair_id = did[:-4] + "::en"
+        else:
+            continue
+        pair_key = tuple(sorted([did, pair_id]))
+        if pair_id in all_docs and pair_key not in seen_pairs:
+            edges_pair.append((did, pair_id, 1.0, "bilingual_pair"))
+            seen_pairs.add(pair_key)
+
+    # Also index HTML-only files (no .md source)
+    for hf in html_files:
+        stem = hf.stem
+        base_stem = stem[:-3] if stem.endswith("-zh") else stem
+        lang = "zh" if stem.endswith("-zh") else "en"
+        hf_rel_dir = str(hf.relative_to(doc_root).parent).replace(os.sep, "_")
+        hf_prefix = f"{hf_rel_dir}__{base_stem}" if hf_rel_dir != "." else base_stem
+        doc_id = f"doc::{hf_prefix}::{lang}"
+        if doc_id not in all_docs:
+            rel_path = str(hf.relative_to(doc_root))
+            content = hf.read_text(encoding="utf-8", errors="ignore")
+            wc = len(content.split())
+            generated = datetime.fromtimestamp(hf.stat().st_mtime, tz=timezone.utc).strftime("%Y-%m-%d")
+            title_m = re.search(r"<title>([^<]+)</title>", content[:3000])
+            title = title_m.group(1).strip() if title_m else base_stem.replace("_", " ").title()
+            all_docs[doc_id] = {
+                "id": doc_id, "name": base_stem, "filePath": rel_path,
+                "title": title, "category": detect_doc_category(stem),
+                "language": lang, "style": detect_doc_style(hf), "format": "html",
+                "wordCount": wc, "sectionCount": 0, "generated": generated,
+                "contentHash": hashlib.sha256(content.encode()).hexdigest()[:16],
+                "project": detect_doc_project(hf, doc_root),
+            }
+
+    # Flush to KuzuDB
+    print(f"[{BRAND}] Flushing {len(all_docs)} docs, {len(all_sections)} sections, {len(all_topics)} topics...")
+
+    # Clear existing doc data
+    for tbl in ("Document", "Section", "Topic"):
+        try:
+            conn.execute(f"MATCH (n:{tbl}) DELETE n")
+        except Exception:
+            pass
+
+    for doc in all_docs.values():
+        try:
+            conn.execute(
+                "CREATE (d:Document {id: $id, name: $name, filePath: $fp, title: $title, "
+                "category: $cat, language: $lang, style: $style, format: $fmt, "
+                "wordCount: $wc, sectionCount: $sc, generated: $gen, contentHash: $ch, project: $proj})",
+                {"id": doc["id"], "name": doc["name"], "fp": doc["filePath"],
+                 "title": doc["title"], "cat": doc["category"], "lang": doc["language"],
+                 "style": doc["style"], "fmt": doc["format"], "wc": doc["wordCount"],
+                 "sc": doc["sectionCount"], "gen": doc["generated"], "ch": doc["contentHash"],
+                 "proj": doc["project"]},
+            )
+        except Exception as e:
+            print(f"  WARN: Document {doc['id']}: {e}", file=sys.stderr)
+
+    for sec in all_sections:
+        try:
+            conn.execute(
+                "CREATE (s:Section {id: $id, name: $name, docId: $did, heading: $h, level: $lv, wordCount: $wc})",
+                {"id": sec["id"], "name": sec["name"], "did": sec["docId"],
+                 "h": sec["heading"], "lv": sec["level"], "wc": sec["wordCount"]},
+            )
+        except Exception as e:
+            print(f"  WARN: Section {sec['id']}: {e}", file=sys.stderr)
+
+    for topic in all_topics.values():
+        try:
+            conn.execute(
+                "CREATE (t:Topic {id: $id, name: $name})",
+                {"id": topic["id"], "name": topic["name"]},
+            )
+        except Exception:
+            pass
+
+    edge_count = 0
+    for src, dst, conf, reason in edges_section:
+        try:
+            conn.execute(
+                "MATCH (a:Document {id: $src}), (b:Section {id: $dst}) "
+                "CREATE (a)-[:DOC_HAS_SECTION {confidence: $c, reason: $r}]->(b)",
+                {"src": src, "dst": dst, "c": conf, "r": reason},
+            )
+            edge_count += 1
+        except Exception:
+            pass
+
+    for src, dst, conf, reason in edges_ref:
+        if dst in all_docs:
+            try:
+                conn.execute(
+                    "MATCH (a:Document {id: $src}), (b:Document {id: $dst}) "
+                    "CREATE (a)-[:DOC_REFERENCES {confidence: $c, reason: $r}]->(b)",
+                    {"src": src, "dst": dst, "c": conf, "r": reason},
+                )
+                edge_count += 1
+            except Exception:
+                pass
+
+    for src, dst, conf, reason in edges_topic:
+        try:
+            conn.execute(
+                "MATCH (a:Document {id: $src}), (b:Topic {id: $dst}) "
+                "CREATE (a)-[:DOC_COVERS {confidence: $c, reason: $r}]->(b)",
+                {"src": src, "dst": dst, "c": conf, "r": reason},
+            )
+            edge_count += 1
+        except Exception:
+            pass
+
+    for src, dst, conf, reason in edges_pair:
+        try:
+            conn.execute(
+                "MATCH (a:Document {id: $src}), (b:Document {id: $dst}) "
+                "CREATE (a)-[:DOC_PAIR {confidence: $c, reason: $r}]->(b)",
+                {"src": src, "dst": dst, "c": conf, "r": reason},
+            )
+            edge_count += 1
+        except Exception:
+            pass
+
+    # Register in registry
+    reg = ensure_registry()
+    repos = reg.get("repos", [])
+    entry = {"path": str(doc_root), "engine": ENGINE_NAME, "version": VERSION,
+             "type": "docs", "last_analyzed": datetime.now(timezone.utc).isoformat()}
+    repos = [r for r in repos if r.get("path") != str(doc_root)]
+    repos.append(entry)
+    reg["repos"] = repos
+    write_json(REGISTRY_PATH, reg)
+
+    result = {
+        "doc_root": str(doc_root), "documents": len(all_docs),
+        "sections": len(all_sections), "topics": len(all_topics),
+        "edges": edge_count, "bilingual_pairs": len(edges_pair),
+        "cross_references": len([e for e in edges_ref if e[1] in all_docs]),
+    }
+    print(f"[{BRAND}] Doc graph complete: {result['documents']} docs, {result['sections']} sections, "
+          f"{result['topics']} topics, {result['edges']} edges")
+    return result
+
+
+def generate_docs_manifest(doc_root: Path, html_prefix: str = "/docs", verify_dir: Path | None = None) -> list[dict]:
+    """Generate dashboard-compatible manifest from document graph.
+    Only includes documents that have actual HTML files."""
+    repo_root = doc_root.resolve()
+    try:
+        repo_root = git_root(doc_root)
+    except Exception:
+        pass
+
+    db_path = repo_root / DEFAULT_DB_REL
+    if not db_path.exists():
+        return []
+
+    db = kuzu.Database(str(db_path))
+    conn = kuzu.Connection(db)
+
+    # Collect all HTML files that exist on disk
+    html_on_disk: set[str] = set()
+    scan_dirs = [doc_root]
+    if verify_dir and verify_dir.exists():
+        scan_dirs.append(verify_dir)
+    for d in scan_dirs:
+        for hf in find_doc_files(d, DOC_HTML_EXTS):
+            html_on_disk.add(hf.stem)
+
+    docs_by_base: dict[str, dict] = {}
+    try:
+        result = conn.execute(
+            "MATCH (d:Document) RETURN d.id, d.name, d.title, d.category, d.language, "
+            "d.style, d.format, d.wordCount, d.sectionCount, d.generated, d.project, d.filePath"
+        )
+        while result.has_next():
+            row = result.get_next()
+            doc_id, name, title, cat, lang, style, fmt, wc, sc, gen, proj, fp = row
+            # Check if this doc has an HTML file on disk
+            en_html_stem = name
+            zh_html_stem = f"{name}-zh"
+            has_html = en_html_stem in html_on_disk or zh_html_stem in html_on_disk
+            if not has_html:
+                continue
+
+            if name not in docs_by_base:
+                docs_by_base[name] = {
+                    "id": name.lower().replace("_", "-"),
+                    "name": title or name.replace("_", " ").title(),
+                    "category": cat or "reference",
+                    "source": f"{name}.md",
+                    "style": style or "Claude Warm",
+                    "generated": gen or "",
+                    "project": proj or "general",
+                    "wordCount": wc or 0,
+                    "sectionCount": sc or 0,
+                    "files": {},
+                }
+            entry = docs_by_base[name]
+            html_name = f"{name}.html" if lang == "en" else f"{name}-zh.html"
+            html_stem = Path(html_name).stem
+            if html_stem in html_on_disk:
+                entry["files"][lang] = f"{html_prefix}/{html_name}"
+            if wc and wc > entry.get("wordCount", 0):
+                entry["wordCount"] = wc
+            if sc and sc > entry.get("sectionCount", 0):
+                entry["sectionCount"] = sc
+    except Exception as e:
+        print(f"WARN: Failed to query documents: {e}", file=sys.stderr)
+
+    manifest = sorted(docs_by_base.values(), key=lambda d: d.get("category", "z"))
+    return manifest
+
+
+# ---------------------------------------------------------------------------
 # CLI Commands
 # ---------------------------------------------------------------------------
 
@@ -1565,6 +2136,46 @@ def cmd_clean(args: argparse.Namespace) -> int:
     reg["repos"] = [e for e in repos_list if str(e.get("path", "")) != str(repo)]
     write_json(REGISTRY_PATH, reg)
     render({"repo": str(repo), "removed": removed, "count": len(removed), "all": False}, args.json)
+    return 0
+
+
+def cmd_analyze_docs(args: argparse.Namespace) -> int:
+    """Build document knowledge graph for a documentation directory."""
+    doc_root = Path(args.path).expanduser().resolve()
+    if not doc_root.is_dir():
+        raise RuntimeError(f"Not a directory: {doc_root}")
+    result = build_doc_graph(doc_root, force=bool(args.force))
+    render(result, args.json)
+    return 0
+
+
+def cmd_docs_manifest(args: argparse.Namespace) -> int:
+    """Generate dashboard-compatible document manifest."""
+    doc_root = Path(args.path).expanduser().resolve()
+    prefix = args.prefix or "/docs"
+    manifest = generate_docs_manifest(doc_root, html_prefix=prefix)
+
+    if args.output:
+        out_path = Path(args.output).expanduser().resolve()
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        if args.output.endswith(".ts"):
+            ts_content = "// Auto-generated by CogNebula — DO NOT EDIT\n"
+            ts_content += f"// Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}\n\n"
+            ts_content += "export interface DocEntry {\n"
+            ts_content += "  id: string;\n  name: string;\n  category: string;\n"
+            ts_content += "  source: string;\n  style: string;\n  generated: string;\n"
+            ts_content += "  project: string;\n  wordCount: number;\n  sectionCount: number;\n"
+            ts_content += "  files: { en?: string; zh?: string };\n}\n\n"
+            ts_content += f"export const DOCS: DocEntry[] = {json.dumps(manifest, ensure_ascii=False, indent=2)};\n"
+            out_path.write_text(ts_content, encoding="utf-8")
+            print(f"[{BRAND}] Wrote TypeScript manifest: {out_path} ({len(manifest)} docs)")
+        else:
+            out_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+            print(f"[{BRAND}] Wrote JSON manifest: {out_path} ({len(manifest)} docs)")
+    else:
+        print(json.dumps(manifest, ensure_ascii=False, indent=2))
+
+    render({"count": len(manifest), "output": args.output or "stdout"}, args.json)
     return 0
 
 
@@ -2386,6 +2997,12 @@ def run_mcp_stdio() -> int:
         "detect_changes": {"description": "Changed files + affected symbols", "inputSchema": {"type": "object", "properties": {"repo": {"type": "string"}, "scope": {"type": "string", "enum": ["all", "staged", "unstaged"]}}}},
         "status": {"description": "Index status for repository", "inputSchema": {"type": "object", "properties": {"repo": {"type": "string"}}}},
         "cypher": {"description": "Execute Cypher query", "inputSchema": {"type": "object", "properties": {"query": {"type": "string"}, "repo": {"type": "string"}}, "required": ["query"]}},
+        # Finance/Tax Knowledge Base tools (China Tax Ontology v2.0)
+        "tax_query": {"description": "Query Chinese finance/tax knowledge base. Returns regulations, tax types, rates, and citations for a natural language question.", "inputSchema": {"type": "object", "properties": {"query": {"type": "string", "description": "Natural language question about Chinese tax (e.g., '软件企业增值税优惠')"}, "limit": {"type": "integer", "default": 5}}, "required": ["query"]}},
+        "policy_search": {"description": "Search tax policies by keyword, jurisdiction, tax type, or date range.", "inputSchema": {"type": "object", "properties": {"keyword": {"type": "string"}, "tax_type": {"type": "string", "description": "Tax type name (e.g., '增值税')"}, "authority": {"type": "string", "description": "Issuing authority filter"}, "limit": {"type": "integer", "default": 10}}, "required": ["keyword"]}},
+        "compliance_check": {"description": "Check tax compliance obligations for a given industry + taxpayer type + region.", "inputSchema": {"type": "object", "properties": {"industry": {"type": "string", "description": "Industry name or GB code"}, "taxpayer_type": {"type": "string", "description": "e.g., '一般纳税人', '小规模纳税人'"}, "region": {"type": "string", "description": "Region name (e.g., '上海')"}}, "required": ["industry"]}},
+        "change_monitor": {"description": "Show recent changes to tax regulations (last N days).", "inputSchema": {"type": "object", "properties": {"days": {"type": "integer", "default": 7}, "tax_type": {"type": "string", "description": "Filter by tax type name"}}}},
+        "case_lookup": {"description": "Find tax dispute cases and precedents by topic.", "inputSchema": {"type": "object", "properties": {"topic": {"type": "string"}, "limit": {"type": "integer", "default": 5}}, "required": ["topic"]}},
     }
 
     def ok(rid: Any, result: Any) -> None:
@@ -2426,6 +3043,166 @@ def run_mcp_stdio() -> int:
             return {"repo": str(repo), "nodes": nc, "edges": ec}
         if name == "cypher":
             return {"rows": cypher_query(conn, str(args.get("query", "")))}
+
+        # ── Finance/Tax MCP tools ──────────────────────────────────
+        ft_db_path = Path(__file__).parent.parent / "data" / "finance-tax-graph"
+        if name in ("tax_query", "policy_search", "compliance_check", "change_monitor", "case_lookup"):
+            if not ft_db_path.exists():
+                raise RuntimeError("Finance/Tax knowledge base not initialized. Run finance-tax-crawl.sh first.")
+            _, ft_conn = init_kuzu_db(ft_db_path)
+
+        if name == "tax_query":
+            query_text = str(args.get("query", ""))
+            limit = int(args.get("limit", 5))
+            # Search LawOrRegulation by title keyword
+            results = []
+            try:
+                r = ft_conn.execute(
+                    "MATCH (n:LawOrRegulation) WHERE n.title CONTAINS $kw OR n.fullText CONTAINS $kw "
+                    "RETURN n.id, n.title, n.regulationNumber, n.effectiveDate, n.hierarchyLevel, n.sourceUrl "
+                    "ORDER BY n.hierarchyLevel ASC LIMIT $lim",
+                    {"kw": query_text, "lim": limit}
+                )
+                while r.has_next():
+                    row = r.get_next()
+                    results.append({"id": row[0], "title": row[1], "reg_number": row[2],
+                                    "effective_date": str(row[3]), "hierarchy": row[4], "url": row[5]})
+            except Exception:
+                pass
+            # Also find related tax types via graph traversal
+            tax_types = []
+            try:
+                r = ft_conn.execute(
+                    "MATCH (law:LawOrRegulation)<-[:FT_GOVERNED_BY]-(tax:TaxType) "
+                    "WHERE law.title CONTAINS $kw "
+                    "RETURN DISTINCT tax.name, tax.rateRange",
+                    {"kw": query_text}
+                )
+                while r.has_next():
+                    row = r.get_next()
+                    tax_types.append({"name": row[0], "rates": row[1]})
+            except Exception:
+                pass
+            return {"regulations": results, "tax_types": tax_types, "query": query_text}
+
+        if name == "policy_search":
+            keyword = str(args.get("keyword", ""))
+            tax_type = str(args.get("tax_type", ""))
+            authority = str(args.get("authority", ""))
+            limit = int(args.get("limit", 10))
+            where_clauses = ["n.title CONTAINS $kw OR n.fullText CONTAINS $kw"]
+            params: dict[str, Any] = {"kw": keyword, "lim": limit}
+            if tax_type:
+                where_clauses.append("EXISTS { MATCH (n)<-[:FT_GOVERNED_BY]-(t:TaxType) WHERE t.name CONTAINS $tt }")
+                params["tt"] = tax_type
+            if authority:
+                where_clauses.append("n.issuingAuthority CONTAINS $auth")
+                params["auth"] = authority
+            where = " AND ".join(where_clauses)
+            results = []
+            try:
+                r = ft_conn.execute(
+                    f"MATCH (n:LawOrRegulation) WHERE {where} "
+                    f"RETURN n.id, n.title, n.regulationNumber, n.effectiveDate, n.status, n.issuingAuthority "
+                    f"ORDER BY n.hierarchyLevel ASC LIMIT $lim", params
+                )
+                while r.has_next():
+                    row = r.get_next()
+                    results.append({"id": row[0], "title": row[1], "reg_number": row[2],
+                                    "effective_date": str(row[3]), "status": row[4], "authority": row[5]})
+            except Exception as e:
+                return {"error": str(e), "results": []}
+            return {"results": results, "keyword": keyword}
+
+        if name == "compliance_check":
+            industry = str(args.get("industry", ""))
+            taxpayer = str(args.get("taxpayer_type", ""))
+            region = str(args.get("region", ""))
+            obligations = []
+            incentives = []
+            # Find applicable tax types for industry
+            try:
+                r = ft_conn.execute(
+                    "MATCH (ind:FTIndustry)-[:FT_SUBJECT_TO]->(tax:TaxType) "
+                    "WHERE ind.name CONTAINS $ind OR ind.gbCode = $ind "
+                    "RETURN tax.name, tax.rateRange, tax.filingFrequency",
+                    {"ind": industry}
+                )
+                while r.has_next():
+                    row = r.get_next()
+                    obligations.append({"tax": row[0], "rates": row[1], "frequency": row[2]})
+            except Exception:
+                pass
+            # Find incentives for taxpayer type
+            if taxpayer:
+                try:
+                    r = ft_conn.execute(
+                        "MATCH (ts:TaxpayerStatus)-[:FT_QUALIFIES_FOR]->(inc:TaxIncentive) "
+                        "WHERE ts.name CONTAINS $tp "
+                        "RETURN inc.name, inc.incentiveType, inc.value, inc.valueBasis",
+                        {"tp": taxpayer}
+                    )
+                    while r.has_next():
+                        row = r.get_next()
+                        incentives.append({"name": row[0], "type": row[1], "value": row[2], "basis": row[3]})
+                except Exception:
+                    pass
+            # Find region-specific incentives
+            if region:
+                try:
+                    r = ft_conn.execute(
+                        "MATCH (inc:TaxIncentive)-[:FT_INCENTIVE_REGION]->(reg:AdministrativeRegion) "
+                        "WHERE reg.name CONTAINS $rg "
+                        "RETURN inc.name, inc.incentiveType, inc.value",
+                        {"rg": region}
+                    )
+                    while r.has_next():
+                        row = r.get_next()
+                        incentives.append({"name": row[0], "type": row[1], "value": row[2], "region": region})
+                except Exception:
+                    pass
+            return {"industry": industry, "taxpayer_type": taxpayer, "region": region,
+                    "obligations": obligations, "incentives": incentives}
+
+        if name == "change_monitor":
+            days = int(args.get("days", 7))
+            tax_type_filter = str(args.get("tax_type", ""))
+            changes = []
+            try:
+                r = ft_conn.execute(
+                    "MATCH (n:LawOrRegulation) "
+                    "RETURN n.id, n.title, n.regulationNumber, n.effectiveDate, n.status, n.contentHash "
+                    "ORDER BY n.effectiveDate DESC LIMIT 20"
+                )
+                while r.has_next():
+                    row = r.get_next()
+                    changes.append({"id": row[0], "title": row[1], "reg_number": row[2],
+                                    "effective_date": str(row[3]), "status": row[4]})
+            except Exception:
+                pass
+            return {"changes": changes, "days": days}
+
+        if name == "case_lookup":
+            topic = str(args.get("topic", ""))
+            limit = int(args.get("limit", 5))
+            # Search in LawOrRegulation for case-type documents
+            cases = []
+            try:
+                r = ft_conn.execute(
+                    "MATCH (n:LawOrRegulation) "
+                    "WHERE (n.regulationType = 'case' OR n.regulationType = 'ruling') "
+                    "AND (n.title CONTAINS $topic OR n.fullText CONTAINS $topic) "
+                    "RETURN n.id, n.title, n.regulationNumber, n.effectiveDate "
+                    "LIMIT $lim",
+                    {"topic": topic, "lim": limit}
+                )
+                while r.has_next():
+                    row = r.get_next()
+                    cases.append({"id": row[0], "title": row[1], "reg_number": row[2], "date": str(row[3])})
+            except Exception:
+                pass
+            return {"cases": cases, "topic": topic}
+
         raise RuntimeError(f"Unknown tool: {name}")
 
     while True:
@@ -2602,6 +3379,19 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--replace", action="store_true")
     s.add_argument("--no-backup", action="store_true")
     s.set_defaults(func=cmd_mcp_config)
+
+    s = sub.add_parser("analyze-docs", help="Build document knowledge graph")
+    s.add_argument("path", nargs="?", default=".", help="Documentation root directory")
+    s.add_argument("--force", action="store_true", help="Force full rebuild")
+    s.add_argument("--json", action="store_true")
+    s.set_defaults(func=cmd_analyze_docs)
+
+    s = sub.add_parser("docs-manifest", help="Generate dashboard document manifest")
+    s.add_argument("path", nargs="?", default=".", help="Documentation root directory")
+    s.add_argument("--prefix", default="/docs", help="URL prefix for HTML files")
+    s.add_argument("--output", default=None, help="Output file (.json or .ts)")
+    s.add_argument("--json", action="store_true")
+    s.set_defaults(func=cmd_docs_manifest)
 
     return p
 

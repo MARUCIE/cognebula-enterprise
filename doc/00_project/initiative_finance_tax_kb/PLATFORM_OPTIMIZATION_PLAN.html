@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CogNebula 财税知识库 -- 平台优化方案 v2.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&family=Noto+Sans+SC:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 16px; }
+body {
+    font-family: 'Noto Sans SC', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #FFFFFF;
+    color: #1A1A1A;
+    line-height: 1.8;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    -webkit-font-smoothing: antialiased;
+}
+.container { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+
+/* v2.0 banner */
+.version-banner {
+    background: #003A70;
+    color: #FFFFFF;
+    text-align: center;
+    padding: 14px 20px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+.version-banner span { opacity: 0.7; }
+
+/* Header */
+header {
+    padding: 64px 0 48px;
+    border-bottom: 3px solid #003A70;
+}
+header h1 {
+    font-family: 'Inter', 'Noto Sans SC', sans-serif;
+    font-weight: 900;
+    font-size: 36px;
+    color: #003A70;
+    line-height: 1.25;
+    margin-bottom: 12px;
+}
+header .subtitle {
+    font-size: 18px;
+    color: #555;
+    font-weight: 400;
+}
+header .meta {
+    margin-top: 16px;
+    font-size: 13px;
+    color: #9B9B9D;
+}
+
+/* Sections */
+section {
+    padding: 48px 0;
+    border-bottom: 3px solid #003A70;
+}
+section:last-of-type { border-bottom: none; }
+section h2 {
+    font-family: 'Inter', 'Noto Sans SC', sans-serif;
+    font-weight: 900;
+    font-size: 24px;
+    color: #003A70;
+    margin-bottom: 24px;
+    letter-spacing: -0.3px;
+}
+section h3 {
+    font-family: 'Inter', 'Noto Sans SC', sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    color: #003A70;
+    margin: 32px 0 12px;
+}
+section p {
+    margin-bottom: 16px;
+    font-size: 15px;
+    color: #333;
+}
+.phase-goal {
+    background: #F5F6F8;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    font-size: 15px;
+    color: #333;
+}
+.phase-goal strong { color: #003A70; }
+.verification {
+    background: #F5F6F8;
+    border-left: 3px solid #0072CE;
+    padding: 12px 20px;
+    margin-top: 20px;
+    font-size: 14px;
+    color: #555;
+}
+.verification strong { color: #003A70; }
+
+/* Tables */
+.table-wrap { overflow-x: auto; margin-bottom: 24px; }
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    line-height: 1.65;
+}
+thead th {
+    background: #003A70;
+    color: #FFFFFF;
+    font-weight: 600;
+    text-align: left;
+    padding: 12px 16px;
+    white-space: nowrap;
+}
+tbody td {
+    padding: 11px 16px;
+    border-bottom: 1px solid #E0E0E0;
+    vertical-align: top;
+}
+tbody tr:nth-child(even) td { background: #F5F6F8; }
+tbody tr:hover td { background: #EBF0F7; }
+
+/* Skill badge */
+.skill {
+    display: inline-block;
+    background: #E8F1FC;
+    color: #0072CE;
+    font-family: 'Inter', monospace;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 2px 9px;
+    border-radius: 3px;
+    margin: 2px 2px;
+    white-space: nowrap;
+}
+
+/* Checklist */
+.checklist { list-style: none; padding: 0; }
+.checklist li {
+    position: relative;
+    padding: 8px 0 8px 32px;
+    font-size: 15px;
+    color: #333;
+    border-bottom: 1px solid #F0F0F0;
+}
+.checklist li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 12px;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #003A70;
+    border-radius: 2px;
+}
+
+/* Risk colors */
+.risk-high { color: #C0392B; font-weight: 600; }
+.risk-medium { color: #E67E22; font-weight: 600; }
+.risk-low { color: #27AE60; font-weight: 600; }
+
+footer {
+    text-align: center;
+    padding: 60px 20px 40px;
+    color: #9B9B9D;
+    font-size: 13px;
+    line-height: 2.2;
+}
+footer p { margin: 0; }
+
+@media (max-width: 720px) {
+    header h1 { font-size: 26px; }
+    section { padding: 32px 0; }
+    table { font-size: 13px; }
+    thead th, tbody td { padding: 8px 10px; }
+}
+</style>
+</head>
+<body>
+
+<div class="version-banner">
+    v2.0 UPDATE <span>|</span> 技术栈全面迁移至 AI-Fleet Skill 生态 <span>|</span> P0 任务列表基于 Skill 组合 <span>|</span> 风险表引用 Skill 降级链
+</div>
+
+<div class="container">
+
+<header>
+    <h1>CogNebula 财税知识库<br>平台优化方案</h1>
+    <div class="subtitle">Initiative: finance_tax_kb</div>
+    <div class="meta">v2.0 | 2026-03-14 | v2.0 变更: 以 AI-Fleet Skill 组合替代自建 Scrapy 爬虫栈</div>
+</header>
+
+<!-- 1. Optimization Goals -->
+<section>
+<h2>1. 优化目标</h2>
+<div class="table-wrap">
+<table>
+<thead>
+<tr><th>目标</th><th>当前状态</th><th>目标状态</th><th>度量指标</th></tr>
+</thead>
+<tbody>
+<tr><td>知识覆盖</td><td>0 个财税节点</td><td>5000+ 法规已索引</td><td>节点数量</td></tr>
+<tr><td>来源广度</td><td>0 个来源</td><td>15+ 政府/专业来源</td><td>来源注册表</td></tr>
+<tr><td>更新时效</td><td>手动</td><td>&lt; 24 小时自动化</td><td>抓取到入图延迟</td></tr>
+<tr><td>查询准确率</td><td>N/A</td><td>&ge; 85% Precision@5</td><td>人工评测 100 条查询</td></tr>
+<tr><td>集成深度</td><td>仅代码 MCP</td><td>代码 + 财税 MCP 工具</td><td>工具数量</td></tr>
+<tr><td>触达能力</td><td>无</td><td>每日 Telegram + Dashboard</td><td>投递成功率</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<!-- 2. Technology Stack -->
+<section>
+<h2>2. 技术栈决策</h2>
+<div class="table-wrap">
+<table>
+<thead>
+<tr><th>组件</th><th>选型</th><th>理由</th><th>备选方案</th></tr>
+</thead>
+<tbody>
+<tr>
+    <td>图数据库</td>
+    <td><strong>KuzuDB</strong> (现有)</td>
+    <td>嵌入式、Cypher 原生、批量 CSV 加载、可离线</td>
+    <td>Neo4j (过重)、NebulaGraph (分布式过度)</td>
+</tr>
+<tr>
+    <td>向量数据库</td>
+    <td><strong>LanceDB</strong> (现有)</td>
+    <td>CogNebula 已集成，零配置</td>
+    <td>Milvus (需独立基础设施)、Qdrant (不必要)</td>
+</tr>
+<tr>
+    <td>嵌入模型</td>
+    <td><strong>Gemini Embedding 2 Preview</strong></td>
+    <td>免费、8K token、Matryoshka 维度、AI-Fleet 已集成</td>
+    <td>OpenAI (付费)、Jina (中文覆盖弱)</td>
+</tr>
+<tr>
+    <td>内容获取</td>
+    <td><span class="skill">AI-Fleet Skill 生态</span></td>
+    <td>40+ 生产级 Skill，零自建爬虫</td>
+    <td>自建 Scrapy (重复造轮子)</td>
+</tr>
+<tr>
+    <td>静态 HTML 抓取</td>
+    <td><span class="skill">agent-reach</span> + <span class="skill">defuddle</span></td>
+    <td>13+ 平台支持，干净提取</td>
+    <td>Scrapy (重复造轮子)</td>
+</tr>
+<tr>
+    <td>动态 JS 页面</td>
+    <td><span class="skill">browser-automation</span> (Midscene)</td>
+    <td>视觉驱动，无需 DOM 选择器</td>
+    <td>Playwright 裸用 (代码量更大)</td>
+</tr>
+<tr>
+    <td>反爬绕过</td>
+    <td><span class="skill">scrapling-crawler</span></td>
+    <td>内置 Cloudflare Turnstile 绕过</td>
+    <td>自建中间件 (脆弱)</td>
+</tr>
+<tr>
+    <td>政策发现</td>
+    <td><span class="skill">multi-search-engine</span></td>
+    <td>17 个搜索引擎，零 API Key</td>
+    <td>单一搜索引擎 (覆盖有限)</td>
+</tr>
+<tr>
+    <td>深度分析</td>
+    <td><span class="skill">deep-research</span> (GoT)</td>
+    <td>7 阶段管线、多智能体</td>
+    <td>人工综合 (缓慢)</td>
+</tr>
+<tr>
+    <td>内容提取</td>
+    <td><span class="skill">defuddle</span> / <span class="skill">x-reader</span></td>
+    <td>通用 URL 到干净文本</td>
+    <td>Trafilatura (未集成)</td>
+</tr>
+<tr>
+    <td>微信内容</td>
+    <td><span class="skill">wechat-article-search</span></td>
+    <td>基于镜像，比直接抓取更安全</td>
+    <td>直接微信 API (风险高)</td>
+</tr>
+<tr>
+    <td>新闻监控</td>
+    <td><span class="skill">news-aggregator-skill</span></td>
+    <td>内置 28 个来源，可扩展</td>
+    <td>自建 RSS 读取器 (多余)</td>
+</tr>
+<tr>
+    <td>PDF 提取</td>
+    <td><strong>PyMuPDF + PaddleOCR</strong></td>
+    <td>PaddleOCR 中日韩识别最佳</td>
+    <td>Tesseract (中文识别差)</td>
+</tr>
+<tr>
+    <td>调度器</td>
+    <td><strong>Fleet pipeline cron</strong></td>
+    <td>62 条管线已验证，有降级链</td>
+    <td>Celery Beat (新增依赖)</td>
+</tr>
+<tr>
+    <td>RSS 生成</td>
+    <td><strong>RSSHub</strong> (自托管)</td>
+    <td>政府网站缺少 RSS 源</td>
+    <td>手动轮询 (脆弱)</td>
+</tr>
+<tr>
+    <td>NER (第一阶段)</td>
+    <td><strong>基于规则的正则</strong></td>
+    <td>零训练数据需求</td>
+    <td>spaCy (需语料库)</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<!-- 3. Phase Execution Plan -->
+<section>
+<h2>3. 分阶段执行计划</h2>
+
+<!-- P0 -->
+<h3>P0: 基础建设 (第 1-2 周)</h3>
+<div class="phase-goal"><strong>目标</strong>: KuzuDB 模式设计 + 基于 Skill 的采集管线 + 初始数据加载</div>
+<div class="table-wrap">
+<table>
+<thead>
+<tr><th>任务</th><th>负责人</th><th>完成标准</th></tr>
+</thead>
+<tbody>
+<tr><td>在 cognebula.py 中创建财税节点/边表</td><td>Dev</td><td>Schema 加载无报错</td></tr>
+<tr><td>BulkLoader 扩展支持财税节点类型</td><td>Dev</td><td>CSV 批量导入正常</td></tr>
+<tr><td><code>finance-tax-crawl.sh</code> 编排脚本</td><td>Dev</td><td>组合 Skill，端到端运行</td></tr>
+<tr><td><code>finance_tax_processor.py</code> (NER + 变更检测 + 入库)</td><td>Dev</td><td>解析 JSON 并写入 KuzuDB 节点</td></tr>
+<tr><td><span class="skill">news-aggregator-skill</span>: 添加 <code>finance-tax</code> profile + 6 个来源抓取器</td><td>Dev</td><td><code>fetch_news.py --profile finance-tax</code> 运行成功</td></tr>
+<tr><td>测试: <span class="skill">agent-reach</span> + <span class="skill">defuddle</span> 抓取 chinatax.gov.cn</td><td>Dev</td><td>提取政策列表 + 全文</td></tr>
+<tr><td>测试: <span class="skill">browser-automation</span> 抓取 mof.gov.cn (JS 页面)</td><td>Dev</td><td>视觉驱动提取正常</td></tr>
+<tr><td>测试: <span class="skill">multi-search-engine</span> 政策发现</td><td>Dev</td><td>返回相关政府网站 URL</td></tr>
+<tr><td>在 pipeline-registry.json 中注册管线</td><td>Dev</td><td><code>finance-tax-daily-crawl</code> 已注册</td></tr>
+<tr><td>VPS cron 设置每日 06:00 UTC 执行</td><td>Ops</td><td>Cron 运行中，心跳正常</td></tr>
+<tr><td>通过 Skill 管线执行首次全量抓取</td><td>Dev</td><td>KuzuDB 中 &ge; 5000 节点</td></tr>
+</tbody>
+</table>
+</div>
+<div class="verification"><strong>验证</strong>: <code>cognebula status --repo finance-tax</code> 显示 5000+ 节点、10K+ 边</div>
+
+<!-- P1 -->
+<h3>P1: RAG + MCP 集成 (第 3-4 周)</h3>
+<div class="phase-goal"><strong>目标</strong>: 5 个新 MCP 工具、LanceDB 嵌入、OpenClaw 集成</div>
+<div class="table-wrap">
+<table>
+<thead>
+<tr><th>任务</th><th>负责人</th><th>完成标准</th></tr>
+</thead>
+<tbody>
+<tr><td>LanceDB 表: finance_tax_embeddings</td><td>Dev</td><td>嵌入已存储、可搜索</td></tr>
+<tr><td>通过 Gemini Embedding 2 嵌入所有法规</td><td>Dev</td><td>5000+ 嵌入已生成</td></tr>
+<tr><td>MCP 工具: tax_query</td><td>Dev</td><td>返回相关上下文</td></tr>
+<tr><td>MCP 工具: policy_search</td><td>Dev</td><td>按辖区 + 日期过滤</td></tr>
+<tr><td>MCP 工具: compliance_check</td><td>Dev</td><td>返回合规义务清单</td></tr>
+<tr><td>MCP 工具: change_monitor</td><td>Dev</td><td>返回最近 24 小时变更</td></tr>
+<tr><td>MCP 工具: case_lookup</td><td>Dev</td><td>返回相关案例判例</td></tr>
+<tr><td>混合 RAG: 语义 + 图遍历</td><td>Dev</td><td>联合结果优于单一方式</td></tr>
+<tr><td>OpenClaw MCP 服务注册</td><td>Dev</td><td><code>cognebula</code> 在 openclaw.json mcpServers 中</td></tr>
+<tr><td>查询准确率评测 (100 条测试查询)</td><td>QA</td><td>Precision@5 &ge; 80%</td></tr>
+</tbody>
+</table>
+</div>
+<div class="verification"><strong>验证</strong>: OpenClaw 可回答 "软件企业增值税优惠" 并附带可溯源引用</div>
+
+<!-- P2 -->
+<h3>P2: 专家团队 + 投递 (第 5-6 周)</h3>
+<div class="phase-goal"><strong>目标</strong>: 2 位新专家、Telegram 摘要、CF Pages 看板</div>
+<div class="table-wrap">
+<table>
+<thead>
+<tr><th>任务</th><th>负责人</th><th>完成标准</th></tr>
+</thead>
+<tbody>
+<tr><td>专家 #9 秦税安 Prompt (UC-81~90)</td><td>PM</td><td>Prompt 位于 scripts/telegram-expert-team/prompts/</td></tr>
+<tr><td>专家 #10 顾财道 Prompt (UC-91~100)</td><td>PM</td><td>Prompt 位于 scripts/telegram-expert-team/prompts/</td></tr>
+<tr><td>管线: finance-tax-daily-crawl</td><td>Dev</td><td>已在 pipeline-registry.json 注册</td></tr>
+<tr><td>管线: finance-tax-morning-digest</td><td>Dev</td><td>CST 09:30 投递</td></tr>
+<tr><td>Telegram 告警模板</td><td>Dev</td><td>新政策通知格式</td></tr>
+<tr><td>CF Pages: /finance-tax/ 看板</td><td>Dev</td><td>时间线 + 浏览 + 搜索视图</td></tr>
+<tr><td>VPS cron 设置 (2 个新任务)</td><td>Ops</td><td>Cron 运行中，心跳正常</td></tr>
+<tr><td>专家团队集成测试</td><td>QA</td><td>摘要已投递至 Telegram</td></tr>
+</tbody>
+</table>
+</div>
+<div class="verification"><strong>验证</strong>: Telegram 收到财税早报摘要; CF Pages 显示时间线</div>
+
+<!-- P3 -->
+<h3>P3: 变更检测 + PDF (第 7-8 周)</h3>
+<div class="phase-goal"><strong>目标</strong>: 三级变更检测、PDF/OCR 管线</div>
+<div class="table-wrap">
+<table>
+<thead>
+<tr><th>任务</th><th>负责人</th><th>完成标准</th></tr>
+</thead>
+<tbody>
+<tr><td>基于哈希的变更检测 (第一级)</td><td>Dev</td><td>SHA256 按页，每小时检查</td></tr>
+<tr><td>基于差异的变更检测 (第二级)</td><td>Dev</td><td>变更页面 unified_diff</td></tr>
+<tr><td>语义变更检测 (第三级)</td><td>Dev</td><td>嵌入余弦 &lt; 0.95 触发告警</td></tr>
+<tr><td>KuzuDB 版本链 (SUPERSEDES 边)</td><td>Dev</td><td>可查询的版本历史</td></tr>
+<tr><td>原始 HTML 的 Git 归档 (审计追踪)</td><td>Dev</td><td>每次变更均提交</td></tr>
+<tr><td>PyMuPDF 文本提取</td><td>Dev</td><td>PDF 到带版式文本</td></tr>
+<tr><td>PaddleOCR 集成</td><td>Dev</td><td>扫描 PDF 到文本</td></tr>
+<tr><td>pdfplumber 表格提取</td><td>Dev</td><td>表格到 JSON</td></tr>
+<tr><td>二级来源抓取器 (cicpa, ctax, esnai)</td><td>Dev</td><td>news-aggregator 中 3 个新 fetch_*.py</td></tr>
+<tr><td>端到端管线压力测试</td><td>QA</td><td>24 小时无人值守运行，零崩溃</td></tr>
+</tbody>
+</table>
+</div>
+<div class="verification"><strong>验证</strong>: chinatax.gov.cn 政策变更在 24 小时内检测到并发送告警</div>
+</section>
+
+<!-- 4. Performance Targets -->
+<section>
+<h2>4. 性能目标</h2>
+<div class="table-wrap">
+<table>
+<thead>
+<tr><th>操作</th><th>目标值</th><th>度量方式</th></tr>
+</thead>
+<tbody>
+<tr><td>全量抓取 (15 个来源)</td><td>&lt; 30 分钟</td><td>管线执行时长</td></tr>
+<tr><td>增量抓取 (仅变更)</td><td>&lt; 10 分钟</td><td>管线执行时长</td></tr>
+<tr><td>单次 MCP 查询</td><td>&lt; 3 秒</td><td>MCP 往返时间</td></tr>
+<tr><td>嵌入生成 (100 篇文档)</td><td>&lt; 60 秒</td><td>批处理时间</td></tr>
+<tr><td>图遍历 (3 跳)</td><td>&lt; 500ms</td><td>KuzuDB Cypher 执行时间</td></tr>
+<tr><td>变更检测 (单个来源)</td><td>&lt; 5 秒</td><td>哈希 + 差异比对时间</td></tr>
+<tr><td>Docker 集群启动</td><td>&lt; 30 秒</td><td><code>docker-compose up</code> 到健康</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<!-- 5. Cost Model -->
+<section>
+<h2>5. 成本模型</h2>
+<div class="table-wrap">
+<table>
+<thead>
+<tr><th>资源</th><th>月度成本</th><th>备注</th></tr>
+</thead>
+<tbody>
+<tr><td>Gemini Embedding 2 (预览版)</td><td>$0</td><td>预览期免费</td></tr>
+<tr><td>Gemini Embedding 2 (正式版)</td><td>~$10</td><td>预估 5 万文档/月 @ $0.20/百万 token</td></tr>
+<tr><td>VPS 计算 (现有)</td><td>$0 增量</td><td>爬虫在现有 VPS 上运行</td></tr>
+<tr><td>Redis (现有)</td><td>$0 增量</td><td>复用 CogNebula Redis</td></tr>
+<tr><td>CF Pages (现有)</td><td>$0</td><td>免费套餐足够</td></tr>
+<tr><td>Brave Search API (现有)</td><td>$0</td><td>免费套餐 2000 次/月</td></tr>
+<tr><td>PaddleOCR</td><td>$0</td><td>开源，本地计算</td></tr>
+<tr><td>RSSHub</td><td>$0</td><td>自托管 Docker</td></tr>
+<tr><td><strong>增量总计</strong></td><td><strong>~$0-10/月</strong></td><td></td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<!-- 6. Risk Mitigations -->
+<section>
+<h2>6. 风险缓解</h2>
+<div class="table-wrap">
+<table>
+<thead>
+<tr><th>风险</th><th>概率</th><th>影响</th><th>缓解措施</th><th>负责人</th></tr>
+</thead>
+<tbody>
+<tr>
+    <td>政府网站布局变更</td>
+    <td class="risk-medium">中</td>
+    <td class="risk-high">高</td>
+    <td>Skill 降级链: <span class="skill">defuddle</span> &rarr; <span class="skill">browser-automation</span> (视觉) &rarr; <span class="skill">chrome-bridge</span></td>
+    <td>Dev</td>
+</tr>
+<tr>
+    <td>KuzuDB 10 万+ 节点性能</td>
+    <td class="risk-low">低</td>
+    <td class="risk-medium">中</td>
+    <td>批量 CSV 加载器; 必要时按辖区分区</td>
+    <td>Dev</td>
+</tr>
+<tr>
+    <td>嵌入 API 速率限制</td>
+    <td class="risk-low">低</td>
+    <td class="risk-low">低</td>
+    <td>批量请求 + 退避重试; 降级至文本搜索</td>
+    <td>Dev</td>
+</tr>
+<tr>
+    <td>爬虫 IP 封锁</td>
+    <td class="risk-medium">中</td>
+    <td class="risk-medium">中</td>
+    <td><span class="skill">scrapling-crawler</span> (反爬) + 5 秒延迟 + Skill UA 轮换</td>
+    <td>Ops</td>
+</tr>
+<tr>
+    <td>PaddleOCR 准确率 &lt; 90%</td>
+    <td class="risk-medium">中</td>
+    <td class="risk-medium">中</td>
+    <td>人工复审队列; 优先处理文本层 PDF</td>
+    <td>QA</td>
+</tr>
+<tr>
+    <td>Skill 生态更新</td>
+    <td class="risk-low">低</td>
+    <td class="risk-low">低</td>
+    <td>Skill 均 Git 追踪; 版本锁定; SKILL-MANIFEST.json 完整性校验</td>
+    <td>Dev</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<!-- 7. Success Criteria -->
+<section>
+<h2>7. 成功标准 (v1 完成定义)</h2>
+<ul class="checklist">
+    <li>KuzuDB 中 &ge; 5000 条法规节点</li>
+    <li>&ge; 15 个来源每日抓取</li>
+    <li>5 个新 MCP 工具上线运行</li>
+    <li>OpenClaw 可回答财税查询并附带引用</li>
+    <li>每日 Telegram 摘要投递 (CST 09:30)</li>
+    <li>CF Pages 看板上线，含时间线视图</li>
+    <li>变更检测生效 (&lt; 24 小时延迟)</li>
+    <li>24 小时无人值守压力测试通过</li>
+    <li>查询准确率 &ge; 85% Precision@5</li>
+    <li>零安全事故 (无密钥泄露、无 IP 封禁)</li>
+</ul>
+</section>
+
+</div>
+
+<footer>
+    <p>CogNebula Enterprise v2.0 -- Platform Optimization Plan</p>
+    <p>Maurice | maurice_wen@proton.me</p>
+    <p style="font-size:12px; margin-top:8px;">Generated 2026-03-14 | Source: initiative_finance_tax_kb/PLATFORM_OPTIMIZATION_PLAN.md</p>
+</footer>
+
+</body>
+</html>

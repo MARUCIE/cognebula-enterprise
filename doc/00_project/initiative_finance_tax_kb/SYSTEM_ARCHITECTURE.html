@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CogNebula 财税知识库 -- 系统架构 v2.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=Noto+Serif+SC:wght@400;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    background: #F3F0E9;
+    color: #2C2C2C;
+    font-family: 'Source Sans 3', 'Noto Sans SC', sans-serif;
+    font-size: 17px;
+    line-height: 1.85;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    -webkit-font-smoothing: antialiased;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 48px 60px;
+}
+
+/* ---- Update Banner ---- */
+.update-banner {
+    background: linear-gradient(135deg, #D67052, #C25A3C);
+    color: #fff;
+    padding: 18px 32px;
+    border-radius: 10px;
+    margin-bottom: 40px;
+    box-shadow: 0 4px 16px rgba(214,112,82,0.25);
+    font-size: 15px;
+    line-height: 1.8;
+}
+.update-banner strong { color: #FFF3E0; }
+
+/* ---- Paper Cards ---- */
+.paper {
+    background: #FFFFFF;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+    padding: 40px 48px;
+    margin-bottom: 32px;
+}
+
+/* ---- Headlines ---- */
+h1 {
+    font-family: 'Crimson Pro', 'Noto Serif SC', serif;
+    font-size: 2.4em;
+    font-weight: 700;
+    color: #1A1A1A;
+    margin-bottom: 8px;
+    line-height: 1.3;
+}
+
+.subtitle {
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 15px;
+    color: #888;
+    margin-bottom: 36px;
+    line-height: 2;
+}
+
+h2 {
+    font-family: 'Crimson Pro', 'Noto Serif SC', serif;
+    font-size: 1.65em;
+    font-weight: 700;
+    color: #D67052;
+    margin: 48px 0 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #E8E0D4;
+}
+
+h2:first-child { margin-top: 0; }
+
+h3 {
+    font-family: 'Crimson Pro', 'Noto Serif SC', serif;
+    font-size: 1.3em;
+    font-weight: 600;
+    color: #3A3A3A;
+    margin: 32px 0 14px;
+}
+
+h4 {
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 1.05em;
+    font-weight: 700;
+    color: #555;
+    margin: 24px 0 10px;
+}
+
+/* ---- Blockquote ---- */
+blockquote {
+    border-left: 4px solid #D67052;
+    background: #FAF6F0;
+    padding: 14px 20px;
+    margin: 16px 0;
+    font-style: italic;
+    color: #555;
+    border-radius: 0 8px 8px 0;
+}
+
+/* ---- Tables ---- */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 18px 0 24px;
+    font-size: 15px;
+}
+
+thead th {
+    background: #F7F3ED;
+    font-weight: 700;
+    text-align: left;
+    padding: 12px 14px;
+    border-bottom: 2px solid #DDD4C8;
+    color: #3A3A3A;
+    font-family: 'Noto Sans SC', sans-serif;
+}
+
+tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #EDE8E0;
+    vertical-align: top;
+}
+
+tbody tr:hover { background: #FAF8F4; }
+
+/* ---- Code Blocks ---- */
+pre {
+    background: #1E1E2E;
+    border-radius: 10px;
+    padding: 24px 28px;
+    overflow-x: auto;
+    margin: 16px 0 24px;
+    line-height: 1.7;
+    font-size: 14px;
+}
+
+pre code {
+    font-family: 'JetBrains Mono', 'Menlo', monospace;
+    color: #CDD6F4;
+}
+
+code {
+    font-family: 'JetBrains Mono', 'Menlo', monospace;
+    font-size: 0.88em;
+}
+
+p code, li code, td code {
+    background: #F0EBE3;
+    padding: 2px 7px;
+    border-radius: 4px;
+    color: #C25A3C;
+}
+
+/* ---- SQL Syntax Highlighting ---- */
+.sql-kw { color: #CBA6F7; font-weight: 500; }
+.sql-type { color: #A6E3A1; }
+.sql-comment { color: #6C7086; font-style: italic; }
+.sql-str { color: #FAB387; }
+.sql-name { color: #89DCEB; }
+.sql-punc { color: #9399B2; }
+
+/* ---- Cypher Syntax Highlighting ---- */
+.cy-kw { color: #CBA6F7; font-weight: 500; }
+.cy-label { color: #89DCEB; }
+.cy-prop { color: #A6E3A1; }
+.cy-str { color: #FAB387; }
+.cy-comment { color: #6C7086; font-style: italic; }
+.cy-func { color: #F9E2AF; }
+
+/* ---- Bash Syntax ---- */
+.sh-comment { color: #6C7086; font-style: italic; }
+.sh-kw { color: #CBA6F7; font-weight: 500; }
+.sh-var { color: #89DCEB; }
+.sh-str { color: #A6E3A1; }
+.sh-cmd { color: #F9E2AF; }
+
+/* ---- Python Syntax ---- */
+.py-kw { color: #CBA6F7; font-weight: 500; }
+.py-str { color: #A6E3A1; }
+.py-comment { color: #6C7086; font-style: italic; }
+.py-name { color: #89DCEB; }
+.py-func { color: #F9E2AF; }
+
+/* ---- YAML Syntax ---- */
+.yml-key { color: #89DCEB; }
+.yml-val { color: #A6E3A1; }
+.yml-comment { color: #6C7086; font-style: italic; }
+
+/* ---- Status Badges ---- */
+.badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+.badge-reused { background: #D4EDDA; color: #1B5E20; }
+.badge-extended { background: #BBDEFB; color: #0D47A1; }
+.badge-new { background: #FFE0B2; color: #E65100; }
+
+/* ---- Mermaid ---- */
+.mermaid-wrapper {
+    background: #FDFBF8;
+    border-radius: 10px;
+    padding: 24px;
+    margin: 20px 0 28px;
+    border: 1px solid #E8E0D4;
+    overflow-x: auto;
+}
+
+/* ---- Tiered Flow ---- */
+.tier-flow {
+    background: #FDFBF8;
+    border-radius: 10px;
+    padding: 24px 28px;
+    margin: 16px 0 24px;
+    border: 1px solid #E8E0D4;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    line-height: 1.8;
+    color: #3A3A3A;
+    white-space: pre-line;
+}
+
+/* ---- Topology ---- */
+.topology {
+    background: #FDFBF8;
+    border-radius: 10px;
+    padding: 24px 28px;
+    margin: 16px 0 24px;
+    border: 1px solid #E8E0D4;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    line-height: 1.9;
+    color: #3A3A3A;
+}
+
+/* ---- Section Numbers ---- */
+.sec-num {
+    color: #D67052;
+    font-weight: 700;
+    margin-right: 6px;
+}
+
+/* ---- Key Insight ---- */
+.insight {
+    background: #FFF8F0;
+    border-left: 4px solid #D67052;
+    padding: 14px 20px;
+    margin: 18px 0;
+    border-radius: 0 8px 8px 0;
+    font-size: 15px;
+    color: #5A4A3A;
+}
+.insight strong { color: #D67052; }
+
+/* ---- Footer ---- */
+footer {
+    text-align: center;
+    padding: 60px 20px 40px;
+    color: #9B9B9D;
+    font-size: 13px;
+    line-height: 2.2;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+    .container { padding: 20px 18px 40px; }
+    .paper { padding: 24px 20px; }
+    h1 { font-size: 1.8em; }
+    table { font-size: 13px; }
+    pre { padding: 16px; font-size: 13px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- Update Banner -->
+<div class="update-banner">
+    <strong>v2.0 (2026-03-14)</strong> -- 全新中国税制本体模型: 13 种节点、15 种边、18 税种、42 项企业会计准则。新增 20 个国内数据源、示例 Cypher 查询、双时态版本管理。<br>
+    v1.1 变更: 用 AI-Fleet 技能组合替代自建 Scrapy 爬虫层 (复用 40+ 已有技能)
+</div>
+
+<!-- Title -->
+<div class="paper">
+    <h1>CogNebula 财税知识库 -- 系统架构</h1>
+    <div class="subtitle">
+        v2.0 | 2026-03-14 | Initiative: finance_tax_kb<br>
+        v2.0 变更: 中国特色税制本体 (13 节点, 15 边, 18 税种, 42 CAS), 20 个国内数据源<br>
+        v1.1 变更: 用 AI-Fleet 技能组合替代自建 Scrapy 爬虫层 (复用 40+ 已有技能)
+    </div>
+</div>
+
+<!-- 1. Architecture Overview -->
+<div class="paper">
+    <h2><span class="sec-num">1.</span> 架构总览</h2>
+
+    <h3>设计原则: 组合, 不重建</h3>
+    <p>AI-Fleet 已拥有 40+ 生产级技能, 覆盖网页爬取、搜索、浏览器自动化和内容提取。本架构通过一个精简的 shell 脚本 (<code>finance-tax-crawl.sh</code>) <strong>编排既有能力</strong>, 而非构建平行基础设施。</p>
+
+    <div class="mermaid-wrapper">
+        <pre class="mermaid">
+graph TB
+    subgraph "数据源层"
+        GOV["政府网站&lt;br/&gt;chinatax / mof / gov.cn"]
+        PRO["专业来源&lt;br/&gt;cicpa / ctax / esnai"]
+        NEWS["新闻聚合&lt;br/&gt;WallStreetCN / 36Kr / 28 源"]
+        SOCIAL["社交与微信&lt;br/&gt;公众号 / X / Bilibili"]
+        PDF["PDF 文档&lt;br/&gt;官方公报"]
+    end
+
+    subgraph "AI-Fleet 技能层 (已有, 复用)"
+        AR["agent-reach&lt;br/&gt;13+ 平台"]
+        BA["browser-automation&lt;br/&gt;Midscene 视觉驱动"]
+        MSE["multi-search-engine&lt;br/&gt;17 引擎"]
+        NA["news-aggregator-skill&lt;br/&gt;28 源"]
+        DR["deep-research&lt;br/&gt;7 阶段 GoT"]
+        DF["defuddle / x-reader&lt;br/&gt;文章提取"]
+        WA["wechat-article-search&lt;br/&gt;镜像站"]
+        SC["scrapling-crawler&lt;br/&gt;反爬绕过"]
+        TS["tavily / grok-search&lt;br/&gt;API 搜索"]
+        OCR["PyMuPDF + PaddleOCR&lt;br/&gt;PDF 流水线"]
+    end
+
+    subgraph "编排层 (新建, 精简)"
+        ORCH["finance-tax-crawl.sh&lt;br/&gt;技能编排器"]
+        PARSER["法规解析器&lt;br/&gt;规则 NER"]
+        DIFF["变更检测器&lt;br/&gt;Hash + 语义 Diff"]
+        EMBED["嵌入生成器&lt;br/&gt;bin/embed Gemini E2"]
+        VERSION["版本管理器&lt;br/&gt;双时态"]
+    end
+
+    subgraph "CogNebula 核心 (扩展)"
+        KUZU[("KuzuDB&lt;br/&gt;代码 + 财税图谱")]
+        LANCE[("LanceDB&lt;br/&gt;向量嵌入")]
+        RAG["混合 RAG&lt;br/&gt;编排器"]
+        MCPS["MCP Server&lt;br/&gt;7 + 5 工具"]
+    end
+
+    subgraph "集成层 (已有, 扩展)"
+        OC["OpenClaw&lt;br/&gt;Agent 运行时"]
+        EXP["专家团队&lt;br/&gt;秦税安 + 顾财道"]
+        TG["Telegram Bot&lt;br/&gt;告警 + Digest"]
+        CF["CF Pages&lt;br/&gt;Dashboard"]
+    end
+
+    GOV --> AR
+    GOV --> BA
+    PRO --> DF
+    NEWS --> NA
+    SOCIAL --> WA
+    SOCIAL --> AR
+    PDF --> OCR
+
+    AR --> ORCH
+    BA --> ORCH
+    MSE --> ORCH
+    NA --> ORCH
+    DR --> ORCH
+    DF --> ORCH
+    WA --> ORCH
+    SC --> ORCH
+    TS --> ORCH
+    OCR --> ORCH
+
+    ORCH --> PARSER
+    ORCH --> DIFF
+    PARSER --> EMBED
+    DIFF --> VERSION
+    VERSION --> KUZU
+    EMBED --> LANCE
+
+    KUZU --> RAG
+    LANCE --> RAG
+    RAG --> MCPS
+
+    MCPS --> OC
+    OC --> EXP
+    EXP --> TG
+    EXP --> CF
+        </pre>
+    </div>
+</div>
+
+<!-- 2. Component Details -->
+<div class="paper">
+    <h2><span class="sec-num">2.</span> 组件详情</h2>
+
+    <h3>2.1 技能组合层 (已有 AI-Fleet 技能)</h3>
+
+    <h4>技能-任务映射</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>采集任务</th>
+                <th>主力技能</th>
+                <th>备选方案</th>
+                <th>调用方式</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>静态政府 HTML 页面</td><td><code>agent-reach</code> + <code>defuddle</code></td><td><code>browser-automation</code> (Midscene)</td><td>CLI / 技能触发</td></tr>
+            <tr><td>JS 渲染门户</td><td><code>browser-automation</code> (视觉驱动, 无需 DOM)</td><td><code>chrome-bridge-automation</code> (含会话)</td><td>Midscene API</td></tr>
+            <tr><td>反爬保护站点</td><td><code>scrapling-crawler</code> (Cloudflare Turnstile 绕过)</td><td><code>chrome-bridge-automation</code></td><td>Python API</td></tr>
+            <tr><td>广域政策发现</td><td><code>multi-search-engine</code> (17 引擎: 百度/搜狗/Google...)</td><td><code>tavily-search</code> (API, 含来源)</td><td>零 API CLI</td></tr>
+            <tr><td>深度政策分析</td><td><code>deep-research</code> (7 阶段思维图)</td><td><code>grok-search</code> (推理)</td><td>技能触发</td></tr>
+            <tr><td>微信公众号</td><td><code>wechat-article-search</code> (镜像站, 更安全)</td><td><code>agent-reach</code> 微信频道</td><td>技能触发</td></tr>
+            <tr><td>新闻监控</td><td><code>news-aggregator-skill</code> (28 内置源)</td><td><code>web-multi-search</code> (异步多页)</td><td><code>fetch_news.py</code></td></tr>
+            <tr><td>X/Twitter 税务专家</td><td><code>grok-twitter-search</code> (语义, Fast/Reasoning 双引擎)</td><td><code>agent-reach</code> X 频道</td><td>xAI API</td></tr>
+            <tr><td>PDF 文档</td><td>PyMuPDF + PaddleOCR (新建, 极简)</td><td><code>defuddle</code> (仅文本层)</td><td>Python 库</td></tr>
+            <tr><td>通用 URL</td><td><code>defuddle</code> / <code>x-reader</code> (自动识别平台)</td><td><code>agent-reach</code></td><td>CLI</td></tr>
+        </tbody>
+    </table>
+
+    <h4>编排脚本: <code>finance-tax-crawl.sh</code></h4>
+    <pre><code><span class="sh-comment">#!/usr/bin/env bash</span>
+<span class="sh-comment"># 精简编排器 -- 组合已有 AI-Fleet 技能</span>
+<span class="sh-comment"># 无自建爬虫。无 Scrapy。仅技能调用 + CogNebula 入库。</span>
+
+<span class="sh-kw">set</span> -euo pipefail
+<span class="sh-var">SCRIPT_DIR</span>=<span class="sh-str">"$(cd "$(dirname "$0")" &amp;&amp; pwd)"</span>
+<span class="sh-var">PROJECT_DIR</span>=<span class="sh-str">"/Users/mauricewen/Projects/cognebula-enterprise"</span>
+<span class="sh-var">DATA_DIR</span>=<span class="sh-str">"$PROJECT_DIR/data/raw/$(date +%Y-%m-%d)"</span>
+<span class="sh-cmd">mkdir</span> -p <span class="sh-str">"$DATA_DIR"</span>
+
+<span class="sh-comment"># Phase 1: 发现 (multi-search-engine, 17 引擎, ~3s)</span>
+<span class="sh-cmd">echo</span> <span class="sh-str">"NOTE: Phase 1 - 通过 multi-search-engine 进行政策发现"</span>
+<span class="sh-comment"># 搜索: "国家税务总局 最新公告", "财政部 政策发布" 等</span>
+
+<span class="sh-comment"># Phase 2: 爬取政府源 (agent-reach + defuddle)</span>
+<span class="sh-cmd">echo</span> <span class="sh-str">"NOTE: Phase 2 - 爬取一级数据源"</span>
+<span class="sh-comment"># 逐个政府 URL: agent-reach 获取 -&gt; defuddle 提取 -&gt; 保存 JSON</span>
+
+<span class="sh-comment"># Phase 3: 新闻聚合 (news-aggregator-skill 财税配置)</span>
+<span class="sh-cmd">echo</span> <span class="sh-str">"NOTE: Phase 3 - 新闻聚合 (finance-tax 配置)"</span>
+<span class="sh-comment"># 调用: python fetch_news.py --profile finance-tax --output "$DATA_DIR"</span>
+
+<span class="sh-comment"># Phase 4: 微信 + 社交 (wechat-article-search + grok-twitter-search)</span>
+<span class="sh-cmd">echo</span> <span class="sh-str">"NOTE: Phase 4 - 社交源"</span>
+<span class="sh-comment"># 对跟踪的微信账号: wechat-article-search -&gt; 提取 -&gt; 保存</span>
+
+<span class="sh-comment"># Phase 5: PDF 处理 (PyMuPDF + PaddleOCR)</span>
+<span class="sh-cmd">echo</span> <span class="sh-str">"NOTE: Phase 5 - PDF 提取"</span>
+<span class="sh-comment"># 对 data/pdfs/ 中的新 PDF: 提取文本 -&gt; 需要时 OCR -&gt; 保存 JSON</span>
+
+<span class="sh-comment"># Phase 6: 解析 + NER + 变更检测</span>
+<span class="sh-cmd">echo</span> <span class="sh-str">"NOTE: Phase 6 - 处理流水线"</span>
+<span class="sh-cmd">python</span> <span class="sh-str">"$PROJECT_DIR/src/finance_tax_processor.py"</span> \
+  --input <span class="sh-str">"$DATA_DIR"</span> \
+  --db <span class="sh-str">"$PROJECT_DIR/data/finance-tax-graph"</span>
+
+<span class="sh-comment"># Phase 7: 嵌入 + 更新 LanceDB</span>
+<span class="sh-cmd">echo</span> <span class="sh-str">"NOTE: Phase 7 - 嵌入生成"</span>
+<span class="sh-comment"># bin/embed batch --input "$DATA_DIR/parsed/" --collection finance-tax</span>
+
+<span class="sh-comment"># Phase 8: 检测到变更则告警</span>
+<span class="sh-cmd">echo</span> <span class="sh-str">"NOTE: Phase 8 - 变更告警"</span>
+<span class="sh-comment"># 若检测到变更: 通过已有 digest 流水线发送 Telegram 告警</span></code></pre>
+
+    <div class="insight">
+        <strong>核心洞察</strong>: 每个"阶段"仅调用 1-2 个已有技能。唯一的新增 Python 代码是<strong>处理器</strong> (<code>finance_tax_processor.py</code>), 负责 NER + 变更检测 + KuzuDB 入库。
+    </div>
+
+    <h4>news-aggregator-skill 扩展</h4>
+    <p>在已有 news-aggregator-skill 中新增 <code>finance-tax</code> 配置:</p>
+
+    <pre><code><span class="py-comment"># 在 fetch_news.py profiles 中添加:</span>
+<span class="py-name">PROFILES</span> = {
+    <span class="py-str">"finance-tax"</span>: {
+        <span class="py-str">"sources"</span>: [
+            <span class="py-str">"wallstreetcn"</span>,       <span class="py-comment"># 已内置</span>
+            <span class="py-str">"36kr"</span>,               <span class="py-comment"># 已内置</span>
+            <span class="py-comment"># 新增源:</span>
+            <span class="py-str">"chinatax_announcements"</span>,  <span class="py-comment"># 国家税务总局公告</span>
+            <span class="py-str">"mof_policy"</span>,              <span class="py-comment"># 财政部政策发布</span>
+            <span class="py-str">"gov_cn_tax"</span>,              <span class="py-comment"># 国务院涉税文件</span>
+            <span class="py-str">"cicpa_standards"</span>,         <span class="py-comment"># 注册会计师协会</span>
+            <span class="py-str">"ctax_news"</span>,              <span class="py-comment"># 中国税务报</span>
+            <span class="py-str">"esnai_updates"</span>,          <span class="py-comment"># 中国会计视野</span>
+        ],
+        <span class="py-str">"language"</span>: <span class="py-str">"zh"</span>,
+        <span class="py-str">"output_format"</span>: <span class="py-str">"json"</span>,
+    }
+}</code></pre>
+    <p>每个新数据源仅需一个 <code>fetch_&lt;source&gt;.py</code> 文件, 遵循已有模式 (URL + CSS 选择器 + 输出 schema)。</p>
+
+    <h3>2.2 处理层 (新建, 极简)</h3>
+
+    <h4>法规解析器 (规则 NER)</h4>
+    <pre><code><span class="py-comment"># Phase 1: 基于规则的提取 (无需 ML 训练)</span>
+<span class="py-name">PATTERNS</span> = {
+    <span class="py-str">"regulation_code"</span>: <span class="py-str">r"[国发|财税|税总发|国税函]\[?\d{4}\]?\d+号"</span>,
+    <span class="py-str">"effective_date"</span>:  <span class="py-str">r"自\d{4}年\d{1,2}月\d{1,2}日起施行"</span>,
+    <span class="py-str">"tax_rate"</span>:        <span class="py-str">r"税率为?百分之?\d+\.?\d*%?"</span>,
+    <span class="py-str">"industry_code"</span>:   <span class="py-str">r"GB/T\s*\d{4}"</span>,
+    <span class="py-str">"clause_ref"</span>:      <span class="py-str">r"第[一二三四五六七八九十百]+条"</span>,
+    <span class="py-str">"amendment"</span>:       <span class="py-str">r"修订|废止|修改|补充|替代"</span>,
+}
+
+<span class="py-comment"># Phase 2 (未来): 在标注语料上微调 NER 模型</span></code></pre>
+
+    <h4>变更检测 (三级)</h4>
+    <div class="tier-flow">Tier 1: SHA256 哈希 (二进制变更检测, 每小时)
+  |
+  v (若发生变更)
+Tier 2: difflib.unified_diff (行级差异, 定位段落)
+  |
+  v (若有显著变更)
+Tier 3: 嵌入余弦相似度 &lt; 0.95 (语义变更, 通过 bin/embed similarity)
+  |
+  v
+告警: Telegram + KuzuDB 中创建 Version 节点</div>
+
+    <h4>嵌入生成器</h4>
+    <table>
+        <thead><tr><th>参数</th><th>值</th></tr></thead>
+        <tbody>
+            <tr><td>模型</td><td><code>gemini-embedding-2-preview</code>, 通过 <code>bin/embed</code> (AI-Fleet 集成)</td></tr>
+            <tr><td>维度</td><td>768 (默认) 或 256 (高吞吐紧凑模式)</td></tr>
+            <tr><td>批量</td><td>100 文档/API 调用</td></tr>
+            <tr><td>存储</td><td>LanceDB 表 <code>finance_tax_embeddings</code></td></tr>
+            <tr><td>索引</td><td>IVF-PQ, 亚秒级检索</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- 2.3 KuzuDB Schema -->
+<div class="paper">
+    <h2><span class="sec-num">2.3</span> KuzuDB Schema -- 中国税制本体 (v2.0: 13 节点, 15 边)</h2>
+
+    <h3>节点表 (13 类)</h3>
+
+    <h4>税制核心 (Tax System Core)</h4>
+    <pre><code><span class="sql-comment">-- 1. 税种 (18 个税种)</span>
+<span class="sql-kw">CREATE NODE TABLE IF NOT EXISTS</span> <span class="sql-name">TaxType</span> <span class="sql-punc">(</span>
+    <span class="sql-name">id</span> <span class="sql-type">STRING</span> <span class="sql-kw">PRIMARY KEY</span><span class="sql-punc">,</span> <span class="sql-name">name</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span> <span class="sql-name">code</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>
+    <span class="sql-name">rate_range</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span> <span class="sql-name">min_rate</span> <span class="sql-type">DOUBLE</span><span class="sql-punc">,</span> <span class="sql-name">max_rate</span> <span class="sql-type">DOUBLE</span><span class="sql-punc">,</span>
+    <span class="sql-name">rate_structure</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>           <span class="sql-comment">-- progressive/flat/tiered_by_good</span>
+    <span class="sql-name">filing_frequency</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>         <span class="sql-comment">-- monthly/quarterly/annual</span>
+    <span class="sql-name">liability_type</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>           <span class="sql-comment">-- direct/indirect</span>
+    <span class="sql-name">category</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>                 <span class="sql-comment">-- goods_and_services/income/property/specific_behavior</span>
+    <span class="sql-name">governing_law</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span> <span class="sql-name">status</span> <span class="sql-type">STRING</span>
+<span class="sql-punc">);</span></code></pre>
+
+    <h4>分类 (Classification)</h4>
+    <pre><code><span class="sql-comment">-- 2. 纳税人身份 (一般纳税人/小规模纳税人等)</span>
+<span class="sql-kw">CREATE NODE TABLE IF NOT EXISTS</span> <span class="sql-name">TaxpayerStatus</span> <span class="sql-punc">(</span>
+    <span class="sql-name">id</span> <span class="sql-type">STRING</span> <span class="sql-kw">PRIMARY KEY</span><span class="sql-punc">,</span> <span class="sql-name">name</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>
+    <span class="sql-name">domain</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>                   <span class="sql-comment">-- VAT/CIT/PIT</span>
+    <span class="sql-name">threshold_value</span> <span class="sql-type">DOUBLE</span><span class="sql-punc">,</span>          <span class="sql-comment">-- 如 5000000 (500 万元)</span>
+    <span class="sql-name">threshold_unit</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>           <span class="sql-comment">-- annual_revenue/employee_count</span>
+    <span class="sql-name">qualification_criteria</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>
+    <span class="sql-name">transition_allowed</span> <span class="sql-type">BOOLEAN</span>
+<span class="sql-punc">);</span>
+
+<span class="sql-comment">-- 3. 企业类型 (居民/非居民/合伙等)</span>
+<span class="sql-kw">CREATE NODE TABLE IF NOT EXISTS</span> <span class="sql-name">EnterpriseType</span> <span class="sql-punc">(</span>
+    <span class="sql-name">id</span> <span class="sql-type">STRING</span> <span class="sql-kw">PRIMARY KEY</span><span class="sql-punc">,</span> <span class="sql-name">name</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>
+    <span class="sql-name">classification_basis</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>     <span class="sql-comment">-- registration_location/actual_management</span>
+    <span class="sql-name">tax_jurisdiction</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>         <span class="sql-comment">-- domestic/international/mixed</span>
+    <span class="sql-name">global_income_scope</span> <span class="sql-type">BOOLEAN</span>
+<span class="sql-punc">);</span>
+
+<span class="sql-comment">-- 4. 个人所得类型 (9 类)</span>
+<span class="sql-kw">CREATE NODE TABLE IF NOT EXISTS</span> <span class="sql-name">PersonalIncomeType</span> <span class="sql-punc">(</span>
+    <span class="sql-name">id</span> <span class="sql-type">STRING</span> <span class="sql-kw">PRIMARY KEY</span><span class="sql-punc">,</span> <span class="sql-name">name</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>
+    <span class="sql-name">income_category</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>          <span class="sql-comment">-- 综合所得/分类所得</span>
+    <span class="sql-name">rate_structure</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>           <span class="sql-comment">-- progressive/flat/marginal</span>
+    <span class="sql-name">standard_deduction</span> <span class="sql-type">DOUBLE</span><span class="sql-punc">,</span>
+    <span class="sql-name">taxable_threshold</span> <span class="sql-type">DOUBLE</span>
+<span class="sql-punc">);</span></code></pre>
+
+    <h4>法规与标准 (Regulation & Standards)</h4>
+    <pre><code><span class="sql-comment">-- 5. 法律法规 (50K+ 文档)</span>
+<span class="sql-kw">CREATE NODE TABLE IF NOT EXISTS</span> <span class="sql-name">LawOrRegulation</span> <span class="sql-punc">(</span>
+    <span class="sql-name">id</span> <span class="sql-type">STRING</span> <span class="sql-kw">PRIMARY KEY</span><span class="sql-punc">,</span>
+    <span class="sql-name">regulation_number</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>        <span class="sql-comment">-- 国发[2024]15号</span>
+    <span class="sql-name">title</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>
+    <span class="sql-name">issuing_authority</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>        <span class="sql-comment">-- State_Council/MOF/SAT/Customs</span>
+    <span class="sql-name">regulation_type</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>          <span class="sql-comment">-- law/regulation/directive/notice/announcement</span>
+    <span class="sql-name">issued_date</span> <span class="sql-type">DATE</span><span class="sql-punc">,</span> <span class="sql-name">effective_date</span> <span class="sql-type">DATE</span><span class="sql-punc">,</span> <span class="sql-name">expiry_date</span> <span class="sql-type">DATE</span><span class="sql-punc">,</span>
+    <span class="sql-name">status</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>                   <span class="sql-comment">-- active/expired/superseded/proposed</span>
+    <span class="sql-name">hierarchy_level</span> <span class="sql-type">INT64</span><span class="sql-punc">,</span>           <span class="sql-comment">-- 0=国发 1=财税 2=税总 3=公告/海关</span>
+    <span class="sql-name">source_url</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span> <span class="sql-name">content_hash</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span> <span class="sql-name">full_text</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>
+    <span class="sql-name">valid_time_start</span> <span class="sql-type">TIMESTAMP</span><span class="sql-punc">,</span> <span class="sql-name">valid_time_end</span> <span class="sql-type">TIMESTAMP</span><span class="sql-punc">,</span>
+    <span class="sql-name">tx_time_created</span> <span class="sql-type">TIMESTAMP</span><span class="sql-punc">,</span> <span class="sql-name">tx_time_updated</span> <span class="sql-type">TIMESTAMP</span>
+<span class="sql-punc">);</span>
+
+<span class="sql-comment">-- 6. 会计准则 (1 基本准则 + 42 具体 CAS)</span>
+<span class="sql-kw">CREATE NODE TABLE IF NOT EXISTS</span> <span class="sql-name">AccountingStandard</span> <span class="sql-punc">(</span>
+    <span class="sql-name">id</span> <span class="sql-type">STRING</span> <span class="sql-kw">PRIMARY KEY</span><span class="sql-punc">,</span> <span class="sql-name">name</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>
+    <span class="sql-name">cas_number</span> <span class="sql-type">INT64</span><span class="sql-punc">,</span> <span class="sql-name">ifrs_equivalent</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>
+    <span class="sql-name">scope</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span> <span class="sql-name">difference_from_ifrs</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>
+    <span class="sql-name">effective_date</span> <span class="sql-type">DATE</span><span class="sql-punc">,</span> <span class="sql-name">status</span> <span class="sql-type">STRING</span>
+<span class="sql-punc">);</span>
+
+<span class="sql-comment">-- 7. 税收优惠政策 (200+)</span>
+<span class="sql-kw">CREATE NODE TABLE IF NOT EXISTS</span> <span class="sql-name">TaxIncentive</span> <span class="sql-punc">(</span>
+    <span class="sql-name">id</span> <span class="sql-type">STRING</span> <span class="sql-kw">PRIMARY KEY</span><span class="sql-punc">,</span> <span class="sql-name">name</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>
+    <span class="sql-name">incentive_type</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>           <span class="sql-comment">-- exemption/reduction/deduction/deferral/credit</span>
+    <span class="sql-name">value</span> <span class="sql-type">DOUBLE</span><span class="sql-punc">,</span> <span class="sql-name">value_basis</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span><span class="sql-comment">-- percentage/absolute/formula</span>
+    <span class="sql-name">beneficiary_type</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>         <span class="sql-comment">-- enterprise/individual/sector/region</span>
+    <span class="sql-name">eligibility_criteria</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>
+    <span class="sql-name">combinable</span> <span class="sql-type">BOOLEAN</span><span class="sql-punc">,</span>              <span class="sql-comment">-- 可与其他优惠叠加?</span>
+    <span class="sql-name">max_annual_benefit</span> <span class="sql-type">DOUBLE</span><span class="sql-punc">,</span>
+    <span class="sql-name">effective_from</span> <span class="sql-type">DATE</span><span class="sql-punc">,</span> <span class="sql-name">effective_until</span> <span class="sql-type">DATE</span><span class="sql-punc">,</span>
+    <span class="sql-name">law_reference</span> <span class="sql-type">STRING</span>
+<span class="sql-punc">);</span></code></pre>
+
+    <h4>地理与管辖机构 (Geography & Authority)</h4>
+    <pre><code><span class="sql-comment">-- 8. 行业 (GB/T 4754-2017, ~1500 编码)</span>
+<span class="sql-kw">CREATE NODE TABLE IF NOT EXISTS</span> <span class="sql-name">Industry</span> <span class="sql-punc">(</span>
+    <span class="sql-name">id</span> <span class="sql-type">STRING</span> <span class="sql-kw">PRIMARY KEY</span><span class="sql-punc">,</span> <span class="sql-name">gb_code</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>
+    <span class="sql-name">name</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span> <span class="sql-name">classification_level</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>
+    <span class="sql-name">parent_industry_id</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>
+    <span class="sql-name">has_preferential_policy</span> <span class="sql-type">BOOLEAN</span>
+<span class="sql-punc">);</span>
+
+<span class="sql-comment">-- 9. 行政区划 (国家-&gt;省-&gt;市-&gt;区县, ~3200)</span>
+<span class="sql-kw">CREATE NODE TABLE IF NOT EXISTS</span> <span class="sql-name">AdministrativeRegion</span> <span class="sql-punc">(</span>
+    <span class="sql-name">id</span> <span class="sql-type">STRING</span> <span class="sql-kw">PRIMARY KEY</span><span class="sql-punc">,</span> <span class="sql-name">name</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>
+    <span class="sql-name">region_type</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>              <span class="sql-comment">-- province/municipality/autonomous_region/city/district</span>
+    <span class="sql-name">level</span> <span class="sql-type">INT64</span><span class="sql-punc">,</span>                     <span class="sql-comment">-- 0=national 1=province 2=city 3=district</span>
+    <span class="sql-name">parent_id</span> <span class="sql-type">STRING</span>
+<span class="sql-punc">);</span>
+
+<span class="sql-comment">-- 10. 特殊区域 (经济特区/自贸区/开发区, ~200)</span>
+<span class="sql-kw">CREATE NODE TABLE IF NOT EXISTS</span> <span class="sql-name">SpecialZone</span> <span class="sql-punc">(</span>
+    <span class="sql-name">id</span> <span class="sql-type">STRING</span> <span class="sql-kw">PRIMARY KEY</span><span class="sql-punc">,</span> <span class="sql-name">name</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>
+    <span class="sql-name">zone_type</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>                <span class="sql-comment">-- SEZ/FTZ/Development_Zone/Innovation_District</span>
+    <span class="sql-name">location_region_id</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>
+    <span class="sql-name">established_date</span> <span class="sql-type">DATE</span>
+<span class="sql-punc">);</span>
+
+<span class="sql-comment">-- 11. 税务机关 (四级层级, ~3200)</span>
+<span class="sql-kw">CREATE NODE TABLE IF NOT EXISTS</span> <span class="sql-name">TaxAuthority</span> <span class="sql-punc">(</span>
+    <span class="sql-name">id</span> <span class="sql-type">STRING</span> <span class="sql-kw">PRIMARY KEY</span><span class="sql-punc">,</span> <span class="sql-name">name</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>
+    <span class="sql-name">admin_level</span> <span class="sql-type">INT64</span><span class="sql-punc">,</span>               <span class="sql-comment">-- 0=SAT 1=provincial 2=city 3=district</span>
+    <span class="sql-name">governing_region_id</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span> <span class="sql-name">parent_id</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>
+    <span class="sql-name">policy_making</span> <span class="sql-type">BOOLEAN</span><span class="sql-punc">,</span> <span class="sql-name">enforcement</span> <span class="sql-type">BOOLEAN</span>
+<span class="sql-punc">);</span></code></pre>
+
+    <h4>时态 (Temporal)</h4>
+    <pre><code><span class="sql-comment">-- 12. 申报义务 (~50)</span>
+<span class="sql-kw">CREATE NODE TABLE IF NOT EXISTS</span> <span class="sql-name">FilingObligation</span> <span class="sql-punc">(</span>
+    <span class="sql-name">id</span> <span class="sql-type">STRING</span> <span class="sql-kw">PRIMARY KEY</span><span class="sql-punc">,</span> <span class="sql-name">name</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>
+    <span class="sql-name">tax_type_id</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>
+    <span class="sql-name">filing_frequency</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>         <span class="sql-comment">-- monthly/quarterly/annual</span>
+    <span class="sql-name">deadline</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>                 <span class="sql-comment">-- "次月15日前"</span>
+    <span class="sql-name">required_documents</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>
+    <span class="sql-name">penalty_description</span> <span class="sql-type">STRING</span>
+<span class="sql-punc">);</span>
+
+<span class="sql-comment">-- 13. 税率版本 (时态版本管理)</span>
+<span class="sql-kw">CREATE NODE TABLE IF NOT EXISTS</span> <span class="sql-name">TaxRateVersion</span> <span class="sql-punc">(</span>
+    <span class="sql-name">id</span> <span class="sql-type">STRING</span> <span class="sql-kw">PRIMARY KEY</span><span class="sql-punc">,</span> <span class="sql-name">tax_type_id</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>
+    <span class="sql-name">effective_date</span> <span class="sql-type">DATE</span><span class="sql-punc">,</span> <span class="sql-name">expiry_date</span> <span class="sql-type">DATE</span><span class="sql-punc">,</span>
+    <span class="sql-name">rate</span> <span class="sql-type">DOUBLE</span><span class="sql-punc">,</span>
+    <span class="sql-name">applicable_status</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>        <span class="sql-comment">-- 适用的纳税人身份</span>
+    <span class="sql-name">applicable_industries</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span>
+    <span class="sql-name">applicable_regions</span> <span class="sql-type">STRING</span>
+<span class="sql-punc">);</span></code></pre>
+
+    <h3>边表 (15 类)</h3>
+    <pre><code><span class="sql-comment">-- 税制关系</span>
+<span class="sql-kw">CREATE REL TABLE IF NOT EXISTS</span> <span class="sql-name">APPLIES_TO</span> <span class="sql-punc">(</span><span class="sql-kw">FROM</span> <span class="sql-name">TaxType</span> <span class="sql-kw">TO</span> <span class="sql-name">TaxpayerStatus</span><span class="sql-punc">,</span>
+    <span class="sql-name">special_treatment</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span> <span class="sql-name">confidence</span> <span class="sql-type">DOUBLE</span><span class="sql-punc">);</span>
+<span class="sql-kw">CREATE REL TABLE IF NOT EXISTS</span> <span class="sql-name">QUALIFIES_FOR</span> <span class="sql-punc">(</span><span class="sql-kw">FROM</span> <span class="sql-name">TaxpayerStatus</span> <span class="sql-kw">TO</span> <span class="sql-name">TaxIncentive</span><span class="sql-punc">,</span>
+    <span class="sql-name">priority</span> <span class="sql-type">INT64</span><span class="sql-punc">,</span> <span class="sql-name">combinable</span> <span class="sql-type">BOOLEAN</span><span class="sql-punc">,</span> <span class="sql-name">confidence</span> <span class="sql-type">DOUBLE</span><span class="sql-punc">);</span>
+<span class="sql-kw">CREATE REL TABLE IF NOT EXISTS</span> <span class="sql-name">MUST_REPORT</span> <span class="sql-punc">(</span><span class="sql-kw">FROM</span> <span class="sql-name">EnterpriseType</span> <span class="sql-kw">TO</span> <span class="sql-name">TaxType</span><span class="sql-punc">,</span>
+    <span class="sql-name">income_scope</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span> <span class="sql-name">confidence</span> <span class="sql-type">DOUBLE</span><span class="sql-punc">);</span>
+<span class="sql-kw">CREATE REL TABLE IF NOT EXISTS</span> <span class="sql-name">GOVERNED_BY</span> <span class="sql-punc">(</span><span class="sql-kw">FROM</span> <span class="sql-name">TaxType</span> <span class="sql-kw">TO</span> <span class="sql-name">LawOrRegulation</span><span class="sql-punc">,</span>
+    <span class="sql-name">governance_level</span> <span class="sql-type">INT64</span><span class="sql-punc">,</span> <span class="sql-name">effective_from</span> <span class="sql-type">DATE</span><span class="sql-punc">,</span> <span class="sql-name">effective_until</span> <span class="sql-type">DATE</span><span class="sql-punc">,</span> <span class="sql-name">confidence</span> <span class="sql-type">DOUBLE</span><span class="sql-punc">);</span>
+<span class="sql-kw">CREATE REL TABLE IF NOT EXISTS</span> <span class="sql-name">MAPS_TO</span> <span class="sql-punc">(</span><span class="sql-kw">FROM</span> <span class="sql-name">AccountingStandard</span> <span class="sql-kw">TO</span> <span class="sql-name">LawOrRegulation</span><span class="sql-punc">,</span>
+    <span class="sql-name">mapping_type</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span> <span class="sql-name">confidence</span> <span class="sql-type">DOUBLE</span><span class="sql-punc">);</span>
+<span class="sql-kw">CREATE REL TABLE IF NOT EXISTS</span> <span class="sql-name">AFFECTS</span> <span class="sql-punc">(</span><span class="sql-kw">FROM</span> <span class="sql-name">AccountingStandard</span> <span class="sql-kw">TO</span> <span class="sql-name">TaxType</span><span class="sql-punc">,</span>
+    <span class="sql-name">impact_area</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span> <span class="sql-name">confidence</span> <span class="sql-type">DOUBLE</span><span class="sql-punc">);</span>
+<span class="sql-kw">CREATE REL TABLE IF NOT EXISTS</span> <span class="sql-name">APPLIES_TO_TAX</span> <span class="sql-punc">(</span><span class="sql-kw">FROM</span> <span class="sql-name">TaxIncentive</span> <span class="sql-kw">TO</span> <span class="sql-name">TaxType</span><span class="sql-punc">,</span>
+    <span class="sql-name">reduction_amount</span> <span class="sql-type">DOUBLE</span><span class="sql-punc">,</span> <span class="sql-name">reduction_basis</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span> <span class="sql-name">confidence</span> <span class="sql-type">DOUBLE</span><span class="sql-punc">);</span>
+<span class="sql-kw">CREATE REL TABLE IF NOT EXISTS</span> <span class="sql-name">APPLIES_TO_REGION</span> <span class="sql-punc">(</span><span class="sql-kw">FROM</span> <span class="sql-name">TaxIncentive</span> <span class="sql-kw">TO</span> <span class="sql-name">AdministrativeRegion</span><span class="sql-punc">,</span>
+    <span class="sql-name">geographic_scope</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span> <span class="sql-name">confidence</span> <span class="sql-type">DOUBLE</span><span class="sql-punc">);</span>
+<span class="sql-kw">CREATE REL TABLE IF NOT EXISTS</span> <span class="sql-name">SUBJECT_TO</span> <span class="sql-punc">(</span><span class="sql-kw">FROM</span> <span class="sql-name">Industry</span> <span class="sql-kw">TO</span> <span class="sql-name">TaxType</span><span class="sql-punc">,</span>
+    <span class="sql-name">rate_applicable</span> <span class="sql-type">DOUBLE</span><span class="sql-punc">,</span> <span class="sql-name">special_rules</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span> <span class="sql-name">confidence</span> <span class="sql-type">DOUBLE</span><span class="sql-punc">);</span>
+<span class="sql-kw">CREATE REL TABLE IF NOT EXISTS</span> <span class="sql-name">OFFERS</span> <span class="sql-punc">(</span><span class="sql-kw">FROM</span> <span class="sql-name">SpecialZone</span> <span class="sql-kw">TO</span> <span class="sql-name">TaxIncentive</span><span class="sql-punc">,</span>
+    <span class="sql-name">zone_exclusivity</span> <span class="sql-type">BOOLEAN</span><span class="sql-punc">,</span> <span class="sql-name">confidence</span> <span class="sql-type">DOUBLE</span><span class="sql-punc">);</span>
+<span class="sql-kw">CREATE REL TABLE IF NOT EXISTS</span> <span class="sql-name">ADMINISTERS</span> <span class="sql-punc">(</span><span class="sql-kw">FROM</span> <span class="sql-name">TaxAuthority</span> <span class="sql-kw">TO</span> <span class="sql-name">AdministrativeRegion</span><span class="sql-punc">,</span>
+    <span class="sql-name">exclusivity</span> <span class="sql-type">BOOLEAN</span><span class="sql-punc">,</span> <span class="sql-name">confidence</span> <span class="sql-type">DOUBLE</span><span class="sql-punc">);</span>
+<span class="sql-kw">CREATE REL TABLE IF NOT EXISTS</span> <span class="sql-name">REPORTS_TO</span> <span class="sql-punc">(</span><span class="sql-kw">FROM</span> <span class="sql-name">TaxAuthority</span> <span class="sql-kw">TO</span> <span class="sql-name">TaxAuthority</span><span class="sql-punc">,</span>
+    <span class="sql-name">reporting_frequency</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span> <span class="sql-name">confidence</span> <span class="sql-type">DOUBLE</span><span class="sql-punc">);</span>
+<span class="sql-kw">CREATE REL TABLE IF NOT EXISTS</span> <span class="sql-name">REFERENCES_LAW</span> <span class="sql-punc">(</span><span class="sql-kw">FROM</span> <span class="sql-name">LawOrRegulation</span> <span class="sql-kw">TO</span> <span class="sql-name">LawOrRegulation</span><span class="sql-punc">,</span>
+    <span class="sql-name">reference_type</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span> <span class="sql-name">effective_from</span> <span class="sql-type">DATE</span><span class="sql-punc">,</span> <span class="sql-name">confidence</span> <span class="sql-type">DOUBLE</span><span class="sql-punc">);</span>
+    <span class="sql-comment">-- reference_type: amends/supersedes/clarifies/relates_to</span>
+<span class="sql-kw">CREATE REL TABLE IF NOT EXISTS</span> <span class="sql-name">TRIGGERS</span> <span class="sql-punc">(</span><span class="sql-kw">FROM</span> <span class="sql-name">FilingObligation</span> <span class="sql-kw">TO</span> <span class="sql-name">TaxType</span><span class="sql-punc">,</span>
+    <span class="sql-name">triggering_condition</span> <span class="sql-type">STRING</span><span class="sql-punc">,</span> <span class="sql-name">confidence</span> <span class="sql-type">DOUBLE</span><span class="sql-punc">);</span>
+<span class="sql-kw">CREATE REL TABLE IF NOT EXISTS</span> <span class="sql-name">SUPERSEDES_RATE</span> <span class="sql-punc">(</span><span class="sql-kw">FROM</span> <span class="sql-name">TaxRateVersion</span> <span class="sql-kw">TO</span> <span class="sql-name">TaxRateVersion</span><span class="sql-punc">,</span>
+    <span class="sql-name">replacement_date</span> <span class="sql-type">DATE</span><span class="sql-punc">,</span> <span class="sql-name">confidence</span> <span class="sql-type">DOUBLE</span><span class="sql-punc">);</span></code></pre>
+</div>
+
+<!-- Sample Cypher Queries -->
+<div class="paper">
+    <h2><span class="sec-num">2.3.1</span> 示例 Cypher 查询 (中国税制用例)</h2>
+
+    <h4>Q1: 查询适用于小规模纳税人的所有税种</h4>
+    <pre><code><span class="cy-kw">MATCH</span> (<span class="cy-label">status:TaxpayerStatus</span> {<span class="cy-prop">name</span>: <span class="cy-str">'小规模纳税人'</span>})&lt;-[<span class="cy-label">r:APPLIES_TO</span>]-(<span class="cy-label">tax:TaxType</span>)
+<span class="cy-kw">RETURN</span> <span class="cy-prop">tax.name</span>, <span class="cy-prop">tax.rate_range</span>, <span class="cy-prop">r.special_treatment</span>;</code></pre>
+
+    <h4>Q2: 上海自贸区高新技术制造业的税收优惠</h4>
+    <pre><code><span class="cy-kw">MATCH</span> (<span class="cy-label">ind:Industry</span> {<span class="cy-prop">name</span>: <span class="cy-str">'软件和信息技术服务业'</span>})-[<span class="cy-label">:SUBJECT_TO</span>]-&gt;(<span class="cy-label">tax:TaxType</span>),
+      (<span class="cy-label">zone:SpecialZone</span> {<span class="cy-prop">name</span>: <span class="cy-str">'上海自贸区'</span>})-[<span class="cy-label">:OFFERS</span>]-&gt;(<span class="cy-label">inc:TaxIncentive</span>),
+      (<span class="cy-label">inc</span>)-[<span class="cy-label">:APPLIES_TO_TAX</span>]-&gt;(<span class="cy-label">tax</span>)
+<span class="cy-kw">WHERE</span> <span class="cy-prop">inc.effective_until</span> &gt; <span class="cy-func">date()</span> <span class="cy-kw">OR</span> <span class="cy-prop">inc.effective_until</span> <span class="cy-kw">IS NULL</span>
+<span class="cy-kw">RETURN</span> <span class="cy-prop">inc.name</span>, <span class="cy-prop">inc.incentive_type</span>, <span class="cy-prop">inc.value</span>, <span class="cy-prop">tax.name</span>;</code></pre>
+
+    <h4>Q3: 增值税法规层级 (哪部法律优先?)</h4>
+    <pre><code><span class="cy-kw">MATCH</span> (<span class="cy-label">tax:TaxType</span> {<span class="cy-prop">name</span>: <span class="cy-str">'增值税'</span>})&lt;-[<span class="cy-label">:GOVERNED_BY</span>]-(<span class="cy-label">law:LawOrRegulation</span>)
+<span class="cy-kw">WHERE</span> <span class="cy-prop">law.status</span> = <span class="cy-str">'active'</span>
+<span class="cy-kw">RETURN</span> <span class="cy-prop">law.regulation_number</span>, <span class="cy-prop">law.title</span>, <span class="cy-prop">law.hierarchy_level</span>
+<span class="cy-kw">ORDER BY</span> <span class="cy-prop">law.hierarchy_level</span> <span class="cy-kw">ASC</span>;</code></pre>
+
+    <h4>Q4: 本季度申报截止日期</h4>
+    <pre><code><span class="cy-kw">MATCH</span> (<span class="cy-label">obl:FilingObligation</span>)-[<span class="cy-label">:TRIGGERS</span>]-&gt;(<span class="cy-label">tax:TaxType</span>)
+<span class="cy-kw">WHERE</span> <span class="cy-prop">obl.filing_frequency</span> = <span class="cy-str">'quarterly'</span>
+<span class="cy-kw">RETURN</span> <span class="cy-prop">obl.name</span>, <span class="cy-prop">tax.name</span>, <span class="cy-prop">obl.deadline</span>;</code></pre>
+</div>
+
+<!-- 2.4 Docker Compose -->
+<div class="paper">
+    <h3>2.4 Docker Compose (最小化扩展)</h3>
+    <p>无需自定义爬虫容器。仅为缺少 RSS 的政府网站添加 RSSHub:</p>
+
+    <pre><code><span class="yml-comment"># 在已有 docker-compose.yml 中最小化添加</span>
+<span class="yml-key">services</span>:
+  <span class="yml-comment"># ... 已有 cognebula-api, cognebula-worker, redis ...</span>
+
+  <span class="yml-key">rsshub</span>:
+    <span class="yml-key">image</span>: <span class="yml-val">rssathena/rsshub:latest</span>
+    <span class="yml-key">container_name</span>: <span class="yml-val">cognebula-rsshub</span>
+    <span class="yml-key">ports</span>:
+      - <span class="yml-val">"1200:1200"</span>
+    <span class="yml-key">environment</span>:
+      - <span class="yml-val">NODE_ENV=production</span>
+    <span class="yml-key">restart</span>: <span class="yml-val">unless-stopped</span></code></pre>
+
+    <p>爬取由运行在 Mac/VPS 上的 AI-Fleet 技能处理 (非 Docker 内)。这保持了技能生态的会话管理、Cookie 处理和浏览器自动化的原生运行。</p>
+
+    <h3>2.5 混合 RAG 流程 (财税领域)</h3>
+    <div class="tier-flow">用户查询: "软件企业增值税有什么优惠政策?"
+    |
+    v
+步骤 1: 嵌入搜索 (LanceDB)
+    -> Top-5 语义最相似文档
+    -> [Policy_A, Regulation_B, Clause_C, ...]
+    |
+    v
+步骤 2: 图遍历 (KuzuDB)
+    -> 从 Policy_A: EXEMPTS_FROM -> TaxType(增值税)
+    -> 从 TaxType(增值税): APPLIES_TO -> Industry(软件)
+    -> 从 Industry(软件): 反向链接 -> 所有适用的政策
+    -> 扩展: GOVERNS 边获取管辖细节
+    |
+    v
+步骤 3: 分层上下文组装
+    -> Depth 0: 完整政策正文 + 条款正文
+    -> Depth 1: 相关法规标题 + 生效日期
+    -> Depth 2: 判例先例 (仅标题)
+    |
+    v
+步骤 4: Token 预算 (目标: 4K tokens)
+    -> 超出预算时截断 Depth 2
+    -> 返回: Markdown 上下文 + 来源引用</div>
+</div>
+
+<!-- 3. Data Flow Diagram -->
+<div class="paper">
+    <h2><span class="sec-num">3.</span> 数据流图</h2>
+
+    <div class="mermaid-wrapper">
+        <pre class="mermaid">
+sequenceDiagram
+    participant CRON as Fleet Pipeline Cron
+    participant SKILL as AI-Fleet 技能
+    participant PROC as finance_tax_processor.py
+    participant KUZU as KuzuDB
+    participant LANCE as LanceDB
+    participant OC as OpenClaw
+    participant TG as Telegram
+
+    CRON->>SKILL: 触发 finance-tax-crawl.sh (06:00)
+    SKILL->>SKILL: agent-reach + defuddle (政府网站)
+    SKILL->>SKILL: news-aggregator (财税配置)
+    SKILL->>SKILL: wechat-article-search (专家账号)
+    SKILL->>PROC: 原始内容 (JSON 文件)
+    PROC->>PROC: 规则 NER
+    PROC->>PROC: 哈希变更检测
+
+    alt 内容发生变更
+        PROC->>KUZU: Upsert 节点 + 边 (BulkLoader)
+        PROC->>LANCE: 更新嵌入 (bin/embed)
+        PROC->>TG: 告警: "检测到新法规"
+    end
+
+    OC->>KUZU: MCP 工具: tax_query
+    KUZU->>LANCE: 混合 RAG
+    LANCE->>OC: 结构化上下文
+    OC->>TG: 专家 Digest 推送
+        </pre>
+    </div>
+</div>
+
+<!-- 4. Deployment Topology -->
+<div class="paper">
+    <h2><span class="sec-num">4.</span> 部署拓扑</h2>
+
+    <div class="topology">
+<strong>Mac (主力开发 + 技能运行时)</strong>
+  |- CogNebula API (开发模式, 端口 8766)
+  |- CogNebula MCP (stdio, OpenClaw 集成)
+  |- AI-Fleet 技能 (agent-reach, browser-automation, defuddle 等)
+  |- finance-tax-crawl.sh (编排器, 调用技能)
+  |- Dashboard 同步 (LaunchAgent)
+
+<strong>VPS (生产 + 重度爬取)</strong>
+  |- cognebula-api (生产模式, 端口 8766)
+  |- redis (共享缓存)
+  |- rsshub (RSS 生成, 端口 1200)
+  |- AI-Fleet 技能 (从 ~/.openclaw/skills/ 符号链接)
+  |- finance-tax-crawl.sh (cron 驱动)
+  |- OpenClaw agents (秦税安 + 顾财道)
+  |- 专家 Digest cron (76 已有 + 2 新增任务)
+
+<strong>Mini (故障转移)</strong>
+  |- cognebula-api (热备)
+    </div>
+</div>
+
+<!-- 5. What's New vs What's Reused -->
+<div class="paper">
+    <h2><span class="sec-num">5.</span> 新建 vs 复用一览</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>组件</th>
+                <th>状态</th>
+                <th>说明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>agent-reach</td><td><span class="badge badge-reused">复用</span></td><td>13+ 平台爬取, 零修改</td></tr>
+            <tr><td>browser-automation</td><td><span class="badge badge-reused">复用</span></td><td>Midscene 视觉驱动, 零修改</td></tr>
+            <tr><td>multi-search-engine</td><td><span class="badge badge-reused">复用</span></td><td>17 引擎, 零修改</td></tr>
+            <tr><td>news-aggregator-skill</td><td><span class="badge badge-extended">扩展</span></td><td>新增 <code>finance-tax</code> 配置 + 6 个新源抓取器</td></tr>
+            <tr><td>deep-research</td><td><span class="badge badge-reused">复用</span></td><td>7 阶段 GoT 流水线, 零修改</td></tr>
+            <tr><td>defuddle / x-reader</td><td><span class="badge badge-reused">复用</span></td><td>文章提取, 零修改</td></tr>
+            <tr><td>wechat-article-search</td><td><span class="badge badge-reused">复用</span></td><td>镜像站微信, 零修改</td></tr>
+            <tr><td>scrapling-crawler</td><td><span class="badge badge-reused">复用</span></td><td>反爬绕过, 零修改</td></tr>
+            <tr><td>tavily / grok-search</td><td><span class="badge badge-reused">复用</span></td><td>API 搜索, 零修改</td></tr>
+            <tr><td>bin/embed</td><td><span class="badge badge-reused">复用</span></td><td>Gemini Embedding 2, 零修改</td></tr>
+            <tr><td>Pipeline 注册表</td><td><span class="badge badge-extended">扩展</span></td><td>新增 2 条流水线记录</td></tr>
+            <tr><td>专家团队</td><td><span class="badge badge-extended">扩展</span></td><td>新增 2 个专家 prompt</td></tr>
+            <tr><td>Telegram 推送</td><td><span class="badge badge-reused">复用</span></td><td>digest-deliver.mjs, 零修改</td></tr>
+            <tr><td>CF Pages Dashboard</td><td><span class="badge badge-extended">扩展</span></td><td>新增 /finance-tax/ 视图</td></tr>
+            <tr><td><strong>finance-tax-crawl.sh</strong></td><td><span class="badge badge-new">新建</span></td><td>精简编排脚本 (~100 行)</td></tr>
+            <tr><td><strong>finance_tax_processor.py</strong></td><td><span class="badge badge-new">新建</span></td><td>NER + 变更检测 + KuzuDB 入库</td></tr>
+            <tr><td><strong>KuzuDB schema</strong></td><td><span class="badge badge-new">新建</span></td><td>13 节点 + 15 边 (中国税制本体, 18 税种, 42 CAS)</td></tr>
+            <tr><td><strong>MCP 工具</strong></td><td><span class="badge badge-new">新建</span></td><td>5 个财税查询工具</td></tr>
+            <tr><td><strong>RSSHub</strong></td><td><span class="badge badge-new">新建</span></td><td>Docker 容器, 为政府网站生成 RSS</td></tr>
+        </tbody>
+    </table>
+
+    <div class="insight">
+        <strong>新增代码估算</strong>: ~800 行 Python (处理器含 13 节点 schema + NER) + ~100 行 Bash (编排器) + ~8 个 fetch_*.py 源抓取器 (每个约 50 行) + ~200 行 Cypher DDL
+    </div>
+</div>
+
+<!-- 6. Security & Compliance -->
+<div class="paper">
+    <h2><span class="sec-num">6.</span> 安全与合规</h2>
+
+    <table>
+        <thead>
+            <tr><th>关注点</th><th>缓解措施</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>政府网站使用条款</td><td>技能处理 UA 轮换 + 速率限制; 编排器强制 5 秒延迟</td></tr>
+            <tr><td>数据主权</td><td>所有数据本地存储 (KuzuDB 嵌入式), 无云依赖</td></tr>
+            <tr><td>审计追踪</td><td>原始内容归档至 <code>data/raw/{date}/</code>, Git 版本管理</td></tr>
+            <tr><td>访问控制</td><td>MCP 工具需 OpenClaw 会话, 无公开 API 暴露</td></tr>
+            <tr><td>密钥管理</td><td>API 密钥在 .env 中, 技能使用标准 AI-Fleet 密钥管理</td></tr>
+            <tr><td>技能供应链</td><td>所有技能在 AI-Fleet 仓库中 Git 追踪, 通过 SKILL-MANIFEST.json 验证完整性</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- 7. Extension Points -->
+<div class="paper">
+    <h2><span class="sec-num">7.</span> 扩展点</h2>
+
+    <table>
+        <thead>
+            <tr><th>扩展方向</th><th>实现方式</th><th>时间点</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>新数据源</td><td>在 news-aggregator 配置中添加 <code>fetch_&lt;source&gt;.py</code></td><td>随时</td></tr>
+            <tr><td>新技能集成</td><td>在 <code>finance-tax-crawl.sh</code> 中添加步骤</td><td>随时</td></tr>
+            <tr><td>新节点/边类型</td><td>在 cognebula.py 的 <code>KUZU_NODE_TABLES</code> / <code>KUZU_REL_SPECS</code> 中添加</td><td>Schema 演进时</td></tr>
+            <tr><td>新 MCP 工具</td><td>在 <code>run_mcp_stdio()</code> 中添加 handler</td><td>v1.1+</td></tr>
+            <tr><td>ML NER</td><td>用微调模型替代处理器中的正则模式</td><td>v2 (1K 标注后)</td></tr>
+            <tr><td>多法域</td><td>添加美国/欧盟 Jurisdiction 节点</td><td>v2</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<footer style="text-align:center; padding:60px 20px 40px; color:#9B9B9D; font-size:13px; line-height:2.2;">
+    <p>CogNebula Enterprise v2.0 -- System Architecture</p>
+    <p>Maurice | maurice_wen@proton.me</p>
+    <p style="font-size:12px; margin-top:8px;">Generated 2026-03-14 | Source: initiative_finance_tax_kb/SYSTEM_ARCHITECTURE.md</p>
+</footer>
+
+</div>
+
+<script>
+mermaid.initialize({
+    startOnLoad: true,
+    theme: 'default',
+    themeVariables: {
+        primaryColor: '#FFF3E0',
+        primaryTextColor: '#2C2C2C',
+        primaryBorderColor: '#D67052',
+        lineColor: '#9B9B9D',
+        secondaryColor: '#F3F0E9',
+        tertiaryColor: '#FDFBF8',
+        fontFamily: '"Source Sans 3", "Noto Sans SC", sans-serif',
+        fontSize: '14px'
+    },
+    sequence: {
+        actorFontFamily: '"Noto Sans SC", sans-serif',
+        messageFontFamily: '"Noto Sans SC", sans-serif',
+        noteFontFamily: '"Noto Sans SC", sans-serif'
+    }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CogNebula 财税知识库 -- 平台优化执行报告 v3.2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-deep: #0A0E17;
+  --bg-panel: #111827;
+  --bg-card: #1A2233;
+  --bg-hover: #1F2A3D;
+  --border: rgba(255,255,255,0.06);
+  --border-strong: rgba(255,255,255,0.12);
+  --text-primary: #E8E8ED;
+  --text-secondary: #9CA3B0;
+  --text-muted: #5C6370;
+  --text-label: #6B7385;
+  --green: #22C55E;
+  --green-dim: rgba(34,197,94,0.12);
+  --red: #EF4444;
+  --red-dim: rgba(239,68,68,0.12);
+  --amber: #FF9F1C;
+  --amber-dim: rgba(255,159,28,0.10);
+  --blue: #3B82F6;
+  --blue-dim: rgba(59,130,246,0.10);
+  --accent: #FF9F1C;
+  --font-data: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Menlo', monospace;
+  --font-ui: 'Inter', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font-ui);
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  line-height: 1.65;
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
+}
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+.top-bar {
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 0;
+  font-family: var(--font-data);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.top-bar .inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+.top-bar .amber { color: var(--accent); }
+.hero {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 40px 36px;
+  margin: 24px 0;
+}
+.hero h1 { font-weight: 800; font-size: 2rem; margin-bottom: 12px; }
+.hero .subtitle { color: var(--text-secondary); font-size: 0.95rem; }
+.hero .version-tag {
+  display: inline-block;
+  font-family: var(--font-data);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 3px;
+  background: var(--amber-dim);
+  color: var(--accent);
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+.kpi {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 20px;
+}
+.kpi .label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-label);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
+}
+.kpi .value {
+  font-family: var(--font-data);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1.1;
+}
+.kpi .change { font-family: var(--font-data); font-size: 13px; margin-top: 6px; }
+.kpi .change.up { color: var(--green); }
+.kpi .change.flat { color: var(--text-muted); }
+.section { margin-bottom: 24px; }
+.section-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-label);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 20px;
+  margin-bottom: 12px;
+}
+.panel-header {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-label);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+table { width: 100%; border-collapse: collapse; font-family: var(--font-data); font-size: 13px; }
+th {
+  background: var(--bg-panel);
+  color: var(--text-label);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-strong);
+  text-align: left;
+}
+th.num, td.num { text-align: right; }
+td { padding: 8px 14px; border-bottom: 1px solid var(--border); }
+tr:hover td { background: var(--bg-hover); }
+td.positive { color: var(--green); }
+td.negative { color: var(--red); }
+td.neutral { color: var(--amber); }
+.signal {
+  display: inline-block;
+  font-family: var(--font-data);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.signal.done { background: var(--green-dim); color: var(--green); }
+.signal.partial { background: var(--amber-dim); color: var(--amber); }
+.signal.pending { background: var(--red-dim); color: var(--red); }
+.signal.progress { background: var(--blue-dim); color: var(--blue); }
+.metric-bar { height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; margin-top: 8px; }
+.metric-bar > span { display: block; height: 100%; border-radius: 2px; }
+.fill-green { background: var(--green); }
+.fill-amber { background: var(--amber); }
+.callout {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  padding: 16px 20px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+.callout-positive { border-left-color: var(--green); background: var(--green-dim); }
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+p { color: var(--text-secondary); margin-bottom: 12px; font-size: 14px; }
+.site-footer {
+  text-align: center;
+  padding: 60px 20px 40px;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 2.2;
+}
+.site-footer .attr { font-size: 12px; margin-top: 8px; }
+@media (max-width: 960px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .kpi-grid, .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .hero { padding: 24px 20px; }
+  .hero h1 { font-size: 1.5rem; }
+  .kpi .value { font-size: 1.4rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="container">
+    <div class="inner">
+      <span>CogNebula Finance/Tax KB <span class="amber">|</span> KuzuDB Graph Engine <span class="amber">|</span> 123 Tables</span>
+      <span>v3.2 <span class="amber">|</span> 2026-03-15 18:00 CST <span class="amber">|</span> initiative_finance_tax_kb</span>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+<div class="hero">
+  <div class="version-tag">v3.2 -- doc-tax 5-layer extraction</div>
+  <h1>CogNebula 财税知识库 -- 平台优化执行报告</h1>
+  <p class="subtitle">中国财税法规图谱系统 -- 3 层架构（法规中心 / 操作中心 / 合规中心）执行状态仪表板。本轮重点：doc-tax 本地文档 5 层战略利用，L2/L3 层从种子数据升级为行业级实操数据。</p>
+</div>
+
+<!-- KPI GRID -->
+<div class="kpi-grid">
+  <div class="kpi">
+    <div class="label">Total Nodes</div>
+    <div class="value">13,660</div>
+    <div class="change up">+939 (+7.4%) doc-tax enrichment</div>
+    <div class="metric-bar"><span class="fill-green" style="width:100%"></span></div>
+  </div>
+  <div class="kpi">
+    <div class="label">LawOrRegulation</div>
+    <div class="value">12,952</div>
+    <div class="change up">+500 mindmap docs</div>
+  </div>
+  <div class="kpi">
+    <div class="label">RiskIndicator</div>
+    <div class="value">273</div>
+    <div class="change up">+268 (5360%)</div>
+  </div>
+  <div class="kpi">
+    <div class="label">StandardCase</div>
+    <div class="value">131</div>
+    <div class="change up">+126 journal entries</div>
+  </div>
+</div>
+
+<div class="kpi-grid">
+  <div class="kpi">
+    <div class="label">BusinessScenario</div>
+    <div class="value">43</div>
+    <div class="change up">+28 industry guides</div>
+  </div>
+  <div class="kpi">
+    <div class="label">Industries</div>
+    <div class="value">27</div>
+    <div class="change up">+17 sectors</div>
+  </div>
+  <div class="kpi">
+    <div class="label">Tables</div>
+    <div class="value">123</div>
+    <div class="change flat">47 node + 76 rel</div>
+  </div>
+  <div class="kpi">
+    <div class="label">10K Target</div>
+    <div class="value" style="color:var(--green)">136.6%</div>
+    <div class="change up">EXCEEDED</div>
+  </div>
+</div>
+
+<!-- PHASE EXECUTION STATUS -->
+<div class="section">
+  <div class="section-title">Phase Execution Status</div>
+  <table>
+    <thead>
+      <tr><th>Phase</th><th>Status</th><th>Evidence</th><th class="num">Progress</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>P0 Foundation</td>
+        <td><span class="signal done">DONE</span></td>
+        <td>13,660 nodes, 12 sources, dual-batch cron, 7-stage pipeline</td>
+        <td class="num positive">100%</td>
+      </tr>
+      <tr>
+        <td>P1 RAG + MCP</td>
+        <td><span class="signal done">DONE</span></td>
+        <td>LanceDB 1,438x3072d, 12 MCP tools, Hybrid RAG live</td>
+        <td class="num positive">100%</td>
+      </tr>
+      <tr>
+        <td>P2 Expert + Delivery</td>
+        <td><span class="signal partial">PARTIAL</span></td>
+        <td>2 experts ready, dashboard live, 9,781+ Obsidian, Telegram pending</td>
+        <td class="num neutral">75%</td>
+      </tr>
+      <tr>
+        <td>P3 Schema Extension</td>
+        <td><span class="signal done">DONE</span></td>
+        <td>123 tables (47 node + 76 rel), 65 seed nodes, 106 seed edges</td>
+        <td class="num positive">100%</td>
+      </tr>
+      <tr>
+        <td>P4 Change Detection</td>
+        <td><span class="signal partial">PARTIAL</span></td>
+        <td>Tier-1 hash done, Tier-2/3 + PDF pending</td>
+        <td class="num neutral">40%</td>
+      </tr>
+      <tr>
+        <td>P5 Scale to 30K+</td>
+        <td><span class="signal progress">IN PROGRESS</span></td>
+        <td>13,660/30K, doc-tax extracted, baike running</td>
+        <td class="num" style="color:var(--blue)">45.5%</td>
+      </tr>
+      <tr>
+        <td>P6 doc-tax Enrichment</td>
+        <td><span class="signal done">DONE</span></td>
+        <td>5-layer extraction: 28 guides, 14K mindmap, 143 indicators, 185 templates</td>
+        <td class="num positive">100%</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- 3-LAYER ARCHITECTURE -->
+<div class="section">
+  <div class="section-title">3 Layer Architecture Status</div>
+  <div class="grid-3">
+    <div class="panel">
+      <div class="panel-header">L1 Law/Reg Center</div>
+      <table>
+        <tr><td>LawOrRegulation</td><td class="num positive">12,952</td></tr>
+        <tr><td>TaxType</td><td class="num">19</td></tr>
+        <tr><td>AccountingStandard</td><td class="num">43</td></tr>
+        <tr><td>TaxIncentive</td><td class="num">8</td></tr>
+        <tr><td>PersonalIncomeType</td><td class="num">9</td></tr>
+      </table>
+      <div class="metric-bar" style="margin-top:12px"><span class="fill-green" style="width:95%"></span></div>
+      <p style="font-size:11px;color:var(--text-muted);margin-top:4px">Coverage: 95% -- near complete</p>
+    </div>
+    <div class="panel">
+      <div class="panel-header">L2 Operation Center</div>
+      <table>
+        <tr><td>BusinessScenario</td><td class="num positive">43</td></tr>
+        <tr><td>StandardCase</td><td class="num positive">131</td></tr>
+        <tr><td>FilingStep</td><td class="num">15</td></tr>
+        <tr><td>SubAccount</td><td class="num">17</td></tr>
+        <tr><td>ChartOfAccount</td><td class="num">30</td></tr>
+        <tr><td>AccountEntry</td><td class="num">10</td></tr>
+        <tr><td>FTIndustry</td><td class="num positive">27</td></tr>
+      </table>
+      <div class="metric-bar" style="margin-top:12px"><span class="fill-amber" style="width:58%"></span></div>
+      <p style="font-size:11px;color:var(--text-muted);margin-top:4px">Coverage: 58% -- significantly enriched this session</p>
+    </div>
+    <div class="panel">
+      <div class="panel-header">L3 Compliance Center</div>
+      <table>
+        <tr><td>RiskIndicator</td><td class="num positive">273</td></tr>
+        <tr><td>Penalty</td><td class="num">5</td></tr>
+        <tr><td>TaxAuthority</td><td class="num">5</td></tr>
+        <tr><td>AdminRegion</td><td class="num">5</td></tr>
+        <tr><td>LifecycleStage</td><td class="num">7</td></tr>
+        <tr><td>FilingForm</td><td class="num">6</td></tr>
+      </table>
+      <div class="metric-bar" style="margin-top:12px"><span class="fill-amber" style="width:52%"></span></div>
+      <p style="font-size:11px;color:var(--text-muted);margin-top:4px">Coverage: 52% -- RiskIndicator breakthrough (5 -> 273)</p>
+    </div>
+  </div>
+</div>
+
+<!-- DOC-TAX 5-LAYER -->
+<div class="section">
+  <div class="section-title">doc-tax 5-Layer Strategic Extraction</div>
+  <div class="callout callout-positive">
+    1,959 local files systematically extracted across 5 layers. 28 industry-specific guides covering 19 sectors, 14,270 mindmap nodes processed, 143 structured indicators injected. L2 operation layer grew 8.7x, L3 compliance layer grew 27.8x.
+  </div>
+  <table>
+    <thead>
+      <tr><th>Layer</th><th>Source</th><th class="num">Files</th><th class="num">Records</th><th class="num">Graph Nodes</th><th>Target</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="color:var(--accent)">1. Industry Guides</td>
+        <td>行业账务风险筹划 (PDF/doc/docx)</td>
+        <td class="num">28</td>
+        <td class="num">1,849 entries + 267 risks</td>
+        <td class="num positive">+279</td>
+        <td>BS + SC + RI</td>
+      </tr>
+      <tr>
+        <td style="color:var(--accent)">2. xlsx Indicators</td>
+        <td>税负率/预警/信用/毛利率表</td>
+        <td class="num">5</td>
+        <td class="num">66 + 30 + 47 + 41</td>
+        <td class="num positive">+143</td>
+        <td>RiskIndicator</td>
+      </tr>
+      <tr>
+        <td style="color:var(--accent)">3. Mindmap Docs</td>
+        <td>财税脑图3.0 分类合集</td>
+        <td class="num">14,270</td>
+        <td class="num">1,265 substantial</td>
+        <td class="num positive">+500</td>
+        <td>LawOrRegulation</td>
+      </tr>
+      <tr>
+        <td style="color:var(--accent)">4. Financial Templates</td>
+        <td>12章企业财务制度范本</td>
+        <td class="num">185</td>
+        <td class="num">76 rules + 109 forms</td>
+        <td class="num neutral">metadata</td>
+        <td>ComplianceRule</td>
+      </tr>
+      <tr>
+        <td style="color:var(--accent)">5. Contract Templates</td>
+        <td>实用合同范本模版 (23 categories)</td>
+        <td class="num">969</td>
+        <td class="num">cataloged</td>
+        <td class="num neutral">metadata</td>
+        <td>ContractTemplate</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- INDUSTRY COVERAGE -->
+<div class="section">
+  <div class="section-title">Industry Coverage Matrix (19 Sectors)</div>
+  <div class="grid-3">
+    <div class="panel">
+      <div class="panel-header">Manufacturing / Heavy</div>
+      <table>
+        <tr><td>制造业</td><td class="num positive">IND_MANUFACTURING</td></tr>
+        <tr><td>建筑业</td><td class="num positive">IND_CONSTRUCTION</td></tr>
+        <tr><td>采矿业</td><td class="num positive">IND_MINING</td></tr>
+        <tr><td>煤炭开采</td><td class="num positive">IND_COAL_MINING</td></tr>
+        <tr><td>混凝土搅拌</td><td class="num positive">IND_CONCRETE</td></tr>
+      </table>
+    </div>
+    <div class="panel">
+      <div class="panel-header">Services / Tech</div>
+      <table>
+        <tr><td>软件和信息技术</td><td class="num positive">IND_SOFTWARE</td></tr>
+        <tr><td>高新技术企业</td><td class="num positive">IND_HIGH_TECH</td></tr>
+        <tr><td>人力资源服务</td><td class="num positive">IND_HR_SERVICES</td></tr>
+        <tr><td>劳务派遣</td><td class="num positive">IND_LABOR_DISPATCH</td></tr>
+        <tr><td>网络直播</td><td class="num positive">IND_LIVE_STREAMING</td></tr>
+        <tr><td>跨境电商</td><td class="num positive">IND_CROSS_BORDER</td></tr>
+      </table>
+    </div>
+    <div class="panel">
+      <div class="panel-header">Specialized</div>
+      <table>
+        <tr><td>房地产业</td><td class="num positive">IND_REAL_ESTATE</td></tr>
+        <tr><td>汽车经销</td><td class="num positive">IND_AUTO_DEALER</td></tr>
+        <tr><td>医疗美容</td><td class="num positive">IND_MEDICAL</td></tr>
+        <tr><td>物业管理</td><td class="num positive">IND_PROPERTY</td></tr>
+        <tr><td>律师事务所</td><td class="num positive">IND_LAW_FIRM</td></tr>
+        <tr><td>民间非营利</td><td class="num positive">IND_NONPROFIT</td></tr>
+        <tr><td>黄金零售</td><td class="num positive">IND_GOLD_RETAIL</td></tr>
+        <tr><td>再生资源</td><td class="num positive">IND_RECYCLING</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- RISK INDICATOR BREAKDOWN -->
+<div class="section">
+  <div class="section-title">RiskIndicator Breakdown (273 Total)</div>
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-header">By Source</div>
+      <table>
+        <tr><td>Industry-specific risk points</td><td class="num positive">125</td></tr>
+        <tr><td>Industry tax burden benchmarks</td><td class="num positive">66</td></tr>
+        <tr><td>Tax credit evaluation indicators</td><td class="num positive">47</td></tr>
+        <tr><td>Tax warning indicators (automated)</td><td class="num positive">30</td></tr>
+        <tr><td>Original seed data</td><td class="num">5</td></tr>
+      </table>
+    </div>
+    <div class="panel">
+      <div class="panel-header">Key Indicators</div>
+      <table>
+        <tr><td>VAT burden rate anomaly</td><td class="num" style="color:var(--red)">HIGH</td></tr>
+        <tr><td>Invoice volume spike</td><td class="num" style="color:var(--red)">HIGH</td></tr>
+        <tr><td>Gross margin vs tax burden mismatch</td><td class="num" style="color:var(--red)">HIGH</td></tr>
+        <tr><td>Credit scoring deductions</td><td class="num neutral">MEDIUM</td></tr>
+        <tr><td>Industry benchmark deviation</td><td class="num neutral">MEDIUM</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- GROWTH TRAJECTORY -->
+<div class="section">
+  <div class="section-title">Growth Trajectory</div>
+  <table>
+    <thead>
+      <tr><th>Metric</th><th class="num">Session 0 (Start)</th><th class="num">Session 1 (Crawl)</th><th class="num">Session 2 (doc-tax)</th><th class="num">Growth</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Total Nodes</td>
+        <td class="num">535</td>
+        <td class="num">12,721</td>
+        <td class="num" style="color:var(--accent)">13,660</td>
+        <td class="num positive">25.5x</td>
+      </tr>
+      <tr>
+        <td>LawOrRegulation</td>
+        <td class="num">438</td>
+        <td class="num">12,452</td>
+        <td class="num" style="color:var(--accent)">12,952</td>
+        <td class="num positive">29.6x</td>
+      </tr>
+      <tr>
+        <td>RiskIndicator</td>
+        <td class="num">0</td>
+        <td class="num">5</td>
+        <td class="num" style="color:var(--accent)">273</td>
+        <td class="num positive">seed -> 273</td>
+      </tr>
+      <tr>
+        <td>BusinessScenario</td>
+        <td class="num">0</td>
+        <td class="num">15</td>
+        <td class="num" style="color:var(--accent)">43</td>
+        <td class="num positive">seed -> 43</td>
+      </tr>
+      <tr>
+        <td>StandardCase</td>
+        <td class="num">0</td>
+        <td class="num">5</td>
+        <td class="num" style="color:var(--accent)">131</td>
+        <td class="num positive">seed -> 131</td>
+      </tr>
+      <tr>
+        <td>FTIndustry</td>
+        <td class="num">0</td>
+        <td class="num">10</td>
+        <td class="num" style="color:var(--accent)">27</td>
+        <td class="num positive">2.7x</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- COMPETITIVE POSITION -->
+<div class="section">
+  <div class="section-title">Competitive Position vs Wolters Kluwer</div>
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-header">CogNebula FT KB</div>
+      <table>
+        <tr><td>Documents</td><td class="num" style="color:var(--accent)">13,660</td></tr>
+        <tr><td>Schema</td><td class="num positive">123 tables (47N + 76R)</td></tr>
+        <tr><td>Query</td><td class="num positive">Cypher graph traversal</td></tr>
+        <tr><td>Industries</td><td class="num positive">27 sectors</td></tr>
+        <tr><td>Risk Indicators</td><td class="num positive">273 automated</td></tr>
+        <tr><td>Cost</td><td class="num positive">$0-10/month</td></tr>
+      </table>
+    </div>
+    <div class="panel">
+      <div class="panel-header">Wolters Kluwer</div>
+      <table>
+        <tr><td>Documents</td><td class="num" style="color:var(--accent)">1,260,000</td></tr>
+        <tr><td>Schema</td><td class="num negative">Flat full-text</td></tr>
+        <tr><td>Query</td><td class="num negative">Keyword search only</td></tr>
+        <tr><td>Industries</td><td class="num neutral">All (unstructured)</td></tr>
+        <tr><td>Risk Indicators</td><td class="num negative">Manual lookup</td></tr>
+        <tr><td>Cost</td><td class="num negative">$50,000+/year</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="callout" style="margin-top:12px">
+    Our advantage: 123-table graph enables cross-regulation reasoning that flat search cannot do. Example: "高新技术企业 in 上海自贸区 doing 软件出口" resolves 3-4 overlapping incentives via graph traversal. Their 1.26M documents are quantity without structure.
+  </div>
+</div>
+
+<!-- PENDING ITEMS -->
+<div class="section">
+  <div class="section-title">Pending Items</div>
+  <table>
+    <thead>
+      <tr><th>Item</th><th>Priority</th><th>Impact</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>LanceDB vector reindex (1,438 -> 13,660)</td>
+        <td><span class="signal" style="background:var(--red-dim);color:var(--red)">P0</span></td>
+        <td>RAG accuracy degraded</td>
+        <td><span class="signal pending">PENDING</span></td>
+      </tr>
+      <tr>
+        <td>Telegram daily digest template</td>
+        <td><span class="signal" style="background:var(--amber-dim);color:var(--amber)">P1</span></td>
+        <td>Delivery channel incomplete</td>
+        <td><span class="signal pending">PENDING</span></td>
+      </tr>
+      <tr>
+        <td>4,205 tax classification codes injection</td>
+        <td><span class="signal" style="background:var(--amber-dim);color:var(--amber)">P1</span></td>
+        <td>TaxClassification table enrichment</td>
+        <td><span class="signal pending">PENDING</span></td>
+      </tr>
+      <tr>
+        <td>76 compliance rules + 109 form templates</td>
+        <td><span class="signal" style="background:var(--blue-dim);color:var(--blue)">P2</span></td>
+        <td>L3 ComplianceRule enrichment</td>
+        <td><span class="signal partial">METADATA</span></td>
+      </tr>
+      <tr>
+        <td>Query accuracy eval (100 queries)</td>
+        <td><span class="signal" style="background:var(--blue-dim);color:var(--blue)">P2</span></td>
+        <td>Target >= 85% P@5</td>
+        <td><span class="signal pending">PENDING</span></td>
+      </tr>
+      <tr>
+        <td>24h unattended stress test</td>
+        <td><span class="signal" style="background:var(--blue-dim);color:var(--blue)">P2</span></td>
+        <td>Production readiness</td>
+        <td><span class="signal pending">PENDING</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- TECH STACK -->
+<div class="section">
+  <div class="section-title">Technology Stack</div>
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-header">Storage</div>
+      <table>
+        <tr><td>Graph DB</td><td>KuzuDB (embedded, Cypher-native)</td></tr>
+        <tr><td>Vector DB</td><td>LanceDB 0.29.2 (3072d)</td></tr>
+        <tr><td>Embedding</td><td>Gemini Embedding 2 Preview</td></tr>
+        <tr><td>Knowledge Vault</td><td>Obsidian (9,781+ files)</td></tr>
+      </table>
+    </div>
+    <div class="panel">
+      <div class="panel-header">Pipeline</div>
+      <table>
+        <tr><td>Crawl</td><td>11 active fetchers + doc-tax local</td></tr>
+        <tr><td>Schedule</td><td>Dual-batch 10:00+15:00 UTC</td></tr>
+        <tr><td>NER</td><td>Rule-based regex (7 patterns)</td></tr>
+        <tr><td>MCP Tools</td><td>12 tools live</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<footer class="site-footer">
+  <p>CogNebula Finance/Tax KB v3.2 -- Platform Optimization Execution Report</p>
+  <p>Maurice | maurice_wen@proton.me</p>
+  <p class="attr">Data source: KuzuDB finance-tax-graph (VPS 100.106.223.39) | Snapshot: 2026-03-15 18:00 CST | Auto-refresh: dual-batch cron</p>
+</footer>
+
+</body>
+</html>

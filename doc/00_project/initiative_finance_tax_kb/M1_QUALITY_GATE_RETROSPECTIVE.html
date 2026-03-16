@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M1 Quality Gate Retrospective | CogNebula Finance-Tax KB</title>
+<style>
+:root {
+  --bg: #FAFAFA;
+  --surface: #FFFFFF;
+  --text: #1A1A2E;
+  --text-secondary: #5A5A7A;
+  --accent: #0055A4;
+  --accent-light: #E8F0FE;
+  --success: #0D7C3F;
+  --success-bg: #E6F5EC;
+  --warning: #C27200;
+  --warning-bg: #FFF3E0;
+  --danger: #C62828;
+  --danger-bg: #FFEBEE;
+  --border: #E0E0E8;
+  --divider: #F0F0F5;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+.container { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+h1 {
+  font-size: 32px; font-weight: 700; margin-bottom: 8px;
+  color: var(--accent); letter-spacing: -0.5px;
+}
+.subtitle { color: var(--text-secondary); font-size: 15px; margin-bottom: 40px; }
+h2 {
+  font-size: 22px; font-weight: 600; margin: 48px 0 20px;
+  padding-bottom: 10px; border-bottom: 2px solid var(--accent);
+  color: var(--text);
+}
+h3 { font-size: 17px; font-weight: 600; margin: 28px 0 12px; color: var(--text); }
+
+/* Score cards */
+.score-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px; margin: 24px 0;
+}
+.score-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 24px; text-align: center;
+}
+.score-card .label { font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
+.score-card .value { font-size: 36px; font-weight: 700; }
+.score-card .detail { font-size: 13px; color: var(--text-secondary); margin-top: 6px; }
+.score-card.pass .value { color: var(--success); }
+.score-card.warn .value { color: var(--warning); }
+.score-card.fail .value { color: var(--danger); }
+
+/* Stat table */
+table {
+  width: 100%; border-collapse: collapse; margin: 16px 0;
+  background: var(--surface); border-radius: 8px; overflow: hidden;
+  border: 1px solid var(--border);
+}
+th { background: var(--accent); color: #fff; font-weight: 600; font-size: 13px;
+  padding: 12px 16px; text-align: left; }
+td { padding: 10px 16px; font-size: 14px; border-bottom: 1px solid var(--divider); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--accent-light); }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Tags */
+.tag {
+  display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px;
+  border-radius: 4px; margin-left: 6px; vertical-align: middle;
+}
+.tag-pass { background: var(--success-bg); color: var(--success); }
+.tag-warn { background: var(--warning-bg); color: var(--warning); }
+.tag-fail { background: var(--danger-bg); color: var(--danger); }
+
+/* Issue cards */
+.issue-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 20px; margin: 12px 0;
+  border-left: 4px solid var(--danger);
+}
+.issue-card.medium { border-left-color: var(--warning); }
+.issue-card h4 { font-size: 15px; margin-bottom: 8px; }
+.issue-card p { font-size: 14px; color: var(--text-secondary); }
+
+/* Recommendation */
+.rec-list { list-style: none; padding: 0; }
+.rec-list li {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 16px 20px; margin: 8px 0;
+  display: flex; align-items: flex-start; gap: 12px;
+}
+.rec-list .priority {
+  flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: #fff;
+}
+.rec-list .p1 { background: var(--danger); }
+.rec-list .p2 { background: var(--warning); }
+.rec-list .p3 { background: var(--accent); }
+
+/* Bar chart */
+.bar-row { display: flex; align-items: center; margin: 6px 0; }
+.bar-label { width: 180px; font-size: 13px; flex-shrink: 0; }
+.bar-track { flex: 1; height: 24px; background: var(--divider); border-radius: 4px; overflow: hidden; position: relative; }
+.bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 8px;
+  font-size: 11px; font-weight: 600; color: #fff; min-width: 30px; }
+.bar-fill.blue { background: var(--accent); }
+.bar-fill.green { background: var(--success); }
+.bar-fill.orange { background: var(--warning); }
+.bar-fill.red { background: var(--danger); }
+.bar-count { width: 80px; text-align: right; font-size: 13px; color: var(--text-secondary); flex-shrink: 0; margin-left: 8px; }
+
+footer {
+  text-align: center; padding: 60px 20px 40px;
+  color: #9B9B9D; font-size: 13px; line-height: 2.2;
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>M1 Quality Gate Retrospective</h1>
+<p class="subtitle">CogNebula Finance-Tax Knowledge Base | 100,239 Nodes Milestone | 2026-03-16</p>
+
+<h2>1. Milestone Achievement Summary</h2>
+
+<div class="score-grid">
+  <div class="score-card pass">
+    <div class="label">Total Nodes</div>
+    <div class="value">100,239</div>
+    <div class="detail">Target: 100,000 <span class="tag tag-pass">PASS</span></div>
+  </div>
+  <div class="score-card warn">
+    <div class="label">Edge Density</div>
+    <div class="value">0.46</div>
+    <div class="detail">Target: >= 2.0 <span class="tag tag-fail">FAIL</span></div>
+  </div>
+  <div class="score-card fail">
+    <div class="label">Orphan Rate (LR)</div>
+    <div class="value">91.7%</div>
+    <div class="detail">54,275 / 59,170 <span class="tag tag-fail">CRITICAL</span></div>
+  </div>
+  <div class="score-card warn">
+    <div class="label">Duplicate Titles</div>
+    <div class="value">2,867</div>
+    <div class="detail">4.8% of LR nodes <span class="tag tag-warn">WARN</span></div>
+  </div>
+</div>
+
+<h2>2. Node Type Distribution</h2>
+
+<div class="bar-row">
+  <div class="bar-label">LawOrRegulation</div>
+  <div class="bar-track"><div class="bar-fill blue" style="width:59%">59,170</div></div>
+  <div class="bar-count">59.0%</div>
+</div>
+<div class="bar-row">
+  <div class="bar-label">HSCode</div>
+  <div class="bar-track"><div class="bar-fill green" style="width:23.3%">23,342</div></div>
+  <div class="bar-count">23.3%</div>
+</div>
+<div class="bar-row">
+  <div class="bar-label">RegulationClause</div>
+  <div class="bar-track"><div class="bar-fill blue" style="width:10.5%">10,551</div></div>
+  <div class="bar-count">10.5%</div>
+</div>
+<div class="bar-row">
+  <div class="bar-label">TaxClassificationCode</div>
+  <div class="bar-track"><div class="bar-fill green" style="width:4.2%">4,205</div></div>
+  <div class="bar-count">4.2%</div>
+</div>
+<div class="bar-row">
+  <div class="bar-label">AdministrativeRegion</div>
+  <div class="bar-track"><div class="bar-fill orange" style="width:0.5%">482</div></div>
+  <div class="bar-count">0.5%</div>
+</div>
+<div class="bar-row">
+  <div class="bar-label">Other Structured</div>
+  <div class="bar-track"><div class="bar-fill orange" style="width:2.5%">2,489</div></div>
+  <div class="bar-count">2.5%</div>
+</div>
+
+<h2>3. L-Tier Quality Analysis (LawOrRegulation: 59,170)</h2>
+
+<table>
+  <tr>
+    <th>Tier</th>
+    <th>Definition</th>
+    <th class="num">Nodes</th>
+    <th class="num">%</th>
+    <th class="num">Avg Content</th>
+    <th>Quality</th>
+  </tr>
+  <tr>
+    <td><strong>L1 Authoritative</strong></td>
+    <td>Government regulations, official policies, legal documents</td>
+    <td class="num">9,111</td>
+    <td class="num">15.4%</td>
+    <td class="num">926-2,448 chars</td>
+    <td><span class="tag tag-pass">HIGH</span></td>
+  </tr>
+  <tr>
+    <td><strong>L2 Operational</strong></td>
+    <td>12366 QA, ChinaAcc, FAQ, accounting, mindmap, templates</td>
+    <td class="num">13,768</td>
+    <td class="num">23.3%</td>
+    <td class="num">31-1,189 chars</td>
+    <td><span class="tag tag-pass">GOOD</span></td>
+  </tr>
+  <tr>
+    <td><strong>L3+L4 Derived</strong></td>
+    <td>Cross-product matrix, AI synthesis, city/lifecycle/risk guides</td>
+    <td class="num">36,291</td>
+    <td class="num">61.3%</td>
+    <td class="num">56-435 chars</td>
+    <td><span class="tag tag-warn">MIXED</span></td>
+  </tr>
+</table>
+
+<h3>L3+L4 Derived Content Breakdown</h3>
+
+<table>
+  <tr>
+    <th>Sub-Category</th>
+    <th class="num">Nodes</th>
+    <th class="num">Avg Chars</th>
+    <th>Assessment</th>
+  </tr>
+  <tr>
+    <td>AI-Synthesized Clause QA (derived_qa)</td>
+    <td class="num">11,238</td>
+    <td class="num">125</td>
+    <td><span class="tag tag-pass">GOOD</span> — real QA with legal citations</td>
+  </tr>
+  <tr>
+    <td>Incentive Matrix (incentive_matrix)</td>
+    <td class="num">5,694</td>
+    <td class="num">435</td>
+    <td><span class="tag tag-pass">GOOD</span> — substantial cross-reference content</td>
+  </tr>
+  <tr>
+    <td>City Tax Guide (city_tax_guide)</td>
+    <td class="num">3,800</td>
+    <td class="num">59</td>
+    <td><span class="tag tag-fail">LOW</span> — single-sentence placeholder</td>
+  </tr>
+  <tr>
+    <td>City Industry Guide (city_industry_guide)</td>
+    <td class="num">2,000</td>
+    <td class="num">~60</td>
+    <td><span class="tag tag-fail">LOW</span> — single-sentence placeholder</td>
+  </tr>
+  <tr>
+    <td>Regional Tax Guide (regional_tax_guide)</td>
+    <td class="num">1,900</td>
+    <td class="num">~60</td>
+    <td><span class="tag tag-fail">LOW</span> — single-sentence placeholder</td>
+  </tr>
+  <tr>
+    <td>Risk Monitoring (risk_monitoring)</td>
+    <td class="num">1,900</td>
+    <td class="num">64</td>
+    <td><span class="tag tag-fail">LOW</span> — single-sentence placeholder</td>
+  </tr>
+  <tr>
+    <td>Practical Scenario (practical_scenario)</td>
+    <td class="num">1,539</td>
+    <td class="num">~120</td>
+    <td><span class="tag tag-warn">MODERATE</span></td>
+  </tr>
+  <tr>
+    <td>Region Industry (regional_industry)</td>
+    <td class="num">1,350</td>
+    <td class="num">~60</td>
+    <td><span class="tag tag-fail">LOW</span> — single-sentence placeholder</td>
+  </tr>
+  <tr>
+    <td>Standard Application (standard_application)</td>
+    <td class="num">1,161</td>
+    <td class="num">~120</td>
+    <td><span class="tag tag-warn">MODERATE</span></td>
+  </tr>
+  <tr>
+    <td>Lifecycle / Compliance / FAQ / Other</td>
+    <td class="num">5,709</td>
+    <td class="num">56-144</td>
+    <td><span class="tag tag-warn">MIXED</span></td>
+  </tr>
+</table>
+
+<h2>4. Critical Issues Identified</h2>
+
+<div class="issue-card">
+  <h4>P0: Graph Connectivity Crisis — 91.7% Orphan Rate</h4>
+  <p>54,275 out of 59,170 LawOrRegulation nodes have <strong>zero edges</strong>. Total edges 45,864 for 100,239 nodes = 0.46 edges/node. A healthy knowledge graph should have 3-5 edges/node. The "graph" in "knowledge graph" is essentially non-functional for most nodes.</p>
+  <p style="margin-top:8px"><strong>Impact:</strong> Graph RAG (traversal-based retrieval) cannot leverage these nodes. Only vector search works, which defeats the purpose of a graph database.</p>
+  <p style="margin-top:8px"><strong>Root Cause:</strong> Injection scripts use CREATE but don't create relationship edges. Cross-product matrix generators and AI synthesis pipeline skip edge creation.</p>
+</div>
+
+<div class="issue-card">
+  <h4>P0: Low-Quality Template Nodes — ~13,000 Single-Sentence Placeholders</h4>
+  <p>city_tax_guide (3,800) + city_industry_guide (2,000) + regional_tax_guide (1,900) + risk_monitoring (1,900) + regional_industry (1,350) + lifecycle_guidance (810) + other = ~12,760 nodes with avg content of 56-64 characters. These are essentially: "<em>[City] [Tax]办理指南: 登录当地电子税务局，按照税务机关要求完成申报缴纳。</em>" — identical template with city name swapped.</p>
+  <p style="margin-top:8px"><strong>Impact:</strong> Zero information value. Pollutes vector index with noise. Inflates node count without substance.</p>
+</div>
+
+<div class="issue-card medium">
+  <h4>P1: Duplicate Titles — 2,867 Nodes</h4>
+  <p>4.8% of LR nodes share identical titles. This may indicate duplicate data from overlapping crawl sources or re-injection runs.</p>
+</div>
+
+<div class="issue-card medium">
+  <h4>P1: LanceDB Vector Index Severely Outdated</h4>
+  <p>13,445 vectors for 100,239 nodes — only 13.4% indexed. Vector search (the primary retrieval method) misses 86.6% of the knowledge base.</p>
+</div>
+
+<div class="issue-card medium">
+  <h4>P2: Missing Entity Types — StandardCase & BusinessScenario</h4>
+  <p>Original 3-layer architecture defined StandardCase and BusinessScenario as L2 operational entities. These tables no longer exist in the database — likely dropped during schema migration. L2 operational knowledge is stored as LawOrRegulation nodes instead.</p>
+</div>
+
+<h2>5. Honest Quality Assessment</h2>
+
+<table>
+  <tr>
+    <th>Category</th>
+    <th class="num">Nodes</th>
+    <th class="num">% of Total</th>
+    <th>Quality Rating</th>
+  </tr>
+  <tr>
+    <td>High Quality (authoritative + substantial operational)</td>
+    <td class="num">~25,000</td>
+    <td class="num">24.9%</td>
+    <td><span class="tag tag-pass">A-Tier</span></td>
+  </tr>
+  <tr>
+    <td>Acceptable (AI QA + moderate cross-product)</td>
+    <td class="num">~18,000</td>
+    <td class="num">18.0%</td>
+    <td><span class="tag tag-warn">B-Tier</span></td>
+  </tr>
+  <tr>
+    <td>Structured Reference (HSCode, TaxClass, Clauses, Regions)</td>
+    <td class="num">~38,600</td>
+    <td class="num">38.5%</td>
+    <td><span class="tag tag-pass">Reference Data</span></td>
+  </tr>
+  <tr>
+    <td>Low Quality (single-sentence templates)</td>
+    <td class="num">~12,760</td>
+    <td class="num">12.7%</td>
+    <td><span class="tag tag-fail">D-Tier</span></td>
+  </tr>
+  <tr>
+    <td>Duplicates / Noise</td>
+    <td class="num">~5,800</td>
+    <td class="num">5.8%</td>
+    <td><span class="tag tag-fail">Remove</span></td>
+  </tr>
+</table>
+
+<p style="margin-top:16px; padding:16px; background:var(--warning-bg); border-radius:8px; font-size:14px;">
+  <strong>NOTE: Effective Quality Node Count = ~81,600</strong> (after excluding ~12,760 template placeholders and ~5,800 duplicates/noise). True knowledge density is ~81.4%.
+</p>
+
+<h2>6. Source Quality Ranking</h2>
+
+<table>
+  <tr>
+    <th>#</th>
+    <th>Source</th>
+    <th class="num">Nodes</th>
+    <th class="num">Avg Chars</th>
+    <th>Quality</th>
+  </tr>
+  <tr><td>1</td><td>doc-tax (local files)</td><td class="num">1,426</td><td class="num">2,448</td><td><span class="tag tag-pass">Excellent</span></td></tr>
+  <tr><td>2</td><td>ChinaAcc articles</td><td class="num">1,973</td><td class="num">1,189</td><td><span class="tag tag-pass">Very Good</span></td></tr>
+  <tr><td>3</td><td>NDRC policies</td><td class="num">590</td><td class="num">1,035</td><td><span class="tag tag-pass">Very Good</span></td></tr>
+  <tr><td>4</td><td>ChinaTax FGK API</td><td class="num">5,427</td><td class="num">926</td><td><span class="tag tag-pass">Good</span></td></tr>
+  <tr><td>5</td><td>Incentive Matrix (AI)</td><td class="num">5,694</td><td class="num">435</td><td><span class="tag tag-pass">Good</span></td></tr>
+  <tr><td>6</td><td>doc-tax FAQ</td><td class="num">1,152</td><td class="num">285</td><td><span class="tag tag-warn">Acceptable</span></td></tr>
+  <tr><td>7</td><td>Derived QA (AI)</td><td class="num">11,238</td><td class="num">125</td><td><span class="tag tag-warn">Acceptable</span></td></tr>
+  <tr><td>8</td><td>12366 Tax Hotline</td><td class="num">5,246</td><td class="num">31</td><td><span class="tag tag-warn">Short but Factual</span></td></tr>
+  <tr><td>9</td><td>Baike Kuaiji</td><td class="num">4,000</td><td class="num">~200</td><td><span class="tag tag-warn">Acceptable</span></td></tr>
+  <tr><td>10</td><td>Cross-Product Templates</td><td class="num">~12,760</td><td class="num">56-64</td><td><span class="tag tag-fail">Low</span></td></tr>
+</table>
+
+<h2>7. M2 (500K) Pre-Requisites Before Scaling</h2>
+
+<ul class="rec-list">
+  <li>
+    <div class="priority p1">P0</div>
+    <div>
+      <strong>Edge Enrichment Pipeline</strong> — Before adding ANY new nodes, build a batch edge-creation pipeline.
+      Every LawOrRegulation must connect to at least TaxType, FTIndustry, and parent regulation.
+      Target: reduce orphan rate from 91.7% to &lt;20%. This is the #1 prerequisite for M2.
+    </div>
+  </li>
+  <li>
+    <div class="priority p1">P0</div>
+    <div>
+      <strong>Purge Template Placeholders</strong> — Remove or enrich ~12,760 single-sentence template nodes.
+      Options: (a) delete and regenerate with AI synthesis at 200+ chars, or (b) enrich with Gemini
+      to add city-specific tax bureau contact, local rates, and special policies.
+    </div>
+  </li>
+  <li>
+    <div class="priority p1">P0</div>
+    <div>
+      <strong>Full LanceDB Reindex</strong> — Current 13,445 / 100,239 (13.4%) coverage is unacceptable.
+      Reindex all node types with Gemini Embedding 2 Preview (768d Matryoshka for 500K scale).
+    </div>
+  </li>
+  <li>
+    <div class="priority p2">P1</div>
+    <div>
+      <strong>Deduplicate</strong> — Remove 2,867 duplicate-title nodes. Implement dedup check in injection pipeline.
+    </div>
+  </li>
+  <li>
+    <div class="priority p2">P1</div>
+    <div>
+      <strong>Quality Gate in Pipeline</strong> — Add min content length check (>100 chars for LR, >50 chars for QA)
+      to all injection scripts. Reject empty/trivial nodes at injection time.
+    </div>
+  </li>
+  <li>
+    <div class="priority p3">P2</div>
+    <div>
+      <strong>Precision@5 Evaluation</strong> — Build 100 test queries and measure retrieval precision.
+      Current state likely ~60-70% due to orphan nodes and sparse vector coverage.
+      Target for M2: P@5 >= 85%.
+    </div>
+  </li>
+</ul>
+
+<h2>8. Verdict</h2>
+
+<div style="padding:24px; background:var(--warning-bg); border-radius:12px; border-left:4px solid var(--warning); margin:24px 0;">
+  <h3 style="margin-top:0; color:var(--warning);">CONDITIONAL PASS — Do Not Proceed to M2 Without Fixes</h3>
+  <p style="margin-top:12px; font-size:15px;">
+    M1 numerical target (100K nodes) is achieved. However, <strong>quality baseline is insufficient for production deployment</strong>.
+    The knowledge graph has 100K nodes but functions more like a document store due to 91.7% orphan rate.
+    ~12.7% of nodes are low-value template filler. Vector index covers only 13.4%.
+  </p>
+  <p style="margin-top:12px; font-size:15px;">
+    <strong>Recommended path:</strong> Spend 1-2 sprints on P0 fixes (edge enrichment + template purge + reindex)
+    before scaling to M2 (500K). Quality-first approach will compound — better edges and vectors at 100K
+    yield exponentially better retrieval at 500K.
+  </p>
+</div>
+
+</div>
+
+<footer>
+  <p>CogNebula Enterprise v1.0 -- M1 Quality Gate Retrospective</p>
+  <p>Maurice | maurice_wen@proton.me</p>
+  <p style="font-size:12px; margin-top:8px;">Generated 2026-03-16 | Data: KuzuDB finance-tax-graph @ VPS 100.106.223.39</p>
+</footer>
+
+</body>
+</html>

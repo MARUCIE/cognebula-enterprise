@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>财税知识沉淀管线</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --white: #FFFFFF;
+    --deep-blue: #003A70;
+    --deep-blue-light: #004E9A;
+    --deep-blue-pale: #EBF2FA;
+    --ink: #1A1A1A;
+    --ink-light: #4A4A4A;
+    --ink-muted: #7A7A7A;
+    --border: #E0E0E0;
+    --border-section: #003A70;
+    --accent-green: #00875A;
+    --accent-orange: #D97706;
+    --accent-red: #DC2626;
+    --max-w: 1040px;
+    --stage1: #0369A1;
+    --stage2: #7C3AED;
+    --stage3: #059669;
+    --stage4: #DC2626;
+    --stage1-bg: #EFF6FF;
+    --stage2-bg: #F5F3FF;
+    --stage3-bg: #ECFDF5;
+    --stage4-bg: #FEF2F2;
+  }
+
+  html { font-size: 16px; scroll-behavior: smooth; }
+  body {
+    font-family: 'Noto Sans SC', 'Inter', -apple-system, sans-serif;
+    background: var(--white);
+    color: var(--ink);
+    line-height: 1.75;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page-wrapper { max-width: var(--max-w); margin: 0 auto; padding: 48px 24px 80px; }
+
+  /* McKinsey Header */
+  .mckinsey-header {
+    border-bottom: 3px solid var(--deep-blue);
+    padding-bottom: 28px;
+    margin-bottom: 40px;
+  }
+  .mckinsey-header h1 {
+    font-family: 'Inter', 'Noto Sans SC', sans-serif;
+    font-weight: 900;
+    font-size: 2.2rem;
+    color: var(--deep-blue);
+    letter-spacing: -0.02em;
+    margin-bottom: 10px;
+  }
+  .mckinsey-header .subtitle {
+    font-size: 1rem;
+    color: var(--ink-light);
+    line-height: 1.7;
+  }
+  .mckinsey-badge {
+    display: inline-block;
+    background: var(--deep-blue);
+    color: #fff;
+    padding: 3px 14px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-right: 8px;
+    margin-bottom: 10px;
+  }
+
+  /* Section dividers */
+  .section { margin-bottom: 40px; padding-top: 8px; }
+  .section + .section { border-top: 3px solid var(--border-section); padding-top: 32px; }
+
+  /* TOC */
+  .toc { margin-bottom: 40px; }
+  .toc h2 { font-size: 0.85rem; font-weight: 700; color: var(--deep-blue); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; border: none; }
+  .toc ol { padding-left: 1.4em; }
+  .toc li { margin-bottom: 5px; font-size: 0.9rem; }
+  .toc a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--border); transition: all 0.15s; }
+  .toc a:hover { color: var(--deep-blue); border-color: var(--deep-blue); }
+
+  h2 {
+    font-family: 'Inter', 'Noto Sans SC', sans-serif;
+    font-weight: 900;
+    font-size: 1.5rem;
+    color: var(--deep-blue);
+    margin-bottom: 18px;
+    letter-spacing: -0.01em;
+  }
+  h3 { font-size: 1.1rem; color: var(--ink); margin: 20px 0 10px; font-weight: 700; }
+  h4 { font-size: 0.95rem; color: var(--ink-light); margin: 14px 0 8px; font-weight: 600; }
+
+  p { margin-bottom: 12px; font-size: 0.93rem; color: var(--ink); }
+  ul, ol { padding-left: 1.6em; margin-bottom: 12px; }
+  li { margin-bottom: 5px; font-size: 0.91rem; line-height: 1.75; }
+  strong { font-weight: 700; }
+
+  .table-wrap { overflow-x: auto; margin-bottom: 20px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.86rem; line-height: 1.6; }
+  thead th {
+    background: var(--deep-blue);
+    color: #fff;
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  tbody td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tbody tr:hover { background: var(--deep-blue-pale); }
+
+  /* ADR Decision table */
+  .adr-table tbody tr.selected { background: #EBF8F0; font-weight: 600; }
+  .adr-table tbody tr.selected td:first-child::before { content: "-->  "; color: var(--accent-green); font-weight: 700; }
+
+  .badge { display: inline-block; padding: 2px 12px; font-size: 0.76rem; font-weight: 700; letter-spacing: 0.03em; white-space: nowrap; }
+  .badge-stage1 { background: var(--stage1-bg); color: var(--stage1); }
+  .badge-stage2 { background: var(--stage2-bg); color: var(--stage2); }
+  .badge-stage3 { background: var(--stage3-bg); color: var(--stage3); }
+  .badge-stage4 { background: var(--stage4-bg); color: var(--stage4); }
+  .badge-existing { background: #ECFDF5; color: #059669; }
+  .badge-new { background: #EFF6FF; color: #0369A1; }
+
+  code { font-family: 'JetBrains Mono', monospace; font-size: 0.84rem; background: #F5F5F5; padding: 2px 6px; border-radius: 2px; }
+  pre {
+    background: #1E293B;
+    color: #E2E8F0;
+    padding: 20px 24px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    border-left: 3px solid var(--deep-blue);
+  }
+  pre code { background: none; padding: 0; color: inherit; }
+  pre .comment { color: #94A3B8; font-style: italic; }
+
+  .mermaid-wrap { background: #FAFBFC; border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; overflow-x: auto; }
+
+  /* Data flow timeline */
+  .timeline { border-left: 3px solid var(--deep-blue); padding-left: 24px; margin-bottom: 24px; }
+  .timeline-item { margin-bottom: 12px; position: relative; }
+  .timeline-item::before { content: ''; width: 10px; height: 10px; background: var(--deep-blue); border-radius: 50%; position: absolute; left: -30px; top: 7px; }
+  .timeline-time { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--deep-blue); font-weight: 600; }
+  .timeline-desc { font-size: 0.88rem; color: var(--ink-light); }
+
+  /* Directory tree */
+  .dir-tree {
+    background: #FAFBFC;
+    border: 1px solid var(--border);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.7;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  footer { text-align: center; padding: 60px 20px 40px; color: #9B9B9D; font-size: 13px; line-height: 2.2; }
+
+  @media (max-width: 720px) {
+    .page-wrapper { padding: 24px 14px 60px; }
+    .mckinsey-header h1 { font-size: 1.6rem; }
+    h2 { font-size: 1.25rem; }
+    table { font-size: 0.8rem; }
+    thead th, tbody td { padding: 7px 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="page-wrapper">
+
+<div class="mckinsey-header">
+  <div><span class="mckinsey-badge">v1.0</span><span class="mckinsey-badge">2026-03-15</span><span class="mckinsey-badge">finance_tax_kb</span></div>
+  <h1>财税知识沉淀管线</h1>
+  <div class="subtitle">架构: Obsidian 中心, NotebookLM 作为可选增强层<br>4 阶段管线: 爬取 &rarr; 消化 &rarr; Obsidian 管理 &rarr; CF Pages 发布</div>
+</div>
+
+<div class="toc">
+  <h2>目录</h2>
+  <ol>
+    <li><a href="#s1">决策日志</a></li>
+    <li><a href="#s2">管线架构总览</a></li>
+    <li><a href="#s3">逐阶段设计</a></li>
+    <li><a href="#s4">管线编排</a></li>
+    <li><a href="#s5">NotebookLM 集成指南</a></li>
+    <li><a href="#s6">技能依赖</a></li>
+    <li><a href="#s7">CF Pages 构建配置</a></li>
+    <li><a href="#s8">完整管线时序图</a></li>
+    <li><a href="#s9">新增 vs 复用组件</a></li>
+    <li><a href="#s10">实施优先级</a></li>
+  </ol>
+</div>
+
+<!-- 1 -->
+<div class="section" id="s1">
+  <h2>1. 决策日志</h2>
+
+  <h3>ADR-001: 管线拓扑 -- Obsidian 中心 vs NotebookLM 中心</h3>
+  <p><strong>背景</strong>: 需要一条 4 阶段管线: 爬取 &rarr; 消化 &rarr; 管理 &rarr; 发布。两个 AI 驱动系统可用: Google NotebookLM (<code>anything-to-notebooklm</code> 技能) 和本地 Obsidian 知识库。</p>
+
+  <div class="table-wrap">
+  <table class="adr-table">
+    <thead><tr><th>#</th><th>方案</th><th>核心存储</th><th>NotebookLM 角色</th><th>风险</th><th>复杂度</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>NotebookLM 中心</td><td>NotebookLM</td><td>主消化 + 生成</td><td>高 (认证过期, 速率限制, Google API 变更)</td><td>中</td></tr>
+      <tr class="selected"><td>B</td><td>Obsidian 中心</td><td>Obsidian 知识库</td><td>可选增强</td><td>低 (完全本地)</td><td>中</td></tr>
+      <tr><td>C</td><td>双轨并行</td><td>两者同时</td><td>共同主体</td><td>中 (同步冲突)</td><td>高</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p><strong>决策: 方案 B -- Obsidian 中心</strong></p>
+  <p><strong>理由</strong>:</p>
+  <ol>
+    <li><code>notebooklm login</code> 需要浏览器 OAuth; 无法在无人值守 cron 中运行</li>
+    <li>NotebookLM 有未文档化的速率限制; 50+ 文件/天批量上传未经测试</li>
+    <li>Obsidian 知识库 = Git 仓库 = 天然版本控制、差异比较和 CI/CD 集成</li>
+    <li>NotebookLM 仍可按需使用 (手动或触发) 用于播客/FAQ 生成</li>
+    <li>单一真相原则: 知识库为权威存储; NotebookLM 为派生视图</li>
+  </ol>
+</div>
+
+<!-- 2 -->
+<div class="section" id="s2">
+  <h2>2. 管线架构总览</h2>
+
+  <div class="mermaid-wrap">
+    <pre class="mermaid">
+graph TB
+    subgraph S1["阶段 1: 爬取 (已有)"]
+        CRAWL["finance-tax-crawl.sh<br/>20 信源, 6 阶段"]
+        RAW[("data/raw/YYYY-MM-DD/<br/>JSON 文件")]
+        CRAWL --> RAW
+    end
+
+    subgraph S2["阶段 2: 消化与入库"]
+        direction TB
+        PROC["finance_tax_processor.py<br/>NER + 变更检测"]
+        KUZU[("KuzuDB<br/>13 节点, 15 边")]
+        LANCE[("LanceDB<br/>Gemini Embedding 2")]
+        OBS_CONV["obsidian_converter.py<br/>JSON -> Obsidian MD"]
+        NLM["NotebookLM<br/>可选: 播客/FAQ/思维导图"]
+
+        RAW --> PROC
+        PROC --> KUZU
+        PROC --> LANCE
+        RAW --> OBS_CONV
+        PROC --> OBS_CONV
+    end
+
+    subgraph S3["阶段 3: Obsidian 知识库 (知识管理)"]
+        VAULT["~/Obsidian/财税知识库/<br/>7 顶级目录 + _templates"]
+        OBS_CONV --> VAULT
+        NLM -.->|按需下载| VAULT
+    end
+
+    subgraph S4["阶段 4: 发布 (CF Pages)"]
+        BUILD["vault-to-html.py<br/>Bloomberg 风格构建器"]
+        CF["ai-fleet-dashboard.pages.dev<br/>/finance-tax/"]
+        VAULT --> BUILD
+        BUILD --> CF
+    end
+
+    subgraph Alert["告警 (已有)"]
+        TG["Telegram<br/>秦税安 + 顾财道"]
+        PROC -->|检测到变更| TG
+    end
+
+    style NLM stroke-dasharray: 5 5
+    style NLM fill:#f9f9f9
+    style S1 fill:#EFF6FF,stroke:#0369A1,stroke-width:2px
+    style S2 fill:#F5F3FF,stroke:#7C3AED,stroke-width:2px
+    style S3 fill:#ECFDF5,stroke:#059669,stroke-width:2px
+    style S4 fill:#FEF2F2,stroke:#DC2626,stroke-width:2px
+    </pre>
+  </div>
+
+  <h3>数据流时间线</h3>
+  <div class="timeline">
+    <div class="timeline-item"><span class="timeline-time">06:00</span> <span class="timeline-desc">finance-tax-crawl.sh &rarr; data/raw/2026-03-15/*.json</span></div>
+    <div class="timeline-item"><span class="timeline-time">06:15</span> <span class="timeline-desc">finance_tax_processor.py &rarr; KuzuDB + LanceDB (图 + 向量)</span></div>
+    <div class="timeline-item"><span class="timeline-time">06:20</span> <span class="timeline-desc">obsidian_converter.py &rarr; ~/Obsidian/财税知识库/ (Markdown 文件)</span></div>
+    <div class="timeline-item"><span class="timeline-time">06:25</span> <span class="timeline-desc">vault-to-html.py &rarr; build/ (静态 HTML)</span></div>
+    <div class="timeline-item"><span class="timeline-time">06:30</span> <span class="timeline-desc">sync-docs-and-deploy.sh &rarr; CF Pages 部署</span></div>
+    <div class="timeline-item"><span class="timeline-time">06:35</span> <span class="timeline-desc">Telegram 告警 &rarr; 秦税安 + 顾财道 (如检测到变更)</span></div>
+  </div>
+</div>
+
+<!-- 3 -->
+<div class="section" id="s3">
+  <h2>3. 逐阶段设计</h2>
+
+  <h3><span class="badge badge-stage1">阶段 1</span> 爬取 (已有)</h3>
+  <p><strong>脚本</strong>: <code>scripts/finance-tax-crawl.sh</code> | <strong>输出</strong>: <code>data/raw/{date}/*.json</code></p>
+  <p><strong>使用技能</strong>: agent-reach, browser-automation, defuddle, multi-search-engine, news-aggregator, wechat-article-search, scrapling-crawler</p>
+  <p><strong>信源</strong>: 20 个国内 (4 P0 政府 + 8 P1 专业 + 8 P2 媒体/社区)</p>
+  <p>无需变更。现有管线已达生产可用。</p>
+
+  <h3><span class="badge badge-stage2">阶段 2</span> 消化与入库 (双路输出)</h3>
+  <p>阶段 2 从同一原始 JSON 输入分为两条并行路径:</p>
+
+  <h4>路径 A: 图 + 向量 (已有)</h4>
+  <ul>
+    <li><code>finance_tax_processor.py</code>: 基于规则的 NER, 3 级变更检测</li>
+    <li>KuzuDB: 13 节点中国税务本体 (18 税种, 42 CAS)</li>
+    <li>LanceDB: Gemini Embedding 2 向量, 通过 <code>bin/embed</code></li>
+  </ul>
+
+  <h4>路径 B: Obsidian 转换 (新建)</h4>
+  <p><strong>新脚本</strong>: <code>scripts/obsidian_converter.py</code> (~200 行)</p>
+  <p>输入: <code>data/raw/{date}/*.json</code> + 处理器元数据 (NER 结果, 变更状态)</p>
+  <p>输出: 知识库中的 Obsidian 风格 Markdown 文件</p>
+
+  <p><strong>Frontmatter 模式</strong> (每文档):</p>
+  <pre><code><span class="comment">---</span>
+source: "chinatax.gov.cn"
+source_url: "https://fgk.chinatax.gov.cn/..."
+crawl_date: "2026-03-15"
+publish_date: "2026-03-14"
+title: "关于调整增值税税率的公告"
+regulation_number: "财税[2026]15号"
+issuing_authority: "财政部 国家税务总局"
+tax_type:
+  - "增值税"
+content_type: "regulation"  <span class="comment"># regulation|guide|compliance|news|analysis</span>
+status: "active"            <span class="comment"># active|expired|superseded|proposed</span>
+change_type: "new"          <span class="comment"># new|updated|unchanged</span>
+tags:
+  - "#法规"
+  - "#增值税"
+  - "#2026"
+<span class="comment">---</span></code></pre>
+
+  <h4>路径 C: NotebookLM (可选, 按需)</h4>
+  <p><strong>不在每日 cron 中</strong>。手动或通过 Claude Code 技能触发。</p>
+  <p>生成产物 (播客 MP3, FAQ Markdown, 思维导图 JSON) 保存到 <code>_generated/</code> 目录。</p>
+
+  <h3><span class="badge badge-stage3">阶段 3</span> Obsidian 知识库结构</h3>
+  <div class="dir-tree">~/Obsidian/财税知识库/
++-- 法规/                          # L1: 按信源分类的法规
+|   +-- 国家税务总局/               # SAT 公告
+|   +-- 财政部/                    # MOF 政策
+|   +-- 国务院/                    # 国务院指令
+|   +-- 海关总署/                  # 海关税则更新
+|   +-- 央行/                     # PBC 法规
+|   +-- 注册会计师协会/             # CICPA 准则
++-- 操作指南/                      # L2: 操作指导
+|   +-- 会计分录/                  # 分录模板
+|   +-- 纳税申报/                  # 申报流程
+|   +-- 发票管理/                  # 发票管理
+|   +-- 税务登记/                  # 登记指南
++-- 合规检查/                      # L3: 合规规则
+|   +-- 风险预警/                  # 风险告警
+|   +-- 自查清单/                  # 自检清单
+|   +-- 处罚案例/                  # 处罚案例研究
++-- 日报/                          # 每日爬取摘要
+|   +-- 2026-03-15.md             # 每天一个文件
++-- 税种/                          # 按税种 (18 个文件夹)
+|   +-- 增值税/ ... 城镇土地使用税/
++-- 行业/                          # 按行业
+|   +-- 软件和信息技术/ ... 金融/
++-- _generated/                    # NotebookLM 输出 (可选)
+|   +-- podcasts/ faqs/ mindmaps/
++-- _templates/                    # Obsidian 模板
+|   +-- 法规模板.md 操作指南模板.md 日报模板.md 合规检查模板.md
++-- _index/                        # 自动生成索引
+    +-- 按税种索引.md 按时间索引.md 按来源索引.md</div>
+
+  <p><strong>利用的 Obsidian 功能</strong>:</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>功能</th><th>用途</th></tr></thead>
+    <tbody>
+      <tr><td>YAML frontmatter</td><td>结构化元数据, 用于过滤 + Dataview 查询</td></tr>
+      <tr><td>Wikilinks <code>[[]]</code></td><td>跨引用税种、准则、法规</td></tr>
+      <tr><td>标签 <code>#</code></td><td><code>#法规</code> <code>#增值税</code> <code>#2026</code> 多面搜索</td></tr>
+      <tr><td>Callouts <code>&gt; [!type]</code></td><td><code>[!warning]</code> 重大变更, <code>[!info]</code> 新政策</td></tr>
+      <tr><td>Dataview 插件</td><td>动态查询: "按日期排序的所有生效增值税法规"</td></tr>
+      <tr><td>模板</td><td>每种内容类型格式一致</td></tr>
+      <tr><td>Canvas</td><td>可视关系图 (通过 obsidian-visual-skills)</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3><span class="badge badge-stage4">阶段 4</span> CF Pages 发布</h3>
+  <p><strong>路由</strong>: <code>ai-fleet-dashboard.pages.dev/finance-tax/</code></p>
+  <p><strong>构建脚本</strong>: <code>scripts/vault-to-html.py</code></p>
+  <p><strong>Bloomberg 风格仪表板特性</strong>:</p>
+  <ul>
+    <li>数据密集布局, 法规编号使用等宽字体</li>
+    <li>颜色编码状态指示: 绿色 (生效), 琥珀色 (拟议中), 红色 (即将失效)</li>
+    <li>时间序列视图: 每日/周/月发布的法规数</li>
+    <li>重大变更顶部横幅高亮</li>
+    <li>信源权威徽章 (P0/P1/P2)</li>
+    <li>移动端响应式但桌面端优先</li>
+  </ul>
+</div>
+
+<!-- 4 -->
+<div class="section" id="s4">
+  <h2>4. 管线编排</h2>
+
+  <h3>每日 Cron 调度</h3>
+  <pre><code><span class="comment"># VPS crontab (或 Mac launchd)</span>
+<span class="comment"># 完整管线: 爬取 -> 处理 -> obsidian -> 构建 -> 部署</span>
+0 6 * * * cd /Users/mauricewen/Projects/cognebula-enterprise && \
+  bash scripts/finance-tax-knowledge-pipeline.sh 2>&1 | \
+  tee -a data/logs/pipeline-$(date +\%Y-\%m-\%d).log</code></pre>
+
+  <h3>主管线脚本</h3>
+  <p><strong>文件</strong>: <code>scripts/finance-tax-knowledge-pipeline.sh</code> (~80 行)</p>
+  <p>5 个阶段顺序执行:</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>阶段</th><th>函数</th><th>输入</th><th>输出</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge badge-stage1">1. 爬取</span></td><td><code>stage_crawl()</code></td><td>20 信源</td><td><code>data/raw/{date}/*.json</code></td></tr>
+      <tr><td><span class="badge badge-stage2">2. 处理</span></td><td><code>stage_process()</code></td><td>原始 JSON</td><td>KuzuDB + LanceDB 更新</td></tr>
+      <tr><td><span class="badge badge-stage3">3. Obsidian</span></td><td><code>stage_obsidian()</code></td><td>JSON + 元数据</td><td>知识库 Markdown + Git 提交</td></tr>
+      <tr><td><span class="badge badge-stage4">4. 发布</span></td><td><code>stage_publish()</code></td><td>知识库 Markdown</td><td>Bloomberg HTML &rarr; CF Pages</td></tr>
+      <tr><td>5. 告警</td><td><code>stage_alert()</code></td><td>统计 JSON</td><td>Telegram 通知 (如有变更)</td></tr>
+    </tbody>
+  </table></div>
+
+  <p>支持按阶段运行: <code>--stage crawl|process|obsidian|publish|alert</code> 或 <code>--all</code> 全量运行。</p>
+
+  <h3>管线注册条目</h3>
+  <p>添加到 <code>configs/pipeline-registry.json</code>:</p>
+  <pre><code>{
+    "finance-tax-knowledge": {
+        "name": {"en": "Finance/Tax Knowledge Pipeline", "zh": "财税知识沉淀管线"},
+        "category": "intelligence",
+        "trigger": "cron",
+        "schedule": "0 6 * * *",
+        "script": "scripts/finance-tax-knowledge-pipeline.sh",
+        "defaultDevice": "mac",
+        "failoverChain": ["vps"],
+        "outputs": ["obsidian-vault-sync", "cf-pages-deploy", "telegram-alert",
+                     "kuzudb-update", "lancedb-update"],
+        "sla": {"maxDurationSec": 1800, "minSuccessRate": 0.95}
+    }
+}</code></pre>
+</div>
+
+<!-- 5 -->
+<div class="section" id="s5">
+  <h2>5. NotebookLM 集成指南</h2>
+
+  <h3>前置条件</h3>
+  <pre><code><span class="comment"># 一次性设置 (需要浏览器 OAuth)</span>
+notebooklm login
+notebooklm list  <span class="comment"># 验证认证</span></code></pre>
+
+  <h3>批量上传知识库内容</h3>
+  <pre><code><span class="comment"># 上传本周所有法规</span>
+for f in ~/Obsidian/财税知识库/法规/**/*2026-03-1*.md; do
+    echo "上传: $(basename "$f")"
+    notebooklm source add "$f" --notebook "财税知识库" --wait
+    sleep 3  <span class="comment"># 速率限制保护</span>
+done</code></pre>
+
+  <h3>生成增强内容</h3>
+  <pre><code><span class="comment"># 每周播客摘要</span>
+notebooklm generate audio \
+    --notebook "财税周报 2026-W11" \
+    --instructions "中文总结本周重要财税政策变化, 面向企业财务人员, 5-8分钟" \
+    --output ~/Obsidian/财税知识库/_generated/podcasts/2026-W11.mp3
+
+<span class="comment"># FAQ 文档</span>
+notebooklm generate report \
+    --instructions "生成本周财税政策FAQ, 问答格式, 重点标注对中小企业的影响" \
+    --output ~/Obsidian/财税知识库/_generated/faqs/2026-W11-faq.md
+
+<span class="comment"># 思维导图</span>
+notebooklm generate mind-map \
+    --instructions "中国税种体系全景图, 18个税种的分类关系" \
+    --output ~/Obsidian/财税知识库/_generated/mindmaps/tax-system-overview.json</code></pre>
+</div>
+
+<!-- 6 -->
+<div class="section" id="s6">
+  <h2>6. 技能依赖</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>技能</th><th>管线中角色</th><th>状态</th></tr></thead>
+    <tbody>
+      <tr><td><code>anything-to-notebooklm</code></td><td>阶段 2C: 上传知识库内容到 NotebookLM</td><td><span class="badge badge-existing">已安装</span></td></tr>
+      <tr><td><code>obsidian-visual-skills</code></td><td>阶段 3: Canvas/Excalidraw/Mermaid 生成</td><td><span class="badge badge-new">待安装到知识库</span></td></tr>
+      <tr><td><code>html-bloomberg-style</code></td><td>阶段 4: Bloomberg 终端风格 CF Pages 输出</td><td><span class="badge badge-existing">AI-Fleet 生态</span></td></tr>
+      <tr><td><code>html-style-router</code></td><td>阶段 4: 自动选择 HTML 设计系统</td><td><span class="badge badge-existing">AI-Fleet 生态</span></td></tr>
+      <tr><td><code>agent-reach</code></td><td>阶段 1: 多平台爬取</td><td><span class="badge badge-existing">生产可用</span></td></tr>
+      <tr><td><code>browser-automation</code></td><td>阶段 1: 视觉驱动 JS 页面处理</td><td><span class="badge badge-existing">生产可用</span></td></tr>
+      <tr><td><code>news-aggregator-skill</code></td><td>阶段 1: 28 信源新闻聚合</td><td><span class="badge badge-existing">已安装</span></td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<!-- 7 -->
+<div class="section" id="s7">
+  <h2>7. CF Pages 构建配置</h2>
+
+  <h3>目录结构</h3>
+  <div class="dir-tree">cognebula-enterprise/build/finance-tax/
++-- index.html              # 仪表板概览 (Bloomberg 风格)
++-- daily/
+|   +-- 2026-03-15.html     # 每日摘要页面
++-- regulation/
+|   +-- {slug}.html         # 单条法规页面
++-- tax/
+|   +-- {tax-type}.html     # 税种索引页
++-- industry/
+|   +-- {industry}.html     # 行业合规页
++-- podcast/
+|   +-- index.html          # 播客归档 (如 NotebookLM 已生成)
++-- assets/
+|   +-- bloomberg.css       # Bloomberg 终端设计系统
+|   +-- data.json           # 客户端过滤用结构化数据
++-- _headers                # CF Pages 头 (缓存, CORS)</div>
+
+  <h3>仪表板同步扩展</h3>
+  <p>现有 <code>com.ai-fleet.dashboard-sync.plist</code> LaunchAgent 监控文件变更并自动部署。将 Obsidian 知识库添加到其 WatchPaths:</p>
+  <pre><code>&lt;!-- 财税知识库额外 WatchPath --&gt;
+&lt;string&gt;/Users/mauricewen/Obsidian/财税知识库&lt;/string&gt;</code></pre>
+</div>
+
+<!-- 8 -->
+<div class="section" id="s8">
+  <h2>8. 完整管线时序图</h2>
+  <div class="mermaid-wrap">
+    <pre class="mermaid">
+sequenceDiagram
+    participant CRON as Cron (06:00)
+    participant CRAWL as finance-tax-crawl.sh
+    participant SKILL as AI-Fleet 技能
+    participant PROC as finance_tax_processor.py
+    participant CONV as obsidian_converter.py
+    participant VAULT as Obsidian 知识库
+    participant BUILD as vault-to-html.py
+    participant CF as CF Pages
+    participant TG as Telegram
+    participant NLM as NotebookLM
+
+    CRON->>CRAWL: 触发每日管线
+    CRAWL->>SKILL: agent-reach + defuddle (政府站点)
+    CRAWL->>SKILL: news-aggregator (finance-tax profile)
+    CRAWL->>SKILL: wechat-article-search (专家公众号)
+    SKILL-->>CRAWL: 原始 JSON 文件
+
+    CRAWL->>PROC: data/raw/{date}/*.json
+    PROC->>PROC: NER + 变更检测
+    PROC-->>PROC: KuzuDB + LanceDB 已更新
+
+    CRAWL->>CONV: 同一原始 JSON + 处理器元数据
+    CONV->>VAULT: Obsidian MD (frontmatter + wikilinks + tags)
+    CONV->>VAULT: 每日摘要 (日报/2026-03-15.md)
+
+    VAULT->>VAULT: Git 自动提交
+
+    VAULT->>BUILD: 读取知识库 Markdown
+    BUILD->>CF: Bloomberg 风格 HTML 部署
+
+    alt 检测到变更
+        PROC->>TG: "N 条财税法规更新"
+    end
+
+    Note over NLM: 可选 / 按需
+    rect rgb(245, 245, 245)
+        NLM->>NLM: 手动: notebooklm source add
+        NLM->>VAULT: 下载播客/FAQ 到 _generated/
+    end
+    </pre>
+  </div>
+</div>
+
+<!-- 9 -->
+<div class="section" id="s9">
+  <h2>9. 新增 vs 复用组件</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>组件</th><th>状态</th><th>详情</th></tr></thead>
+    <tbody>
+      <tr><td><code>finance-tax-crawl.sh</code></td><td><span class="badge badge-existing">已有</span></td><td>阶段 1 编排器, 20 信源, 6 阶段</td></tr>
+      <tr><td><code>finance_tax_processor.py</code></td><td><span class="badge badge-existing">已有</span></td><td>NER + 变更检测 + KuzuDB 入库</td></tr>
+      <tr><td>全部爬取技能 (10+)</td><td><span class="badge badge-existing">已有</span></td><td>agent-reach, browser-automation, defuddle 等</td></tr>
+      <tr><td><code>bin/embed</code></td><td><span class="badge badge-existing">已有</span></td><td>Gemini Embedding 2 向量生成</td></tr>
+      <tr><td>管线注册</td><td><span class="badge badge-existing">已有</span></td><td>仅添加 1 条新记录</td></tr>
+      <tr><td>仪表板同步 (LaunchAgent)</td><td><span class="badge badge-existing">已有</span></td><td>仅添加 1 个 WatchPath</td></tr>
+      <tr><td>Telegram 推送</td><td><span class="badge badge-existing">已有</span></td><td>digest-deliver.mjs, 零变更</td></tr>
+      <tr><td><code>anything-to-notebooklm</code></td><td><span class="badge badge-existing">已有</span></td><td>已安装技能, 按需使用</td></tr>
+      <tr><td><strong><code>finance-tax-knowledge-pipeline.sh</code></strong></td><td><span class="badge badge-new">新增</span></td><td>主编排器 (~80 行)</td></tr>
+      <tr><td><strong><code>obsidian_converter.py</code></strong></td><td><span class="badge badge-new">新增</span></td><td>JSON 到 Obsidian Markdown (~200 行)</td></tr>
+      <tr><td><strong><code>vault-to-html.py</code></strong></td><td><span class="badge badge-new">新增</span></td><td>知识库到 Bloomberg 风格 HTML (~300 行)</td></tr>
+      <tr><td><strong>Obsidian 知识库结构</strong></td><td><span class="badge badge-new">新增</span></td><td>7 个目录 + 模板</td></tr>
+      <tr><td><strong>CF Pages /finance-tax/ 路由</strong></td><td><span class="badge badge-new">新增</span></td><td>Bloomberg 仪表板页面</td></tr>
+    </tbody>
+  </table></div>
+  <p><strong>新代码估算</strong>: 共约 580 行 (200 Python 转换器 + 300 Python HTML 构建器 + 80 Bash 编排器)</p>
+</div>
+
+<!-- 10 -->
+<div class="section" id="s10">
+  <h2>10. 实施优先级</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>阶段</th><th>交付物</th><th>工作量</th><th>依赖</th></tr></thead>
+    <tbody>
+      <tr><td><strong>P0</strong></td><td>Obsidian 知识库结构 + 模板</td><td>1h</td><td>无</td></tr>
+      <tr><td><strong>P1</strong></td><td><code>obsidian_converter.py</code></td><td>4h</td><td>阶段 1 爬取输出格式</td></tr>
+      <tr><td><strong>P2</strong></td><td><code>finance-tax-knowledge-pipeline.sh</code></td><td>2h</td><td>P1</td></tr>
+      <tr><td><strong>P3</strong></td><td><code>vault-to-html.py</code> (Bloomberg 风格)</td><td>6h</td><td>P1 + html-bloomberg-style 技能</td></tr>
+      <tr><td><strong>P4</strong></td><td>CF Pages 集成 + LaunchAgent 更新</td><td>2h</td><td>P3</td></tr>
+      <tr><td><strong>P5</strong></td><td>管线注册条目</td><td>0.5h</td><td>P2</td></tr>
+      <tr><td><strong>P6</strong></td><td>NotebookLM 每周同步脚本</td><td>2h</td><td>P1 + notebooklm 认证</td></tr>
+    </tbody>
+  </table></div>
+  <p>总计: 约 17.5 小时。P0-P2 (核心管线) 可 1 天完成。P3-P6 (发布 + 增强) 可 2 天完成。</p>
+</div>
+
+<footer>
+  <p>CogNebula Enterprise v3.0 -- 知识沉淀管线</p>
+  <p>Maurice | maurice_wen@proton.me</p>
+  <p style="font-size:12px; margin-top:8px;">Generated 2026-03-15 | 数据来源: KNOWLEDGE_PIPELINE.md v1.0</p>
+</footer>
+
+</div>
+
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: 'default', securityLevel: 'loose' });
+</script>
+</body>
+</html>

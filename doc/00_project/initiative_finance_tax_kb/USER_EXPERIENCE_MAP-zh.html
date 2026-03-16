@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CogNebula 财税知识库 -- 用户体验地图</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #F3F0E9;
+    color: #2C2C2C;
+    font-family: 'Source Sans 3', 'Noto Sans SC', 'PingFang SC', sans-serif;
+    font-size: 16px;
+    line-height: 1.8;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 60px 40px 40px;
+  }
+
+  /* Typography */
+  h1, h2, h3, h4 {
+    font-family: 'Crimson Pro', 'Noto Serif SC', serif;
+    color: #1A1A1A;
+    letter-spacing: 0.02em;
+  }
+
+  h1 {
+    font-size: 2.4rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .subtitle {
+    font-size: 1.1rem;
+    color: #7A7A7A;
+    margin-bottom: 48px;
+    font-weight: 300;
+  }
+
+  h2 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin: 56px 0 24px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #D67052;
+    display: inline-block;
+  }
+
+  h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 32px 0 16px;
+    color: #D67052;
+  }
+
+  /* Paper card (tier 1) */
+  .card {
+    background: #FFFFFF;
+    border-radius: 10px;
+    padding: 32px;
+    margin-bottom: 28px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+    transition: box-shadow 0.2s ease;
+  }
+  .card:hover {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.06);
+  }
+
+  /* Paper card (tier 2 - elevated) */
+  .card-elevated {
+    background: #FFFFFF;
+    border-radius: 10px;
+    padding: 36px;
+    margin-bottom: 32px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.06), 0 16px 48px rgba(0,0,0,0.04);
+  }
+
+  /* Persona cards */
+  .persona-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    margin-top: 16px;
+  }
+
+  .persona-card {
+    background: #FFFFFF;
+    border-radius: 10px;
+    padding: 28px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+    border-left: 4px solid #D67052;
+  }
+
+  .persona-card .persona-id {
+    font-family: 'Crimson Pro', serif;
+    font-size: 0.85rem;
+    color: #D67052;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+
+  .persona-card .persona-name {
+    font-family: 'Crimson Pro', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1A1A1A;
+    margin-bottom: 14px;
+  }
+
+  .persona-card dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 6px 12px;
+    font-size: 0.92rem;
+  }
+
+  .persona-card dt {
+    color: #7A7A7A;
+    font-weight: 500;
+  }
+
+  .persona-card dd {
+    color: #2C2C2C;
+  }
+
+  /* Journey flow */
+  .journey-flow {
+    position: relative;
+    padding-left: 32px;
+    margin: 20px 0;
+  }
+
+  .journey-flow::before {
+    content: '';
+    position: absolute;
+    left: 14px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: linear-gradient(to bottom, #D67052, #E8A68E);
+  }
+
+  .journey-step {
+    position: relative;
+    background: #FFFFFF;
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+  }
+
+  .journey-step::before {
+    content: '';
+    position: absolute;
+    left: -25px;
+    top: 24px;
+    width: 12px;
+    height: 12px;
+    background: #D67052;
+    border-radius: 50%;
+    border: 3px solid #F3F0E9;
+  }
+
+  .journey-step.trigger::before {
+    background: #1A1A1A;
+    width: 14px;
+    height: 14px;
+    left: -26px;
+    top: 23px;
+  }
+
+  .journey-step.result::before {
+    background: #4A8B5C;
+    width: 14px;
+    height: 14px;
+    left: -26px;
+    top: 23px;
+  }
+
+  .step-number {
+    display: inline-block;
+    font-family: 'Crimson Pro', serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: #D67052;
+    background: rgba(214,112,82,0.1);
+    padding: 2px 10px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+  }
+
+  .step-label {
+    display: inline-block;
+    font-family: 'Crimson Pro', serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding: 2px 10px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+  }
+
+  .step-label.trigger-label {
+    color: #1A1A1A;
+    background: rgba(26,26,26,0.08);
+  }
+
+  .step-label.result-label {
+    color: #4A8B5C;
+    background: rgba(74,139,92,0.1);
+  }
+
+  .step-title {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 6px;
+    color: #1A1A1A;
+  }
+
+  .step-details {
+    font-size: 0.92rem;
+    color: #555;
+    line-height: 1.7;
+  }
+
+  .step-details ul {
+    margin: 6px 0 0 16px;
+    padding: 0;
+  }
+
+  .step-details li {
+    margin-bottom: 4px;
+  }
+
+  .sub-steps {
+    margin: 8px 0 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .sub-steps li {
+    position: relative;
+    padding-left: 18px;
+    margin-bottom: 4px;
+    font-size: 0.9rem;
+    color: #555;
+  }
+
+  .sub-steps li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 9px;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: rgba(214,112,82,0.25);
+  }
+
+  /* Quality gates */
+  .quality-gates {
+    background: rgba(214,112,82,0.06);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-top: 16px;
+    border: 1px solid rgba(214,112,82,0.15);
+  }
+
+  .quality-gates h4 {
+    font-size: 0.95rem;
+    color: #D67052;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+
+  .quality-gates ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .quality-gates li {
+    padding: 4px 0;
+    font-size: 0.9rem;
+    color: #555;
+  }
+
+  .quality-gates li::before {
+    content: '\2713';
+    color: #D67052;
+    font-weight: 700;
+    margin-right: 8px;
+  }
+
+  /* Touchpoint table */
+  .table-wrapper {
+    overflow-x: auto;
+    margin: 20px 0;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #FFFFFF;
+    border-radius: 10px;
+    overflow: hidden;
+    font-size: 0.92rem;
+  }
+
+  thead {
+    background: #D67052;
+    color: #FFFFFF;
+  }
+
+  th {
+    font-family: 'Crimson Pro', serif;
+    font-weight: 600;
+    padding: 14px 18px;
+    text-align: left;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+  }
+
+  td {
+    padding: 12px 18px;
+    border-bottom: 1px solid #F0EDE6;
+    color: #2C2C2C;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  tbody tr:hover {
+    background: rgba(214,112,82,0.03);
+  }
+
+  /* Error table */
+  .error-table td:first-child {
+    font-weight: 500;
+    color: #D67052;
+    white-space: nowrap;
+  }
+
+  /* Info architecture */
+  .ia-tree {
+    background: #FFFFFF;
+    border-radius: 10px;
+    padding: 28px 32px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+    font-family: 'Source Sans 3', monospace;
+    font-size: 0.92rem;
+    line-height: 2;
+    color: #2C2C2C;
+  }
+
+  .ia-tree .tree-root {
+    font-weight: 700;
+    color: #1A1A1A;
+  }
+
+  .ia-tree .tree-branch {
+    color: #7A7A7A;
+  }
+
+  .ia-tree .tree-comment {
+    color: #999;
+    font-size: 0.85rem;
+  }
+
+  /* Accent text */
+  .accent { color: #D67052; }
+  code {
+    background: rgba(214,112,82,0.08);
+    color: #D67052;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.88em;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+
+  /* Section divider */
+  .section-divider {
+    width: 60px;
+    height: 3px;
+    background: #D67052;
+    border-radius: 2px;
+    margin: 48px auto;
+    opacity: 0.5;
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 60px 20px 40px;
+    color: #9B9B9D;
+    font-size: 13px;
+    line-height: 2.2;
+  }
+
+  footer p {
+    margin: 0;
+  }
+
+  footer .gen-note {
+    font-size: 12px;
+    margin-top: 8px;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .container { padding: 32px 20px 24px; }
+    h1 { font-size: 1.8rem; }
+    h2 { font-size: 1.3rem; }
+    .persona-grid { grid-template-columns: 1fr; }
+    th, td { padding: 10px 12px; font-size: 0.85rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <h1>CogNebula 财税知识库 -- 用户体验地图</h1>
+  <p class="subtitle">v1.0 | 2026-03-14 | 方向：财税知识库</p>
+
+  <!-- 1. 用户画像 -->
+  <h2>1. 用户画像</h2>
+
+  <div class="persona-grid">
+    <div class="persona-card">
+      <div class="persona-id">P1</div>
+      <div class="persona-name">AI 智能体 (OpenClaw)</div>
+      <dl>
+        <dt>场景</dt><dd>自主处理合规推理任务的智能体</dd>
+        <dt>目标</dt><dd>在 token 预算内获取结构化、准确的财税上下文</dd>
+        <dt>交互方式</dt><dd>MCP 工具（程序化调用，无 UI）</dd>
+        <dt>痛点</dt><dd>缺少可靠上下文时，税务规则容易产生幻觉</dd>
+      </dl>
+    </div>
+
+    <div class="persona-card">
+      <div class="persona-id">P2</div>
+      <div class="persona-name">税务合规专员（秦税安专家角色）</div>
+      <dl>
+        <dt>场景</dt><dd>需要每日监控法规变化的合规人员</dd>
+        <dt>目标</dt><dd>不遗漏任何政策更新，快速理解影响范围</dd>
+        <dt>交互方式</dt><dd>Telegram 摘要（早间）+ CF Pages 仪表盘</dd>
+        <dt>痛点</dt><dd>每天手动扫描 10+ 个政府网站</dd>
+      </dl>
+    </div>
+
+    <div class="persona-card">
+      <div class="persona-id">P3</div>
+      <div class="persona-name">产品经理 (Maurice)</div>
+      <dl>
+        <dt>场景</dt><dd>正在构建合规产品，需要知识库作为基础设施</dd>
+        <dt>目标</dt><dd>可靠、可查询、保持最新的财税知识图谱</dd>
+        <dt>交互方式</dt><dd>CLI + API + 仪表盘</dd>
+        <dt>痛点</dt><dd>中国税务领域缺乏结构化数据源</dd>
+      </dl>
+    </div>
+  </div>
+
+  <!-- 2. 用户旅程图 -->
+  <h2>2. 用户旅程图</h2>
+
+  <!-- Journey A -->
+  <h3>旅程 A：AI 智能体税务查询</h3>
+
+  <div class="journey-flow">
+    <div class="journey-step trigger">
+      <span class="step-label trigger-label">触发</span>
+      <div class="step-title">用户向 OpenClaw 提问</div>
+      <div class="step-details">"软件企业增值税优惠政策有哪些？"</div>
+    </div>
+
+    <div class="journey-step">
+      <span class="step-number">步骤 1</span>
+      <div class="step-title">OpenClaw 路由至 CogNebula MCP 工具</div>
+      <div class="step-details">调用 <code>tax_query</code> 工具</div>
+    </div>
+
+    <div class="journey-step">
+      <span class="step-number">步骤 2</span>
+      <div class="step-title">CogNebula 混合 RAG 检索</div>
+      <ul class="sub-steps">
+        <li>LanceDB 语义搜索 -- 返回 top-5 相关文档</li>
+        <li>KuzuDB 图谱遍历 -- 政策 -> 税种 -> 行业链</li>
+        <li>分层上下文组装（4K token 预算）</li>
+      </ul>
+    </div>
+
+    <div class="journey-step">
+      <span class="step-number">步骤 3</span>
+      <div class="step-title">返回结构化 Markdown</div>
+      <ul class="sub-steps">
+        <li>适用政策（含生效日期）</li>
+        <li>税率 + 免税条件</li>
+        <li>相关条款（全文）</li>
+        <li>判例先例（如有）</li>
+      </ul>
+    </div>
+
+    <div class="journey-step">
+      <span class="step-number">步骤 4</span>
+      <div class="step-title">OpenClaw 综合生成回答</div>
+      <div class="step-details">将结构化上下文整合为自然语言回复</div>
+    </div>
+
+    <div class="journey-step result">
+      <span class="step-label result-label">结果</span>
+      <div class="step-title">用户收到有据可查、附带引用的税务指导</div>
+    </div>
+  </div>
+
+  <div class="quality-gates">
+    <h4>质量门禁</h4>
+    <ul>
+      <li>Precision@5 >= 85%（前 5 条结果中相关结果占比）</li>
+      <li>响应时间 < 3 秒（MCP 往返）</li>
+      <li>Token 预算遵守：上下文 <= 4K tokens</li>
+    </ul>
+  </div>
+
+  <!-- Journey B -->
+  <h3>旅程 B：每日法规监控</h3>
+
+  <div class="journey-flow">
+    <div class="journey-step trigger">
+      <span class="step-label trigger-label">触发</span>
+      <div class="step-title">VPS 定时任务启动</div>
+      <div class="step-details">每日 06:00 UTC，<code>finance-tax-crawl.sh</code> 7 阶段流水线开始执行</div>
+    </div>
+
+    <div class="journey-step">
+      <span class="step-number">步骤 1</span>
+      <div class="step-title">AI-Fleet 技能抓取器爬取 5 个活跃数据源</div>
+      <div class="step-details">顺序执行，每源间隔 5 秒礼貌延迟</div>
+      <ul class="sub-steps">
+        <li>chinatax.gov.cn：132 条（非 SPA 回退方案）</li>
+        <li>mof.gov.cn：50 条（正则解析器）</li>
+        <li>pbc.gov.cn：10 条（条法司）</li>
+        <li>safe.gov.cn：60 条（外汇管理局，3 个板块）</li>
+        <li>csrc.gov.cn：177 条（证监会，3 个板块）</li>
+      </ul>
+    </div>
+
+    <div class="journey-step">
+      <span class="step-number">步骤 2</span>
+      <div class="step-title">变更检测（按数据源）</div>
+      <ul class="sub-steps">
+        <li>哈希比对：是否存在二进制变更？</li>
+        <li>如有变更：unified_diff 识别变更段落</li>
+        <li>如为重大变更：embedding 相似度 < 0.95</li>
+      </ul>
+    </div>
+
+    <div class="journey-step">
+      <span class="step-number">步骤 3</span>
+      <div class="step-title">新增/变更内容处理</div>
+      <ul class="sub-steps">
+        <li>Trafilatura 文本提取</li>
+        <li>基于规则的 NER（法规编号、日期、税率）</li>
+        <li>KuzuDB 节点 upsert + 边关系创建</li>
+        <li>LanceDB 向量嵌入生成</li>
+      </ul>
+    </div>
+
+    <div class="journey-step">
+      <span class="step-number">步骤 4</span>
+      <div class="step-title">告警推送</div>
+      <div class="step-details">Telegram 推送："NOTE: 检测到 3 条新政策"</div>
+      <ul class="sub-steps">
+        <li>政策 A：[标题]（生效日期：YYYY-MM-DD）</li>
+        <li>政策 B：[标题]（修订：[旧政策编号]）</li>
+        <li>政策 C：[标题]（行业：软件）</li>
+      </ul>
+    </div>
+
+    <div class="journey-step result">
+      <span class="step-label result-label">结果</span>
+      <div class="step-title">CF Pages 仪表盘更新</div>
+      <ul class="sub-steps">
+        <li>时间线视图：本周所有变更</li>
+        <li>影响分析：受影响的行业/税种</li>
+        <li>全文 + 差异高亮</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="quality-gates">
+    <h4>质量门禁</h4>
+    <ul>
+      <li>爬取完成率：全部 15+ 数据源均已检查</li>
+      <li>变更检测延迟：发布后 24 小时内</li>
+      <li>告警送达：检测后 30 分钟内</li>
+      <li>一级数据源变更零漏检</li>
+    </ul>
+  </div>
+
+  <!-- Journey C -->
+  <h3>旅程 C：合规检查工作流</h3>
+
+  <div class="journey-flow">
+    <div class="journey-step trigger">
+      <span class="step-label trigger-label">触发</span>
+      <div class="step-title">用户提问</div>
+      <div class="step-details">"我们公司是杭州的软件企业，今年要缴哪些税？"</div>
+    </div>
+
+    <div class="journey-step">
+      <span class="step-number">步骤 1</span>
+      <div class="step-title">OpenClaw 意图解析</div>
+      <ul class="sub-steps">
+        <li>管辖区域：杭州市（浙江省）</li>
+        <li>行业：软件（GB 65）</li>
+        <li>纳税人类型：企业（默认一般纳税人）</li>
+        <li>时间：2026 年度</li>
+      </ul>
+    </div>
+
+    <div class="journey-step">
+      <span class="step-number">步骤 2</span>
+      <div class="step-title">MCP 工具调用：<code>compliance_check</code></div>
+      <div class="step-details">输入：{industry: "软件", jurisdiction: "杭州", taxpayer: "一般纳税人", year: 2026}</div>
+    </div>
+
+    <div class="journey-step">
+      <span class="step-number">步骤 3</span>
+      <div class="step-title">图谱遍历</div>
+      <ul class="sub-steps">
+        <li>管辖区(杭州) -> 上级 -> 管辖区(浙江) -> 上级 -> 管辖区(国家)</li>
+        <li>各层级：GOVERNS -> 法规</li>
+        <li>筛选：status=active, effective_date <= 2026-03-14</li>
+        <li>行业(软件)：APPLIES_TO <- 税种(*)</li>
+        <li>纳税人类型(一般纳税人)：SCOPED_TO <- 政策(*)</li>
+      </ul>
+    </div>
+
+    <div class="journey-step">
+      <span class="step-number">步骤 4</span>
+      <div class="step-title">组装合规清单</div>
+      <ul class="sub-steps">
+        <li>增值税：6%（软件服务）/ 13%（软件产品），优惠：即征即退（超 3% 部分）</li>
+        <li>企业所得税：25%（标准）/ 15%（高新技术）</li>
+        <li>附加税：城建税 + 教育费附加</li>
+        <li>印花税：合同类</li>
+        <li>地方性优惠：浙江省特有政策</li>
+      </ul>
+    </div>
+
+    <div class="journey-step result">
+      <span class="step-label result-label">结果</span>
+      <div class="step-title">返回带引用的合规清单</div>
+      <div class="step-details">[法规编号] + [条款号] + [有效期]</div>
+    </div>
+  </div>
+
+  <!-- Journey D -->
+  <h3>旅程 D：专家摘要生产</h3>
+
+  <div class="journey-flow">
+    <div class="journey-step trigger">
+      <span class="step-label trigger-label">触发</span>
+      <div class="step-title">定时调度</div>
+      <div class="step-details">每日 09:30 CST（复用现有专家团流水线）</div>
+    </div>
+
+    <div class="journey-step">
+      <span class="step-number">步骤 1</span>
+      <div class="step-title">秦税安专家（UC-81~90）激活</div>
+      <ul class="sub-steps">
+        <li><code>web_search</code>：最新税务政策变化</li>
+        <li>CogNebula MCP：<code>change_monitor(last_24h)</code></li>
+        <li>综合：网络时效性 + 图谱深度</li>
+      </ul>
+    </div>
+
+    <div class="journey-step">
+      <span class="step-number">步骤 2</span>
+      <div class="step-title">生成分析报告</div>
+      <ul class="sub-steps">
+        <li>3-5 条重点更新 + 影响评估</li>
+        <li>风险信号（即将到期的截止日、失效政策）</li>
+        <li>合规团队行动项</li>
+      </ul>
+    </div>
+
+    <div class="journey-step result">
+      <span class="step-label result-label">结果</span>
+      <div class="step-title">多渠道交付（复用现有管线）</div>
+      <ul class="sub-steps">
+        <li>HTML 海报（800x1120，Bloomberg 风格）</li>
+        <li>Playwright 截图</li>
+        <li>Telegram 推送（截图 + 3 行 TLDR）</li>
+        <li>CF Pages：ai-fleet-dashboard.pages.dev/finance-tax-digest-YYYY-MM-DD.html</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- 3. 触点矩阵 -->
+  <h2>3. 触点矩阵</h2>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>触点</th>
+          <th>用户</th>
+          <th>渠道</th>
+          <th>频率</th>
+          <th>内容</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>MCP <code>tax_query</code></td>
+          <td>AI 智能体</td>
+          <td>stdio</td>
+          <td>按需</td>
+          <td>结构化上下文</td>
+        </tr>
+        <tr>
+          <td>MCP <code>compliance_check</code></td>
+          <td>AI 智能体</td>
+          <td>stdio</td>
+          <td>按需</td>
+          <td>合规清单</td>
+        </tr>
+        <tr>
+          <td>MCP <code>change_monitor</code></td>
+          <td>AI 智能体 / 专家</td>
+          <td>stdio</td>
+          <td>每日</td>
+          <td>变更摘要</td>
+        </tr>
+        <tr>
+          <td>Telegram 告警</td>
+          <td>合规专员</td>
+          <td>Telegram</td>
+          <td>有变更时</td>
+          <td>新政策通知</td>
+        </tr>
+        <tr>
+          <td>专家摘要</td>
+          <td>所有用户</td>
+          <td>Telegram + CF Pages</td>
+          <td>每日 09:30</td>
+          <td>分析 + TLDR</td>
+        </tr>
+        <tr>
+          <td>仪表盘</td>
+          <td>产品经理</td>
+          <td>浏览器</td>
+          <td>按需</td>
+          <td>时间线 + 影响视图</td>
+        </tr>
+        <tr>
+          <td>CLI 查询</td>
+          <td>开发者</td>
+          <td>终端</td>
+          <td>按需</td>
+          <td>原始 Cypher / 搜索</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- 4. 异常状态与恢复 -->
+  <h2>4. 异常状态与恢复</h2>
+
+  <div class="table-wrapper">
+    <table class="error-table">
+      <thead>
+        <tr>
+          <th>异常</th>
+          <th>用户影响</th>
+          <th>恢复策略</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>爬虫被政府网站拦截</td>
+          <td>数据过期（无更新）</td>
+          <td>更换 UA 重试；连续 3 次失败后告警</td>
+        </tr>
+        <tr>
+          <td>KuzuDB 查询超时</td>
+          <td>MCP 响应变慢</td>
+          <td>缓存高频查询；10 秒超时返回部分结果</td>
+        </tr>
+        <tr>
+          <td>Embedding API 不可用</td>
+          <td>语义搜索失效</td>
+          <td>降级为 KuzuDB 文本搜索（query_symbols）</td>
+        </tr>
+        <tr>
+          <td>PDF OCR 失败</td>
+          <td>文档内容缺失</td>
+          <td>加入人工审核队列；图谱中标记 <code>ocr_failed</code></td>
+        </tr>
+        <tr>
+          <td>变更检测误报</td>
+          <td>不必要的告警</td>
+          <td>告警中附带置信度分数；阈值设为 0.95</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- 5. 信息架构 -->
+  <h2>5. 信息架构</h2>
+
+  <div class="ia-tree">
+    <div class="tree-root">仪表盘 (CF Pages)</div>
+    <div>&nbsp;&nbsp;+-- <span class="accent">/finance-tax/</span> <span class="tree-comment">// 落地页</span></div>
+    <div>&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;+-- <span class="accent">/timeline</span> <span class="tree-comment">// 按时间线查看政策更新</span></div>
+    <div>&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;+-- <span class="accent">/by-tax-type</span> <span class="tree-comment">// 按税种浏览：增值税/所得税/...</span></div>
+    <div>&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;+-- <span class="accent">/by-jurisdiction</span> <span class="tree-comment">// 按管辖区浏览：国家/省/市</span></div>
+    <div>&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;+-- <span class="accent">/search</span> <span class="tree-comment">// 全文 + 图谱搜索</span></div>
+    <div>&nbsp;&nbsp;+-- <span class="accent">/finance-tax-digest-{date}.html</span> <span class="tree-comment">// 每日专家摘要</span></div>
+    <div>&nbsp;&nbsp;+-- <span class="accent">/finance-tax-report-{date}.html</span> <span class="tree-comment">// 每周汇总报告</span></div>
+  </div>
+
+</div>
+
+<footer>
+    <p>CogNebula Finance/Tax KB v3.0 -- 用户体验地图</p>
+    <p>Maurice | maurice_wen@proton.me</p>
+    <p class="gen-note">2026-03-15 生成 | 基于 USER_EXPERIENCE_MAP.md v1.0</p>
+</footer>
+
+</body>
+</html>

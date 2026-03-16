@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CogNebula 财税知识库 -- 100K 节点扩容战略</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue-900: #002855;
+  --blue-700: #003A70;
+  --blue-500: #0066B3;
+  --blue-100: #E8F0FE;
+  --blue-50: #F4F7FB;
+  --green: #1B7F4B;
+  --green-light: #E6F4EC;
+  --amber: #D4850D;
+  --amber-light: #FEF3E0;
+  --red: #C4281C;
+  --red-light: #FDECEB;
+  --ink: #1A1A2E;
+  --body: #2D2D3F;
+  --secondary: #5A5A72;
+  --muted: #8E8EA0;
+  --rule: #D4D4DC;
+  --bg: #FFFFFF;
+  --bg-gray: #F5F5F8;
+  --bg-dark: #002855;
+  --font-headline: 'Inter', 'Noto Sans SC', 'PingFang SC', sans-serif;
+  --font-body: 'Inter', 'Noto Sans SC', 'PingFang SC', sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-body); color: var(--body); line-height: 1.7; background: var(--bg); }
+.container { max-width: 1040px; margin: 0 auto; padding: 0 32px; }
+
+/* Hero */
+.hero { background: var(--bg-dark); color: #fff; padding: 56px 0 48px; }
+.hero h1 { font-family: var(--font-headline); font-weight: 900; font-size: 2.2rem; margin-bottom: 16px; letter-spacing: -0.02em; }
+.hero .subtitle { color: rgba(255,255,255,0.75); font-size: 1rem; line-height: 1.8; max-width: 720px; }
+.hero .meta { margin-top: 20px; font-size: 13px; color: rgba(255,255,255,0.5); font-family: var(--font-mono); }
+
+/* Key Message Bar */
+.key-message { background: var(--blue-100); border-left: 4px solid var(--blue-700); padding: 20px 24px; margin: 32px 0; font-size: 1.05rem; font-weight: 600; color: var(--ink); }
+
+/* Section */
+.section { margin: 48px 0; }
+.section-number { font-family: var(--font-headline); font-weight: 900; font-size: 3rem; color: var(--blue-700); line-height: 1; margin-bottom: 4px; }
+.section-title { font-family: var(--font-headline); font-weight: 800; font-size: 1.4rem; color: var(--ink); margin-bottom: 8px; border-bottom: 3px solid var(--ink); padding-bottom: 8px; display: inline-block; }
+.section-lead { color: var(--secondary); font-size: 0.95rem; margin-bottom: 24px; }
+
+/* Gray Box */
+.gray-box { background: var(--bg-gray); padding: 24px; border-radius: 0; margin: 20px 0; }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 16px 0; }
+th { background: var(--blue-900); color: #fff; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; padding: 10px 14px; text-align: left; }
+th.num { text-align: right; }
+td { padding: 10px 14px; border-bottom: 1px solid var(--rule); }
+tr:nth-child(even) td { background: var(--blue-50); }
+td.num { text-align: right; font-family: var(--font-mono); font-size: 13px; }
+td.green { color: var(--green); font-weight: 600; }
+td.amber { color: var(--amber); font-weight: 600; }
+td.red { color: var(--red); font-weight: 600; }
+
+/* Signal Tags */
+.tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+.tag-green { background: var(--green-light); color: var(--green); }
+.tag-amber { background: var(--amber-light); color: var(--amber); }
+.tag-red { background: var(--red-light); color: var(--red); }
+.tag-blue { background: var(--blue-100); color: var(--blue-700); }
+
+/* Pillar Grid */
+.pillar-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 24px 0; }
+.pillar { background: var(--bg-gray); padding: 24px; border-top: 4px solid var(--blue-700); }
+.pillar h4 { font-weight: 800; font-size: 1rem; color: var(--ink); margin-bottom: 8px; }
+.pillar .num { font-family: var(--font-mono); font-size: 2rem; font-weight: 700; color: var(--blue-700); }
+.pillar p { font-size: 13px; color: var(--secondary); margin-top: 8px; }
+
+/* Progress Bar */
+.progress-bar { height: 8px; background: #E0E0E0; border-radius: 4px; overflow: hidden; margin: 8px 0; }
+.progress-bar span { display: block; height: 100%; border-radius: 4px; }
+.pb-green { background: var(--green); }
+.pb-amber { background: var(--amber); }
+.pb-red { background: var(--red); }
+
+/* Swarm Architecture */
+.swarm-flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 24px 0; }
+.swarm-box { background: var(--bg-gray); padding: 16px; border-top: 3px solid var(--blue-500); text-align: center; }
+.swarm-box h5 { font-weight: 800; font-size: 13px; color: var(--ink); margin-bottom: 6px; }
+.swarm-box p { font-size: 12px; color: var(--secondary); }
+.arrow-right { display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--blue-700); font-weight: 900; }
+
+/* 2x2 Matrix */
+.matrix-2x2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: var(--rule); margin: 20px 0; }
+.matrix-cell { background: var(--bg); padding: 20px; }
+.matrix-cell h5 { font-weight: 700; font-size: 13px; color: var(--blue-700); margin-bottom: 8px; text-transform: uppercase; }
+
+.footer { text-align: center; padding: 60px 20px 40px; color: var(--muted); font-size: 13px; line-height: 2.2; }
+.footer .attr { font-size: 12px; margin-top: 8px; }
+
+@media (max-width: 768px) {
+  .pillar-grid, .swarm-flow { grid-template-columns: 1fr; }
+  .matrix-2x2 { grid-template-columns: 1fr; }
+  .hero h1 { font-size: 1.6rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="container">
+    <h1>CogNebula 财税知识库<br>18K -> 100K 节点扩容战略</h1>
+    <p class="subtitle">三个核心问题的系统回答：本地资料利用率审计、3 层架构完备性评估、10 万节点生产部署路线图。含 AI 合成数据多蜂群质控架构设计。</p>
+    <p class="meta">v1.0 | 2026-03-15 | McKinsey Blue | Swarm Intelligence Report</p>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- KEY MESSAGE -->
+<div class="key-message">
+  Core Finding: doc-tax 本地资料利用率仅 5%（~100/2,066 文件）。3 层架构整体完备度 32%，L2 操作层是关键瓶颈（25%）。达到 100K 需要 4 条路径并行：结构化数据源（+20K）、爬虫扩展（+30K）、AI 合成（+25K）、专业源（+10K），总周期 20 周，成本 $0-10。
+</div>
+
+<!-- SECTION 1: DOC-TAX UTILIZATION -->
+<div class="section">
+  <div class="section-number">01</div>
+  <div class="section-title">本地资料利用率审计</div>
+  <p class="section-lead">doc-tax 目录含 2,066 个文件，当前仅提取约 100 个（5%）。大量高价值资料未触碰。</p>
+
+  <div class="pillar-grid">
+    <div class="pillar">
+      <div class="num">2,066</div>
+      <h4>总文件数</h4>
+      <p>含 PDF, doc/docx, xlsx/xls, png/jpg, rar/zip, mp4, rp</p>
+    </div>
+    <div class="pillar">
+      <div class="num" style="color:var(--red)">~100</div>
+      <h4>已提取文件</h4>
+      <p>CPA 29 PDF + mindmap 30 docx + industry 29 + templates 185 (embedded)</p>
+    </div>
+    <div class="pillar">
+      <div class="num" style="color:var(--amber)">~1,620</div>
+      <h4>可提取未处理</h4>
+      <p>排除 343 视频 + 12 非财税文件 = 1,620 有效文件待处理</p>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>目录</th><th class="num">文件数</th><th>已提取</th><th>价值</th><th>层</th><th>关键缺口</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>企业报告示例/</td><td class="num">8</td>
+        <td class="red">0%</td><td class="red">P0</td><td>L3</td>
+        <td>税务风险/经营参谋/融资/尽调 4 类报告模板，定义 Agent 输出格式</td>
+      </tr>
+      <tr>
+        <td>财税实战答疑脑图 (1163问)</td><td class="num">1</td>
+        <td class="red">0%</td><td class="red">P0</td><td>L1</td>
+        <td>1,163 个结构化 QA 对，直接建 FAQ 节点</td>
+      </tr>
+      <tr>
+        <td>顶层 xlsx (云苍穹/经营分析)</td><td class="num">4</td>
+        <td class="red">0%</td><td class="red">P0</td><td>L2</td>
+        <td>产品数据模型、财务分析指标体系、经营分析框架</td>
+      </tr>
+      <tr>
+        <td>mindmap 低提取率修复</td><td class="num">3</td>
+        <td class="amber">异常</td><td class="red">P0</td><td>L1</td>
+        <td>行业相关(1节点/7MB)、公司相关(3节点)、财税优化(49节点) 提取质量异常</td>
+      </tr>
+      <tr>
+        <td>9.财税实战资料下载/</td><td class="num">227</td>
+        <td class="red">0%</td><td class="amber">P1</td><td>L2</td>
+        <td>电子税局实操手册、纳税申报视频课件(含 PDF)</td>
+      </tr>
+      <tr>
+        <td>7.财税AI实战应用/</td><td class="num">18</td>
+        <td class="red">0%</td><td class="amber">P1</td><td>L2</td>
+        <td>DeepSeek 12 个财务实战案例，AI+财税交叉知识</td>
+      </tr>
+      <tr>
+        <td>8.财务报表可视模版/</td><td class="num">22</td>
+        <td class="red">0%</td><td class="amber">P1</td><td>L3</td>
+        <td>Excel 可视化看板，可提取指标维度体系</td>
+      </tr>
+      <tr>
+        <td>进销存表/</td><td class="num">27</td>
+        <td class="red">0%</td><td class="amber">P1</td><td>L3</td>
+        <td>完整进销存字段 schema + 报表勾稽关系</td>
+      </tr>
+      <tr>
+        <td>6.实用合同范本模版/</td><td class="num">974</td>
+        <td class="red">0%</td><td>P2</td><td>L2</td>
+        <td>23 类合同模板，批量提取关键条款</td>
+      </tr>
+      <tr>
+        <td>CPA 真题 1997-2020</td><td class="num">4 rar/zip</td>
+        <td class="red">0%</td><td>P2</td><td>L1</td>
+        <td>需解压后提取，高质量考题+标准答案</td>
+      </tr>
+      <tr>
+        <td>注会分录 PNG</td><td class="num">25</td>
+        <td class="red">0%</td><td>P2</td><td>L1</td>
+        <td>需 OCR/multimodal 提取会计分录流程图</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="key-message" style="border-left-color:var(--amber)">
+    Action Required: 4 个 P0 缺口可在 1 周内填补，预计新增 ~2,000 节点。mindmap 低提取率的 3 个文件需排查提取脚本 bug 后重跑。
+  </div>
+</div>
+
+<!-- SECTION 2: 3-LAYER COMPLETENESS -->
+<div class="section">
+  <div class="section-number">02</div>
+  <div class="section-title">3 层架构完备性评估</div>
+  <p class="section-lead">对标生产级中国财税知识系统基准，当前整体完备度 32%。6 个 P0 缺口阻碍生产部署。</p>
+
+  <div class="pillar-grid">
+    <div class="pillar" style="border-top-color:var(--green)">
+      <h4>L1 法规中心</h4>
+      <div class="num" style="color:var(--green)">~60%</div>
+      <div class="progress-bar"><span class="pb-green" style="width:60%"></span></div>
+      <p>13,031 nodes | P0: TaxIncentive (8/250 = 3%)</p>
+    </div>
+    <div class="pillar" style="border-top-color:var(--red)">
+      <h4>L2 操作中心</h4>
+      <div class="num" style="color:var(--red)">~25%</div>
+      <div class="progress-bar"><span class="pb-red" style="width:25%"></span></div>
+      <p>273 nodes | P0: AccountEntry(1%), ChartOfAccount(10%), FilingStep(10%), BusinessScenario(22%)</p>
+    </div>
+    <div class="pillar" style="border-top-color:var(--red)">
+      <h4>L3 合规中心</h4>
+      <div class="num" style="color:var(--red)">~10%</div>
+      <div class="progress-bar"><span class="pb-red" style="width:10%"></span></div>
+      <p>301 nodes | P0: RiskIndicator(14%), AdminRegion(1%), TaxAuthority(3%)</p>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>Table</th><th class="num">Current</th><th class="num">Production Target</th><th class="num">%</th><th>Priority</th><th>Gap</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>LawOrRegulation</td><td class="num">12,952</td><td class="num">15,000-20,000</td><td class="num green">65-86%</td><td><span class="tag tag-amber">P1</span></td><td>缺税收协定、司法解释、历史版本</td></tr>
+      <tr><td>TaxIncentive</td><td class="num">8</td><td class="num">250</td><td class="num red">3%</td><td><span class="tag tag-red">P0</span></td><td>增值税/企业所得税/个税优惠政策目录严重缺失</td></tr>
+      <tr><td>AccountEntry</td><td class="num">10</td><td class="num">500</td><td class="num red">2%</td><td><span class="tag tag-red">P0</span></td><td>会计分录模板是 L2 核心交付物，当前几乎为空</td></tr>
+      <tr><td>ChartOfAccount</td><td class="num">30</td><td class="num">250</td><td class="num red">12%</td><td><span class="tag tag-red">P0</span></td><td>企业会计准则科目表约 160 个一级科目，仅覆盖 30</td></tr>
+      <tr><td>OP_FilingStep</td><td class="num">15</td><td class="num">120</td><td class="num red">13%</td><td><span class="tag tag-red">P0</span></td><td>仅增值税+企业所得税，缺 16 个税种申报流程</td></tr>
+      <tr><td>OP_BusinessScenario</td><td class="num">43</td><td class="num">180</td><td class="num red">24%</td><td><span class="tag tag-red">P0</span></td><td>缺跨税种场景、并购重组、关联交易等复杂场景</td></tr>
+      <tr><td>RiskIndicator</td><td class="num">273</td><td class="num">1,500</td><td class="num amber">18%</td><td><span class="tag tag-red">P0</span></td><td>需每行业 50+ 指标（金税四期检测规则）</td></tr>
+      <tr><td>OP_StandardCase</td><td class="num">398</td><td class="num">800</td><td class="num amber">50%</td><td><span class="tag tag-amber">P1</span></td><td>含 CPA 267 pending，质量较好但量不足</td></tr>
+      <tr><td>AdministrativeRegion</td><td class="num">5</td><td class="num">350</td><td class="num red">1%</td><td><span class="tag tag-amber">P1</span></td><td>仅 5 个占位符，无法支撑属地化查询</td></tr>
+      <tr><td>TaxAuthority</td><td class="num">5</td><td class="num">100</td><td class="num red">5%</td><td><span class="tag tag-amber">P1</span></td><td>缺省级+市级税务局</td></tr>
+      <tr><td>ComplianceRule</td><td class="num">84</td><td class="num">400</td><td class="num amber">21%</td><td><span class="tag tag-amber">P1</span></td><td>月度/季度/年度合规义务不完整</td></tr>
+      <tr><td>Penalty</td><td class="num">5</td><td class="num">60</td><td class="num red">8%</td><td><span class="tag tag-amber">P1</span></td><td>征管法数十种处罚场景仅覆盖 5 个</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- SECTION 3: SCALING ROADMAP -->
+<div class="section">
+  <div class="section-number">03</div>
+  <div class="section-title">100K 节点扩容路线图</div>
+  <p class="section-lead">4 条路径并行，20 周达到 100K+。P0 结构化数据先行（为 AI 合成提供骨架），爬虫和 AI 合成重叠推进。</p>
+
+  <table>
+    <thead>
+      <tr><th>Sprint</th><th>策略</th><th class="num">新增节点</th><th class="num">累计</th><th>周期</th><th class="num">成本</th><th>质量</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="font-weight:700;color:var(--blue-700)">Sprint 0 (now)</td>
+        <td>doc-tax P0 缺口填补</td>
+        <td class="num">+2,000</td><td class="num">20,000</td>
+        <td>1 周</td><td class="num">$0</td>
+        <td><span class="tag tag-green">HIGH</span></td>
+      </tr>
+      <tr>
+        <td style="font-weight:700;color:var(--blue-700)">Sprint 1 (W1-4)</td>
+        <td>P0 结构化数据源注入</td>
+        <td class="num">+20,000</td><td class="num">38,000</td>
+        <td>4 周</td><td class="num">$0</td>
+        <td><span class="tag tag-green">极高</span></td>
+      </tr>
+      <tr>
+        <td style="font-weight:700;color:var(--blue-700)">Sprint 2 (W3-10)</td>
+        <td>爬虫扩展（12366/省局/社区）</td>
+        <td class="num">+30,000</td><td class="num">68,000</td>
+        <td>8 周</td><td class="num">$0</td>
+        <td><span class="tag tag-green">HIGH</span></td>
+      </tr>
+      <tr>
+        <td style="font-weight:700;color:var(--blue-700)">Sprint 3 (W6-14)</td>
+        <td>专业/教育源</td>
+        <td class="num">+10,000</td><td class="num">78,000</td>
+        <td>8 周</td><td class="num">$0</td>
+        <td><span class="tag tag-green">HIGH</span></td>
+      </tr>
+      <tr style="background:var(--blue-100)">
+        <td style="font-weight:700;color:var(--blue-700)">Sprint 4 (W8-20)</td>
+        <td>AI 合成 + Multi-Swarm 审核</td>
+        <td class="num">+25,000</td><td class="num" style="font-weight:700;font-size:16px">103,000</td>
+        <td>12 周</td><td class="num">$0-5</td>
+        <td><span class="tag tag-amber">REVIEWED</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="gray-box">
+    <h4 style="font-weight:800;margin-bottom:12px">Sprint 1 结构化数据源明细（+20,000 节点，零风险）</h4>
+    <table>
+      <thead><tr><th>数据集</th><th class="num">节点量</th><th>来源</th><th>周期</th></tr></thead>
+      <tbody>
+        <tr><td>HS 海关编码（前 8 位）</td><td class="num">10,000</td><td>海关总署公开编码表</td><td>2 周</td></tr>
+        <tr><td>行政区划代码（县级以上）</td><td class="num">3,000</td><td>民政部行政区划代码</td><td>2 天</td></tr>
+        <tr><td>税收优惠政策目录</td><td class="num">2,000</td><td>SAT 减免税政策代码表</td><td>1 周</td></tr>
+        <tr><td>GB/T 4754 行业分类（4 级树）</td><td class="num">1,500</td><td>国家标准全文公开</td><td>1 周</td></tr>
+        <tr><td>会计科目映射表（3 套准则）</td><td class="num">800</td><td>财政部企业会计准则科目表</td><td>3 天</td></tr>
+        <tr><td>纳税申报日历</td><td class="num">500</td><td>SAT 纳税人办税指南</td><td>3 天</td></tr>
+        <tr><td>税率表全集</td><td class="num">300</td><td>各税种税率条文</td><td>2 天</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- SECTION 4: AI SYNTHESIS ARCHITECTURE -->
+<div class="section">
+  <div class="section-number">04</div>
+  <div class="section-title">AI 合成数据 + Multi-Swarm 质控架构</div>
+  <p class="section-lead">AI 合成是达到 100K 的关键杠杆（+25K），但必须配合 4 层蜂群审核确保零幻觉。</p>
+
+  <div class="key-message" style="border-left-color:var(--red)">
+    核心原则：每个 AI 合成节点必须附带 citation（引用已入库的法规节点 ID）。无引用的节点直接丢弃。AI 合成节点永久带 source_tier: "L4_ai_synthesized" 标签。
+  </div>
+
+  <h3 style="font-weight:800;margin:24px 0 16px">4.1 合成类型与产量预估</h3>
+  <table>
+    <thead><tr><th>合成类型</th><th>计算公式</th><th class="num">节点量</th><th>质量依赖</th></tr></thead>
+    <tbody>
+      <tr><td>行业分录模板</td><td>30 行业 x 80 场景</td><td class="num">2,400</td><td>需 CPA 级校验</td></tr>
+      <tr><td>行业风险指标</td><td>30 行业 x 60 指标</td><td class="num">1,800</td><td>需引用真实预警值</td></tr>
+      <tr><td>税收优惠适用指南</td><td>200 优惠 x 30 行业（筛选后）</td><td class="num">6,000</td><td>需验证适用条件匹配</td></tr>
+      <tr><td>问答对生成 (FAQ)</td><td>基于 12366 扩展</td><td class="num">8,000</td><td>需 fact-check</td></tr>
+      <tr><td>合规检查清单</td><td>30 行业 x 12 月 x 3 税种</td><td class="num">1,080</td><td>需绑定申报日历</td></tr>
+      <tr><td>会计准则 vs 税法差异</td><td>42 准则 x 相关税种</td><td class="num">500</td><td>高价值，需精确</td></tr>
+      <tr><td>常见错误/风险场景</td><td>30 行业 x 50 错误类型</td><td class="num">1,500</td><td>需真实案例支撑</td></tr>
+      <tr><td>跨税种关联分析 + 其余</td><td>组合展开</td><td class="num">3,720</td><td>需验证关联性</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="font-weight:800;margin:24px 0 16px">4.2 Multi-Swarm 审核管线</h3>
+
+  <div class="swarm-flow">
+    <div class="swarm-box" style="border-top-color:var(--blue-500)">
+      <h5>Swarm 1: Generator</h5>
+      <p>Gemini Flash<br>生成候选节点<br>必须附带 citation[]<br>无引用直接丢弃</p>
+    </div>
+    <div class="swarm-box" style="border-top-color:var(--amber)">
+      <h5>Swarm 2: Fact Checker</h5>
+      <p>Gemini Flash<br>验证 citation 真实性<br>KuzuDB 交叉验证<br>数值断言核对</p>
+    </div>
+    <div class="swarm-box" style="border-top-color:var(--green)">
+      <h5>Swarm 3: Domain Expert</h5>
+      <p>Gemini Pro<br>CPA+税务师级审核<br>借贷平衡/时效性<br>Golden Test Set 基准</p>
+    </div>
+    <div class="swarm-box" style="border-top-color:var(--red)">
+      <h5>Swarm 4: Red Team</h5>
+      <p>Gemini Pro<br>对抗性检验<br>幻觉/矛盾/边界<br>编造法规编号检测</p>
+    </div>
+  </div>
+
+  <div class="gray-box">
+    <h4 style="font-weight:800;margin-bottom:12px">Gate 规则</h4>
+    <table>
+      <tr><td>4/4 Swarm pass</td><td>confidence = 0.95</td><td class="green">自动入库</td></tr>
+      <tr><td>3/4 pass + 1 flag</td><td>confidence = 0.70</td><td class="amber">人工审核队列</td></tr>
+      <tr><td>2/4 以下 pass</td><td>confidence < 0.50</td><td class="red">丢弃</td></tr>
+    </table>
+    <p style="margin-top:12px;font-size:13px;color:var(--secondary)">月度抽检：从已入库 AI 合成节点中随机抽 5%，人工复核。Golden Test Set: 100 条人工验证标准答案作为 benchmark。</p>
+  </div>
+
+  <h3 style="font-weight:800;margin:24px 0 16px">4.3 节点质量分级标签</h3>
+  <div class="matrix-2x2">
+    <div class="matrix-cell" style="background:var(--green-light)">
+      <h5>L1 Government Source</h5>
+      <p style="font-size:13px">政府官网直接爬取，法规原文，confidence 0.99。可对外服务。</p>
+    </div>
+    <div class="matrix-cell" style="background:var(--blue-100)">
+      <h5>L2 Professional Source</h5>
+      <p style="font-size:13px">CPA 教材、协会发文、doc-tax 本地专业资料。confidence 0.90。可对外服务。</p>
+    </div>
+    <div class="matrix-cell" style="background:var(--amber-light)">
+      <h5>L3 Community Source</h5>
+      <p style="font-size:13px">chinaacc、kuaiji.com 社区精华帖。confidence 0.75。需标注来源，内部优先。</p>
+    </div>
+    <div class="matrix-cell" style="background:var(--red-light)">
+      <h5>L4 AI Synthesized</h5>
+      <p style="font-size:13px">Multi-Swarm 审核后的 AI 生成节点。confidence 0.70-0.95。永久标记 L4，用户可见。</p>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 5: IMMEDIATE ACTIONS -->
+<div class="section">
+  <div class="section-number">05</div>
+  <div class="section-title">立即执行事项</div>
+  <p class="section-lead">3 件事本周启动，为后续所有策略提供骨架。</p>
+
+  <table>
+    <thead><tr><th>#</th><th>Action</th><th>Timeline</th><th class="num">Impact</th><th>Owner</th></tr></thead>
+    <tbody>
+      <tr>
+        <td style="font-weight:900;color:var(--blue-700)">1</td>
+        <td>GB/T 4754 行业分类 + 会计科目表 + 税率表注入</td>
+        <td>本周</td><td class="num">+2,500 nodes</td>
+        <td>Dev</td>
+      </tr>
+      <tr>
+        <td style="font-weight:900;color:var(--blue-700)">2</td>
+        <td>doc-tax P0 缺口填补（企业报告/1163 问 QA/mindmap 修复）</td>
+        <td>本周</td><td class="num">+2,000 nodes</td>
+        <td>Dev</td>
+      </tr>
+      <tr>
+        <td style="font-weight:900;color:var(--blue-700)">3</td>
+        <td>Multi-Swarm 审核管线 Prototype（100 条 golden test set 跑通 4 层）</td>
+        <td>下周</td><td class="num">质控基础设施</td>
+        <td>Dev</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</div>
+
+<footer class="footer">
+  <p>CogNebula Finance/Tax KB -- 100K Scaling Strategy</p>
+  <p>Maurice | maurice_wen@proton.me</p>
+  <p class="attr">Analysis: 3-swarm parallel intelligence (doc-tax audit + completeness audit + scaling brainstorm) | 2026-03-15</p>
+</footer>
+
+</body>
+</html>

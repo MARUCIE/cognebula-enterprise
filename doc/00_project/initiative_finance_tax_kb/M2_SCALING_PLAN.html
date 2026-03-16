@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M2 Scaling Plan: 87K → 500K | CogNebula Finance-Tax KB</title>
+<style>
+:root {
+  --bg: #FAFAFA;
+  --surface: #FFFFFF;
+  --text: #1A1A2E;
+  --text-sec: #5A5A7A;
+  --blue: #0055A4;
+  --blue-light: #E8F0FE;
+  --green: #0D7C3F;
+  --green-bg: #E6F5EC;
+  --orange: #C27200;
+  --orange-bg: #FFF3E0;
+  --red: #C62828;
+  --border: #E0E0E8;
+  --divider: #F0F0F5;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans SC", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  word-break: keep-all; overflow-wrap: break-word;
+}
+.container { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+h1 { font-size: 32px; font-weight: 700; color: var(--blue); margin-bottom: 8px; }
+.subtitle { color: var(--text-sec); font-size: 15px; margin-bottom: 40px; }
+h2 { font-size: 22px; font-weight: 600; margin: 48px 0 20px; padding-bottom: 10px; border-bottom: 2px solid var(--blue); }
+h3 { font-size: 17px; font-weight: 600; margin: 28px 0 12px; }
+
+table { width: 100%; border-collapse: collapse; margin: 16px 0; background: var(--surface); border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+th { background: var(--blue); color: #fff; font-weight: 600; font-size: 13px; padding: 12px 16px; text-align: left; }
+td { padding: 10px 16px; font-size: 14px; border-bottom: 1px solid var(--divider); }
+tr:last-child td { border-bottom: none; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+.tag { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+.tag-new { background: var(--green-bg); color: var(--green); }
+.tag-existing { background: var(--blue-light); color: var(--blue); }
+.tag-fix { background: var(--orange-bg); color: var(--orange); }
+
+.phase-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin: 16px 0; }
+.phase-card h4 { font-size: 16px; margin-bottom: 12px; }
+.phase-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.phase-tag { font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px; }
+.phase-tag.p1 { background: var(--blue); color: #fff; }
+.phase-tag.p2 { background: var(--green); color: #fff; }
+.phase-tag.p3 { background: var(--orange); color: #fff; }
+
+.metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 20px 0; }
+.metric { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-align: center; }
+.metric .val { font-size: 28px; font-weight: 700; color: var(--blue); }
+.metric .lbl { font-size: 12px; color: var(--text-sec); margin-top: 4px; }
+
+ul { padding-left: 20px; }
+li { margin: 4px 0; font-size: 14px; }
+
+.lesson { background: var(--orange-bg); border-radius: 8px; padding: 16px 20px; margin: 12px 0; font-size: 14px; border-left: 4px solid var(--orange); }
+
+footer { text-align: center; padding: 60px 20px 40px; color: #9B9B9D; font-size: 13px; line-height: 2.2; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>M2 Scaling Plan: 87K → 500K</h1>
+<p class="subtitle">CogNebula Finance-Tax KB | Quality-First Scaling Strategy | 2026-03-16</p>
+
+<h2>1. M1 Lessons Learned</h2>
+
+<div class="lesson">
+<strong>Core Lesson:</strong> 100K 节点但 91.7% 孤岛率 = 实际上是文档库，不是知识图谱。M2 必须边优先（edge-first），每新增一个节点至少带 2 条边。
+</div>
+
+<div class="metric-grid">
+  <div class="metric"><div class="val">87,701</div><div class="lbl">M1 Post-Fix Nodes</div></div>
+  <div class="metric"><div class="val">92,495</div><div class="lbl">Total Edges</div></div>
+  <div class="metric"><div class="val">20.5%</div><div class="lbl">Orphan Rate (from 91.7%)</div></div>
+  <div class="metric"><div class="val">1.05</div><div class="lbl">Edge Density (target: 3.0)</div></div>
+</div>
+
+<h3>M1 Key Takeaways</h3>
+<ul>
+  <li><strong>Quality Gate 救了项目</strong> — 如果直接推 500K，50 万个孤岛节点的图谱毫无价值</li>
+  <li><strong>模板填充是技术债</strong> — 单句占位符（avg 56 chars）降低整体信噪比，向量检索污染</li>
+  <li><strong>边创建不能事后补</strong> — 批量补边遇到 schema 约束、ID 匹配、方向等问题。必须在注入时同步创建</li>
+  <li><strong>LanceDB + KuzuDB 互锁</strong> — 向量重建 6 小时锁住 DB，期间无法做任何查询或评测</li>
+</ul>
+
+<h2>2. M2 Architecture Principles</h2>
+
+<table>
+  <tr><th>Principle</th><th>M1 做法</th><th>M2 改进</th></tr>
+  <tr>
+    <td><strong>Edge-First</strong></td>
+    <td>先注入节点，事后补边</td>
+    <td>每个注入脚本必须同时创建节点+边。无边则拒绝注入。</td>
+  </tr>
+  <tr>
+    <td><strong>Quality Gate</strong></td>
+    <td>100K 后才做质量检查</td>
+    <td>每 50K 增量做一次 mini quality gate（P@5 + orphan check）</td>
+  </tr>
+  <tr>
+    <td><strong>Content Minimum</strong></td>
+    <td>无限制，56 char 也能入库</td>
+    <td>LawOrRegulation: >= 100 chars; QA: >= 50 chars; 其他: >= 30 chars</td>
+  </tr>
+  <tr>
+    <td><strong>Incremental Index</strong></td>
+    <td>全量重建 6 小时</td>
+    <td>增量嵌入：新节点即时嵌入，不锁 DB。只在 schema 变更时全量重建。</td>
+  </tr>
+  <tr>
+    <td><strong>Dedup at Source</strong></td>
+    <td>事后发现 2,867 重复</td>
+    <td>注入前 title hash 检查，重复则 MERGE（更新）而非 CREATE</td>
+  </tr>
+</table>
+
+<h2>3. Growth Path: 87K → 500K</h2>
+
+<p style="margin: 16px 0; font-size: 15px;">
+  需要新增 <strong>~412,300 节点</strong>。按数据源质量分 3 个阶段推进。
+</p>
+
+<div class="phase-card">
+  <div class="phase-header">
+    <h4>Phase 1: Clause-Level Deep Split（+180K nodes）</h4>
+    <span class="phase-tag p1">P1 — 4 weeks</span>
+  </div>
+  <p style="font-size:14px; color:var(--text-sec); margin-bottom:12px;">
+    最高质量的增长路径。将现有法规拆分到条款/款/项级别，每个子条款生成 QA 对。全部 L1 质量。
+  </p>
+  <table>
+    <tr><th>Data Source</th><th class="num">Nodes</th><th>Quality</th><th>Edge Strategy</th></tr>
+    <tr>
+      <td>Regulation → Article/Paragraph/Item split</td>
+      <td class="num">~120,000</td>
+      <td><span class="tag tag-existing">L1 Authoritative</span></td>
+      <td>CLAUSE_OF → parent regulation; LR_ABOUT_TAX → tax type</td>
+    </tr>
+    <tr>
+      <td>Clause-level QA generation (Gemini)</td>
+      <td class="num">~60,000</td>
+      <td><span class="tag tag-new">L2 Operational</span></td>
+      <td>DERIVED_FROM → source clause; LR_ABOUT_TAX → tax type</td>
+    </tr>
+  </table>
+  <div class="lesson" style="margin-top:12px;">
+    <strong>Why this first:</strong> 拆分现有法规是零成本（无需爬取），全部 L1 权威来源，每个子条款自然继承父法规的边关系。120K 高质量条款级节点 > 300K 模板填充。
+  </div>
+</div>
+
+<div class="phase-card">
+  <div class="phase-header">
+    <h4>Phase 2: Source Expansion（+150K nodes）</h4>
+    <span class="phase-tag p2">P2 — 8 weeks</span>
+  </div>
+  <table>
+    <tr><th>Data Source</th><th class="num">Nodes</th><th>Quality</th><th>Method</th></tr>
+    <tr>
+      <td>Provincial tax bureau policies (31 provinces)</td>
+      <td class="num">~46,500</td>
+      <td><span class="tag tag-existing">L1</span></td>
+      <td>fetch_provincial.py (fix Hanweb + add more provinces)</td>
+    </tr>
+    <tr>
+      <td>ChinaAcc deep crawl (full 39 sections)</td>
+      <td class="num">~28,000</td>
+      <td><span class="tag tag-new">L2</span></td>
+      <td>fetch_chinaacc.py (complete remaining 37 sections)</td>
+    </tr>
+    <tr>
+      <td>Tax classification code expansion (full 5-level)</td>
+      <td class="num">~38,000</td>
+      <td><span class="tag tag-existing">Reference</span></td>
+      <td>inject_tax_codes.py (expand from 4,205 to full hierarchy)</td>
+    </tr>
+    <tr>
+      <td>Judicial cases (裁判文书网 + 税务处罚)</td>
+      <td class="num">~12,000</td>
+      <td><span class="tag tag-new">L3 Compliance</span></td>
+      <td>fetch_tax_cases.py (court rulings + enforcement)</td>
+    </tr>
+    <tr>
+      <td>International tax treaties (DTA network)</td>
+      <td class="num">~15,000</td>
+      <td><span class="tag tag-existing">L1</span></td>
+      <td>New: fetch_tax_treaties.py (109 DTAs China has signed)</td>
+    </tr>
+    <tr>
+      <td>Social insurance regulations</td>
+      <td class="num">~10,000</td>
+      <td><span class="tag tag-existing">L1</span></td>
+      <td>New: fetch_social_insurance.py (MOHRSS + provincial)</td>
+    </tr>
+  </table>
+</div>
+
+<div class="phase-card">
+  <div class="phase-header">
+    <h4>Phase 3: AI Synthesis + Cross-Reference（+82K nodes）</h4>
+    <span class="phase-tag p3">P3 — 6 weeks</span>
+  </div>
+  <table>
+    <tr><th>Data Source</th><th class="num">Nodes</th><th>Quality</th><th>Method</th></tr>
+    <tr>
+      <td>Industry × Tax × Scenario matrix (enriched)</td>
+      <td class="num">~25,000</td>
+      <td><span class="tag tag-new">L4 Intelligence</span></td>
+      <td>AI synthesis with 200+ chars minimum, Multi-Swarm QC (target 70% acceptance)</td>
+    </tr>
+    <tr>
+      <td>Temporal version chains (policy evolution)</td>
+      <td class="num">~8,000</td>
+      <td><span class="tag tag-existing">L1</span></td>
+      <td>New: build_temporal_chains.py (link policy versions via SUPERSEDES edges)</td>
+    </tr>
+    <tr>
+      <td>Regulation → Journal Entry mapping</td>
+      <td class="num">~15,000</td>
+      <td><span class="tag tag-new">L2</span></td>
+      <td>AI synthesis: for each regulation, generate standard journal entries</td>
+    </tr>
+    <tr>
+      <td>Risk indicator expansion (industry × tax × scenario)</td>
+      <td class="num">~12,000</td>
+      <td><span class="tag tag-new">L3</span></td>
+      <td>AI synthesis with Multi-Swarm validation</td>
+    </tr>
+    <tr>
+      <td>Cross-regulation reference network</td>
+      <td class="num">~22,000</td>
+      <td><span class="tag tag-fix">Edges only</span></td>
+      <td>NLP: extract "参照XX法第X条" citations → FT_REFERENCES edges</td>
+    </tr>
+  </table>
+</div>
+
+<h2>4. Phase Summary</h2>
+
+<div class="metric-grid">
+  <div class="metric"><div class="val">+180K</div><div class="lbl">Phase 1: Clause Split</div></div>
+  <div class="metric"><div class="val">+150K</div><div class="lbl">Phase 2: Source Expand</div></div>
+  <div class="metric"><div class="val">+82K</div><div class="lbl">Phase 3: AI Synthesis</div></div>
+  <div class="metric"><div class="val">~500K</div><div class="lbl">M2 Total Target</div></div>
+</div>
+
+<h2>5. Edge Density Target</h2>
+
+<table>
+  <tr><th>Milestone</th><th class="num">Nodes</th><th class="num">Edges</th><th class="num">Density</th><th class="num">Orphan %</th></tr>
+  <tr><td>M1 (pre-fix)</td><td class="num">100,239</td><td class="num">45,158</td><td class="num">0.46</td><td class="num">91.7%</td></tr>
+  <tr><td>M1 (post-fix)</td><td class="num">87,701</td><td class="num">92,495</td><td class="num">1.05</td><td class="num">20.5%</td></tr>
+  <tr><td>Phase 1 gate</td><td class="num">~268K</td><td class="num">~630K</td><td class="num">2.35</td><td class="num">&lt;10%</td></tr>
+  <tr><td>Phase 2 gate</td><td class="num">~418K</td><td class="num">~1.1M</td><td class="num">2.63</td><td class="num">&lt;8%</td></tr>
+  <tr><td><strong>M2 Final</strong></td><td class="num"><strong>~500K</strong></td><td class="num"><strong>~1.5M</strong></td><td class="num"><strong>3.0</strong></td><td class="num"><strong>&lt;5%</strong></td></tr>
+</table>
+
+<h2>6. Quality Gate Schedule</h2>
+
+<table>
+  <tr><th>Checkpoint</th><th class="num">Node Count</th><th>Checks</th><th>Pass Criteria</th></tr>
+  <tr><td>Mini Gate 1</td><td class="num">150K</td><td>Orphan rate + edge density + sample check</td><td>Orphan &lt;15%, density &gt;1.5</td></tr>
+  <tr><td>Mini Gate 2</td><td class="num">250K</td><td>P@5 + L-tier distribution + dedup</td><td>P@5 &gt;= 75%, L1 &gt;= 50%</td></tr>
+  <tr><td>Mini Gate 3</td><td class="num">350K</td><td>Full audit + retrieval benchmark</td><td>P@5 &gt;= 80%, orphan &lt;8%</td></tr>
+  <tr><td><strong>M2 Final Gate</strong></td><td class="num"><strong>500K</strong></td><td>Full P@5 + competitive comparison + production readiness</td><td><strong>P@5 &gt;= 85%, orphan &lt;5%, density &gt;= 3.0</strong></td></tr>
+</table>
+
+<h2>7. Cost Estimate</h2>
+
+<table>
+  <tr><th>Item</th><th class="num">Cost</th><th>Notes</th></tr>
+  <tr><td>Gemini Embedding (412K × 768d)</td><td class="num">~$16</td><td>$0.20/1M tokens × ~80M tokens</td></tr>
+  <tr><td>AI Synthesis (52K nodes × Gemini)</td><td class="num">~$52</td><td>$0.20/1M input + $0.80/1M output × ~50M tokens</td></tr>
+  <tr><td>Multi-Swarm QC (4-layer review)</td><td class="num">~$39</td><td>3x synthesis cost for 4-layer review</td></tr>
+  <tr><td>CF Worker (Browser Rendering)</td><td class="num">~$0</td><td>Free tier sufficient for gov sites</td></tr>
+  <tr><td>VPS (ColoCrossing existing)</td><td class="num">~$0</td><td>Already provisioned</td></tr>
+  <tr><td><strong>Total</strong></td><td class="num"><strong>~$107</strong></td><td>Down from $127 estimate (768d saves embedding cost)</td></tr>
+</table>
+
+<h2>8. Timeline</h2>
+
+<table>
+  <tr><th>Week</th><th>Phase</th><th>Activities</th><th class="num">Cumulative</th></tr>
+  <tr><td>W1-2</td><td>P1a</td><td>Full clause split pipeline (Article → Paragraph → Item)</td><td class="num">~210K</td></tr>
+  <tr><td>W3-4</td><td>P1b</td><td>Clause QA generation (60K) + Mini Gate 1</td><td class="num">~270K</td></tr>
+  <tr><td>W5-6</td><td>P2a</td><td>Provincial crawler fix + ChinaAcc deep crawl</td><td class="num">~340K</td></tr>
+  <tr><td>W7-8</td><td>P2b</td><td>Tax codes + judicial + treaties + Mini Gate 2</td><td class="num">~420K</td></tr>
+  <tr><td>W9-12</td><td>P2c</td><td>Social insurance + remaining sources + Mini Gate 3</td><td class="num">~450K</td></tr>
+  <tr><td>W13-16</td><td>P3</td><td>AI synthesis + temporal chains + cross-reference</td><td class="num">~500K</td></tr>
+  <tr><td>W17-18</td><td>Gate</td><td>M2 Final Quality Gate + production readiness</td><td class="num">500K+</td></tr>
+</table>
+
+</div>
+
+<footer>
+  <p>CogNebula Enterprise v1.0 -- M2 Scaling Plan</p>
+  <p>Maurice | maurice_wen@proton.me</p>
+  <p style="font-size:12px; margin-top:8px;">Generated 2026-03-16 | Post-M1 quality gate analysis</p>
+</footer>
+
+</body>
+</html>

@@ -148,25 +148,47 @@ def main():
             if "already exists" not in str(e).lower():
                 log.warning("DERIVED_FROM creation: %s", e)
 
-    # Get clauses that haven't had QA generated yet
-    # Skip clauses that already have derived QA (check by regulationId pattern)
+    # Get already-processed clause IDs (from existing QA nodes' sourceUrl field)
+    processed_clauses = set()
+    try:
+        r = conn.execute(
+            "MATCH (n:LawOrRegulation) WHERE n.regulationType = 'derived_qa_v2' "
+            "RETURN n.sourceUrl"
+        )
+        while r.has_next():
+            row = r.get_next()
+            if row[0]:
+                processed_clauses.add(row[0])
+        log.info("Already processed clauses: %d", len(processed_clauses))
+    except Exception as e:
+        log.info("Could not load processed clauses: %s", e)
+
+    # Get all clauses with sufficient content
     r = conn.execute("""
         MATCH (c:RegulationClause)
         WHERE c.fullText IS NOT NULL AND size(c.fullText) >= 50
         RETURN c.id, c.title, c.fullText, c.regulationId
         ORDER BY size(c.fullText) DESC
-        SKIP $offset LIMIT $lim
-    """, {"offset": args.offset, "lim": args.limit})
+    """)
 
     clauses = []
+    skipped_processed = 0
     while r.has_next():
         row = r.get_next()
+        cid = row[0] or ""
+        # Skip already-processed clauses (Python-side dedup)
+        if cid in processed_clauses:
+            skipped_processed += 1
+            continue
         clauses.append({
-            "id": row[0] or "",
+            "id": cid,
             "title": row[1] or "",
             "text": row[2] or "",
             "reg_id": row[3] or "",
         })
+        if len(clauses) >= args.limit:
+            break
+    log.info("Skipped %d already-processed clauses", skipped_processed)
 
     log.info("Loaded %d clauses (offset=%d, limit=%d)", len(clauses), args.offset, args.limit)
 
@@ -177,7 +199,7 @@ def main():
         log.info("Estimated output: ~%d QA nodes", est_qa)
         return
 
-    client = httpx.Client()
+    client = httpx.Client(timeout=httpx.Timeout(30.0, connect=10.0))
     total_qa = 0
     total_edges = 0
     errors = 0

@@ -464,15 +464,16 @@ def load_entities(conn):
     provinces = []
     result = conn.execute(
         "MATCH (n:AdministrativeRegion) WHERE n.level = 1 "
-        "RETURN n.id, n.name, n.regionType, n.taxPolicyTag ORDER BY n.id"
+        "RETURN n.id, n.name ORDER BY n.id"
     )
     while result.has_next():
         row = result.get_next()
         # Skip duplicates (AR_BEIJING vs AR_110000 etc), SAR, and Taiwan
-        if row[0].startswith("AR_") and len(row[0]) == 9 and row[0][3:].isdigit():
-            code = int(row[0][3:])
+        rid = row[0] or ""
+        if rid.startswith("AR_") and len(rid) == 9 and rid[3:].isdigit():
+            code = int(rid[3:])
             if code < 700000:  # Exclude Taiwan, HK, Macau
-                provinces.append((row[0], row[1]))
+                provinces.append((rid, row[1]))
     print(f"  Loaded {len(provinces)} province-level regions")
 
     # RiskIndicator (well-structured ones only)

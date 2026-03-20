@@ -3001,6 +3001,30 @@ async function sendChatMessage() {
       });
     });
 
+    // Auto-expand knowledge subgraph: load all source nodes into the graph
+    if (data.sources && data.sources.length && !data.sources[0].columns) {
+      const sourceIds = data.sources.map(s => s.id).filter(Boolean);
+      if (sourceIds.length > 0) {
+        // Load first source as center, expand its neighbors
+        const mainId = sourceIds[0];
+        $("nodeInput").value = mainId;
+        expandNodeById(mainId);
+        // Highlight all source nodes with a pulse effect after a delay
+        setTimeout(() => {
+          sourceIds.forEach(sid => {
+            const existingNode = nodesDS.get(sid);
+            if (existingNode) {
+              nodesDS.update({
+                id: sid,
+                borderWidth: 4,
+                color: { border: "#2563EB", background: existingNode.color?.background || "#3B82F6" },
+              });
+            }
+          });
+        }, 1500);
+      }
+    }
+
   } catch (e) {
     thinkingMsg.remove();
     const errMsg = document.createElement("div");

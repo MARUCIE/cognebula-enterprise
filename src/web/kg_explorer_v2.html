@@ -229,22 +229,43 @@ async function searchNode() {
   const query = document.getElementById('search').value.trim();
   if (!query) return;
 
+  // Try direct TaxType lookup first (e.g., "TT_VAT", "增值税")
+  const TAX_NAME_MAP = {
+    '增值税':'TT_VAT','企业所得税':'TT_CIT','个人所得税':'TT_PIT','消费税':'TT_CONSUMPTION',
+    '关税':'TT_TARIFF','城建税':'TT_URBAN','教育费附加':'TT_EDUCATION','资源税':'TT_RESOURCE',
+    '土地增值税':'TT_LAND_VAT','房产税':'TT_PROPERTY','印花税':'TT_STAMP','契税':'TT_CONTRACT',
+    '车船税':'TT_VEHICLE','环保税':'TT_ENV','烟叶税':'TT_TOBACCO',
+  };
+  if (TAX_NAME_MAP[query]) {
+    return loadGraphDirect('TaxType', TAX_NAME_MAP[query]);
+  }
+  if (query.startsWith('TT_')) {
+    return loadGraphDirect('TaxType', query);
+  }
+
   try {
-    const resp = await fetch(`${API_BASE}/nodes?search=${encodeURIComponent(query)}&limit=30`);
+    // Use vector search API
+    const resp = await fetch(`${API_BASE}/search?q=${encodeURIComponent(query)}&limit=10`);
     const data = await resp.json();
-    if (!data || !data.length) { alert('未找到: ' + query); return; }
+    const results = data.results || [];
+    if (!results.length) { alert('未找到: ' + query); return; }
 
     // Clear and rebuild
     cy.elements().remove();
     const addedGroups = new Set();
     const elements = [];
+    const addedNodes = new Set();
 
-    for (const node of data) {
-      const type = node.table || node.type || '';
-      const layer = getNodeLayer(type);
-      const color = LAYER_COLORS[type] || '#94A3B8';
+    for (const item of results) {
+      const nodeId = item.id || item.node_id || '';
+      const nodeTable = item.table || item.source_table || '';
+      const nodeLabel = item.text || item.title || item.name || nodeId;
+      if (!nodeId || addedNodes.has(nodeId)) continue;
+      addedNodes.add(nodeId);
 
-      // Add group if not yet
+      const layer = getNodeLayer(nodeTable);
+      const color = LAYER_COLORS[nodeTable] || '#94A3B8';
+
       if (!addedGroups.has(layer)) {
         addedGroups.add(layer);
         elements.push({
@@ -254,23 +275,28 @@ async function searchNode() {
         });
       }
 
-      const label = node.title || node.name || node.id;
       elements.push({
         group: 'nodes',
         data: {
-          id: node.id, label: label.slice(0, 30), type: type,
-          color: color, size: 20, parent: layer,
+          id: nodeId, label: nodeLabel.slice(0, 30), type: nodeTable,
+          color: color, size: 25, parent: layer,
         },
         classes: 'entity',
       });
 
-      // Fetch neighbors
+      // Fetch neighbors via graph traversal API
       try {
-        const nbResp = await fetch(`${API_BASE}/nodes/${encodeURIComponent(node.id)}/neighbors?limit=10`);
-        const neighbors = await nbResp.json();
-        for (const nb of (neighbors || [])) {
-          const nbId = nb.target_id || nb.id;
+        const nbResp = await fetch(`${API_BASE}/graph?table=${encodeURIComponent(nodeTable)}&id_field=id&id_value=${encodeURIComponent(nodeId)}&depth=1`);
+        const graphData = await nbResp.json();
+        const neighbors = graphData.neighbors || [];
+
+        for (const nb of neighbors.slice(0, 8)) {
+          const nbId = nb.target_id || nb.id || '';
           const nbType = nb.target_type || '';
+          const nbLabel = nb.target_label || nb.label || nbId;
+          if (!nbId || addedNodes.has(nbId)) continue;
+          addedNodes.add(nbId);
+
           const nbLayer = getNodeLayer(nbType);
           const nbColor = LAYER_COLORS[nbType] || '#94A3B8';
 
@@ -283,30 +309,28 @@ async function searchNode() {
             });
           }
 
-          const nbLabel = nb.target_label || nb.title || nbId;
-          if (!elements.find(e => e.data?.id === nbId)) {
-            elements.push({
-              group: 'nodes',
-              data: {
-                id: nbId, label: (nbLabel || '').slice(0, 30), type: nbType,
-                color: nbColor, size: 10, parent: nbLayer,
-              },
-              classes: 'entity',
-            });
-          }
+          elements.push({
+            group: 'nodes',
+            data: {
+              id: nbId, label: (nbLabel || '').slice(0, 30), type: nbType,
+              color: nbColor, size: 12, parent: nbLayer,
+            },
+            classes: 'entity',
+          });
 
           const edgeType = nb.edge_type || '';
           elements.push({
             group: 'edges',
             data: {
-              id: `${node.id}-${nbId}-${edgeType}`,
-              source: node.id, target: nbId,
+              id: `${nodeId}-${nbId}-${edgeType}`,
+              source: nb.direction === 'incoming' ? nbId : nodeId,
+              target: nb.direction === 'incoming' ? nodeId : nbId,
               label: EDGE_ZH[edgeType] || edgeType.slice(0, 15),
               color: getEdgeColor(edgeType),
             },
           });
         }
-      } catch (e) { /* neighbor fetch failed */ }
+      } catch (e) { console.warn('Neighbor fetch failed:', e); }
     }
 
     cy.add(elements);
@@ -316,6 +340,7 @@ async function searchNode() {
 
   } catch (e) {
     console.error('Search failed:', e);
+    alert('搜索失败，请检查 API 连接');
   }
 }
 
@@ -448,18 +473,70 @@ document.getElementById('search').addEventListener('keydown', e => {
   if (e.key === 'Enter') searchNode();
 });
 
-// ===== Init: load sample data =====
+// ===== Init: load TaxType graph directly =====
 (async function() {
-  // Load TaxType nodes as starting view
+  document.getElementById('search').value = 'TT_VAT';
   try {
-    const resp = await fetch(`${API_BASE}/nodes?table=TaxType&limit=19`);
-    const data = await resp.json();
-    if (data && data.length) {
-      document.getElementById('search').value = '增值税';
-      searchNode();
-    }
-  } catch(e) { /* API not available */ }
+    await loadGraphDirect('TaxType', 'TT_VAT');
+  } catch(e) { console.warn('Init load failed:', e); }
 })();
+
+async function loadGraphDirect(table, idValue) {
+  const resp = await fetch(`${API_BASE}/graph?table=${table}&id_field=id&id_value=${encodeURIComponent(idValue)}&depth=1`);
+  const data = await resp.json();
+  if (!data.node) return;
+
+  cy.elements().remove();
+  const addedGroups = new Set();
+  const addedNodes = new Set();
+  const elements = [];
+
+  // Center node
+  const centerLabel = data.node._label || data.node.name || idValue;
+  const centerLayer = getNodeLayer(table);
+  if (!addedGroups.has(centerLayer)) {
+    addedGroups.add(centerLayer);
+    elements.push({ group: 'nodes', data: { id: centerLayer, label: centerLayer.replace('_', ' ') }, classes: 'group' });
+  }
+  addedNodes.add(idValue);
+  elements.push({
+    group: 'nodes',
+    data: { id: idValue, label: centerLabel.slice(0, 30), type: table, color: LAYER_COLORS[table] || '#8B5CF6', size: 40, parent: centerLayer },
+    classes: 'entity',
+  });
+
+  // Neighbors
+  for (const nb of (data.neighbors || []).slice(0, 30)) {
+    const nbId = nb.target_id || '';
+    const nbType = nb.target_type || '';
+    const nbLabel = nb.target_label || nbId;
+    if (!nbId || addedNodes.has(nbId)) continue;
+    addedNodes.add(nbId);
+
+    const nbLayer = getNodeLayer(nbType);
+    if (!addedGroups.has(nbLayer)) {
+      addedGroups.add(nbLayer);
+      elements.push({ group: 'nodes', data: { id: nbLayer, label: nbLayer.replace('_', ' ') }, classes: 'group' });
+    }
+    elements.push({
+      group: 'nodes',
+      data: { id: nbId, label: (nbLabel || '').slice(0, 30), type: nbType, color: LAYER_COLORS[nbType] || '#94A3B8', size: 15, parent: nbLayer },
+      classes: 'entity',
+    });
+    const edgeType = nb.edge_type || '';
+    const src = nb.direction === 'incoming' ? nbId : idValue;
+    const tgt = nb.direction === 'incoming' ? idValue : nbId;
+    elements.push({
+      group: 'edges',
+      data: { id: `${src}-${tgt}-${edgeType}`, source: src, target: tgt, label: EDGE_ZH[edgeType] || edgeType.slice(0, 12), color: getEdgeColor(edgeType) },
+    });
+  }
+
+  cy.add(elements);
+  runLayout();
+  updateStats();
+  updateLegend(addedGroups);
+}
 </script>
 </body>
 </html>

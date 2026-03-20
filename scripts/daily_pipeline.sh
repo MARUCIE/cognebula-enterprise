@@ -22,12 +22,26 @@ TODAY=$(date +%Y-%m-%d)
 RAW_DIR="data/raw/$TODAY"
 
 # Step 1: Run crawlers
-echo "[1/4] Running crawlers..."
+echo "[1/4] Running crawlers (with content depth flags)..."
 mkdir -p "$RAW_DIR"
 for fetcher in src/fetchers/fetch_*.py; do
     name=$(basename "$fetcher" .py)
-    echo "  $name..."
-    timeout 120 $VENV "$fetcher" --output "$RAW_DIR" 2>&1 | tail -1 || echo "  WARN: $name failed"
+    # Enable full content fetching for crawlers that support it
+    FLAGS=""
+    case "$name" in
+        fetch_chinaacc)    FLAGS="--fetch-content" ; TIMEOUT=600 ;;
+        fetch_provincial)  FLAGS=""                ; TIMEOUT=300 ;;
+        fetch_casc)        FLAGS=""                ; TIMEOUT=180 ;;
+        fetch_ctax)        FLAGS=""                ; TIMEOUT=180 ;;
+        fetch_customs)     FLAGS=""                ; TIMEOUT=180 ;;
+        fetch_stats)       FLAGS=""                ; TIMEOUT=180 ;;
+        fetch_baike_kuaiji) FLAGS=""               ; TIMEOUT=600 ;;
+        fetch_12366)       FLAGS=""                ; TIMEOUT=300 ;;
+        fetch_tax_cases)   FLAGS=""                ; TIMEOUT=600 ;;
+        *)                 FLAGS=""                ; TIMEOUT=120 ;;
+    esac
+    echo "  $name (timeout=${TIMEOUT}s)..."
+    timeout $TIMEOUT $VENV "$fetcher" --output "$RAW_DIR" $FLAGS 2>&1 | tail -3 || echo "  WARN: $name failed"
 done
 
 # Step 2: Dedup + Inject new records

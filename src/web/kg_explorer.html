@@ -1842,6 +1842,50 @@ const DEFAULT_COLOR = "#94A3B8";
 
 function getColor(table) { return COLORS[table] || DEFAULT_COLOR; }
 
+// Edge type -> Chinese label + color category
+const EDGE_LABELS = {
+  PART_OF: "属于", CHILD_OF: "子分类",
+  SUPERSEDES: "替代", AMENDS: "修订", CONFLICTS_WITH: "冲突",
+  REFERENCES_CLAUSE: "引用", BASED_ON: "依据", INCENTIVE_BASED_ON: "优惠依据", ISSUED_BY: "发布",
+  APPLIES_TO_TAX: "适用税种", APPLIES_TO_ENTITY: "适用主体", APPLIES_IN_REGION: "适用地区", APPLIES_TO_CLASS: "适用分类",
+  CALCULATED_FROM: "计算自", SURCHARGE_OF: "附加于", RELATED_TAX: "关联税种",
+  TRIGGERS_TAX: "触发税种", INCENTIVE_FOR_TAX: "优惠税种", RULE_FOR_TAX: "规则税种",
+  FILING_FOR_TAX: "申报税种", MAPS_TO_ACCOUNT: "对应科目", RISK_FOR_TAX: "风险税种",
+  KU_ABOUT_TAX: "知识税种", AUDIT_FOR_TAX: "稽查税种",
+  REQUIRES_FILING: "需申报", GOVERNED_BY: "受约束",
+  DEBITS_V2: "借方", CREDITS_V2: "贷方",
+  PENALIZED_BY: "处罚", TRIGGERED_BY: "触发",
+  INTERPRETS: "解释", EXEMPLIFIED_BY: "案例", EXPLAINS_RATE: "税率说明",
+  WARNS_ABOUT: "风险提示", DESCRIBES_INCENTIVE: "优惠说明", GUIDES_FILING: "申报指南",
+};
+const EDGE_COLORS = {
+  // Structure: gray
+  PART_OF: "#94A3B8", CHILD_OF: "#94A3B8",
+  // Legal: amber
+  SUPERSEDES: "#D97706", AMENDS: "#D97706", CONFLICTS_WITH: "#DC2626",
+  // Authority: blue
+  REFERENCES_CLAUSE: "#3B82F6", BASED_ON: "#3B82F6", INCENTIVE_BASED_ON: "#3B82F6", ISSUED_BY: "#6366F1",
+  // Applicability: green
+  APPLIES_TO_TAX: "#059669", APPLIES_TO_ENTITY: "#059669", APPLIES_IN_REGION: "#059669", APPLIES_TO_CLASS: "#059669",
+  // Inter-tax: indigo
+  CALCULATED_FROM: "#4F46E5", SURCHARGE_OF: "#4F46E5", RELATED_TAX: "#4F46E5",
+  // Tax-bridge: cyan
+  TRIGGERS_TAX: "#0891B2", INCENTIVE_FOR_TAX: "#0891B2", RULE_FOR_TAX: "#0891B2",
+  FILING_FOR_TAX: "#0891B2", MAPS_TO_ACCOUNT: "#0891B2", RISK_FOR_TAX: "#0891B2",
+  KU_ABOUT_TAX: "#0891B2", AUDIT_FOR_TAX: "#0891B2",
+  // Filing: purple
+  REQUIRES_FILING: "#7C3AED", GOVERNED_BY: "#7C3AED",
+  // Accounting: teal
+  DEBITS_V2: "#14B8A6", CREDITS_V2: "#14B8A6",
+  // Compliance: red
+  PENALIZED_BY: "#DC2626", TRIGGERED_BY: "#DC2626",
+  // Knowledge: warm colors
+  INTERPRETS: "#F59E0B", EXEMPLIFIED_BY: "#F97316", EXPLAINS_RATE: "#EAB308",
+  WARNS_ABOUT: "#EF4444", DESCRIBES_INCENTIVE: "#10B981", GUIDES_FILING: "#8B5CF6",
+};
+function getEdgeLabel(type) { return EDGE_LABELS[type] || type.slice(0, 20); }
+function getEdgeColor(type) { return EDGE_COLORS[type] || "#D1D5DB"; }
+
 // TaxRateMapping code -> Chinese label mapping
 const TRM_LABELS = {
   TRM_TRANSPORT: "交通运输业", TRM_FINANCE: "金融业", TRM_TELECOM: "电信业",
@@ -2174,8 +2218,8 @@ function queryToGraph(columns, rows) {
       });
       // Edge between first and last ID
       if (ids.length >= 2) {
-        const relLabel = typeCols.length > 0 && row[typeCols[0]] ? String(row[typeCols[0]]).slice(0, 20) : "";
-        edgesBatch.push({ from: ids[0], to: ids[ids.length - 1], label: relLabel });
+        const rawRel = typeCols.length > 0 && row[typeCols[0]] ? String(row[typeCols[0]]) : "";
+        edgesBatch.push({ from: ids[0], to: ids[ids.length - 1], label: getEdgeLabel(rawRel), color: { color: getEdgeColor(rawRel), highlight: "#2563EB" } });
       }
     });
   } else if (idCols.length === 1) {
@@ -2253,7 +2297,7 @@ async function autoExpandEdges(nodes) {
         const eid = node.id + "->" + nbId;
         if (seen.has(nbId)) {
           if (!edgesDS.get(eid)) {
-            edgesBatch.push({ id: eid, from: node.id, to: nbId, label: (nb.edge_type || "").slice(0, 20) });
+            edgesBatch.push({ id: eid, from: node.id, to: nbId, label: getEdgeLabel(nb.edge_type || ""), color: { color: getEdgeColor(nb.edge_type || ""), highlight: "#2563EB" } });
           }
         } else if (newNodes.length < 20) {
           seen.add(nbId);
@@ -2266,7 +2310,7 @@ async function autoExpandEdges(nodes) {
             font: { color: "#374151" },
             size: 10,
           });
-          edgesBatch.push({ id: eid, from: node.id, to: nbId, label: (nb.edge_type || "").slice(0, 20) });
+          edgesBatch.push({ id: eid, from: node.id, to: nbId, label: getEdgeLabel(nb.edge_type || ""), color: { color: getEdgeColor(nb.edge_type || ""), highlight: "#2563EB" } });
         }
       });
     } catch { continue; }
@@ -2441,7 +2485,7 @@ async function expandNodeById(nid) {
       }
       const eid = nid + "->" + nbId;
       if (!edgesDS.get(eid)) {
-        edgesBatch.push({ id: eid, from: nid, to: nbId, label: (nb.edge_type || "").slice(0, 20) });
+        edgesBatch.push({ id: eid, from: nid, to: nbId, label: getEdgeLabel(nb.edge_type || ""), color: { color: getEdgeColor(nb.edge_type || ""), highlight: "#2563EB" } });
       }
     });
     if (nodesBatch.length) nodesDS.add(nodesBatch);

@@ -15,4 +15,4 @@ doc-tax/
 backups/
 
 # Temp files
-ontology_v2_gemini_output.txt
+ontology_v2_gemini_output.txt.env

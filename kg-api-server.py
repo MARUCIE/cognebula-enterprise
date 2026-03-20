@@ -119,7 +119,7 @@ WEB_DIR = _Path("/home/kg/cognebula-enterprise/src/web")
 
 @app.get("/")
 def web_ui():
-    html_path = WEB_DIR / "kg_explorer.html"
+    html_path = WEB_DIR / "unified.html"  # Unified Tab Shell (explore + curate + admin)
     if html_path.exists():
         return FileResponse(html_path, media_type="text/html",
                             headers={"Cache-Control": "no-cache, no-store, must-revalidate"})

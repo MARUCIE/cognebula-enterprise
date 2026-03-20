@@ -48,7 +48,54 @@
 - 5-6 周分阶段: POC(W1-2) → 数据适配(W3-4) → Canvas导出(W5-6)
 - 社区验证: 生物信息学 KG (BioGRID, cBioPortal) 同等规模
 
-### 8. 维基百科评估
+### 9. 本体完整性审计 (Hickey, 2026-03-20)
+
+**Verdict: COMPLECTED — 需要外科手术级修复**
+
+#### 纠缠问题 (Complections)
+- C1: Schema 自相矛盾 — edge 引用 7 个不存在的节点 (V2 后缀幽灵)
+- C2: Classification 把 4 种分类体系揉成一张表 (HS码/行业/税收编码/企业类型)
+- C3: KnowledgeUnit 是万能垃圾桶 (FAQ/案例/考点/指南/思维导图混一表)
+- C4: TaxType 同时承担字典和业务枢纽 (19 节点 15 种边)
+
+#### 数据平衡异常
+- INTERPRETS 45% = RAG chunk 伪装成图关系, 删掉后密度从 2.07 降到 1.14
+- ISSUED_BY 128K (文档 55K, 平均 2.3 个机构/文档, 可能重复)
+- FILING_FOR_TAX=3, RULE_FOR_TAX=5, Penalty=8 — L3 几乎为空
+- AuditTrigger=463 与 RiskIndicator=463 完全一致 — 疑似 1:1 copy
+
+#### 缺失节点类型
+- JournalEntry (会计分录) — 业务→分录→科目核心链路缺失
+- TaxPeriod/Deadline (纳税期限) — 超越 deadlineDay 字段
+- CaseDecision (案例裁决) — 混在 KnowledgeUnit 里
+- Invoice/Voucher (发票凭证) — 中国税务核心场景完全缺失
+- TaxBracket (税率档次) — 累进税率需要独立建模
+
+#### 缺失边类型
+- GENERATES_ENTRY: BusinessActivity → JournalEntry
+- REQUIRES_INVOICE: BusinessActivity → Invoice
+- KU_ABOUT_ACTIVITY: KnowledgeUnit → BusinessActivity (打破法规层隔离)
+- INCENTIVE_FOR_ENTITY: TaxIncentive → TaxEntity
+- APPLIES_TO_ACTIVITY: TaxRate → BusinessActivity
+- CLAUSE_DEFINES_RATE: LegalClause → TaxRate (反向链接)
+
+#### 结构空洞 (6 个)
+- BusinessActivity ↔ AccountingSubject (无直连, 必须绕 TaxType)
+- TaxIncentive ↔ TaxEntity (谁能享受什么优惠?)
+- ComplianceRule ↔ LegalClause (合规规则的法律依据?)
+- RiskIndicator ↔ BusinessActivity (什么业务触发什么风险?)
+- FilingForm ↔ LegalClause (申报表的法律依据?)
+- KnowledgeUnit ↔ BusinessActivity (知识和业务割裂)
+
+#### 整改优先级
+- P0: Schema 自洽修复 (幽灵节点 + V2 后缀对齐)
+- P1: 拆 Classification → 4 独立分类表
+- P1: 补 JournalEntry + Invoice + 对应边
+- P2: KU 直连 BusinessActivity/TaxRate (不强制绕法规层)
+- P2: L3 数据充实 (ComplianceRule 84→800+, Penalty 8→100+)
+- P3: DROP 全部 26 条 legacy edge
+
+### 10. 维基百科评估
 - 中文维基财税词条 ~2000-5000 条
 - 信息密度 5-10% (vs 税务总局 80%+)
 - 结论: P3 低优先, 不推荐 M3 阶段引入

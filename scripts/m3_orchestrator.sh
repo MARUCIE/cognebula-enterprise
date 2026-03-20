@@ -52,13 +52,17 @@ $VENV scripts/generate_lr_qa.py \
 echo "[2/5] Running Edge Engine (AI relationship discovery)..."
 $VENV scripts/generate_edges_ai.py --batch-size 50 --max-batches 10 2>&1 || echo "  WARN: Edge engine had errors"
 
-# Step 3: Restart API (release DB lock before daily crawl)
-echo "[3/5] Restarting API..."
+# Step 3: Batch edge enrichment (keyword-based, no LLM, fast)
+echo "[3/6] Running batch edge enrichment..."
+$VENV scripts/enrich_edges_batch.py 2>&1 || echo "  WARN: Enrichment had errors"
+
+# Step 4: Restart API (release DB lock before daily crawl)
+echo "[4/6] Restarting API..."
 sudo systemctl start kg-api
 sleep 3
 
 # Step 4: Batch density check (Meadows: compress feedback delay from weeks to 1 day)
-echo "[4/5] Batch density check..."
+echo "[5/6] Batch density check..."
 curl -sf http://localhost:8400/api/v1/quality 2>/dev/null | python3 -c "
 import json, sys
 d = json.load(sys.stdin)
@@ -78,7 +82,7 @@ if density < 2.0:
 " || echo "  WARN: Quality check failed"
 
 # Step 5: Daily Crawl (file-level only, no DB lock needed)
-echo "[5/5] Running Daily Crawl (file output only)..."
+echo "[6/6] Running Daily Crawl (file output only)..."
 if [[ -x scripts/daily_pipeline.sh ]]; then
     timeout 1800 bash scripts/daily_pipeline.sh 2>&1 || echo "  WARN: Daily crawl had errors"
 else

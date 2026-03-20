@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CogNebula 统一平台架构</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --mckinsey-blue: #003A70;
+    --mckinsey-dark: #002347;
+    --mckinsey-light: #E8EEF4;
+    --mckinsey-accent: #0066B3;
+    --mckinsey-gold: #C69214;
+    --text-primary: #1A1A1A;
+    --text-secondary: #4A4A4A;
+    --text-muted: #7A7A7A;
+    --border: #D0D5DD;
+    --bg-white: #FFFFFF;
+    --bg-gray: #F5F7FA;
+    --success: #0D7C3E;
+    --warning: #B35C00;
+    --danger: #B3261E;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--text-primary);
+    background: var(--bg-white);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: var(--mckinsey-blue);
+    color: #fff;
+    padding: 64px 0 56px;
+    border-bottom: 4px solid var(--mckinsey-gold);
+  }
+  .header .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--mckinsey-gold);
+    border: 1px solid var(--mckinsey-gold);
+    padding: 4px 14px;
+    margin-bottom: 20px;
+  }
+  .header h1 {
+    font-size: 38px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 10px;
+    letter-spacing: -0.5px;
+  }
+  .header .subtitle {
+    font-size: 18px;
+    font-weight: 300;
+    opacity: 0.85;
+    margin-bottom: 24px;
+  }
+  .header-meta {
+    display: flex;
+    gap: 32px;
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0.7;
+  }
+  .header-meta span { display: flex; align-items: center; gap: 6px; }
+
+  /* ── Section ── */
+  .section {
+    padding: 56px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .section:last-of-type { border-bottom: none; }
+  .section-number {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--mckinsey-accent);
+    margin-bottom: 8px;
+  }
+  .section h2 {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--mckinsey-blue);
+    margin-bottom: 28px;
+    letter-spacing: -0.3px;
+  }
+  .section h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--mckinsey-dark);
+    margin-bottom: 14px;
+    margin-top: 28px;
+  }
+
+  /* ── Cards Grid ── */
+  .cards-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 24px;
+  }
+  .card {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    padding: 28px 24px;
+  }
+  .card.blue-top { border-top: 3px solid var(--mckinsey-blue); }
+  .card.gold-top { border-top: 3px solid var(--mckinsey-gold); }
+  .card.accent-top { border-top: 3px solid var(--mckinsey-accent); }
+  .card h4 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--mckinsey-blue);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .card p, .card li {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+  .card ul { padding-left: 18px; margin-top: 8px; }
+  .card li { margin-bottom: 4px; }
+
+  .card-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  /* ── Exec Summary Cards ── */
+  .exec-cards .card {
+    position: relative;
+    padding-left: 28px;
+  }
+  .exec-cards .card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+  }
+  .exec-cards .card:nth-child(1)::before { background: var(--danger); }
+  .exec-cards .card:nth-child(2)::before { background: var(--success); }
+  .exec-cards .card:nth-child(3)::before { background: var(--mckinsey-gold); }
+
+  /* ── Pipeline Diagram ── */
+  .pipeline {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin: 32px 0 24px;
+  }
+  .pipeline-stage {
+    flex: 1;
+    background: var(--bg-white);
+    border: 2px solid var(--mckinsey-blue);
+    padding: 24px 20px;
+    text-align: center;
+    position: relative;
+  }
+  .pipeline-stage:first-child { border-right: none; }
+  .pipeline-stage:last-child { border-left: none; }
+  .pipeline-stage:nth-child(2) { border-left: none; border-right: none; }
+  .pipeline-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    flex-shrink: 0;
+    color: var(--mckinsey-blue);
+    font-size: 24px;
+    font-weight: 700;
+  }
+  .pipeline-stage .stage-name {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--mckinsey-blue);
+    margin-bottom: 4px;
+  }
+  .pipeline-stage .stage-system {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--mckinsey-accent);
+    margin-bottom: 10px;
+  }
+  .pipeline-stage .stage-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+  .pipeline-stage .stage-mode {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 3px 10px;
+    margin-top: 10px;
+    background: var(--mckinsey-light);
+    color: var(--mckinsey-blue);
+  }
+
+  /* ── Cross-cutting bar ── */
+  .crosscut {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border: 1px solid var(--mckinsey-blue);
+    margin-top: 20px;
+  }
+  .crosscut-item {
+    padding: 16px 20px;
+    background: var(--mckinsey-light);
+    border-right: 1px solid var(--mckinsey-blue);
+    font-size: 13px;
+    color: var(--mckinsey-dark);
+  }
+  .crosscut-item:last-child { border-right: none; }
+  .crosscut-item strong {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--mckinsey-blue);
+    margin-bottom: 4px;
+  }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 13px;
+  }
+  thead th {
+    background: var(--mckinsey-blue);
+    color: #fff;
+    font-weight: 600;
+    text-align: left;
+    padding: 12px 14px;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+    vertical-align: top;
+  }
+  tbody tr:hover { background: var(--bg-gray); }
+
+  /* ── Code block ── */
+  .code-block {
+    background: #F8F9FB;
+    border: 1px solid var(--border);
+    padding: 24px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--text-primary);
+    overflow-x: auto;
+    margin: 20px 0;
+    white-space: pre;
+  }
+
+  /* ── Flywheel ── */
+  .flywheel {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 24px 0;
+    position: relative;
+  }
+  .flywheel-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 14px 20px;
+    border-left: 3px solid var(--mckinsey-blue);
+    position: relative;
+  }
+  .flywheel-step:last-child {
+    border-left-color: var(--mckinsey-gold);
+  }
+  .flywheel-num {
+    width: 28px;
+    height: 28px;
+    background: var(--mckinsey-blue);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .flywheel-step:last-child .flywheel-num {
+    background: var(--mckinsey-gold);
+  }
+  .flywheel-text {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    padding-top: 3px;
+  }
+
+  /* ── Timeline ── */
+  .timeline {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin: 24px 0;
+  }
+  .timeline-card {
+    border: 1px solid var(--border);
+    padding: 24px;
+    position: relative;
+  }
+  .timeline-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--mckinsey-blue);
+  }
+  .timeline-card.active::before { background: var(--mckinsey-gold); }
+  .timeline-phase {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--mckinsey-accent);
+    margin-bottom: 6px;
+  }
+  .timeline-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--mckinsey-dark);
+    margin-bottom: 10px;
+  }
+  .timeline-card p, .timeline-card li {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+  .timeline-card ul { padding-left: 18px; margin-top: 8px; }
+  .timeline-card li { margin-bottom: 4px; }
+
+  /* ── Risk severity ── */
+  .severity-high { color: var(--danger); font-weight: 700; }
+  .severity-medium { color: var(--warning); font-weight: 700; }
+  .severity-low { color: var(--success); font-weight: 700; }
+
+  /* ── Flow diagram ── */
+  .flow-stages {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin: 24px 0;
+  }
+  .flow-stage {
+    border: 2px solid var(--mckinsey-blue);
+    padding: 24px;
+  }
+  .flow-stage-header {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--mckinsey-blue);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 14px;
+  }
+  .flow-stage-status {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    background: var(--mckinsey-light);
+    color: var(--mckinsey-blue);
+    margin-left: 8px;
+  }
+  .flow-stage p, .flow-stage li {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+  .flow-stage ul { padding-left: 18px; margin-top: 8px; }
+  .flow-stage li { margin-bottom: 4px; }
+
+  /* ── Blockquote ── */
+  .insight-quote {
+    border-left: 4px solid var(--mckinsey-gold);
+    padding: 20px 24px;
+    background: #FFFCF5;
+    margin: 24px 0;
+    font-size: 15px;
+    font-style: italic;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+  .insight-quote .author {
+    font-style: normal;
+    font-weight: 600;
+    color: var(--mckinsey-dark);
+    margin-top: 8px;
+    font-size: 13px;
+  }
+
+  /* ── Phase evolution ── */
+  .phase-row {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 20px;
+    align-items: start;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .phase-row:last-child { border-bottom: none; }
+  .phase-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--mckinsey-blue);
+    padding-top: 2px;
+  }
+  .phase-content h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--mckinsey-dark);
+    margin-bottom: 8px;
+  }
+  .phase-content p, .phase-content li {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+  .phase-content ul { padding-left: 18px; margin-top: 6px; }
+  .phase-content li { margin-bottom: 4px; }
+
+  /* ── Auth table ── */
+  .role-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 3px 10px;
+  }
+  .role-anon { background: #F0F0F0; color: var(--text-muted); }
+  .role-expert { background: var(--mckinsey-light); color: var(--mckinsey-blue); }
+  .role-admin { background: var(--mckinsey-blue); color: #fff; }
+  .role-openclaw { background: #FFF3E0; color: var(--warning); }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    padding: 60px 20px 40px;
+    color: #9B9B9D;
+    font-size: 13px;
+    line-height: 2.2;
+  }
+  footer p { margin: 0; }
+  footer .small { font-size: 12px; margin-top: 8px; }
+
+  /* ── Print ── */
+  @media print {
+    .header { padding: 40px 0 32px; }
+    .section { padding: 32px 0; }
+    .cards-3, .flow-stages, .timeline { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════ HEADER ════════════════ -->
+<header class="header">
+  <div class="container">
+    <div class="badge">ARCHITECTURE DECISION RECORD</div>
+    <h1>CogNebula 统一平台架构</h1>
+    <p class="subtitle">Ingest &rarr; Curate &rarr; Serve 三阶段管线设计</p>
+    <div class="header-meta">
+      <span>2026-03-20</span>
+      <span>3-Advisor Council Reviewed</span>
+      <span>Hickey / Meadows / Musk</span>
+    </div>
+  </div>
+</header>
+
+<!-- ════════════════ SECTION 0: EXECUTIVE SUMMARY ════════════════ -->
+<section class="section">
+  <div class="container">
+    <div class="section-number">Section 0</div>
+    <h2>Executive Summary</h2>
+    <div class="cards-3 exec-cards">
+      <div class="card">
+        <div class="card-label">BEFORE</div>
+        <h4>三座孤岛</h4>
+        <p>3 个独立系统（KG Explorer + Expert Workbench + OpenClaw），各自拥有独立数据库、API、UI，零反馈回路。数据在三个系统间手动搬运，无法形成知识飞轮。</p>
+      </div>
+      <div class="card">
+        <div class="card-label">AFTER</div>
+        <h4>统一管线</h4>
+        <p>统一数据管线（Ingest &rarr; Curate &rarr; Serve），单一 API 进程、共享 v2.2 本体、信息反馈回路。事实从采集到发布全程可追溯。</p>
+      </div>
+      <div class="card">
+        <div class="card-label">KEY INSIGHT</div>
+        <h4>价值管线</h4>
+        <p>&ldquo;Facts are values flowing through a pipeline, not three systems mutating the same places.&rdquo;</p>
+        <p style="margin-top:8px; font-weight:600; font-size:13px; color:var(--mckinsey-dark);">&mdash; Rich Hickey</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ SECTION 1: CURRENT STATE ════════════════ -->
+<section class="section" style="background: var(--bg-gray);">
+  <div class="container">
+    <div class="section-number">Section 1</div>
+    <h2>现状 &mdash; 三个独立系统</h2>
+    <div class="cards-3">
+      <div class="card blue-top">
+        <h4>System A: KG Explorer</h4>
+        <ul>
+          <li><strong>端口:</strong> 8400 (kg-node)</li>
+          <li><strong>职能:</strong> READ-ONLY 图谱探索</li>
+          <li><strong>技术:</strong> FastAPI + vis.js + KuzuDB + LanceDB</li>
+          <li><strong>数据:</strong> 407K 节点, 858K 边, 密度 2.1</li>
+          <li><strong>用户:</strong> 会计师、审计师、注册会计师考生</li>
+        </ul>
+      </div>
+      <div class="card gold-top">
+        <h4>System B: Expert Workbench</h4>
+        <ul>
+          <li><strong>端口:</strong> 8900 (本地/Docker)</li>
+          <li><strong>职能:</strong> WRITE &mdash; 专家审核 + AI 三元组生成</li>
+          <li><strong>技术:</strong> FastAPI + React + Cytoscape.js + SQLite + KuzuDB (KA_ 命名空间)</li>
+          <li><strong>数据:</strong> 80 条已审核三元组, 23 个端点</li>
+          <li><strong>用户:</strong> 领域专家</li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>System C: OpenClaw</h4>
+        <ul>
+          <li><strong>位置:</strong> VPS (100.106.223.39)</li>
+          <li><strong>职能:</strong> 自动化采集 + 入库管线</li>
+          <li><strong>技术:</strong> 76 个定时任务, Gemini, Telegram 机器人</li>
+          <li><strong>数据:</strong> 每日从 14 个源采集法规数据</li>
+          <li><strong>用户:</strong> 无（全自动化）</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ SECTION 2: TARGET ARCHITECTURE ════════════════ -->
+<section class="section">
+  <div class="container">
+    <div class="section-number">Section 2</div>
+    <h2>目标架构 &mdash; 价值管线</h2>
+
+    <div class="pipeline">
+      <div class="pipeline-stage">
+        <div class="stage-name">INGEST</div>
+        <div class="stage-system">(OpenClaw)</div>
+        <div class="stage-desc">采集原始事实</div>
+        <div class="stage-mode">WRITE raw</div>
+        <div style="font-size:12px; color:var(--text-muted); margin-top:6px;">自动化</div>
+      </div>
+      <div class="pipeline-arrow">&rarr;</div>
+      <div class="pipeline-stage">
+        <div class="stage-name">CURATE</div>
+        <div class="stage-system">(Know-Arc)</div>
+        <div class="stage-desc">AI 生成 + 专家审核</div>
+        <div class="stage-mode">WRITE approved</div>
+        <div style="font-size:12px; color:var(--text-muted); margin-top:6px;">人机协同</div>
+      </div>
+      <div class="pipeline-arrow">&rarr;</div>
+      <div class="pipeline-stage">
+        <div class="stage-name">SERVE</div>
+        <div class="stage-system">(Explorer)</div>
+        <div class="stage-desc">查询 + 可视化 + RAG</div>
+        <div class="stage-mode">READ only</div>
+        <div style="font-size:12px; color:var(--text-muted); margin-top:6px;">面向终端用户</div>
+      </div>
+    </div>
+
+    <div class="crosscut">
+      <div class="crosscut-item">
+        <strong>Auth</strong>
+        Bearer token（3 级: anonymous / expert / admin）
+      </div>
+      <div class="crosscut-item">
+        <strong>KuzuDB</strong>
+        单实例, v2.2 本体（15 节点表 + 20 边表）
+      </div>
+      <div class="crosscut-item">
+        <strong>Quality Gate</strong>
+        /api/v1/quality（score &ge; 60, coverage &ge; 95%）
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ SECTION 3: UNIFIED API DESIGN ════════════════ -->
+<section class="section" style="background: var(--bg-gray);">
+  <div class="container">
+    <div class="section-number">Section 3</div>
+    <h2>统一 API 设计</h2>
+
+    <div class="code-block">cognebula-api/
+  api/
+    main.py              # FastAPI app + middleware
+    routers/
+      query.py           # READ  -- /api/v1/nodes, search, graph, chat, stats, quality
+      curation.py        # WRITE -- /api/v1/curation/scenarios, review, batch-import
+      ingest.py          # WRITE -- /api/v1/ingest (OpenClaw pipeline)
+      admin.py           # WRITE -- /api/v1/admin/migrate, ddl, fix-titles
+    middleware/
+      auth.py            # Bearer token + x-openclaw-key
+    core/
+      kg_generator.py    # AI 本体 + 三元组生成 (from Know-Arc)
+      store.py           # SQLite 持久化 (from Know-Arc)
+      conflict_detector.py</div>
+
+    <h3>端点映射表（旧 &rarr; 新）</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>类别</th>
+          <th>旧 System A (8400)</th>
+          <th>旧 System B (8900)</th>
+          <th>新统一端点</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>查询</td><td>GET /api/v1/nodes</td><td>--</td><td>GET /api/v1/nodes</td></tr>
+        <tr><td>搜索</td><td>GET /api/v1/search</td><td>--</td><td>GET /api/v1/search</td></tr>
+        <tr><td>图谱</td><td>GET /api/v1/graph</td><td>--</td><td>GET /api/v1/graph</td></tr>
+        <tr><td>对话</td><td>POST /api/v1/chat</td><td>--</td><td>POST /api/v1/chat</td></tr>
+        <tr><td>统计</td><td>GET /api/v1/stats</td><td>GET /api/v1/stats</td><td>GET /api/v1/stats（合并）</td></tr>
+        <tr><td>场景</td><td>--</td><td>POST /api/v1/scenarios</td><td>POST /api/v1/curation/scenarios</td></tr>
+        <tr><td>生成</td><td>--</td><td>POST /.../generate</td><td>POST /api/v1/curation/scenarios/{id}/generate</td></tr>
+        <tr><td>审核队列</td><td>--</td><td>GET /api/v1/review/queue</td><td>GET /api/v1/curation/review/queue</td></tr>
+        <tr><td>审批</td><td>--</td><td>POST /api/v1/triples/{id}/review</td><td>POST /api/v1/curation/triples/{id}/review</td></tr>
+        <tr><td>批量导入</td><td>--</td><td>POST /api/v1/batch-import</td><td>POST /api/v1/curation/batch-import</td></tr>
+        <tr><td>本体</td><td>--</td><td>GET /api/v1/ontology</td><td>GET /api/v1/curation/ontology</td></tr>
+        <tr><td>入库</td><td>POST /api/v1/ingest</td><td>--</td><td>POST /api/v1/ingest</td></tr>
+        <tr><td>管理</td><td>POST /api/v1/admin/*</td><td>--</td><td>POST /api/v1/admin/*</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ════════════════ SECTION 4: FRONTEND STRATEGY ════════════════ -->
+<section class="section">
+  <div class="container">
+    <div class="section-number">Section 4</div>
+    <h2>前端策略</h2>
+
+    <div class="phase-row">
+      <div class="phase-label">Phase 1<br>Day 1</div>
+      <div class="phase-content">
+        <h4>Tab Shell &mdash; iframe 组合</h4>
+        <ul>
+          <li>零迁移风险，即时统一入口</li>
+          <li>两个标签页: &ldquo;KG Explorer&rdquo; (8400) + &ldquo;Expert Workbench&rdquo; (8900)</li>
+          <li>部署到 CF Pages Dashboard</li>
+        </ul>
+      </div>
+    </div>
+    <div class="phase-row">
+      <div class="phase-label">Phase 2<br>Week 2</div>
+      <div class="phase-content">
+        <h4>React SPA &mdash; 路由级代码分割</h4>
+        <ul>
+          <li><code>/explore</code> = KG Explorer 功能（图谱可视化、搜索、对话）</li>
+          <li><code>/curate</code> = Expert Workbench 功能（场景输入、审核队列、本体浏览）</li>
+          <li><code>/admin</code> = 质量看板、入库监控</li>
+          <li>共享: Cytoscape.js 图谱渲染器、Auth Provider、设计系统</li>
+        </ul>
+      </div>
+    </div>
+    <div class="phase-row">
+      <div class="phase-label">Phase 3<br>Month 2</div>
+      <div class="phase-content">
+        <h4>Native Components &mdash; 深度集成</h4>
+        <ul>
+          <li>统一图谱渲染器（Explorer 中点击节点 &rarr; 查看 Curation 审核历史）</li>
+          <li>内联审核: 专家在浏览图谱时直接审核三元组</li>
+          <li>WebSocket 实时同步</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ SECTION 5: DATA FLOW ════════════════ -->
+<section class="section" style="background: var(--bg-gray);">
+  <div class="container">
+    <div class="section-number">Section 5</div>
+    <h2>数据流 &mdash; 事实生命周期</h2>
+
+    <div class="flow-stages">
+      <div class="flow-stage">
+        <div class="flow-stage-header">Stage 1: INGEST <span class="flow-stage-status">status: raw</span></div>
+        <ul>
+          <li><strong>来源:</strong> OpenClaw 爬虫、专家 PDF 上传、手动场景输入</li>
+          <li><strong>入口:</strong> POST /api/v1/ingest + 质量门禁</li>
+          <li><strong>存储:</strong> SQLite staging 表（含溯源: source_url, crawl_date）</li>
+        </ul>
+      </div>
+      <div class="flow-stage">
+        <div class="flow-stage-header">Stage 2: CURATE <span class="flow-stage-status">pending &rarr; approved/rejected</span></div>
+        <ul>
+          <li><strong>AI:</strong> Gemini 从原始文本生成本体 + 三元组</li>
+          <li><strong>人工:</strong> 专家通过 /curate UI 审核（通过/拒绝/编辑）</li>
+          <li><strong>存储:</strong> SQLite curation 表（含审计轨迹）</li>
+          <li><strong>自动审批:</strong> 置信度 &ge; 0.95 跳过人工审核</li>
+        </ul>
+      </div>
+      <div class="flow-stage">
+        <div class="flow-stage-header">Stage 3: SERVE <span class="flow-stage-status">status: published</span></div>
+        <ul>
+          <li>已审批三元组 &rarr; KuzuDB（v2.2 本体）</li>
+          <li>已审批文本 &rarr; LanceDB（向量嵌入）</li>
+          <li>通过 /api/v1/query, search, graph, chat 查询</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ SECTION 6: FEEDBACK LOOP ════════════════ -->
+<section class="section">
+  <div class="container">
+    <div class="section-number">Section 6</div>
+    <h2>信息反馈回路 (Meadows R1 飞轮)</h2>
+
+    <div class="flywheel">
+      <div class="flywheel-step">
+        <div class="flywheel-num">1</div>
+        <div class="flywheel-text">专家审批三元组</div>
+      </div>
+      <div class="flywheel-step">
+        <div class="flywheel-num">2</div>
+        <div class="flywheel-text">按数据源计算审批通过率</div>
+      </div>
+      <div class="flywheel-step">
+        <div class="flywheel-num">3</div>
+        <div class="flywheel-text">高质量数据源获得更高的采集优先级</div>
+      </div>
+      <div class="flywheel-step">
+        <div class="flywheel-num">4</div>
+        <div class="flywheel-text">更优质的原始数据进入管线</div>
+      </div>
+      <div class="flywheel-step">
+        <div class="flywheel-num">5</div>
+        <div class="flywheel-text">AI 生成更高质量的三元组</div>
+      </div>
+      <div class="flywheel-step">
+        <div class="flywheel-num">6</div>
+        <div class="flywheel-text">专家审批更快（更少编辑）</div>
+      </div>
+      <div class="flywheel-step">
+        <div class="flywheel-num">7</div>
+        <div class="flywheel-text">知识图谱中积累更多已审批知识</div>
+      </div>
+      <div class="flywheel-step">
+        <div class="flywheel-num">8</div>
+        <div class="flywheel-text">终端用户获得更好的搜索 / RAG 体验</div>
+      </div>
+      <div class="flywheel-step">
+        <div class="flywheel-num">R1</div>
+        <div class="flywheel-text">更多使用 &rarr; 更多专家参与 &rarr; <strong>回到步骤 1（增强回路）</strong></div>
+      </div>
+    </div>
+
+    <div class="insight-quote">
+      &ldquo;这条反馈回路是整个系统中最重要的单一干预点。没有它，三个系统将永远是三个孤立的数据死水。&rdquo;
+      <div class="author">&mdash; Donella Meadows, Thinking in Systems</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ SECTION 7: KUZUDB STRATEGY ════════════════ -->
+<section class="section" style="background: var(--bg-gray);">
+  <div class="container">
+    <div class="section-number">Section 7</div>
+    <h2>KuzuDB 策略</h2>
+
+    <table>
+      <thead>
+        <tr><th>维度</th><th>决策</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>实例</td><td>单实例部署在 kg-node (100.75.77.112), v2.2 本体 (15 节点表 + 20 边表)</td></tr>
+        <tr><td>KA_ 前缀</td><td><strong>已废弃</strong> &mdash; 三元组直接写入 v2.2 表，不再使用 Know-Arc KA_ 命名空间隔离</td></tr>
+        <tr><td>置信度</td><td>专家审批通过的三元组携带 confidence 分数，作为边/节点属性写入</td></tr>
+        <tr><td>缓冲区</td><td>自动调整大小（不固定 1GB），由 KuzuDB 内部管理</td></tr>
+        <tr><td>备份</td><td>每日 rsync 至 Mac + VPS 双副本</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ════════════════ SECTION 8: AUTHENTICATION ════════════════ -->
+<section class="section">
+  <div class="container">
+    <div class="section-number">Section 8</div>
+    <h2>鉴权模型</h2>
+
+    <table>
+      <thead>
+        <tr><th>角色</th><th>令牌</th><th>访问权限</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="role-badge role-anon">anonymous</span></td>
+          <td>无</td>
+          <td>READ: /api/v1/nodes, search, graph, chat, stats</td>
+        </tr>
+        <tr>
+          <td><span class="role-badge role-expert">expert</span></td>
+          <td>Bearer ka-{uuid}</td>
+          <td>READ + WRITE: /api/v1/curation/*</td>
+        </tr>
+        <tr>
+          <td><span class="role-badge role-admin">admin</span></td>
+          <td>Bearer ka-admin-{uuid}</td>
+          <td>READ + WRITE + ADMIN: /api/v1/admin/*</td>
+        </tr>
+        <tr>
+          <td><span class="role-badge role-openclaw">openclaw</span></td>
+          <td>x-openclaw-key header</td>
+          <td>WRITE: /api/v1/ingest 仅限</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ════════════════ SECTION 9: IMPLEMENTATION PHASES ════════════════ -->
+<section class="section" style="background: var(--bg-gray);">
+  <div class="container">
+    <div class="section-number">Section 9</div>
+    <h2>实施阶段</h2>
+
+    <div class="timeline">
+      <div class="timeline-card active">
+        <div class="timeline-phase">Phase 1 -- Day 1, 4 小时</div>
+        <div class="timeline-title">Tab Shell</div>
+        <ul>
+          <li>Dashboard <code>/kg</code> 页面 + iframe 标签页</li>
+          <li>零风险，即时交付价值</li>
+        </ul>
+      </div>
+      <div class="timeline-card">
+        <div class="timeline-phase">Phase 2 -- Week 1-2</div>
+        <div class="timeline-title">API 合并</div>
+        <ul>
+          <li>合并 kg-api-server.py + Know-Arc server.py 为单一 FastAPI + APIRouter 模块</li>
+          <li>部署至 kg-node:8400</li>
+          <li>共享 KuzuDB / LanceDB / SQLite 连接</li>
+          <li>Auth 中间件</li>
+        </ul>
+      </div>
+      <div class="timeline-card">
+        <div class="timeline-phase">Phase 3 -- Week 3-4</div>
+        <div class="timeline-title">前端 SPA</div>
+        <ul>
+          <li>React 应用: /explore + /curate + /admin 路由</li>
+          <li>Cytoscape.js 统一图谱渲染器</li>
+          <li>共享设计系统</li>
+        </ul>
+      </div>
+      <div class="timeline-card">
+        <div class="timeline-phase">Phase 4 -- Month 2</div>
+        <div class="timeline-title">反馈回路</div>
+        <ul>
+          <li>OpenClaw webhook &rarr; Know-Arc 生成队列</li>
+          <li>审批统计 API &rarr; 采集优先级调整</li>
+          <li>KA_ &rarr; v2.2 promote 路径</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ SECTION 10: RISK MATRIX ════════════════ -->
+<section class="section">
+  <div class="container">
+    <div class="section-number">Section 10</div>
+    <h2>风险矩阵</h2>
+
+    <table>
+      <thead>
+        <tr><th>风险</th><th>严重性</th><th>缓解措施</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>KuzuDB 合并写入导致 OOM</td>
+          <td><span class="severity-high">HIGH</span></td>
+          <td>分离写入窗口、自动缓冲区、深度限制</td>
+        </tr>
+        <tr>
+          <td>前端重写范围蔓延</td>
+          <td><span class="severity-medium">MEDIUM</span></td>
+          <td>Phase 1 Tab Shell 作为回退方案，增量迁移</td>
+        </tr>
+        <tr>
+          <td>OpenClaw 耦合</td>
+          <td><span class="severity-low">LOW</span></td>
+          <td>仅通过 HTTP webhook 集成，无共享进程/数据库</td>
+        </tr>
+        <tr>
+          <td>专家采用率</td>
+          <td><span class="severity-medium">MEDIUM</span></td>
+          <td>先从 1 位专家开始 + 高置信度自动审批</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ════════════════ FOOTER ════════════════ -->
+<footer>
+  <p>CogNebula Unified Platform v1.0 -- Architecture Decision Record</p>
+  <p>Maurice | maurice_wen@proton.me</p>
+  <p class="small">2026-03-20 | Advisors: Hickey (Value Pipeline) + Meadows (R1 Flywheel) + Musk (Ship Today)</p>
+</footer>
+
+</body>
+</html>

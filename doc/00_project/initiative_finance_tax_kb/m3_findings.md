@@ -111,7 +111,15 @@
 - 下 1000 条边优先级: Classification→KU(300) > LegalClause→ComplianceRule(200) > CR→Penalty(150) > TaxType→CR(200) > AuditTrigger→RI(150)
 - 预测: 维持现状 → 6 个月后密度 1.8, 合规价值趋零; 暂停造节点专注造边 → 3 个月后密度 4.0+
 
-### 12. 维基百科评估
+### 12. LR 孤儿根因 (2026-03-20)
+- 49,541 个 LawOrRegulation 孤儿 (86%)
+- IssuingBody top 5 不是政府机构而是数据源 (doc-tax-pdf, 12366, chinaacc)
+- 孤儿 LR 标题不含"国家税务总局"等关键词 — 不是真正的法规文档
+- 根因: LawOrRegulation 表被当作万能垃圾桶 (类似 Hickey C3 的 KnowledgeUnit 问题)
+- 修复: 需要数据分类清洗 (将非法规数据迁移到正确的表 — KnowledgeUnit/CPAKnowledge 等)
+- 预计影响: 清洗后 LR 从 57K 降到 ~8K (真正的法规)，孤儿率大幅下降
+
+### 13. 维基百科评估
 - 中文维基财税词条 ~2000-5000 条
 - 信息密度 5-10% (vs 税务总局 80%+)
 - 结论: P3 低优先, 不推荐 M3 阶段引入

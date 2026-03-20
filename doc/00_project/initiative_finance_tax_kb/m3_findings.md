@@ -95,7 +95,23 @@
 - P2: L3 数据充实 (ComplianceRule 84→800+, Penalty 8→100+)
 - P3: DROP 全部 26 条 legacy edge
 
-### 10. 维基百科评估
+### 10. 数据质量审计 (Explorer, 2026-03-20)
+- 质量评分: 62/100
+- 孤儿节点 80K: LawOrRegulation 86%孤儿, Classification 88%孤儿, AccountingSubject 92.5%孤儿
+- KU 内容危机: 33,293/37,067 (89.8%) content < 20 chars
+- 重复节点 10K: LR 5,739 + Classification 4,269 + TaxRate 3,000
+- 元数据缺失: LR 55.1% 无 effectiveDate, TaxRate 100% 无 effectiveDate
+- Tax Applicability 严重不足: 仅 24K 边 (应 > 50K)
+
+### 11. 图结构系统分析 (Meadows, 2026-03-20)
+- Classification 31K 是结构孤岛 (只有 CHILD_OF 自指, 无出边到其他类型)
+- INTERPRETS 55% 是单一栽培风险 (类比爱尔兰大饥荒)
+- L3 合规层 555 节点 = 结构性缺失, Penalty 仅 8 个 = B1 平衡回路断开
+- R2 孤儿死亡螺旋当前主导, R1 知识飞轮未激活
+- 下 1000 条边优先级: Classification→KU(300) > LegalClause→ComplianceRule(200) > CR→Penalty(150) > TaxType→CR(200) > AuditTrigger→RI(150)
+- 预测: 维持现状 → 6 个月后密度 1.8, 合规价值趋零; 暂停造节点专注造边 → 3 个月后密度 4.0+
+
+### 12. 维基百科评估
 - 中文维基财税词条 ~2000-5000 条
 - 信息密度 5-10% (vs 税务总局 80%+)
 - 结论: P3 低优先, 不推荐 M3 阶段引入

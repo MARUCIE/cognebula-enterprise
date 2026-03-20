@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CogNebula 业财税知识库 -- 知识图谱说明书 v2.2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* ========== Reset & Base ========== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --cream: #F3F0E9;
+  --cream-dark: #EBE7DE;
+  --terracotta: #D67052;
+  --terracotta-light: #E8916F;
+  --terracotta-muted: rgba(214, 112, 82, 0.12);
+  --terracotta-border: rgba(214, 112, 82, 0.25);
+  --green: #2D6A4F;
+  --green-light: rgba(45, 106, 79, 0.08);
+  --text-dark: #1A1A2E;
+  --text-muted: #6B7280;
+  --text-light: #9CA3AF;
+  --white: #FFFFFF;
+  --shadow-1: 0 1px 3px rgba(26, 26, 46, 0.06);
+  --shadow-2: 0 4px 12px rgba(26, 26, 46, 0.08);
+  --shadow-3: 0 8px 30px rgba(26, 26, 46, 0.12);
+  --radius: 10px;
+  --container: 1100px;
+  --font-heading: 'Crimson Pro', Georgia, 'Times New Roman', serif;
+  --font-body: 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Layer colors */
+  --layer-blue: #1E3A5F;
+  --layer-blue-bg: rgba(30, 58, 95, 0.06);
+  --layer-green: #2D6A4F;
+  --layer-green-bg: rgba(45, 106, 79, 0.06);
+  --layer-red: #9B2C2C;
+  --layer-red-bg: rgba(155, 44, 44, 0.06);
+  --layer-gray: #6B7280;
+  --layer-gray-bg: rgba(107, 114, 128, 0.06);
+}
+
+html { font-size: 16px; scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--cream);
+  color: var(--text-dark);
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ========== Container ========== */
+.container {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+/* ========== Cover ========== */
+.cover {
+  text-align: center;
+  padding: 5rem 2rem 4rem;
+  position: relative;
+}
+
+.cover::after {
+  content: '';
+  display: block;
+  width: 80px;
+  height: 3px;
+  background: var(--terracotta);
+  margin: 2.5rem auto 0;
+  border-radius: 2px;
+}
+
+.cover-title {
+  font-family: var(--font-heading);
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
+}
+
+.cover-subtitle {
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  font-weight: 400;
+  color: var(--terracotta);
+  margin-bottom: 1.5rem;
+}
+
+.cover-tagline {
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  margin-bottom: 0.5rem;
+}
+
+.cover-date {
+  font-size: 0.9rem;
+  color: var(--text-light);
+}
+
+/* ========== TOC ========== */
+.toc {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-2);
+  padding: 2rem 2.5rem;
+  margin: 0 auto 3rem;
+  max-width: 680px;
+}
+
+.toc h2 {
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  color: var(--terracotta);
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.toc ol {
+  list-style: none;
+  counter-reset: toc-counter;
+  padding: 0;
+}
+
+.toc li {
+  counter-increment: toc-counter;
+  margin-bottom: 0.5rem;
+}
+
+.toc li::before {
+  content: counter(toc-counter) ".";
+  color: var(--terracotta);
+  font-weight: 600;
+  margin-right: 0.5rem;
+  font-family: var(--font-heading);
+}
+
+.toc a {
+  color: var(--text-dark);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.toc a:hover {
+  border-bottom-color: var(--terracotta);
+  color: var(--terracotta);
+}
+
+/* ========== Sections ========== */
+.section {
+  margin-bottom: 3.5rem;
+}
+
+.section-number {
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--terracotta);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: 0.3rem;
+}
+
+h2.section-title {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 1.5rem;
+  line-height: 1.3;
+}
+
+h3 {
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 2rem 0 1rem;
+}
+
+h4 {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--green);
+  margin: 1.5rem 0 0.75rem;
+}
+
+p {
+  margin-bottom: 1rem;
+  color: var(--text-dark);
+}
+
+p.muted {
+  color: var(--text-muted);
+}
+
+/* ========== Cards ========== */
+.card {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-2);
+  padding: 2rem 2.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.card-elevated {
+  box-shadow: var(--shadow-3);
+}
+
+/* ========== Layer Cards ========== */
+.layer-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-2);
+  padding: 1.8rem 2rem;
+  margin-bottom: 1.25rem;
+  border-left: 4px solid transparent;
+  transition: box-shadow 0.2s;
+}
+
+.layer-card:hover {
+  box-shadow: var(--shadow-3);
+}
+
+.layer-card--blue { border-left-color: var(--layer-blue); }
+.layer-card--green { border-left-color: var(--layer-green); }
+.layer-card--red { border-left-color: var(--layer-red); }
+.layer-card--gray { border-left-color: var(--layer-gray); }
+
+.layer-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.layer-tag {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  color: var(--white);
+  flex-shrink: 0;
+}
+
+.layer-tag--blue { background: var(--layer-blue); }
+.layer-tag--green { background: var(--layer-green); }
+.layer-tag--red { background: var(--layer-red); }
+.layer-tag--gray { background: var(--layer-gray); }
+
+.layer-name {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.layer-en {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.layer-section-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 0.75rem;
+  margin-bottom: 0.3rem;
+}
+
+.layer-nodes, .layer-edges {
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: var(--text-dark);
+}
+
+.layer-nodes code, .layer-edges code {
+  background: var(--cream);
+  padding: 0.12rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+}
+
+.layer-purpose {
+  margin-top: 0.6rem;
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ========== Tables ========== */
+.table-wrapper {
+  overflow-x: auto;
+  margin: 1.5rem 0;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-2);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--white);
+  font-size: 0.9rem;
+}
+
+thead th {
+  background: var(--cream-dark);
+  color: var(--text-dark);
+  font-weight: 600;
+  font-family: var(--font-body);
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 2px solid var(--terracotta-border);
+  white-space: nowrap;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+}
+
+tbody td {
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  vertical-align: top;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+tbody tr:hover {
+  background: var(--terracotta-muted);
+}
+
+td code, th code {
+  background: var(--cream);
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  font-size: 0.82rem;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  white-space: nowrap;
+}
+
+.table-layer-tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  color: var(--white);
+  white-space: nowrap;
+}
+
+.num-cell {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--green);
+}
+
+/* ========== Code Blocks ========== */
+pre {
+  background: #1E1E2E;
+  color: #CDD6F4;
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  overflow-x: auto;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.82rem;
+  line-height: 1.65;
+  margin: 1rem 0 1.5rem;
+  box-shadow: var(--shadow-2);
+}
+
+pre .comment { color: #6C7086; }
+pre .keyword { color: #CBA6F7; }
+pre .string { color: #A6E3A1; }
+pre .function { color: #89B4FA; }
+pre .number { color: #FAB387; }
+pre .operator { color: #89DCEB; }
+pre .url { color: #F9E2AF; }
+pre .method { color: #F38BA8; }
+pre .param { color: #94E2D5; }
+
+code.inline {
+  background: var(--cream-dark);
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+}
+
+/* ========== API Endpoint Cards ========== */
+.endpoint {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-1);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+  border-left: 3px solid var(--green);
+}
+
+.endpoint--admin {
+  border-left-color: var(--terracotta);
+}
+
+.endpoint-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.method-tag {
+  font-family: 'SF Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  color: var(--white);
+  letter-spacing: 0.05em;
+}
+
+.method-tag--get { background: var(--green); }
+.method-tag--post { background: var(--terracotta); }
+
+.endpoint-path {
+  font-family: 'SF Mono', monospace;
+  font-size: 0.88rem;
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+.endpoint-desc {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.endpoint-return {
+  font-size: 0.82rem;
+  color: var(--text-light);
+}
+
+/* ========== Quality Gauge ========== */
+.gauge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.gauge-item {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-1);
+  padding: 1.25rem;
+  text-align: center;
+}
+
+.gauge-value {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--green);
+  line-height: 1.1;
+}
+
+.gauge-value--warn { color: var(--terracotta); }
+
+.gauge-label {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-top: 0.3rem;
+}
+
+.gauge-threshold {
+  font-size: 0.72rem;
+  color: var(--text-light);
+  margin-top: 0.15rem;
+}
+
+/* ========== Infra List ========== */
+.infra-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.infra-item:last-child { border-bottom: none; }
+
+.infra-label {
+  font-weight: 600;
+  color: var(--text-dark);
+  min-width: 130px;
+  flex-shrink: 0;
+}
+
+.infra-value {
+  color: var(--text-muted);
+}
+
+/* ========== Divider ========== */
+.section-divider {
+  border: none;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--terracotta-border), transparent);
+  margin: 3rem 0;
+}
+
+/* ========== Footer ========== */
+footer {
+  text-align: center;
+  padding: 60px 20px 40px;
+  color: #9B9B9D;
+  font-size: 13px;
+  line-height: 2.2;
+}
+
+/* ========== Print ========== */
+@media print {
+  body { background: #fff; }
+  .container { max-width: 100%; padding: 0 1cm; }
+  .card, .layer-card, .endpoint, .gauge-item, .table-wrapper { box-shadow: none; border: 1px solid #ddd; }
+  pre { background: #f5f5f5; color: #333; border: 1px solid #ddd; }
+  .cover { padding: 2cm 0; }
+  .section { page-break-inside: avoid; }
+}
+
+/* ========== Responsive ========== */
+@media (max-width: 768px) {
+  .cover-title { font-size: 2.2rem; }
+  h2.section-title { font-size: 1.6rem; }
+  .card, .layer-card, .endpoint { padding: 1.25rem; }
+  .container { padding: 0 1rem; }
+  .gauge-grid { grid-template-columns: repeat(2, 1fr); }
+  .endpoint-header { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== COVER ==================== -->
+<header class="cover">
+  <div class="container">
+    <h1 class="cover-title">CogNebula 业财税知识库</h1>
+    <p class="cover-subtitle">知识图谱说明书 v2.2</p>
+    <p class="cover-tagline">407,038 节点 &middot; 858,398 边 &middot; Density 2.1 &middot; Quality 100/100</p>
+    <p class="cover-date">2026-03-20</p>
+  </div>
+</header>
+
+<main class="container">
+
+<!-- ==================== TOC ==================== -->
+<nav class="toc">
+  <h2>目 录</h2>
+  <ol>
+    <li><a href="#sec-intro">什么是 CogNebula 知识图谱</a></li>
+    <li><a href="#sec-arch">三层架构</a></li>
+    <li><a href="#sec-nodes">本体参考 -- 17 个节点表</a></li>
+    <li><a href="#sec-edges">本体参考 -- 20 种边类型</a></li>
+    <li><a href="#sec-api">API 接口文档</a></li>
+    <li><a href="#sec-queries">查询示例</a></li>
+    <li><a href="#sec-quality">质量标准</a></li>
+    <li><a href="#sec-infra">基础设施</a></li>
+  </ol>
+</nav>
+
+<!-- ==================== 1. INTRO ==================== -->
+<section class="section" id="sec-intro">
+  <div class="section-number">Section 01</div>
+  <h2 class="section-title">什么是 CogNebula 知识图谱</h2>
+  <div class="card card-elevated">
+    <p>
+      CogNebula 是一个专注于中国业财税（业务-财务-税务）领域的知识图谱系统。它将散落在数百部法律法规、
+      数千条会计准则、上万条税率规则中的专业知识，编织成一张结构化的语义网络。在这张网络中，每一条税率
+      都能追溯到它的法律依据，每一笔业务活动都能找到对应的申报义务和合规要求——不再需要翻阅堆积如山的
+      红头文件，也不再需要凭经验猜测某条规则是否仍然有效。
+    </p>
+    <p>
+      从技术实现上看，CogNebula 底层基于 KuzuDB 图数据库，辅以 LanceDB 向量存储实现语义搜索能力。
+      图谱包含法律法规、会计准则、税率规则、合规要求、税收优惠、分类编码等多种类型的专业知识节点，
+      以及它们之间丰富的语义关系。所有数据均经过质量门禁审核后入库，确保数据的准确性和一致性。
+    </p>
+    <p>
+      架构上，CogNebula 采用三层设计：<strong>法规层（L1）</strong>存储法律文件原文与条款拆分，
+      <strong>业务层（L2）</strong>承载税率、科目、申报等日常运营知识，<strong>合规层（L3）</strong>
+      定义规则、风险指标与处罚标准。三层之间通过共享参考层（税种、分类、地区等）实现跨层语义遍历，
+      使得从一条法规条文出发，可以一路追溯到具体的税率适用、申报要求，直至合规风险。
+    </p>
+    <p>
+      当前规模：407,038 个节点、858,398 条边、边密度 2.1，覆盖 19 种税收类型（增值税、企业所得税、
+      个人所得税、消费税等全部主要税种）。质量评分 100/100，标题覆盖率 99.3%，边密度 3.977。
+      这是一个持续生长的知识体，每次法规更新、税率调整、政策变动，都会通过入库管线自动融入图谱。
+    </p>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ==================== 2. ARCHITECTURE ==================== -->
+<section class="section" id="sec-arch">
+  <div class="section-number">Section 02</div>
+  <h2 class="section-title">三层架构</h2>
+
+  <!-- L1 -->
+  <div class="layer-card layer-card--blue">
+    <div class="layer-header">
+      <span class="layer-tag layer-tag--blue">L1</span>
+      <span class="layer-name">法规层</span>
+      <span class="layer-en">Regulation Center</span>
+    </div>
+    <div class="layer-section-label">Nodes</div>
+    <div class="layer-nodes">
+      <code>LegalDocument</code>(54,865) &middot;
+      <code>LegalClause</code>(70,518) &middot;
+      <code>IssuingBody</code>(398)
+    </div>
+    <div class="layer-section-label">Edges</div>
+    <div class="layer-edges">
+      <code>PART_OF</code> &middot; <code>SUPERSEDES</code> &middot; <code>AMENDS</code> &middot;
+      <code>ISSUED_BY</code> &middot; <code>CONFLICTS_WITH</code>
+    </div>
+    <p class="layer-purpose">用途：法规原文存储、条款拆分、法规演变追溯、发文机构关联</p>
+  </div>
+
+  <!-- L2 -->
+  <div class="layer-card layer-card--green">
+    <div class="layer-header">
+      <span class="layer-tag layer-tag--green">L2</span>
+      <span class="layer-name">业务层</span>
+      <span class="layer-en">Operation Center</span>
+    </div>
+    <div class="layer-section-label">Nodes</div>
+    <div class="layer-nodes">
+      <code>TaxRate</code>(9,000) &middot;
+      <code>AccountingSubject</code>(159) &middot;
+      <code>FilingForm</code>(121) &middot;
+      <code>BusinessActivity</code>(204) &middot;
+      <code>TaxEntity</code>(17)
+    </div>
+    <div class="layer-section-label">Edges</div>
+    <div class="layer-edges">
+      <code>DEBITS</code> &middot; <code>CREDITS</code> &middot; <code>REQUIRES_FILING</code> &middot;
+      <code>APPLIES_TO_TAX</code> / <code>CLASS</code> / <code>ENTITY</code> / <code>REGION</code>
+    </div>
+    <p class="layer-purpose">用途：税率查询、会计分录、申报义务、纳税主体管理</p>
+  </div>
+
+  <!-- L3 -->
+  <div class="layer-card layer-card--red">
+    <div class="layer-header">
+      <span class="layer-tag layer-tag--red">L3</span>
+      <span class="layer-name">合规层</span>
+      <span class="layer-en">Compliance Center</span>
+    </div>
+    <div class="layer-section-label">Nodes</div>
+    <div class="layer-nodes">
+      <code>ComplianceRule</code>(84) &middot;
+      <code>RiskIndicator</code>(463) &middot;
+      <code>Penalty</code>(8) &middot;
+      <code>AuditTrigger</code>(463)
+    </div>
+    <div class="layer-section-label">Edges</div>
+    <div class="layer-edges">
+      <code>GOVERNED_BY</code> &middot; <code>PENALIZED_BY</code> &middot; <code>TRIGGERED_BY</code>
+    </div>
+    <p class="layer-purpose">用途：合规检查、风险预警、稽查触发条件、处罚标准</p>
+  </div>
+
+  <!-- Shared -->
+  <div class="layer-card layer-card--gray">
+    <div class="layer-header">
+      <span class="layer-tag layer-tag--gray">Shared</span>
+      <span class="layer-name">共享参考层</span>
+      <span class="layer-en">Shared Reference</span>
+    </div>
+    <div class="layer-section-label">Nodes</div>
+    <div class="layer-nodes">
+      <code>TaxType</code>(19) &middot;
+      <code>Classification</code>(31,285) &middot;
+      <code>Region</code>(31) &middot;
+      <code>TaxIncentive</code>(109) &middot;
+      <code>KnowledgeUnit</code>(37,053)
+    </div>
+    <div class="layer-section-label">Edges</div>
+    <div class="layer-edges">
+      <code>EXPLAINS</code> &middot; <code>CHILD_OF</code> &middot; <code>BASED_ON</code> &middot;
+      <code>INCENTIVE_BASED_ON</code> &middot; <code>REFERENCES_CLAUSE</code>
+    </div>
+    <p class="layer-purpose">用途：税种分类、HS 编码、税收优惠政策、知识解释与交叉引用</p>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ==================== 3. NODE TABLES ==================== -->
+<section class="section" id="sec-nodes">
+  <div class="section-number">Section 03</div>
+  <h2 class="section-title">本体参考 -- 17 个节点表</h2>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>层</th>
+          <th>表名</th>
+          <th>中文名</th>
+          <th style="text-align:right">节点数</th>
+          <th>关键属性</th>
+          <th>说明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="table-layer-tag" style="background:var(--layer-blue)">L1</span></td>
+          <td><code>LegalDocument</code></td>
+          <td>法律文件</td>
+          <td class="num-cell">54,865</td>
+          <td>id, name, type, level, issuingBodyId, effectiveDate, expiryDate, status</td>
+          <td>法律法规原文，含生效/失效状态</td>
+        </tr>
+        <tr>
+          <td><span class="table-layer-tag" style="background:var(--layer-blue)">L1</span></td>
+          <td><code>LegalClause</code></td>
+          <td>法律条款</td>
+          <td class="num-cell">70,518</td>
+          <td>id, documentId, clauseNumber, title, content, keywords</td>
+          <td>条款级拆分，支持全文检索</td>
+        </tr>
+        <tr>
+          <td><span class="table-layer-tag" style="background:var(--layer-blue)">L1</span></td>
+          <td><code>IssuingBody</code></td>
+          <td>发文机构</td>
+          <td class="num-cell">398</td>
+          <td>id, name, shortName</td>
+          <td>国务院/财政部/税务总局等</td>
+        </tr>
+        <tr>
+          <td><span class="table-layer-tag" style="background:var(--layer-green)">L2</span></td>
+          <td><code>TaxRate</code></td>
+          <td>税率</td>
+          <td class="num-cell">9,000</td>
+          <td>id, name, taxTypeId, value, valueExpression, calculationBasis, effectiveDate, expiryDate</td>
+          <td>税率值及计算公式，含时间有效期</td>
+        </tr>
+        <tr>
+          <td><span class="table-layer-tag" style="background:var(--layer-green)">L2</span></td>
+          <td><code>AccountingSubject</code></td>
+          <td>会计科目</td>
+          <td class="num-cell">159</td>
+          <td>id, name, category (资产/负债/权益/成本/损益), balanceDirection (借/贷)</td>
+          <td>标准会计科目表</td>
+        </tr>
+        <tr>
+          <td><span class="table-layer-tag" style="background:var(--layer-green)">L2</span></td>
+          <td><code>FilingFormV2</code></td>
+          <td>申报表</td>
+          <td class="num-cell">121</td>
+          <td>id, name, reportCycle (月/季/年), deadlineDay</td>
+          <td>纳税申报表模板</td>
+        </tr>
+        <tr>
+          <td><span class="table-layer-tag" style="background:var(--layer-green)">L2</span></td>
+          <td><code>BusinessActivity</code></td>
+          <td>业务活动</td>
+          <td class="num-cell">204</td>
+          <td>id, name, description</td>
+          <td>企业常见涉税业务场景</td>
+        </tr>
+        <tr>
+          <td><span class="table-layer-tag" style="background:var(--layer-green)">L2</span></td>
+          <td><code>TaxEntity</code></td>
+          <td>纳税主体</td>
+          <td class="num-cell">17</td>
+          <td>id, name, type (企业/个人/个体工商户), taxpayerStatus (一般/小规模/自然人)</td>
+          <td>纳税人类型分类</td>
+        </tr>
+        <tr>
+          <td><span class="table-layer-tag" style="background:var(--layer-red)">L3</span></td>
+          <td><code>ComplianceRuleV2</code></td>
+          <td>合规规则</td>
+          <td class="num-cell">84</td>
+          <td>id, name, description, category, consequence, effectiveDate, expiryDate</td>
+          <td>合规检查规则定义</td>
+        </tr>
+        <tr>
+          <td><span class="table-layer-tag" style="background:var(--layer-red)">L3</span></td>
+          <td><code>RiskIndicatorV2</code></td>
+          <td>风险指标</td>
+          <td class="num-cell">463</td>
+          <td>id, name, description, indicatorType, threshold, severity</td>
+          <td>风险预警指标及阈值</td>
+        </tr>
+        <tr>
+          <td><span class="table-layer-tag" style="background:var(--layer-red)">L3</span></td>
+          <td><code>Penalty</code></td>
+          <td>处罚标准</td>
+          <td class="num-cell">8</td>
+          <td>id, name, penaltyType, dailyRate, criminalThreshold</td>
+          <td>违规处罚类型及标准</td>
+        </tr>
+        <tr>
+          <td><span class="table-layer-tag" style="background:var(--layer-red)">L3</span></td>
+          <td><code>AuditTrigger</code></td>
+          <td>稽查触发器</td>
+          <td class="num-cell">463</td>
+          <td>id, name, pattern, detectionMethod, frequency</td>
+          <td>税务稽查自动触发条件</td>
+        </tr>
+        <tr>
+          <td><span class="table-layer-tag" style="background:var(--layer-gray)">Shared</span></td>
+          <td><code>TaxType</code></td>
+          <td>税种</td>
+          <td class="num-cell">19</td>
+          <td>id, name</td>
+          <td>增值税/企业所得税/个人所得税/消费税等</td>
+        </tr>
+        <tr>
+          <td><span class="table-layer-tag" style="background:var(--layer-gray)">Shared</span></td>
+          <td><code>Classification</code></td>
+          <td>分类编码</td>
+          <td class="num-cell">31,285</td>
+          <td>id, name, system (HS编码/税收分类编码/国民经济行业分类)</td>
+          <td>多体系编码统一管理</td>
+        </tr>
+        <tr>
+          <td><span class="table-layer-tag" style="background:var(--layer-gray)">Shared</span></td>
+          <td><code>Region</code></td>
+          <td>地区</td>
+          <td class="num-cell">31</td>
+          <td>id, name, level (省/市/区县)</td>
+          <td>省级行政区划</td>
+        </tr>
+        <tr>
+          <td><span class="table-layer-tag" style="background:var(--layer-gray)">Shared</span></td>
+          <td><code>TaxIncentiveV2</code></td>
+          <td>税收优惠</td>
+          <td class="num-cell">109</td>
+          <td>id, name, type, description, effectiveDate, expiryDate</td>
+          <td>税收减免/抵扣/退税优惠政策</td>
+        </tr>
+        <tr>
+          <td><span class="table-layer-tag" style="background:var(--layer-gray)">Shared</span></td>
+          <td><code>KnowledgeUnit</code></td>
+          <td>知识单元</td>
+          <td class="num-cell">37,053</td>
+          <td>id, type, title, content, source</td>
+          <td>专业知识解释与注释</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="muted" style="font-size:0.85rem; margin-top:0.5rem;">17 个节点表合计 407,038 个节点。节点数据经质量门禁审核后入库。</p>
+</section>
+
+<hr class="section-divider">
+
+<!-- ==================== 4. EDGE TYPES ==================== -->
+<section class="section" id="sec-edges">
+  <div class="section-number">Section 04</div>
+  <h2 class="section-title">本体参考 -- 20 种边类型</h2>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>分类</th>
+          <th>边名</th>
+          <th>方向</th>
+          <th>中文</th>
+          <th style="text-align:right">数量</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Structure -->
+        <tr>
+          <td>结构</td>
+          <td><code>PART_OF</code></td>
+          <td>LegalClause &rarr; LegalDocument</td>
+          <td>条款属于文件</td>
+          <td class="num-cell">48,248</td>
+        </tr>
+        <tr>
+          <td>结构</td>
+          <td><code>CHILD_OF</code></td>
+          <td>Classification &rarr; Classification</td>
+          <td>分类层级</td>
+          <td class="num-cell">749</td>
+        </tr>
+        <!-- Evolution -->
+        <tr>
+          <td>法规演变</td>
+          <td><code>SUPERSEDES</code></td>
+          <td>LegalDocument &rarr; LegalDocument</td>
+          <td>新法替代旧法</td>
+          <td class="num-cell">36,576</td>
+        </tr>
+        <tr>
+          <td>法规演变</td>
+          <td><code>AMENDS</code></td>
+          <td>LegalDocument &rarr; LegalDocument</td>
+          <td>修正</td>
+          <td class="num-cell">10,973</td>
+        </tr>
+        <tr>
+          <td>法规演变</td>
+          <td><code>CONFLICTS_WITH</code></td>
+          <td>LegalClause &rarr; LegalClause</td>
+          <td>条款冲突</td>
+          <td class="num-cell">2,000</td>
+        </tr>
+        <!-- Reference -->
+        <tr>
+          <td>引用</td>
+          <td><code>REFERENCES_CLAUSE</code></td>
+          <td>LegalClause &rarr; LegalClause</td>
+          <td>条款交叉引用</td>
+          <td class="num-cell">49,416</td>
+        </tr>
+        <tr>
+          <td>引用</td>
+          <td><code>BASED_ON</code></td>
+          <td>TaxRate &rarr; LegalClause</td>
+          <td>税率法律依据</td>
+          <td class="num-cell">36,000</td>
+        </tr>
+        <tr>
+          <td>引用</td>
+          <td><code>INCENTIVE_BASED_ON</code></td>
+          <td>TaxIncentiveV2 &rarr; LegalClause</td>
+          <td>优惠法律依据</td>
+          <td class="num-cell">109</td>
+        </tr>
+        <tr>
+          <td>引用</td>
+          <td><code>ISSUED_BY</code></td>
+          <td>LegalDocument &rarr; IssuingBody</td>
+          <td>由机构发布</td>
+          <td class="num-cell">128,203</td>
+        </tr>
+        <!-- Applicability -->
+        <tr>
+          <td>适用性</td>
+          <td><code>APPLIES_TO_TAX</code></td>
+          <td>TaxRate &rarr; TaxType</td>
+          <td>适用税种</td>
+          <td class="num-cell">9,000</td>
+        </tr>
+        <tr>
+          <td>适用性</td>
+          <td><code>APPLIES_TO_ENTITY</code></td>
+          <td>TaxRate &rarr; TaxEntity</td>
+          <td>适用主体</td>
+          <td class="num-cell">3,000</td>
+        </tr>
+        <tr>
+          <td>适用性</td>
+          <td><code>APPLIES_IN_REGION</code></td>
+          <td>TaxRate &rarr; Region</td>
+          <td>适用地区</td>
+          <td class="num-cell">3,000</td>
+        </tr>
+        <tr>
+          <td>适用性</td>
+          <td><code>APPLIES_TO_CLASS</code></td>
+          <td>TaxRate &rarr; Classification</td>
+          <td>适用分类</td>
+          <td class="num-cell">9,000</td>
+        </tr>
+        <!-- Filing -->
+        <tr>
+          <td>申报</td>
+          <td><code>REQUIRES_FILING</code></td>
+          <td>BusinessActivity &rarr; FilingFormV2</td>
+          <td>需要申报</td>
+          <td class="num-cell">204</td>
+        </tr>
+        <tr>
+          <td>申报</td>
+          <td><code>GOVERNED_BY</code></td>
+          <td>BusinessActivity &rarr; ComplianceRuleV2</td>
+          <td>受规则约束</td>
+          <td class="num-cell">612</td>
+        </tr>
+        <!-- Accounting -->
+        <tr>
+          <td>会计</td>
+          <td><code>DEBITS_V2</code></td>
+          <td>BusinessActivity &rarr; AccountingSubject</td>
+          <td>借记科目</td>
+          <td class="num-cell">0</td>
+        </tr>
+        <tr>
+          <td>会计</td>
+          <td><code>CREDITS_V2</code></td>
+          <td>BusinessActivity &rarr; AccountingSubject</td>
+          <td>贷记科目</td>
+          <td class="num-cell">0</td>
+        </tr>
+        <!-- Knowledge -->
+        <tr>
+          <td>知识</td>
+          <td><code>EXPLAINS</code></td>
+          <td>KnowledgeUnit &rarr; LegalClause</td>
+          <td>知识解释条款</td>
+          <td class="num-cell">475,534</td>
+        </tr>
+        <!-- Compliance -->
+        <tr>
+          <td>合规</td>
+          <td><code>PENALIZED_BY</code></td>
+          <td>ComplianceRuleV2 &rarr; Penalty</td>
+          <td>违规处罚</td>
+          <td class="num-cell">8</td>
+        </tr>
+        <tr>
+          <td>合规</td>
+          <td><code>TRIGGERED_BY</code></td>
+          <td>AuditTrigger &rarr; RiskIndicatorV2</td>
+          <td>稽查触发</td>
+          <td class="num-cell">463</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="muted" style="font-size:0.85rem; margin-top:0.5rem;">
+    20 种边类型合计 858,398 条边。<code>DEBITS_V2</code> 和 <code>CREDITS_V2</code> 为预留的会计分录边，待业务数据补充后激活。
+    <code>EXPLAINS</code> 边数量最大（475,534），承载知识单元对法规条款的解释关系。
+  </p>
+</section>
+
+<hr class="section-divider">
+
+<!-- ==================== 5. API ==================== -->
+<section class="section" id="sec-api">
+  <div class="section-number">Section 05</div>
+  <h2 class="section-title">API 接口文档</h2>
+
+  <h3>查询类接口</h3>
+
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="method-tag method-tag--get">GET</span>
+      <span class="endpoint-path">/api/v1/health</span>
+    </div>
+    <p class="endpoint-desc">健康检查。返回 KuzuDB 和 LanceDB 的连接状态。</p>
+    <p class="endpoint-return">返回: <code class="inline">{status, kuzu, lancedb, lancedb_rows}</code></p>
+    <pre><span class="comment"># Example</span>
+<span class="function">curl</span> <span class="url">http://100.75.77.112:8400/api/v1/health</span></pre>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="method-tag method-tag--get">GET</span>
+      <span class="endpoint-path">/api/v1/stats</span>
+    </div>
+    <p class="endpoint-desc">统计信息。返回所有节点表和边表的计数。</p>
+    <p class="endpoint-return">返回: <code class="inline">{node_tables: [...], edge_tables: [...], total_nodes, total_edges}</code></p>
+    <pre><span class="function">curl</span> <span class="url">http://100.75.77.112:8400/api/v1/stats</span></pre>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="method-tag method-tag--get">GET</span>
+      <span class="endpoint-path">/api/v1/quality</span>
+    </div>
+    <p class="endpoint-desc">质量审计。返回 score / coverage / density / issues 等指标。</p>
+    <p class="endpoint-return">返回: <code class="inline">{score, title_coverage, edge_density, empty_tables, issues}</code></p>
+    <pre><span class="function">curl</span> <span class="url">http://100.75.77.112:8400/api/v1/quality</span></pre>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="method-tag method-tag--get">GET</span>
+      <span class="endpoint-path">/api/v1/nodes?type=TaxType&amp;limit=20</span>
+    </div>
+    <p class="endpoint-desc">查询节点。按表名筛选，支持分页。</p>
+    <p class="endpoint-return">参数: <code class="inline">type</code> (表名), <code class="inline">limit</code> (默认 20), <code class="inline">offset</code> (默认 0)</p>
+    <pre><span class="function">curl</span> <span class="string">"<span class="url">http://100.75.77.112:8400/api/v1/nodes?type=TaxType&limit=20</span>"</span></pre>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="method-tag method-tag--get">GET</span>
+      <span class="endpoint-path">/api/v1/graph?table=TaxType&amp;id_field=id&amp;id_value=TT_VAT&amp;depth=1</span>
+    </div>
+    <p class="endpoint-desc">图遍历。从指定节点出发，返回 N 跳内的邻居。</p>
+    <p class="endpoint-return">参数: <code class="inline">table</code>, <code class="inline">id_field</code>, <code class="inline">id_value</code>, <code class="inline">depth</code> (默认 1)</p>
+    <pre><span class="function">curl</span> <span class="string">"<span class="url">http://100.75.77.112:8400/api/v1/graph?table=TaxType&id_field=id&id_value=TT_VAT&depth=1</span>"</span></pre>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="method-tag method-tag--get">GET</span>
+      <span class="endpoint-path">/api/v1/search?q=增值税&amp;limit=10</span>
+    </div>
+    <p class="endpoint-desc">语义搜索。基于 LanceDB 向量检索，返回最相关的知识条目。</p>
+    <p class="endpoint-return">参数: <code class="inline">q</code> (查询文本), <code class="inline">limit</code> (默认 10)</p>
+    <pre><span class="function">curl</span> <span class="string">"<span class="url">http://100.75.77.112:8400/api/v1/search?q=增值税&limit=10</span>"</span></pre>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="method-tag method-tag--post">POST</span>
+      <span class="endpoint-path">/api/v1/chat</span>
+    </div>
+    <p class="endpoint-desc">RAG 问答。结合图谱知识和 Gemini 大模型进行智能问答。</p>
+    <p class="endpoint-return">Body: <code class="inline">{"question": "增值税税率是多少?"}</code></p>
+    <pre><span class="function">curl</span> <span class="operator">-X</span> POST <span class="url">http://100.75.77.112:8400/api/v1/chat</span> \
+  <span class="operator">-H</span> <span class="string">"Content-Type: application/json"</span> \
+  <span class="operator">-d</span> <span class="string">'{"question": "增值税税率是多少?"}'</span></pre>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="method-tag method-tag--get">GET</span>
+      <span class="endpoint-path">/</span>
+    </div>
+    <p class="endpoint-desc">Web 探索器。浏览器打开即可可视化浏览知识图谱。</p>
+    <pre><span class="function">open</span> <span class="url">http://100.75.77.112:8400/</span></pre>
+  </div>
+
+  <h3>管理类接口</h3>
+
+  <div class="endpoint endpoint--admin">
+    <div class="endpoint-header">
+      <span class="method-tag method-tag--post">POST</span>
+      <span class="endpoint-path">/api/v1/ingest</span>
+    </div>
+    <p class="endpoint-desc">入库接口。新增节点/边数据，自动执行质量门禁检查。</p>
+    <p class="endpoint-return">Body: <code class="inline">{"table": "TaxType", "nodes": [...]}</code></p>
+    <pre><span class="function">curl</span> <span class="operator">-X</span> POST <span class="url">http://100.75.77.112:8400/api/v1/ingest</span> \
+  <span class="operator">-H</span> <span class="string">"Content-Type: application/json"</span> \
+  <span class="operator">-d</span> <span class="string">'{"table": "TaxType", "nodes": [{"id": "TT_NEW", "name": "新税种"}]}'</span></pre>
+  </div>
+
+  <div class="endpoint endpoint--admin">
+    <div class="endpoint-header">
+      <span class="method-tag method-tag--post">POST</span>
+      <span class="endpoint-path">/api/v1/admin/execute-ddl</span>
+    </div>
+    <p class="endpoint-desc">执行 DDL。用于创建/修改节点表和边表的 schema。</p>
+    <pre><span class="function">curl</span> <span class="operator">-X</span> POST <span class="url">http://100.75.77.112:8400/api/v1/admin/execute-ddl</span> \
+  <span class="operator">-H</span> <span class="string">"Content-Type: application/json"</span> \
+  <span class="operator">-d</span> <span class="string">'{"statements": ["CREATE NODE TABLE Test(id STRING, PRIMARY KEY(id))"]}'</span></pre>
+  </div>
+
+  <div class="endpoint endpoint--admin">
+    <div class="endpoint-header">
+      <span class="method-tag method-tag--post">POST</span>
+      <span class="endpoint-path">/api/v1/admin/migrate-table</span>
+    </div>
+    <p class="endpoint-desc">表迁移。将旧表数据迁移到新表结构。</p>
+    <pre><span class="function">curl</span> <span class="operator">-X</span> POST <span class="url">http://100.75.77.112:8400/api/v1/admin/migrate-table</span> \
+  <span class="operator">-H</span> <span class="string">"Content-Type: application/json"</span> \
+  <span class="operator">-d</span> <span class="string">'{"source": "OldTable", "target": "NewTable", "mapping": {}}'</span></pre>
+  </div>
+
+  <div class="endpoint endpoint--admin">
+    <div class="endpoint-header">
+      <span class="method-tag method-tag--post">POST</span>
+      <span class="endpoint-path">/api/v1/admin/fix-titles</span>
+    </div>
+    <p class="endpoint-desc">修复空标题。扫描并补全缺失 title 的节点。</p>
+    <pre><span class="function">curl</span> <span class="operator">-X</span> POST <span class="url">http://100.75.77.112:8400/api/v1/admin/fix-titles</span> \
+  <span class="operator">-H</span> <span class="string">"Content-Type: application/json"</span> \
+  <span class="operator">-d</span> <span class="string">'{"dry_run": true}'</span></pre>
+  </div>
+
+  <div class="endpoint endpoint--admin">
+    <div class="endpoint-header">
+      <span class="method-tag method-tag--post">POST</span>
+      <span class="endpoint-path">/api/v1/admin/enrich-edges</span>
+    </div>
+    <p class="endpoint-desc">补充边。基于已有节点关系推断并补充缺失的边。</p>
+    <pre><span class="function">curl</span> <span class="operator">-X</span> POST <span class="url">http://100.75.77.112:8400/api/v1/admin/enrich-edges</span> \
+  <span class="operator">-H</span> <span class="string">"Content-Type: application/json"</span> \
+  <span class="operator">-d</span> <span class="string">'{"dry_run": false}'</span></pre>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ==================== 6. QUERIES ==================== -->
+<section class="section" id="sec-queries">
+  <div class="section-number">Section 06</div>
+  <h2 class="section-title">查询示例</h2>
+
+  <h4>1. 查询所有税种</h4>
+  <p>获取系统中所有 19 种税种的 ID 和名称。</p>
+  <pre><span class="comment">-- Cypher</span>
+<span class="keyword">MATCH</span> (n:<span class="function">TaxType</span>)
+<span class="keyword">RETURN</span> n.id, n.name</pre>
+  <pre><span class="comment"># curl</span>
+<span class="function">curl</span> <span class="string">"<span class="url">http://100.75.77.112:8400/api/v1/nodes?type=TaxType&limit=19</span>"</span></pre>
+
+  <h4>2. 增值税相关的法规</h4>
+  <p>以增值税节点为起点，遍历所有关联节点（税率、法规条款等）。</p>
+  <pre><span class="comment">-- Cypher</span>
+<span class="keyword">MATCH</span> (t:<span class="function">TaxType</span> {id: <span class="string">'TT_VAT'</span>})<span class="operator">-</span>[r]<span class="operator">-</span>(n)
+<span class="keyword">RETURN</span> t.name, type(r) <span class="keyword">AS</span> rel, label(n) <span class="keyword">AS</span> nodeType, n.id, n.name
+<span class="keyword">LIMIT</span> <span class="number">50</span></pre>
+  <pre><span class="comment"># curl</span>
+<span class="function">curl</span> <span class="string">"<span class="url">http://100.75.77.112:8400/api/v1/graph?table=TaxType&id_field=id&id_value=TT_VAT&depth=1</span>"</span></pre>
+
+  <h4>3. 某条法规的所有条款</h4>
+  <p>给定法规文件 ID，查出该文件下的全部条款。</p>
+  <pre><span class="comment">-- Cypher</span>
+<span class="keyword">MATCH</span> (c:<span class="function">LegalClause</span>)<span class="operator">-</span>[:<span class="function">PART_OF</span>]<span class="operator">-></span>(d:<span class="function">LegalDocument</span> {id: <span class="string">'LD_VAT_LAW_2024'</span>})
+<span class="keyword">RETURN</span> c.clauseNumber, c.title, c.content
+<span class="keyword">ORDER BY</span> c.clauseNumber</pre>
+  <pre><span class="comment"># curl</span>
+<span class="function">curl</span> <span class="string">"<span class="url">http://100.75.77.112:8400/api/v1/graph?table=LegalDocument&id_field=id&id_value=LD_VAT_LAW_2024&depth=1</span>"</span></pre>
+
+  <h4>4. 小规模纳税人的税率</h4>
+  <p>查找所有适用于小规模纳税人的税率规则。</p>
+  <pre><span class="comment">-- Cypher</span>
+<span class="keyword">MATCH</span> (e:<span class="function">TaxEntity</span> {taxpayerStatus: <span class="string">'小规模纳税人'</span>})<span class="operator"><-</span>[:<span class="function">APPLIES_TO_ENTITY</span>]<span class="operator">-</span>(r:<span class="function">TaxRate</span>)
+<span class="keyword">RETURN</span> r.name, r.value, r.calculationBasis, r.effectiveDate
+<span class="keyword">ORDER BY</span> r.name</pre>
+  <pre><span class="comment"># curl -- search API for semantic match</span>
+<span class="function">curl</span> <span class="string">"<span class="url">http://100.75.77.112:8400/api/v1/search?q=小规模纳税人税率&limit=10</span>"</span></pre>
+
+  <h4>5. 合规风险检查</h4>
+  <p>查看业务活动关联的合规规则及对应处罚标准，用于风险预评估。</p>
+  <pre><span class="comment">-- Cypher</span>
+<span class="keyword">MATCH</span> (b:<span class="function">BusinessActivity</span>)<span class="operator">-</span>[:<span class="function">GOVERNED_BY</span>]<span class="operator">-></span>(c:<span class="function">ComplianceRuleV2</span>)<span class="operator">-</span>[:<span class="function">PENALIZED_BY</span>]<span class="operator">-></span>(p:<span class="function">Penalty</span>)
+<span class="keyword">RETURN</span> b.name <span class="keyword">AS</span> activity,
+       c.name <span class="keyword">AS</span> rule,
+       c.category,
+       p.name <span class="keyword">AS</span> penalty,
+       p.penaltyType,
+       p.dailyRate</pre>
+  <pre><span class="comment"># curl -- RAG chat for natural language query</span>
+<span class="function">curl</span> <span class="operator">-X</span> POST <span class="url">http://100.75.77.112:8400/api/v1/chat</span> \
+  <span class="operator">-H</span> <span class="string">"Content-Type: application/json"</span> \
+  <span class="operator">-d</span> <span class="string">'{"question": "哪些业务活动有违规处罚风险?"}'</span></pre>
+</section>
+
+<hr class="section-divider">
+
+<!-- ==================== 7. QUALITY ==================== -->
+<section class="section" id="sec-quality">
+  <div class="section-number">Section 07</div>
+  <h2 class="section-title">质量标准</h2>
+
+  <p>CogNebula 采用六项指标作为质量门禁，所有数据入库前必须通过审核。当前知识库质量评分 100/100。</p>
+
+  <div class="gauge-grid">
+    <div class="gauge-item">
+      <div class="gauge-value">99.3%</div>
+      <div class="gauge-label">Title Coverage</div>
+      <div class="gauge-threshold">阈值 >= 95%</div>
+    </div>
+    <div class="gauge-item">
+      <div class="gauge-value">3.977</div>
+      <div class="gauge-label">Edge Density</div>
+      <div class="gauge-threshold">阈值 >= 2.0</div>
+    </div>
+    <div class="gauge-item">
+      <div class="gauge-value">100</div>
+      <div class="gauge-label">Quality Score</div>
+      <div class="gauge-threshold">阈值 >= 60</div>
+    </div>
+    <div class="gauge-item">
+      <div class="gauge-value">0</div>
+      <div class="gauge-label">空节点表</div>
+      <div class="gauge-threshold">阈值 <= 2</div>
+    </div>
+    <div class="gauge-item">
+      <div class="gauge-value">2</div>
+      <div class="gauge-value--warn"></div>
+      <div class="gauge-label">空边表</div>
+      <div class="gauge-threshold">DEBITS_V2 + CREDITS_V2 (预留)</div>
+    </div>
+    <div class="gauge-item">
+      <div class="gauge-value" style="font-size:1.4rem">API</div>
+      <div class="gauge-label">质量审计接口</div>
+      <div class="gauge-threshold">/api/v1/quality</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:1.5rem">
+    <h4 style="margin-top:0">入库门禁规则</h4>
+    <ul style="padding-left:1.5rem; color:var(--text-dark);">
+      <li><strong>title</strong> 字段长度 >= 2 个字符</li>
+      <li><strong>content</strong> 字段长度 >= 20 个字符</li>
+      <li>禁止原始 ID 泄露（如 UUID、数据库自增 ID）</li>
+      <li>日期字段必须符合 ISO 8601 格式</li>
+      <li>节点 ID 必须使用语义前缀（如 TT_ / LD_ / LC_ / CR_ 等）</li>
+    </ul>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ==================== 8. INFRA ==================== -->
+<section class="section" id="sec-infra">
+  <div class="section-number">Section 08</div>
+  <h2 class="section-title">基础设施</h2>
+
+  <div class="card card-elevated">
+    <div class="infra-item">
+      <span class="infra-label">Graph DB</span>
+      <span class="infra-value">KuzuDB 0.11.3 (单文件模式, auto buffer sizing)</span>
+    </div>
+    <div class="infra-item">
+      <span class="infra-label">Vector Store</span>
+      <span class="infra-value">LanceDB (37,329 向量, gemini-embedding-2-preview 768d)</span>
+    </div>
+    <div class="infra-item">
+      <span class="infra-label">API Framework</span>
+      <span class="infra-value">FastAPI + uvicorn, 0.0.0.0:8400</span>
+    </div>
+    <div class="infra-item">
+      <span class="infra-label">LLM</span>
+      <span class="infra-value">Gemini (RAG 问答 + 知识生成)</span>
+    </div>
+    <div class="infra-item">
+      <span class="infra-label">Server</span>
+      <span class="infra-value">kg-node (100.75.77.112 via Tailscale, 8GB RAM, Ubuntu)</span>
+    </div>
+    <div class="infra-item">
+      <span class="infra-label">Backup</span>
+      <span class="infra-value">rsync to Mac local + VPS daily (14-day retention)</span>
+    </div>
+    <div class="infra-item">
+      <span class="infra-label">Network</span>
+      <span class="infra-value">Tailscale mesh (100.x.x.x), not exposed to public internet</span>
+    </div>
+    <div class="infra-item">
+      <span class="infra-label">Explorer</span>
+      <span class="infra-value">内置 Web UI (Cytoscape.js), http://100.75.77.112:8400/</span>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ==================== FOOTER ==================== -->
+<footer style="text-align:center; padding:60px 20px 40px; color:#9B9B9D; font-size:13px; line-height:2.2;">
+  <p>CogNebula v2.2 -- 业财税知识库说明书</p>
+  <p>Maurice | maurice_wen@proton.me</p>
+  <p style="font-size:12px; margin-top:8px;">2026-03-20 | KuzuDB + LanceDB + Gemini</p>
+</footer>
+
+</body>
+</html>

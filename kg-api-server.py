@@ -19,7 +19,7 @@ HOST = "0.0.0.0"
 PORT = 8400
 
 # ── Quality Gate Thresholds ──────────────────────────────────────────
-QG_TITLE_MIN_LEN = 5          # Minimum title length (chars)
+QG_TITLE_MIN_LEN = 2          # Minimum title length (chars) — lowered for CJK (增值税=3chars is valid)
 QG_CONTENT_MIN_LEN = 20       # Minimum content/fullText length
 QG_TARGET_EDGE_DENSITY = 0.5  # Target edges per node
 QG_TITLE_COVERAGE_TARGET = 0.95  # 95% nodes must have titles
@@ -100,7 +100,7 @@ _lance_table = None
 def get_kuzu():
     global _kuzu_db, _kuzu_conn
     if _kuzu_conn is None:
-        _kuzu_db = kuzu.Database(DB_PATH, buffer_pool_size=1024 * 1024 * 1024)  # 1GB buffer
+        _kuzu_db = kuzu.Database(DB_PATH)  # auto buffer sizing
         _kuzu_conn = kuzu.Connection(_kuzu_db)
     return _kuzu_conn
 
@@ -206,6 +206,23 @@ def quality_audit():
     issues = []
     metrics = {}
 
+    # v2.2 tables only -- legacy tables (TaxCodeDetail, AccountRuleMapping, etc.)
+    # have been migrated and must NOT inflate quality audit issue counts.
+    V2_TABLES = {
+        "LegalDocument", "LegalClause", "TaxRate", "ComplianceRuleV2", "RiskIndicatorV2",
+        "TaxIncentiveV2", "KnowledgeUnit", "Classification", "AccountingSubject",
+        "TaxType", "TaxEntity", "Region", "FilingFormV2", "BusinessActivity",
+        "IssuingBody", "Penalty", "AuditTrigger",
+    }
+
+    V2_EDGES = {
+        "PART_OF", "CHILD_OF", "SUPERSEDES", "AMENDS", "CONFLICTS_WITH",
+        "REFERENCES_CLAUSE", "BASED_ON", "INCENTIVE_BASED_ON", "ISSUED_BY",
+        "APPLIES_TO_TAX", "APPLIES_TO_ENTITY", "APPLIES_IN_REGION", "APPLIES_TO_CLASS",
+        "REQUIRES_FILING", "GOVERNED_BY", "DEBITS_V2", "CREDITS_V2",
+        "EXPLAINS", "PENALIZED_BY", "TRIGGERED_BY",
+    }
+
     # Get all node tables
     result = conn.execute("CALL show_tables() RETURN *")
     node_tables = []
@@ -214,27 +231,17 @@ def quality_audit():
         if row[2] == "NODE":
             node_tables.append(row[1])
 
-    # Table-specific label fields (some tables use non-standard field names)
+    # Table-specific label fields for v2.2 tables
     TABLE_LABEL_FIELDS = {
-        "MindmapNode": ["node_text"],
-        "RegulationClause": ["title", "fullText"],
-        "CPAKnowledge": ["topic", "content"],
-        "TaxCodeRegionRate": ["item_name"],
-        "TaxClassificationCode": ["name", "code"],
-        "TaxCodeDetail": ["name", "description"],
-        "TaxCodeIndustryMap": ["name", "industry_name"],
-        "TaxRateMapping": ["productCategory", "rateLabel"],
-        "IndustryRiskProfile": ["name", "industry"],
-        "RegionalTaxPolicy": ["name", "policy_name"],
-        "AccountingEntry": ["name", "description", "scenario"],
-        "AccountRuleMapping": ["name", "rule_name"],
-        "TaxRiskScenario": ["name", "scenario"],
-        "IndustryKnowledge": ["name", "topic"],
-        "TaxCreditIndicator": ["name", "indicator"],
-        "TaxRateDetail": ["name", "description"],
-        "TaxRateSchedule": ["name", "description"],
-        "TaxPolicy": ["name", "policy_name"],
-        "IndustryBookkeeping": ["name", "method"],
+        "LegalClause": ["title", "fullText"],
+        "KnowledgeUnit": ["topic", "content"],
+        "ComplianceRuleV2": ["name", "description"],
+        "RiskIndicatorV2": ["name", "description"],
+        "TaxIncentiveV2": ["name", "description"],
+        "FilingFormV2": ["name", "description"],
+        "AccountingSubject": ["name", "description"],
+        "Penalty": ["name", "description"],
+        "AuditTrigger": ["name", "description"],
     }
 
     # Title coverage per table
@@ -242,6 +249,8 @@ def quality_audit():
     total_nodes = 0
     total_with_title = 0
     for tbl in node_tables:
+        if tbl not in V2_TABLES:
+            continue
         try:
             r = conn.execute(f"MATCH (n:{tbl}) RETURN count(n)")
             count = r.get_next()[0]
@@ -275,12 +284,14 @@ def quality_audit():
 
     metrics["title_coverage"] = round(total_with_title / total_nodes, 3) if total_nodes > 0 else 0
 
-    # Edge density
-    try:
-        r = conn.execute("MATCH ()-[e]->() RETURN count(e)")
-        total_edges = r.get_next()[0]
-    except:
-        total_edges = 0
+    # Edge density (v2.2 edges only)
+    total_edges = 0
+    for edge_label in V2_EDGES:
+        try:
+            r = conn.execute(f"MATCH ()-[e:{edge_label}]->() RETURN count(e)")
+            total_edges += r.get_next()[0]
+        except:
+            pass
 
     density = round(total_edges / total_nodes, 3) if total_nodes > 0 else 0
     metrics["edge_density"] = density

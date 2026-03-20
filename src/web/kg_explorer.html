@@ -1816,7 +1816,7 @@ let selectedNodeId = null;
 
 // ===== Presets =====
 const PRESETS = {
-  tax:      "MATCH (n:TaxType) RETURN n.id, n.name, n.minRate, n.maxRate, n.rateStructure LIMIT 30",
+  tax:      "MATCH (a:TaxType)-[r]->(b) RETURN a.id, a.name, label(r) AS rel, b.id AS target_id, labels(b) AS target_type LIMIT 200",
   vat:      "MATCH (t:TaxType {id: 'TT_VAT'})-[r]->(n) RETURN t.name, type(r), n.id, n.name LIMIT 30",
   qa:       "MATCH (n:FAQEntry) RETURN n.id, n.question, n.category LIMIT 20",
   clause:   "MATCH (n:CPAKnowledge) RETURN n.id, n.title, n.chapter, n.subject LIMIT 20",

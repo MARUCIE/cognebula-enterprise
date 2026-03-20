@@ -24,10 +24,12 @@ BASE_URL = "https://www.cicpa.org.cn"
 
 # Sections with tax/audit-relevant content
 SECTIONS = [
-    {"name": "audit_standards", "url": "/column/audit-standards/", "max_pages": 10},
-    {"name": "professional_guidance", "url": "/column/professional-guidance/", "max_pages": 10},
-    {"name": "interpretation", "url": "/column/interpretation/", "max_pages": 5},
-    {"name": "practice_guide", "url": "/column/practice-guide/", "max_pages": 5},
+    {"name": "professional_standards", "url": "/ztzl1/Professional_standards/", "max_pages": 10},
+    {"name": "industry_regulation", "url": "/ztzl1/Industry_regulation/", "max_pages": 10},
+    {"name": "public_services", "url": "/ggfw/", "max_pages": 5},
+    {"name": "news", "url": "/xxfb/news/", "max_pages": 5},
+    {"name": "notices", "url": "/xxfb/tzgg/", "max_pages": 5},
+    {"name": "registration", "url": "/ztzl1/Registration/", "max_pages": 3},
 ]
 
 HEADERS = {

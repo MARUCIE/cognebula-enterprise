@@ -48,30 +48,42 @@ $VENV scripts/generate_lr_qa.py \
     --max-batches "$QA_BATCHES" \
     --offset "$OFFSET" 2>&1 || echo "  WARN: QA generation had errors"
 
-# Step 2: Daily Crawl (catch-up)
-echo "[2/4] Running Daily Crawl..."
+# Step 2: Edge Engine (Meadows: L3 = edge generation, not node generation)
+echo "[2/5] Running Edge Engine (AI relationship discovery)..."
+$VENV scripts/generate_edges_ai.py --batch-size 50 --max-batches 10 2>&1 || echo "  WARN: Edge engine had errors"
+
+# Step 3: Restart API (release DB lock before daily crawl)
+echo "[3/5] Restarting API..."
+sudo systemctl start kg-api
+sleep 3
+
+# Step 4: Batch density check (Meadows: compress feedback delay from weeks to 1 day)
+echo "[4/5] Batch density check..."
+curl -sf http://localhost:8400/api/v1/quality 2>/dev/null | python3 -c "
+import json, sys
+d = json.load(sys.stdin)
+m = d.get('metrics', {})
+score = d.get('score', 0)
+nodes = m.get('total_nodes', 0)
+edges = m.get('total_edges', 0)
+density = m.get('edge_density', 0)
+print(f'  Score: {score}')
+print(f'  Nodes: {nodes:,}')
+print(f'  Edges: {edges:,}')
+print(f'  Density: {density:.3f}')
+print(f'  Target: 6.000 (gap: {6.0 - density:.3f})')
+# Alert if density dropped
+if density < 2.0:
+    print('  ALERT: Density below 2.0! Dilution detected.')
+" || echo "  WARN: Quality check failed"
+
+# Step 5: Daily Crawl (file-level only, no DB lock needed)
+echo "[5/5] Running Daily Crawl (file output only)..."
 if [[ -x scripts/daily_pipeline.sh ]]; then
     timeout 1800 bash scripts/daily_pipeline.sh 2>&1 || echo "  WARN: Daily crawl had errors"
 else
     echo "  SKIP: daily_pipeline.sh not executable"
 fi
-
-# Step 3: Restart API
-echo "[3/4] Restarting API..."
-sudo systemctl start kg-api
-sleep 3
-
-# Step 4: Quality check
-echo "[4/4] Quality check..."
-curl -sf http://localhost:8400/api/v1/quality 2>/dev/null | python3 -c "
-import json, sys
-d = json.load(sys.stdin)
-m = d.get('metrics', {})
-print(f'  Score: {d[\"score\"]}')
-print(f'  Nodes: {m.get(\"total_nodes\", 0):,}')
-print(f'  Edges: {m.get(\"total_edges\", 0):,}')
-print(f'  Density: {m.get(\"edge_density\", 0):.3f}')
-" || echo "  WARN: Quality check failed"
 
 echo "================================================================"
 echo "  M3 Orchestrator DONE — $(date)"

@@ -474,23 +474,8 @@
           <h3 class="font-bold text-on-surface">关系类型分布 (Edge Type Distribution)</h3>
           <button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">more_horiz</button>
         </div>
-        <div class="space-y-6">
-          <div class="space-y-2">
-            <div class="flex justify-between text-xs font-bold text-on-surface-variant uppercase"><span>Owns_Asset (所属资产)</span><span>42.1%</span></div>
-            <div class="w-full bg-surface-container-low h-8 rounded overflow-hidden flex"><div class="bg-primary-container h-full w-[42.1%] flex items-center px-3"><div class="w-1 h-1 bg-white rounded-full"></div></div></div>
-          </div>
-          <div class="space-y-2">
-            <div class="flex justify-between text-xs font-bold text-on-surface-variant uppercase"><span>Located_In (地理关联)</span><span>28.4%</span></div>
-            <div class="w-full bg-surface-container-low h-8 rounded overflow-hidden flex"><div class="bg-primary/70 h-full w-[28.4%] flex items-center px-3"><div class="w-1 h-1 bg-white rounded-full"></div></div></div>
-          </div>
-          <div class="space-y-2">
-            <div class="flex justify-between text-xs font-bold text-on-surface-variant uppercase"><span>Depends_On (逻辑依赖)</span><span>19.5%</span></div>
-            <div class="w-full bg-surface-container-low h-8 rounded overflow-hidden flex"><div class="bg-primary/40 h-full w-[19.5%] flex items-center px-3"><div class="w-1 h-1 bg-white rounded-full"></div></div></div>
-          </div>
-          <div class="space-y-2">
-            <div class="flex justify-between text-xs font-bold text-on-surface-variant uppercase"><span>Authored_By (创作者)</span><span>10.0%</span></div>
-            <div class="w-full bg-surface-container-low h-8 rounded overflow-hidden flex"><div class="bg-primary/20 h-full w-[10%] flex items-center px-3"><div class="w-1 h-1 bg-white rounded-full"></div></div></div>
-          </div>
+        <div id="edge-distribution" class="space-y-3">
+          <p class="text-xs text-on-surface-variant">Loading from API...</p>
         </div>
       </div>
       <!-- System Log Column -->
@@ -511,11 +496,11 @@
           <h3 class="font-bold text-on-surface mb-4">版本信息</h3>
           <div class="flex justify-between items-center py-2 border-b border-outline-variant/5">
             <span class="text-xs text-on-surface-variant font-medium">引擎版本</span>
-            <span class="text-xs font-bold px-2 py-1 bg-surface-container-low rounded">v2.2.0-stable</span>
+            <span class="text-xs font-bold px-2 py-1 bg-surface-container-low rounded">v3.1 (17N x 36E)</span>
           </div>
           <div class="flex justify-between items-center py-2">
             <span class="text-xs text-on-surface-variant font-medium">最后部署</span>
-            <span class="text-xs font-bold">2023.10.27 12:44</span>
+            <span class="text-xs font-bold">2026.03.20</span>
           </div>
         </div>
       </div>
@@ -666,19 +651,54 @@ document.addEventListener('keydown', function(e) {
 });
 
 // -- Admin dashboard: load real quality data --
+const EDGE_ZH = {
+  INTERPRETS:'解释',EXEMPLIFIED_BY:'案例',EXPLAINS_RATE:'税率说明',WARNS_ABOUT:'风险提示',
+  DESCRIBES_INCENTIVE:'优惠说明',GUIDES_FILING:'申报指南',ISSUED_BY:'发布',REFERENCES_CLAUSE:'引用',
+  PART_OF:'属于',BASED_ON:'依据',SUPERSEDES:'替代',AMENDS:'修订',APPLIES_TO_TAX:'适用税种',
+  APPLIES_TO_CLASS:'适用分类',APPLIES_TO_ENTITY:'适用主体',APPLIES_IN_REGION:'适用地区',
+  CONFLICTS_WITH:'冲突',KU_ABOUT_TAX:'知识税种',CHILD_OF:'子分类',GOVERNED_BY:'受约束',
+  TRIGGERED_BY:'触发',REQUIRES_FILING:'需申报',TRIGGERS_TAX:'触发税种',RISK_FOR_TAX:'风险税种',
+  AUDIT_FOR_TAX:'稽查税种',INCENTIVE_BASED_ON:'优惠依据',INCENTIVE_FOR_TAX:'优惠税种',
+  DEBITS_V2:'借方',CREDITS_V2:'贷方',MAPS_TO_ACCOUNT:'对应科目',CALCULATED_FROM:'计算自',
+  SURCHARGE_OF:'附加于',RELATED_TAX:'关联税种',RULE_FOR_TAX:'规则税种',FILING_FOR_TAX:'申报税种',
+  PENALIZED_BY:'处罚',
+};
+const EDGE_BAR_COLORS = ['bg-primary-container','bg-primary/70','bg-primary/50','bg-primary/30','bg-primary/20','bg-primary/10'];
 async function loadAdminData() {
   try {
-    const res = await fetch(API_BASE + '/quality', { signal: AbortSignal.timeout(10000) });
-    const d = await res.json();
+    const [qualRes, statsRes] = await Promise.all([
+      fetch(API_BASE + '/quality', { signal: AbortSignal.timeout(10000) }),
+      fetch(API_BASE + '/stats', { signal: AbortSignal.timeout(10000) }),
+    ]);
+    const d = await qualRes.json();
+    const stats = await statsRes.json();
     const m = d.metrics || {};
     document.getElementById('admin-quality-score').textContent = d.score || '--';
     document.getElementById('admin-coverage').textContent =
       m.title_coverage ? (m.title_coverage * 100).toFixed(1) : '--';
     document.getElementById('admin-density').textContent =
       m.edge_density ? m.edge_density.toFixed(3) : '--';
-    // Update coverage bar
     const bar = document.querySelector('#content-admin .bg-primary.h-full');
     if (bar && m.title_coverage) bar.style.width = (m.title_coverage * 100) + '%';
+
+    // Edge distribution from real stats
+    const edges = stats.edges_by_type || {};
+    const totalE = Object.values(edges).reduce((a,b) => a+b, 0);
+    const sorted = Object.entries(edges).sort((a,b) => b[1]-a[1]).slice(0, 8);
+    const container = document.getElementById('edge-distribution');
+    if (container && sorted.length) {
+      container.innerHTML = sorted.map(([type, count], i) => {
+        const pct = (count * 100 / totalE).toFixed(1);
+        const zh = EDGE_ZH[type] || type;
+        const color = EDGE_BAR_COLORS[Math.min(i, EDGE_BAR_COLORS.length - 1)];
+        return '<div class="space-y-1">' +
+          '<div class="flex justify-between text-xs font-bold text-on-surface-variant"><span>' +
+          type + ' (' + zh + ')</span><span>' + Number(count).toLocaleString() + ' (' + pct + '%)</span></div>' +
+          '<div class="w-full bg-surface-container-low h-6 rounded overflow-hidden flex">' +
+          '<div class="' + color + ' h-full flex items-center px-2" style="width:' + pct + '%">' +
+          '<div class="w-1 h-1 bg-white rounded-full"></div></div></div></div>';
+      }).join('');
+    }
   } catch(e) { console.warn('Admin data load failed:', e); }
 }
 

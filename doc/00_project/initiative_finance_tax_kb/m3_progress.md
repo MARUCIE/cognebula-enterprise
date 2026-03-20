@@ -57,9 +57,64 @@
 9. ae95ae6 - Edge Engine + Meadows pipeline redesign
 10. 2bd1568 - M3 Data Source Strategy HTML report
 
-### KG Metrics
-- Nodes: 407,848 → target 500K (Phase 1 gate)
-- Edges: 860,320 → target 1.5M (Phase 1)
-- Density: 2.109 → target 3.0 (Phase 1 gate)
+### KG Metrics (Updated 2026-03-21)
+- Nodes: 413,558 (from 420,892 pre-remediation)
+- Edges: 929,705 (from 874,086 pre-remediation, +55,619)
+- Density: 2.248 (from 2.077, +8.2%)
 - Quality: 100/100
-- Schema: v3.1 (17N × 36E)
+- Schema: v3.1 (53N × 66E)
+
+## Session: 2026-03-21
+
+### M3 Comprehensive Remediation (8 operations)
+
+**Task 1: LR 垃圾桶清洗**
+- LR 57,639 → 21,202 (-63%), 孤儿 49,541 → 5,099 (86% → 24%)
+- 32,765 misclassified LR migrated to KnowledgeUnit (wiki/FAQ/CPA/mindmap)
+- 3,282 short/empty LR deleted
+- Root cause: crawl pipeline dumped all content into LR table
+
+**Task 2: HS 层级自动构建**
+- +22,880 CHILD_OF edges from HS code structure (2/4/6/8/10-digit hierarchy)
+- Classification orphans: 87% → 7%
+
+**Task 3: KU 边丰富**
+- +6,495 KU_ABOUT_TAX (migrated KU → TaxType via keyword)
+- +2,659 KU_ABOUT_TAX (tax keyword matching)
+- +14,911 KU_ABOUT_TAX (type-based matching: FAQ→VAT, 百科→CIT, etc.)
+- KU orphans: 26,095 → 8,525
+
+**Task 4: LR 孤儿修复**
+- +2,154 CLASSIFIED_UNDER_TAX (LR → TaxType)
+- +5,851 LR_ISSUED_BY (new edge type, bypasses ISSUED_BY schema constraint)
+- ISSUED_BY only allows LegalDocument→IssuingBody (KuzuDB typed edges)
+
+**Task 5: V2 幽灵表清洗**
+- ComplianceRule(84): 100% orphan, deleted (V2 version has all edges)
+- RiskIndicator(378): 100% orphan, deleted
+- TaxIncentive(109): has active edges, kept (needs manual review)
+
+**Task 6: 去重**
+- LR: -282 orphan duplicates (5,221 groups found, only orphans deleted)
+- Classification: -3,250 orphan duplicates
+
+**Task 7: 小表孤儿清零**
+- AccountingSubject: +147 MAPS_TO_ACCOUNT (92% → 0% orphans)
+- Penalty: +275 PENALIZED_BY (92% → 8% orphans)
+- TaxEntity: +19 ENTITY_FOR_TAX (82% → 0% orphans)
+
+**Task 8: 新边类型**
+- LR_ISSUED_BY (LawOrRegulation → IssuingBody)
+- CLASS_ABOUT_TAX (Classification → TaxType)
+- ENTITY_FOR_TAX (TaxEntity → TaxType)
+
+### Remaining
+- KU 37K empty content (53% empty, 42% short) — needs LLM backfill
+- 3 broken crawlers (flk_npc, cicpa, cctaa) — need DevTools reverse engineering
+- KU orphans 8.5K (12%) — may need LLM-assisted cross-reference
+- TaxIncentive vs TaxIncentiveV2 (109 each, both have edges)
+- M3 cron: fixed permissions + crontab, pending first auto-run verification
+
+### Commits
+- 425e767 (kg-node) / b27c1c4 (local) - feat(m3): comprehensive graph remediation
+- Push to GitHub: MARUCIE/cognebula-enterprise master

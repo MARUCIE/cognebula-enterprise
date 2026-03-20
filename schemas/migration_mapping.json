@@ -1,0 +1,151 @@
+{
+  "$schema": "CogNebula Ontology v2 Migration Mapping",
+  "version": "2.0",
+  "date": "2026-03-19",
+  "summary": "70 tables -> 13 node + 20 edge tables",
+
+  "node_migrations": {
+    "LegalDocument": {
+      "sources": ["LawOrRegulation", "AccountingStandard"],
+      "field_map": {
+        "id": "id",
+        "name": "title OR name",
+        "type": "CASE: LawOrRegulation='规范性文件', AccountingStandard='会计准则'",
+        "level": "DERIVED: from type hierarchy",
+        "issuingBodyId": "issuingAuthority",
+        "issueDate": "issueDate OR createdAt",
+        "effectiveDate": "effectiveDate",
+        "expiryDate": "expiryDate OR NULL",
+        "status": "status OR 'active' -> '现行有效'"
+      },
+      "estimated_count": 50957
+    },
+    "LegalClause": {
+      "sources": ["RegulationClause", "DocumentSection"],
+      "field_map": {
+        "id": "id",
+        "documentId": "regulationId OR source",
+        "clauseNumber": "articleNumber + paragraphNumber",
+        "title": "title OR EXTRACT_FROM(fullText, 0, 80)",
+        "content": "fullText OR content",
+        "keywords": "keywords OR EXTRACT_KEYWORDS(content)"
+      },
+      "estimated_count": 70518
+    },
+    "TaxRule": {
+      "sources": ["TaxCodeRegionRate", "TaxRateMapping", "TaxRateDetail", "TaxRateSchedule", "TaxPolicy", "TaxCreditIndicator", "TaxWarningIndicator", "ComplianceRule"],
+      "field_map": {
+        "id": "id",
+        "name": "name OR productCategory OR item_name",
+        "ruleType": "CASE: TaxRate*='税率', TaxCredit='抵免指标', TaxWarning='风险指标', ComplianceRule='合规规则'",
+        "value": "applicableRate OR rate_percentage OR value",
+        "effectiveDate": "effectiveFrom",
+        "expiryDate": "effectiveUntil"
+      },
+      "estimated_count": 13700
+    },
+    "TaxIncentive": {
+      "sources": ["TaxIncentive"],
+      "field_map": "DIRECT_COPY",
+      "estimated_count": 109
+    },
+    "KnowledgeUnit": {
+      "sources": ["CPAKnowledge", "FAQEntry", "MindmapNode", "SpreadsheetEntry", "IndustryKnowledge"],
+      "field_map": {
+        "id": "id",
+        "type": "CASE: CPAKnowledge='考点', FAQEntry='FAQ', MindmapNode='思维导图', SpreadsheetEntry='表格', IndustryKnowledge='行业知识'",
+        "title": "title OR question OR node_text OR topic",
+        "content": "content OR answer OR fullText",
+        "source": "source OR category"
+      },
+      "estimated_count": 37435
+    },
+    "Classification": {
+      "sources": ["HSCode", "TaxClassificationCode", "TaxCodeDetail", "TaxCodeIndustryMap", "Industry", "FTIndustry", "IndustryRiskProfile", "IndustryBookkeeping"],
+      "field_map": {
+        "code": "id OR code OR gbCode",
+        "name": "name OR item_name OR productCategory",
+        "system": "CASE: HSCode='HS编码', TaxClassification*='税收分类编码', Industry/FTIndustry='国民经济行业分类', IndustryRiskProfile='行业风险', IndustryBookkeeping='行业记账'"
+      },
+      "estimated_count": 33785
+    },
+    "AccountingSubject": {
+      "sources": ["ChartOfAccount", "ChartOfAccountDetail", "AccountEntry", "AccountingEntry", "AccountRuleMapping"],
+      "field_map": {
+        "code": "code OR id",
+        "name": "name",
+        "category": "category OR accountType",
+        "balanceDirection": "direction OR debitCredit"
+      },
+      "estimated_count": 867
+    },
+    "TaxType": {
+      "sources": ["TaxType"],
+      "field_map": "DIRECT_COPY",
+      "estimated_count": 19
+    },
+    "TaxEntity": {
+      "sources": ["EnterpriseType", "TaxpayerStatus", "EntityTypeProfile"],
+      "field_map": {
+        "id": "id",
+        "name": "name",
+        "type": "CASE: EnterpriseType='企业', TaxpayerStatus='身份', EntityTypeProfile='画像'",
+        "taxpayerStatus": "taxpayerCategory OR domain"
+      },
+      "estimated_count": 17
+    },
+    "Region": {
+      "sources": ["Region", "RegionalTaxPolicy"],
+      "field_map": {
+        "code": "id OR code",
+        "name": "name",
+        "level": "DERIVED: from code length"
+      },
+      "estimated_count": 651
+    },
+    "FilingForm": {
+      "sources": ["FilingForm", "FormTemplate", "TaxCalendar"],
+      "field_map": {
+        "id": "id",
+        "name": "name",
+        "reportCycle": "frequency OR reportCycle",
+        "deadlineDay": "EXTRACT: from deadlineRule"
+      },
+      "estimated_count": 230
+    },
+    "BusinessActivity": {
+      "sources": ["TaxRiskScenario"],
+      "field_map": {
+        "id": "id",
+        "name": "name OR scenario",
+        "description": "description"
+      },
+      "estimated_count": 180
+    },
+    "IssuingBody": {
+      "sources": ["NEW - extract from LawOrRegulation.issuingAuthority"],
+      "field_map": "EXTRACT_UNIQUE",
+      "estimated_count": 50
+    }
+  },
+
+  "edge_migrations": {
+    "PART_OF": {"replaces": ["CLAUSE_OF"], "estimated_count": 28266},
+    "HAS_PARENT": {"replaces": ["HS_PARENT_OF"], "estimated_count": 23000},
+    "SUPERSEDES": {"replaces": [], "note": "NEW - extract from regulation metadata", "estimated_count": 5000},
+    "AMENDS": {"replaces": [], "note": "NEW - extract from regulation metadata", "estimated_count": 3000},
+    "BASED_ON": {"replaces": ["REFERENCES", "CLAUSE_REFERENCES"], "estimated_count": 1576},
+    "APPLIES_TO_TAX": {"replaces": ["FT_APPLIES_TO", "SUBJECT_TO", "OP_MAPS_TO_RATE"], "estimated_count": 14000},
+    "APPLIES_TO_CLASS": {"replaces": ["CLASSIFIED_UNDER", "OPERATES_IN", "COVERS"], "estimated_count": 5000},
+    "EXPLAINS": {"replaces": ["MENTIONS", "RELATED_TOPIC", "RELATES_TO", "HAS_KNOWLEDGE"], "estimated_count": 10000},
+    "GOVERNED_BY": {"replaces": ["TRIGGERS_ALERT"], "estimated_count": 465},
+    "DEBITS": {"replaces": ["OP_DEBITS"], "estimated_count": 500},
+    "CREDITS": {"replaces": ["OP_CREDITS"], "estimated_count": 500}
+  },
+
+  "tables_to_delete": {
+    "empty_node_tables": "All 30 node tables with 0 rows",
+    "empty_edge_tables": "All 61 edge tables with 0 rows",
+    "replaced_edges": ["RELATED_TOPIC", "RELATES_TO", "MENTIONS", "SIBLING_OF", "SIMILAR_QUESTION", "DERIVED_FROM", "BENEFITS", "TARGETS", "FT_INCENTIVE_TAX", "FT_RATE_SCHEDULE"]
+  }
+}

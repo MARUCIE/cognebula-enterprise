@@ -148,47 +148,39 @@ def main():
             if "already exists" not in str(e).lower():
                 log.warning("DERIVED_FROM creation: %s", e)
 
-    # Get already-processed clause IDs (from existing QA nodes' sourceUrl field)
-    processed_clauses = set()
+    # Get clauses that haven't had QA generated yet
+    # Exclude clauses that already have DERIVED_FROM edges (= already processed)
     try:
-        r = conn.execute(
-            "MATCH (n:LawOrRegulation) WHERE n.regulationType = 'derived_qa_v2' "
-            "RETURN n.sourceUrl"
-        )
-        while r.has_next():
-            row = r.get_next()
-            if row[0]:
-                processed_clauses.add(row[0])
-        log.info("Already processed clauses: %d", len(processed_clauses))
-    except Exception as e:
-        log.info("Could not load processed clauses: %s", e)
-
-    # Get all clauses with sufficient content
-    r = conn.execute("""
-        MATCH (c:RegulationClause)
-        WHERE c.fullText IS NOT NULL AND size(c.fullText) >= 50
-        RETURN c.id, c.title, c.fullText, c.regulationId
-        ORDER BY size(c.fullText) DESC
-    """)
+        r = conn.execute("""
+            MATCH (c:RegulationClause)
+            WHERE c.fullText IS NOT NULL AND size(c.fullText) >= 50
+            AND NOT EXISTS {
+                MATCH (q:LawOrRegulation)-[:DERIVED_FROM]->(c)
+            }
+            RETURN c.id, c.title, c.fullText, c.regulationId
+            ORDER BY size(c.fullText) DESC
+            LIMIT $lim
+        """, {"lim": args.limit})
+    except Exception:
+        # Fallback if DERIVED_FROM table doesn't exist yet
+        log.info("DERIVED_FROM not found, querying all clauses")
+        r = conn.execute("""
+            MATCH (c:RegulationClause)
+            WHERE c.fullText IS NOT NULL AND size(c.fullText) >= 50
+            RETURN c.id, c.title, c.fullText, c.regulationId
+            ORDER BY size(c.fullText) DESC
+            SKIP $offset LIMIT $lim
+        """, {"offset": args.offset, "lim": args.limit})
 
     clauses = []
-    skipped_processed = 0
     while r.has_next():
         row = r.get_next()
-        cid = row[0] or ""
-        # Skip already-processed clauses (Python-side dedup)
-        if cid in processed_clauses:
-            skipped_processed += 1
-            continue
         clauses.append({
-            "id": cid,
+            "id": row[0] or "",
             "title": row[1] or "",
             "text": row[2] or "",
             "reg_id": row[3] or "",
         })
-        if len(clauses) >= args.limit:
-            break
-    log.info("Skipped %d already-processed clauses", skipped_processed)
 
     log.info("Loaded %d clauses (offset=%d, limit=%d)", len(clauses), args.offset, args.limit)
 

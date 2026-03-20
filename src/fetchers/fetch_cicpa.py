@@ -24,12 +24,12 @@ BASE_URL = "https://www.cicpa.org.cn"
 
 # Sections with tax/audit-relevant content
 SECTIONS = [
-    {"name": "professional_standards", "url": "/ztzl1/Professional_standards/", "max_pages": 10},
-    {"name": "industry_regulation", "url": "/ztzl1/Industry_regulation/", "max_pages": 10},
-    {"name": "public_services", "url": "/ggfw/", "max_pages": 5},
-    {"name": "news", "url": "/xxfb/news/", "max_pages": 5},
+    {"name": "audit_standards", "url": "/ztzl1/Professional_standards/xxzztx/zyzz/sjzz/index_1.html", "max_pages": 3},
+    {"name": "review_standards", "url": "/ztzl1/Professional_standards/xxzztx/zyzz/shzz/index_1.html", "max_pages": 2},
+    {"name": "other_assurance", "url": "/ztzl1/Professional_standards/xxzztx/zyzz/qtzz/index_1.html", "max_pages": 2},
+    {"name": "related_services", "url": "/ztzl1/Professional_standards/xxzztx/zyzz/xgfwzz/index_1.html", "max_pages": 2},
+    {"name": "professional_guidelines", "url": "/ztzl1/Professional_standards/Professional_guidelines/", "max_pages": 5},
     {"name": "notices", "url": "/xxfb/tzgg/", "max_pages": 5},
-    {"name": "registration", "url": "/ztzl1/Registration/", "max_pages": 3},
 ]
 
 HEADERS = {
@@ -110,9 +110,12 @@ def fetch(output_dir: str, max_total: int = 1000, fetch_content: bool = False) -
                 if len(results) >= max_total:
                     break
 
-                url = f"{BASE_URL}{section['url']}"
-                if page > 1:
-                    url = f"{url}index_{page}.html"
+                section_url = section["url"]
+                if page == 1:
+                    url = f"{BASE_URL}{section_url}"
+                else:
+                    # Replace index_1.html with index_N.html for pagination
+                    url = f"{BASE_URL}{section_url}".replace("index_1.html", f"index_{page}.html")
 
                 time.sleep(3)
                 items = _fetch_list_page(client, url)

@@ -5,7 +5,15 @@ Content: Constitutional laws, administrative regulations, department rules, loca
 Volume: 17,000+ documents
 Priority: P0 CRITICAL (蜂群审计 Tier 1)
 
-API: POST https://flk.npc.gov.cn/api/ with search parameters
+NOTE: flk.npc.gov.cn was rebuilt as a Vue SPA in 2025. All /api/* paths now return
+the SPA HTML shell. The real API calls are made internally by the JS app via XHR.
+To crawl, use one of:
+  1. Playwright: render the SPA, intercept network requests to find the real API
+  2. fleet-page-fetch: VPS browser rendering proxy
+  3. Alternative: use existing datasets (twang2218/law-datasets on GitHub)
+
+The old GET/POST endpoints no longer work directly (405 or HTML returned).
+Download base: https://wb.flk.npc.gov.cn (for PDF/WORD files, may still work)
 """
 import argparse
 import hashlib
@@ -22,53 +30,69 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 log = logging.getLogger("fetch_flk_npc")
 
 BASE_URL = "https://flk.npc.gov.cn"
-SEARCH_API = f"{BASE_URL}/api/"
+LIST_API = f"{BASE_URL}/api/"
+DETAIL_API = f"{BASE_URL}/api/detail"
 
-# Law categories to crawl
+# Law categories (type param for filtered queries)
 CATEGORIES = [
-    {"name": "tax_law", "type": "flfg", "keywords": ["税", "税收", "增值税", "所得税", "消费税"]},
-    {"name": "admin_regulation", "type": "xzfg", "keywords": ["税", "财政", "会计"]},
-    {"name": "dept_rule", "type": "bmgz", "keywords": ["税务", "财政部", "会计"]},
-    {"name": "judicial_interp", "type": "sfjs", "keywords": ["税", "逃税", "偷税"]},
+    {"name": "law", "type": "flfg"},           # 法律法规
+    {"name": "admin_reg", "type": "xzfg"},      # 行政法规
+    {"name": "supervisory", "type": "jcfg"},    # 监察法规
+    {"name": "judicial", "type": "sfjs"},        # 司法解释
+    {"name": "local_reg", "type": "dfxfg"},      # 地方性法规
 ]
+
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0.0.0",
+    "Referer": f"{BASE_URL}/",
+}
 
 
 def _make_id(url: str) -> str:
     return hashlib.sha256(url.encode()).hexdigest()[:16]
 
 
-def _search(client: httpx.Client, law_type: str, keyword: str, page: int = 1, size: int = 10) -> dict:
-    """Search the NPC law database API."""
-    payload = {
-        "type": law_type,
-        "searchType": "title;vague",
-        "sortTr": "f_bbrq_s;desc",
-        "gbrqStart": "",
-        "gbrqEnd": "",
-        "sxrqStart": "",
-        "sxrqEnd": "",
-        "sort": "true",
-        "page": str(page),
-        "size": str(size),
-        "q": keyword,
-    }
+def _list_page(client: httpx.Client, page: int = 1, size: int = 10) -> dict:
+    """List all laws via GET API with pagination."""
     try:
-        resp = client.post(
-            SEARCH_API,
-            data=payload,
-            headers={
-                "Content-Type": "application/x-www-form-urlencoded",
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0.0.0",
-                "Referer": f"{BASE_URL}/",
-                "Origin": BASE_URL,
-            },
+        resp = client.get(
+            LIST_API,
+            params={"page": page, "size": size},
+            headers=HEADERS,
             timeout=15,
         )
         if resp.status_code == 200:
-            return resp.json()
+            data = resp.json()
+            if data.get("success") or data.get("code") == 200:
+                return data
+            log.warning("API returned code=%s", data.get("code"))
     except Exception as e:
-        log.warning("Search failed for '%s' page %d: %s", keyword, page, e)
+        log.warning("List page %d failed: %s", page, e)
     return {}
+
+
+def _fetch_detail(client: httpx.Client, doc_id: str) -> str:
+    """Fetch full text via detail API."""
+    try:
+        resp = client.get(
+            DETAIL_API,
+            params={"id": doc_id},
+            headers=HEADERS,
+            timeout=15,
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            body = data.get("result", {}).get("body", [])
+            if body and isinstance(body, list):
+                for item in body:
+                    text = item.get("body", "") or item.get("content", "")
+                    if text:
+                        text = re.sub(r'<[^>]+>', '', text).strip()
+                        if len(text) >= 50:
+                            return text[:10000]
+    except Exception:
+        pass
+    return ""
 
 
 def _fetch_detail(client: httpx.Client, detail_url: str) -> str:
@@ -102,75 +126,68 @@ def _fetch_detail(client: httpx.Client, detail_url: str) -> str:
 
 
 def fetch(output_dir: str, max_total: int = 5000, fetch_content: bool = False) -> list[dict]:
-    """Fetch from NPC National Law Database."""
+    """Fetch from NPC National Law Database via GET pagination API."""
     results = []
     now = datetime.now(timezone.utc).isoformat()
     seen_ids = set()
+    page_size = 10
 
     with httpx.Client(timeout=15, follow_redirects=True) as client:
-        for cat in CATEGORIES:
-            for keyword in cat["keywords"]:
-                if len(results) >= max_total:
-                    break
+        for page in range(1, max_total // page_size + 2):
+            if len(results) >= max_total:
+                break
 
-                log.info("Searching type='%s' keyword='%s'", cat["type"], keyword)
+            time.sleep(3)  # polite delay
+            data = _list_page(client, page, page_size)
 
-                for page in range(1, 51):  # up to 50 pages
-                    if len(results) >= max_total:
-                        break
+            result = data.get("result", {})
+            items = result.get("data", [])
+            if not items:
+                log.info("No more items at page %d", page)
+                break
 
-                    time.sleep(3)  # polite delay
-                    data = _search(client, cat["type"], keyword, page)
+            for item in items:
+                title = item.get("title", "")
+                title = re.sub(r'<[^>]+>', '', title).strip()
 
-                    items = data.get("result", {}).get("data", [])
-                    if not items:
-                        break
+                detail_id = item.get("id", "")
+                url = item.get("url", "")
+                if not url and detail_id:
+                    url = f"{BASE_URL}/detail2.html?id={detail_id}"
 
-                    for item in items:
-                        title = item.get("title", "")
-                        # Clean HTML from title
-                        title = re.sub(r'<[^>]+>', '', title).strip()
+                doc_id = _make_id(detail_id or url or title)
+                if doc_id in seen_ids:
+                    continue
+                seen_ids.add(doc_id)
 
-                        url = item.get("url", "")
-                        if not url:
-                            detail_id = item.get("id", "")
-                            if detail_id:
-                                url = f"{BASE_URL}/detail2.html?ZmY4MDgwODE2ZjEz#{detail_id}"
+                content = ""
+                if fetch_content and detail_id:
+                    time.sleep(2)
+                    content = _fetch_detail(client, detail_id)
 
-                        doc_id = _make_id(url or title)
-                        if doc_id in seen_ids:
-                            continue
-                        seen_ids.add(doc_id)
+                law_type = item.get("type", "")
+                cat_name = next(
+                    (c["name"] for c in CATEGORIES if c["type"] == law_type),
+                    "other"
+                )
 
-                        content = item.get("body", "")
-                        if content:
-                            content = re.sub(r'<[^>]+>', '', content).strip()[:5000]
+                results.append({
+                    "id": doc_id,
+                    "title": title,
+                    "url": url,
+                    "content": content,
+                    "source": f"flk_npc/{cat_name}",
+                    "type": f"law/{law_type}",
+                    "date": item.get("publish", ""),
+                    "status": item.get("status", ""),
+                    "issuing_body": item.get("office", ""),
+                    "crawled_at": now,
+                })
 
-                        # Optionally fetch full text
-                        if fetch_content and url and len(content) < 200:
-                            time.sleep(2)
-                            full = _fetch_detail(client, url)
-                            if full:
-                                content = full
-
-                        results.append({
-                            "id": doc_id,
-                            "title": title,
-                            "url": url,
-                            "content": content,
-                            "source": f"flk_npc/{cat['name']}",
-                            "type": f"law/{cat['type']}",
-                            "date": item.get("publish", ""),
-                            "status": item.get("status", ""),
-                            "issuing_body": item.get("office", ""),
-                            "crawled_at": now,
-                        })
-
-                    total_count = data.get("result", {}).get("totalSizes", 0)
-                    if page * 10 >= total_count:
-                        break
-
-                log.info("Keyword '%s' done: %d total results", keyword, len(results))
+            total_count = result.get("totalSizes", 0)
+            log.info("Page %d: +%d items (total %d/%d)", page, len(items), len(results), total_count)
+            if page * page_size >= total_count:
+                break
 
     if output_dir:
         os.makedirs(output_dir, exist_ok=True)

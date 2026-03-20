@@ -24,10 +24,19 @@ log = logging.getLogger("fetch_cctaa")
 BASE_URL = "https://www.cctaa.cn"
 
 SECTIONS = [
-    {"name": "policy_law", "url": "/channels/287.html", "max_pages": 10},
-    {"name": "industry_standard", "url": "/channels/288.html", "max_pages": 5},
-    {"name": "practice_guide", "url": "/channels/289.html", "max_pages": 5},
-    {"name": "tax_service", "url": "/channels/290.html", "max_pages": 5},
+    {"name": "industry_news", "url": "/hyxw/hyyw/", "max_pages": 10},
+    {"name": "tax_news", "url": "/hyxw/swxw/", "max_pages": 10},
+    {"name": "regional_dynamics", "url": "/hyxw/dfdt/", "max_pages": 5},
+    {"name": "announcements", "url": "/zxtz/", "max_pages": 20},
+    {"name": "std_basic", "url": "/zygf/jbzy/", "max_pages": 3},
+    {"name": "std_ethics", "url": "/zygf/zydd/", "max_pages": 3},
+    {"name": "std_filing", "url": "/zygf/sbzy/", "max_pages": 3},
+    {"name": "std_consulting", "url": "/zygf/zxzy/", "max_pages": 3},
+    {"name": "std_advisory", "url": "/zygf/zyzy/", "max_pages": 3},
+    {"name": "std_planning", "url": "/zygf/chzy/", "max_pages": 3},
+    {"name": "std_attestation", "url": "/zygf/jzzy/", "max_pages": 3},
+    {"name": "std_compliance", "url": "/zygf/sczy/", "max_pages": 3},
+    {"name": "std_other", "url": "/zygf/qtzy/", "max_pages": 3},
 ]
 
 HEADERS = {
@@ -57,7 +66,7 @@ def _fetch_list_page(client: httpx.Client, url: str) -> list[dict]:
                 continue
             if not href.startswith("http"):
                 href = BASE_URL + href
-            if "cctaa.cn" in href and "/contents/" in href:
+            if "cctaa.cn" in href and re.search(r'/\d{6}/t\d{8}_\d+\.html', href):
                 items.append({"title": title, "url": href})
     except Exception as e:
         log.warning("List page failed: %s", e)
@@ -105,9 +114,11 @@ def fetch(output_dir: str, max_total: int = 1000, fetch_content: bool = False) -
                 if len(results) >= max_total:
                     break
 
-                url = section["url"]
-                if page > 1:
-                    url = url.replace(".html", f"_{page}.html")
+                base_path = section["url"]
+                if page == 1:
+                    url = f"{BASE_URL}{base_path}"
+                else:
+                    url = f"{BASE_URL}{base_path}index_{page-1}.html"
 
                 time.sleep(3)
                 items = _fetch_list_page(client, url)

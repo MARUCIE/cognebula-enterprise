@@ -4,154 +4,253 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CogNebula Enterprise - 商业化解决方案与部署指南</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700;800&family=Noto+Serif+SC:wght@400;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #6c5ce7;
-            --secondary-color: #a29bfe;
-            --bg-color: #0a0e27;
-            --card-bg: #111633;
-            --text-color: #e0e0e0;
-            --text-muted: #888;
-            --border-color: #1e2a5a;
-            --code-bg: #1e1e1e;
+            --bg-primary: #F3F0E9;
+            --bg-card: #FFFFFF;
+            --bg-card-hover: #FAF8F4;
+            --bg-warm: #EDE8DD;
+            --border: rgba(44,44,46,0.08);
+            --border-strong: rgba(44,44,46,0.15);
+            --text-primary: #2C2C2E;
+            --text-secondary: #5C5C5E;
+            --text-muted: #9B9B9D;
+            --accent: #D67052;
+            --accent-glow: rgba(214,112,82,0.08);
+            --mustard: #F0B857;
+            --green: #4A9D6E;
+            --navy: #1B3A5C;
+            --purple: #6B5B8D;
+            --font-serif: 'Crimson Pro', 'Noto Serif SC', 'Songti SC', serif;
+            --font: 'Source Sans 3', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+            --radius: 10px;
+            --radius-sm: 6px;
+            --shadow-sm: 0 1px 3px rgba(44,44,46,0.04), 0 1px 2px rgba(44,44,46,0.02);
+            --shadow-md: 0 2px 8px rgba(44,44,46,0.06), 0 4px 16px rgba(44,44,46,0.04);
         }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            line-height: 1.6;
-            color: var(--text-color);
-            background-color: var(--bg-color);
-            margin: 0;
-            padding: 0;
+            font-family: var(--font);
+            line-height: 1.85;
+            letter-spacing: 0.02em;
+            color: var(--text-primary);
+            background-color: var(--bg-primary);
+            -webkit-font-smoothing: antialiased;
+            font-feature-settings: 'palt' 1;
         }
 
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
         .container {
-            max-width: 1000px;
+            max-width: 1100px;
             margin: 0 auto;
-            padding: 40px 20px;
+            padding: 40px 36px;
         }
 
         header {
             text-align: center;
             margin-bottom: 60px;
+            padding: 80px 0 60px;
+            background: linear-gradient(180deg, var(--bg-primary) 0%, #EBE6DA 100%);
+            border-bottom: 1px solid var(--border-strong);
         }
 
         h1 {
-            font-size: 3rem;
+            font-family: var(--font-serif);
+            font-size: clamp(2.4rem, 5vw, 3.6rem);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
             margin-bottom: 10px;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--text-primary);
         }
 
         h2 {
-            font-size: 2rem;
-            color: #fff;
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 10px;
-            margin-top: 50px;
+            font-family: var(--font-serif);
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            border-bottom: none;
+            padding-bottom: 14px;
+            margin-top: 64px;
+            margin-bottom: 24px;
+            letter-spacing: -0.01em;
+            position: relative;
+        }
+        h2::after {
+            content: '';
+            position: absolute; bottom: 0; left: 0;
+            width: 60px; height: 3px;
+            background: var(--accent);
+            border-radius: 2px;
         }
 
         h3 {
-            font-size: 1.5rem;
-            color: var(--secondary-color);
+            font-family: var(--font-serif);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
             margin-top: 30px;
         }
 
+        h4 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        p { margin: 12px 0; color: var(--text-secondary); line-height: 1.9; }
+
+        ul { padding-left: 24px; color: var(--text-secondary); }
+        li { margin-bottom: 8px; line-height: 1.8; }
+
         .subtitle {
-            font-size: 1.2rem;
-            color: var(--text-muted);
+            font-size: 1.15rem;
+            color: var(--text-secondary);
         }
 
         .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 25px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            box-shadow: var(--shadow-sm);
+            transition: all .3s ease;
+        }
+        .card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
         }
 
         .feature-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(2, 1fr);
             gap: 20px;
         }
 
         .feature-item {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            transition: all .3s ease;
+        }
+        .feature-item:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
         }
 
         .feature-item h4 {
-            color: var(--primary-color);
+            color: var(--accent);
             margin-top: 0;
+            margin-bottom: 8px;
         }
 
         code {
-            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
-            background-color: var(--code-bg);
+            font-family: var(--mono);
+            background: var(--bg-warm);
             padding: 2px 6px;
-            border-radius: 4px;
+            border-radius: var(--radius-sm);
             font-size: 0.9em;
-            color: #ff9e80;
+            color: var(--accent);
+            border: 1px solid var(--border);
         }
 
         pre {
-            background-color: var(--code-bg);
-            padding: 15px;
-            border-radius: 8px;
+            background: #FAF8F4;
+            padding: 20px;
+            border-radius: var(--radius-sm);
             overflow-x: auto;
-            border: 1px solid #333;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
         }
 
         pre code {
-            background-color: transparent;
+            background: transparent;
             padding: 0;
-            color: #e0e0e0;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.8;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
             margin: 20px 0;
+            font-size: 14px;
         }
 
         th, td {
-            padding: 12px;
+            padding: 12px 16px;
             text-align: left;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border);
         }
 
         th {
-            color: var(--secondary-color);
-            font-weight: 600;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            background: var(--bg-warm);
         }
+        td { color: var(--text-secondary); }
+        tr:hover td { color: var(--text-primary); background: rgba(214,112,82,0.02); }
 
         .highlight {
-            color: var(--primary-color);
+            color: var(--accent);
             font-weight: bold;
         }
 
         .badge {
             display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            background-color: rgba(108, 92, 231, 0.2);
-            color: var(--secondary-color);
-            font-size: 0.8rem;
+            padding: 3px 10px;
+            border-radius: 100px;
+            background: var(--accent-glow);
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 700;
+            font-family: var(--mono);
             margin-right: 10px;
-            border: 1px solid var(--primary-color);
+            border: 1px solid rgba(214,112,82,0.2);
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
+
+        strong { color: var(--text-primary); }
 
         footer {
             margin-top: 80px;
             text-align: center;
             color: var(--text-muted);
-            border-top: 1px solid var(--border-color);
-            padding-top: 20px;
+            border-top: 1px solid var(--border-strong);
+            padding: 60px 20px 40px;
+            font-size: 13px;
+            line-height: 2.2;
+        }
+
+        @media print {
+            body { font-size: 14px; }
+            .card, .feature-item { box-shadow: none; border: 1px solid #ddd; }
+            header { padding: 40px 0; }
+        }
+
+        @media (max-width: 768px) {
+            .feature-grid { grid-template-columns: 1fr; }
+            .container { padding: 24px 20px; }
+            h1 { font-size: 2rem; }
+            header { padding: 48px 0 36px; }
         }
     </style>
 </head>
@@ -302,8 +401,9 @@ docker-compose ps</code></pre>
     </section>
 
     <footer>
-        <p>猪哥云（四川）网络科技有限公司 | 合规网 www.hegui.com</p>
-        <p>猪哥云-数据产品部-Maurice | 2025 猪哥云-灵阙企业级智能体平台</p>
+        <p>CogNebula Enterprise v1.0 -- Commercial Solution & Deployment Guide</p>
+        <p>Maurice | maurice_wen@proton.me</p>
+        <p style="font-size:11px; margin-top:8px;">2025 CogNebula -- Enterprise Context Brain for AI Agents</p>
     </footer>
 </div>
 

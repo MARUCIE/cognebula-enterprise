@@ -1,0 +1,11 @@
+name = "cognebula-browser-proxy"
+main = "index.js"
+compatibility_date = "2026-03-15"
+compatibility_flags = ["nodejs_compat"]
+account_id = "683392e016d0a9c5446a8c648da62ce6"
+
+[browser]
+binding = "BROWSER"
+
+[ai]
+binding = "AI"

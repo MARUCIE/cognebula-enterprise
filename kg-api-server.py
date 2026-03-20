@@ -87,8 +87,25 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*", "Access-Control-Request-Private-Network"],
+    expose_headers=["Access-Control-Allow-Private-Network"],
 )
+
+
+# Chrome Private Network Access (PNA) preflight handler
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import Response
+
+
+class PrivateNetworkMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers["Access-Control-Allow-Private-Network"] = "true"
+        return response
+
+
+app.add_middleware(PrivateNetworkMiddleware)
 
 # ---------------------------------------------------------------------------
 # Know-Arc Expert Workbench integration (mounted at /api/v1/ka/*)

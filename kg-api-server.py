@@ -148,12 +148,22 @@ def web_ui():
 
 @app.get("/kg_explorer.html")
 def kg_explorer():
-    """Serve the original KG Explorer (embedded in unified Tab Shell via iframe)."""
+    """Serve the original KG Explorer (vis.js, embedded in unified Tab Shell via iframe)."""
     html_path = WEB_DIR / "kg_explorer.html"
     if html_path.exists():
         return FileResponse(html_path, media_type="text/html",
                             headers={"Cache-Control": "no-cache, no-store, must-revalidate"})
     return JSONResponse({"error": "KG Explorer not found"}, status_code=404)
+
+
+@app.get("/kg_explorer_v2.html")
+def kg_explorer_v2():
+    """Serve KG Explorer v2 (Cytoscape.js + fcose + compound nodes)."""
+    html_path = WEB_DIR / "kg_explorer_v2.html"
+    if html_path.exists():
+        return FileResponse(html_path, media_type="text/html",
+                            headers={"Cache-Control": "no-cache, no-store, must-revalidate"})
+    return JSONResponse({"error": "KG Explorer v2 not found"}, status_code=404)
 
 
 # === Health ===

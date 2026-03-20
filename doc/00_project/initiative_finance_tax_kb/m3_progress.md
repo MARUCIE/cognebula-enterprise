@@ -27,11 +27,23 @@
 - M3 Edge Engine: integrated into orchestrator
 - Daily crawl: 10:00 UTC (22 crawlers with depth flags)
 
-**待执行 (Phase 1 剩余):**
-- chinatax_api detail fetch (57K 文档全文)
-- LegalClause 二级拆分
-- Temporal version chain
-- Mini Gate @ 500K
+**Phase 1 已完成:**
+- [17:50] Temporal chains: +317 SUPERSEDES edges (5-year PIT chain)
+- [17:55] Clause split v2: +12,925 sub-clause nodes (PARALLEL=FALSE fix)
+- [18:00] PART_OF edges: +10,460 sub-clause→document edges
+- [18:05] Edge enrichment script ready (KU_ABOUT_TAX + ISSUED_BY)
+- [18:10] chinatax detail fetch launched in tmux (8.7K docs, ~8h)
+- [18:15] 3 new P0 crawlers deployed (flk_npc, cicpa, cctaa)
+- [18:20] VPS data/raw ownership fixed (root→kg)
+- [18:25] Swarm: Frontend research + Crawl test (2 agents parallel)
+
+**Phase 2 启动 (L2 广度):**
+- flk.npc.gov.cn: API 405 — 需要逆向工程正确 endpoint
+- cicpa.org.cn: 测试中
+- cctaa.cn: 测试中
+
+**前端升级 (并行):**
+- Canvas 风格可视化调研中 (Cytoscape.js / ELK.js / JSON Canvas)
 
 ### Commits (10 total)
 1. 548ffed - v3.1 EXPLAINS split + git cleanup

@@ -38,7 +38,17 @@
 - 扩展关键词仅额外捕获 0.7%
 - 结论: 不需要 LLM 精细化
 
-### 6. 维基百科评估
+### 7. 前端升级调研 (Research Analyst)
+推荐: **Cytoscape.js + fcose** (Force-directed Clustered Spring Embedder)
+- 原生 compound nodes 支持 L1/L2/L3 分组 (vis.js 不支持)
+- fcose 专为层级聚类设计, 比 vis.js 布局质量高 20-30%
+- 可增量迁移 (vis.js 和 Cytoscape.js 共存过渡)
+- JSON Canvas 导出需 2-3 周 adapter
+- 5K 节点 60fps (Canvas 渲染), 够用; >10K 再升 WebGL
+- 5-6 周分阶段: POC(W1-2) → 数据适配(W3-4) → Canvas导出(W5-6)
+- 社区验证: 生物信息学 KG (BioGRID, cBioPortal) 同等规模
+
+### 8. 维基百科评估
 - 中文维基财税词条 ~2000-5000 条
 - 信息密度 5-10% (vs 税务总局 80%+)
 - 结论: P3 低优先, 不推荐 M3 阶段引入

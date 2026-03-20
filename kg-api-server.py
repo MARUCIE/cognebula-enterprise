@@ -119,11 +119,21 @@ WEB_DIR = _Path("/home/kg/cognebula-enterprise/src/web")
 
 @app.get("/")
 def web_ui():
-    html_path = WEB_DIR / "unified.html"  # Unified Tab Shell (explore + curate + admin)
+    html_path = WEB_DIR / "unified.html"
     if html_path.exists():
         return FileResponse(html_path, media_type="text/html",
                             headers={"Cache-Control": "no-cache, no-store, must-revalidate"})
-    return JSONResponse({"error": "Web UI not found", "path": str(html_path)}, status_code=404)
+    return JSONResponse({"error": "Web UI not found"}, status_code=404)
+
+
+@app.get("/kg_explorer.html")
+def kg_explorer():
+    """Serve the original KG Explorer (embedded in unified Tab Shell via iframe)."""
+    html_path = WEB_DIR / "kg_explorer.html"
+    if html_path.exists():
+        return FileResponse(html_path, media_type="text/html",
+                            headers={"Cache-Control": "no-cache, no-store, must-revalidate"})
+    return JSONResponse({"error": "KG Explorer not found"}, status_code=404)
 
 
 # === Health ===

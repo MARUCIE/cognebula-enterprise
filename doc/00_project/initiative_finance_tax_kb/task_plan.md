@@ -2,126 +2,75 @@
 
 ## Objective
 Build a SOTA AI-native Chinese finance/tax knowledge base on KuzuDB graph database.
-- **M1 (100K)**: DONE (2026-03-16). Post-fix: 87,701 nodes, 92,495 edges.
-- **M2 (500K)**: IN PLANNING. 3 phases, 18 weeks, ~$107 budget.
+- **M1 (100K)**: DONE (2026-03-16). Post-fix: 87,701 nodes.
+- **M2 (500K)**: IN PROGRESS. QA pipeline running, target 500K by ~2026-03-27.
+- **M3 (1M)**: PLANNED. 16 weeks, ~$350 budget.
 - Target: AI Agent that can autonomously do bookkeeping, tax filing, audit, compliance.
 
-## Current State (2026-03-16)
-- **Nodes**: 87,701 (was 100,239, purged 12,538 low-quality)
-- **Edges**: 92,495 (was 45,158, +105% from edge enrichment)
-- **Orphan rate**: 20.5% (was 91.7%)
-- **Edge density**: 1.05 (target: 3.0)
-- **LanceDB**: rebuilding 57,566 vectors x 768d (51% complete)
-- **GitHub**: MARUCIE/cognebula-enterprise (3 Mac commits + 1 VPS local)
+## Current State (2026-03-20)
+- **Nodes**: 407,848 (17 v2 types + legacy)
+- **Edges**: 860,320 (36 v2 edge types)
+- **Density**: 2.109
+- **Quality**: 100/100 PASS
+- **Schema**: v3.1 (17 nodes x 36 edges, EXPLAINS split into 6 types)
+- **Platform**: Unified Tab Shell at http://100.75.77.112:8400
+  - Explore: KG Explorer (vis.js, Chinese edge labels + color coding)
+  - Curate: Know-Arc Expert Workbench (integrated at /api/v1/ka/*)
+  - Admin: Real-time dashboard (live edge distribution from API)
+- **GitHub**: MARUCIE/cognebula-enterprise (10+ commits today)
 
 ## Active (Running Now)
-- [x] LanceDB 768d full rebuild (VPS background, ETA ~3h)
-- [x] Post-rebuild auto-pipeline: P@5 → clause split → embed (waiting)
+- [x] M3 QA pipeline (cron 02:00 UTC daily, 5000 articles/run, ~14K QA/day)
+- [x] Daily crawl pipeline (cron 10:00 UTC, 22 crawlers, content depth flags enabled)
+- [x] Know-Arc integration (23 endpoints at /api/v1/ka/*, same-origin iframe)
+- [ ] M3 QA scale-up: 42K articles total, ~7 days to M2 500K milestone
 
-## Pending (After Rebuild Completes)
-- [ ] P@5 precision evaluation (100 test queries, target >= 85%)
-- [ ] Phase 1 clause split v2 (dry-run → execute)
-- [ ] Incremental embedding of new clause nodes
-- [ ] PDF injection (7,140 nodes from 98 doc-tax PDFs)
+## Completed Today (2026-03-20)
+- [x] EXPLAINS split: 475K edges -> 6 precise types (INTERPRETS/EXEMPLIFIED_BY/EXPLAINS_RATE/WARNS_ABOUT/DESCRIBES_INCENTIVE/GUIDES_FILING)
+- [x] DDL v3.1: 17 nodes x 36 edge types
+- [x] API V2_EDGES whitelist updated (36 types, quality density 3.977)
+- [x] Design doc v3.1 (McKinsey Blue, updated)
+- [x] KG Explorer: Chinese edge labels + 36-type color coding
+- [x] Admin dashboard: real-time edge distribution from /api/v1/stats
+- [x] Git cleanup: removed 9.9GB doc-tax + 684MB backups from repo
+- [x] Know-Arc system integration (APIRouter merge, /api/v1/ka/*)
+- [x] M3 QA generation pipeline (gemini-2.5-flash-lite, tested + deployed)
+- [x] M3 orchestrator + cron setup
+- [x] Daily pipeline depth fix (--fetch-content flags)
+- [x] Swarm audit: 3-agent review (crawl quality + missing sources + systems dynamics)
+- [x] INTERPRETS analysis: confirmed 82% rate is valid (76% mind-map nodes)
+- [x] Know-Arc injection pipeline framework (entity/predicate mapping)
 
-## Backlog (M2 Preparation)
-- [ ] Provincial fetcher fix (Hanweb API hanging)
-- [ ] ChinaAcc deep crawl (complete remaining 37 sections)
-- [ ] Tax classification code expansion (4,205 → full 5-level hierarchy)
-- [ ] Judicial cases fetcher (裁判文书网)
-- [ ] International tax treaties (109 DTAs)
-- [ ] Social insurance regulations fetcher
-- [ ] browser-automation for NPC/Customs/chinatax法规库 (needs Playwright)
-- [ ] Telegram alert template
-- [ ] CF Pages finance-tax dashboard
-- [ ] Change detection Tier 2-3 (diff + cosine similarity)
-- [ ] NotebookLM integration
+## Swarm Audit Findings (2026-03-20)
+### Crawl Depth Crisis
+- 4/22 crawlers (18%) fetch full text — SOTA quality
+- 10/22 crawlers (45%) title-only — daily_pipeline.sh was missing --fetch-content
+- 3/22 crawlers (14%) broken/unused
+- FIX APPLIED: daily_pipeline.sh now passes content flags + per-crawler timeouts
 
----
+### Missing Data Sources (18 identified)
+P0: flk.npc.gov.cn (17K laws), cicpa.org.cn, cctaa.cn
+P1: aifa.org.cn (ASBE), pbc.gov.cn/data, chinamoney.com.cn, epub.cnipa.gov.cn
+P2: splcgk.court.gov.cn (100K cases), qcc.com, pkulaw.com, shui5.cn
 
-## M1: 100K Milestone -- COMPLETED
+### Density Paradox
+- Target density 6.0 = 6M edges for 1M nodes
+- Current: 860K edges — need +5.14M
+- Edge growth must be 7x node growth
+- Leverage: depth (existing source full-text) > breadth (new sources)
 
-### M1 Achievement (2026-03-16 03:30 UTC)
-- [x] 100,239 nodes achieved via: crawling + AI synthesis + clause splitting + cross-product matrix
-- [x] Sources: chinatax FGK API (5,427), 12366 hotline (5,246), ChinaAcc (1,973), doc-tax local (3,504), AI synthesis (11,238), cross-product (15,000+), mindmap (926), NDRC (590), HSCode (23,342), TaxClassCode (4,205), RegulationClause (10,551)
+## M3 Roadmap
+- Phase 1 (W1-4): L1 deepening — QA generation + content depth fix (+150K)
+- Phase 2 (W5-10): L2 new sources — 8 new crawlers (+200K)
+- Phase 3 (W11-14): L3 AI synthesis + L4 crowdsource (+150K)
+- Phase 4 (W15-16): Final gate + optional engine migration
+- Gates: 500K / 600K / 700K / 850K / 1M
 
-### M1 Quality Gate (2026-03-16 03:40 UTC)
-- [x] Verdict: CONDITIONAL PASS
-- [x] P0-2 Template Purge: -11,760 single-sentence placeholders -778 duplicates
-- [x] P0-1 Edge Enrichment: +47,337 edges (new LR_ABOUT_TAX + LR_ABOUT_INDUSTRY tables)
-- [x] P0-3 LanceDB Rebuild: 768d Matryoshka via CF Worker proxy (in progress)
-- [x] Retrospective: M1_QUALITY_GATE_RETROSPECTIVE.html
-
-### M1 Key Lessons
-1. Edge-first: 91.7% orphan rate = document store, not knowledge graph
-2. No template filler: single-sentence nodes (avg 56 chars) pollute vector index
-3. Quality gates at milestones, not after
-4. KuzuDB single-process lock blocks parallel operations
-
----
-
-## M2: 500K Milestone -- PLANNED
-
-### Phase 1: Clause-Level Deep Split (+180K, W1-4)
-- [ ] Full regulation → Article/Paragraph/Item split (~120K clauses)
-- [ ] Clause-level QA generation via Gemini (~60K QA pairs)
-- [ ] Mini Gate 1 at 150K: orphan < 15%, density > 1.5
-
-### Phase 2: Source Expansion (+150K, W5-12)
-- [ ] Provincial tax bureau policies (31 provinces, ~46.5K)
-- [ ] ChinaAcc deep crawl (full 39 sections, ~28K)
-- [ ] Tax classification expansion (full 5-level, ~38K)
-- [ ] Judicial cases (~12K)
-- [ ] International tax treaties (~15K)
-- [ ] Social insurance regulations (~10K)
-- [ ] Mini Gate 2 at 250K: P@5 >= 75%, L1 >= 50%
-- [ ] Mini Gate 3 at 350K: P@5 >= 80%, orphan < 8%
-
-### Phase 3: AI Synthesis + Cross-Reference (+82K, W13-16)
-- [ ] Industry × Tax × Scenario enriched matrix (~25K, Multi-Swarm QC 70%)
-- [ ] Temporal version chains (~8K)
-- [ ] Regulation → Journal Entry mapping (~15K)
-- [ ] Risk indicator expansion (~12K)
-- [ ] Cross-regulation reference edges (~22K edges only)
-
-### M2 Final Gate (W17-18)
-- [ ] P@5 >= 85%, orphan < 5%, edge density >= 3.0
-- [ ] Production readiness check
-- [ ] Competitive comparison vs Wolters Kluwer
+## Key Risks
+- KuzuDB archived (Apple acquisition) — single-writer lock limits concurrency
+- Density dilution: adding nodes without edges degrades quality
+- chinatax_api 57K docs need detail fetch (snippet-only currently)
+- Court data (裁判文书网) has anti-crawling (DES3 encryption)
 
 ---
-
-## Completed Sprints (Historical)
-
-### Sprint 0-2 (2026-03-14 ~ 2026-03-16)
-- [x] KuzuDB 123 tables (47 node + 76 rel)
-- [x] 11 active web crawl sources
-- [x] 14 fetcher scripts + 20 injection scripts + 6 generation scripts
-- [x] Multi-Swarm AI synthesis pipeline (49% acceptance)
-- [x] 3-tier backup: GitHub + CSV + tar.gz
-- [x] CF Browser Rendering Worker
-- [x] 5 MCP tools + Hybrid RAG + OpenClaw integration
-- [x] Expert #9 秦税安 + Expert #10 顾财道
-- [x] LanceDB 13,445 → 57,566 vectors (768d, rebuilding)
-- [x] 4 HTML deliverables (McKinsey Blue + Bloomberg Terminal styles)
-- [x] doc-tax 5-layer extraction (28 industry guides, 66 tax burden rates, CPA materials)
-- [x] Cross-product matrix generators (7 scripts)
-- [x] M1 quality gate + P0 fixes (edge enrichment, template purge, dedup)
-- [x] M2 scaling plan HTML
-- [x] Phase 1 clause split v2 + incremental embedder + P@5 eval scripts
-
-## Architecture
-- **4-Layer**: L1 Regulation + L2 Operation + L3 Compliance + L4 Intelligence
-- **KuzuDB**: embedded, VPS `data/finance-tax-graph`
-- **LanceDB**: `data/finance-tax-lance` (768d Matryoshka)
-- **84 edge tables** including LR_ABOUT_TAX, LR_ABOUT_INDUSTRY
-- **CF Worker proxy**: `gemini-api-proxy.maoyuan-wen-683.workers.dev`
-- **VPS**: ColoCrossing, Tailscale 100.106.223.39
-
-## Key Decisions
-- KuzuDB retained to 500K (migrate at 1M+)
-- 768d Matryoshka (down from 3072d, 75% storage savings)
-- Edge-first injection: every node MUST have edges
-- Content minimum: LR >= 100 chars, QA >= 50 chars
-- Dedup at source: title hash check before CREATE
-- Quality gate at every 50K increment
+Maurice | maurice_wen@proton.me

@@ -7,3 +7,12 @@ __pycache__/
 data/
 *.log
 .DS_Store
+
+# Large reference documents (9.9GB CPA/tax PDFs)
+doc-tax/
+
+# Database backups (684MB+)
+backups/
+
+# Temp files
+ontology_v2_gemini_output.txt

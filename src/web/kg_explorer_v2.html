@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CogNebula KG Explorer v2 (Cytoscape.js)</title>
+<script src="https://unpkg.com/cytoscape@3.30.4/dist/cytoscape.min.js"></script>
+<script src="https://unpkg.com/cytoscape-fcose@2.2.0/cytoscape-fcose.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #FAFBFC; color: #1a1a2e; }
+
+  .toolbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: white; border-bottom: 1px solid #E5E7EB;
+    padding: 8px 16px; display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .toolbar input {
+    flex: 1; max-width: 400px; padding: 8px 14px;
+    border: 1.5px solid #D1D5DB; border-radius: 8px;
+    font-size: 14px; outline: none; transition: border-color 0.2s;
+  }
+  .toolbar input:focus { border-color: #3B82F6; }
+  .toolbar button {
+    padding: 8px 16px; border: none; border-radius: 8px;
+    font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s;
+  }
+  .btn-primary { background: #3B82F6; color: white; }
+  .btn-primary:hover { background: #2563EB; }
+  .btn-secondary { background: #F3F4F6; color: #374151; }
+  .btn-secondary:hover { background: #E5E7EB; }
+
+  .stats {
+    font-size: 12px; color: #6B7280; display: flex; gap: 16px;
+    margin-left: auto;
+  }
+  .stats span { font-weight: 600; color: #374151; }
+
+  #cy {
+    position: fixed; top: 48px; left: 0; right: 0; bottom: 0;
+    background: #FAFBFC;
+  }
+
+  .legend {
+    position: fixed; bottom: 16px; left: 16px; z-index: 100;
+    background: white; border-radius: 12px; padding: 12px 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08); font-size: 11px;
+    display: flex; flex-wrap: wrap; gap: 8px; max-width: 500px;
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 4px;
+  }
+  .legend-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+
+  .node-detail {
+    position: fixed; top: 56px; right: 16px; z-index: 100;
+    background: white; border-radius: 12px; padding: 16px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1); width: 320px;
+    max-height: calc(100vh - 80px); overflow-y: auto;
+    display: none; font-size: 13px;
+  }
+  .node-detail h3 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .node-detail .label { font-size: 11px; color: #6B7280; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 10px; }
+  .node-detail .value { margin-top: 2px; line-height: 1.5; }
+  .node-detail .edge-list { margin-top: 8px; }
+  .node-detail .edge-item {
+    padding: 6px 0; border-bottom: 1px solid #F3F4F6;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .edge-type-badge {
+    font-size: 10px; font-weight: 600; padding: 2px 8px;
+    border-radius: 4px; background: #EFF6FF; color: #3B82F6;
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <input id="search" type="text" placeholder="搜索实体或关系..." autofocus>
+  <button class="btn-primary" onclick="searchNode()">搜索</button>
+  <button class="btn-secondary" onclick="resetView()">重置</button>
+  <button class="btn-secondary" onclick="toggleLayout()">切换布局</button>
+  <button class="btn-secondary" onclick="exportCanvas()">导出 Canvas</button>
+  <div class="stats">
+    <div>节点: <span id="stat-nodes">0</span></div>
+    <div>边: <span id="stat-edges">0</span></div>
+    <div>密度: <span id="stat-density">0</span></div>
+  </div>
+</div>
+
+<div id="cy"></div>
+
+<div class="legend" id="legend"></div>
+
+<div class="node-detail" id="detail">
+  <h3 id="detail-title">--</h3>
+  <div class="label">类型</div>
+  <div class="value" id="detail-type">--</div>
+  <div class="label">关联</div>
+  <div class="edge-list" id="detail-edges"></div>
+</div>
+
+<script>
+// ===== Layer colors (L1/L2/L3/Shared) =====
+const LAYER_COLORS = {
+  // L1 法规层
+  LegalDocument: '#EF4444', LawOrRegulation: '#EF4444', LegalClause: '#F87171', IssuingBody: '#FCA5A5',
+  // L2 业务层
+  TaxRate: '#3B82F6', AccountingSubject: '#60A5FA', FilingFormV2: '#93C5FD',
+  BusinessActivity: '#2563EB', TaxEntity: '#1D4ED8',
+  // L3 合规层
+  ComplianceRuleV2: '#F59E0B', RiskIndicatorV2: '#FBBF24', Penalty: '#DC2626',
+  AuditTrigger: '#F97316',
+  // Shared
+  TaxType: '#8B5CF6', TaxIncentiveV2: '#A78BFA', KnowledgeUnit: '#10B981',
+  Classification: '#6EE7B7', Region: '#34D399',
+};
+
+const LAYER_GROUPS = {
+  'L1_法规层': { color: '#FEE2E2', nodes: ['LegalDocument','LawOrRegulation','LegalClause','IssuingBody'] },
+  'L2_业务层': { color: '#DBEAFE', nodes: ['TaxRate','AccountingSubject','FilingFormV2','BusinessActivity','TaxEntity'] },
+  'L3_合规层': { color: '#FEF3C7', nodes: ['ComplianceRuleV2','RiskIndicatorV2','Penalty','AuditTrigger'] },
+  'Shared_共享': { color: '#F0FDF4', nodes: ['TaxType','TaxIncentiveV2','KnowledgeUnit','Classification','Region'] },
+};
+
+const EDGE_ZH = {
+  INTERPRETS:'解释', EXEMPLIFIED_BY:'案例', EXPLAINS_RATE:'税率说明',
+  WARNS_ABOUT:'风险提示', DESCRIBES_INCENTIVE:'优惠说明', GUIDES_FILING:'申报指南',
+  ISSUED_BY:'发布', PART_OF:'属于', SUPERSEDES:'替代', AMENDS:'修订',
+  APPLIES_TO_TAX:'适用税种', BASED_ON:'依据', CHILD_OF:'子分类',
+  REFERENCES_CLAUSE:'引用', GOVERNED_BY:'受约束', TRIGGERS_TAX:'触发税种',
+  KU_ABOUT_TAX:'知识税种', TRIGGERED_BY:'触发', PENALIZED_BY:'处罚',
+};
+
+const API_BASE = window.location.origin + '/api/v1';
+
+// ===== Cytoscape Init =====
+const cy = cytoscape({
+  container: document.getElementById('cy'),
+  style: [
+    // Parent (group) nodes
+    {
+      selector: 'node.group',
+      style: {
+        'shape': 'round-rectangle',
+        'background-opacity': 0.15,
+        'border-width': 2,
+        'border-opacity': 0.3,
+        'label': 'data(label)',
+        'text-valign': 'top',
+        'text-halign': 'center',
+        'font-size': 14,
+        'font-weight': 700,
+        'color': '#374151',
+        'padding': 20,
+      }
+    },
+    // Regular nodes
+    {
+      selector: 'node.entity',
+      style: {
+        'background-color': 'data(color)',
+        'label': 'data(label)',
+        'width': 'mapData(size, 1, 100, 20, 60)',
+        'height': 'mapData(size, 1, 100, 20, 60)',
+        'font-size': 11,
+        'color': '#374151',
+        'text-outline-width': 2,
+        'text-outline-color': '#FFFFFF',
+        'text-max-width': 80,
+        'text-wrap': 'ellipsis',
+      }
+    },
+    // Selected node
+    {
+      selector: 'node:selected',
+      style: {
+        'border-width': 3,
+        'border-color': '#2563EB',
+        'background-color': '#2563EB',
+        'color': '#1E3A5F',
+      }
+    },
+    // Edges
+    {
+      selector: 'edge',
+      style: {
+        'width': 1.5,
+        'line-color': 'data(color)',
+        'target-arrow-color': 'data(color)',
+        'target-arrow-shape': 'triangle',
+        'arrow-scale': 0.8,
+        'label': 'data(label)',
+        'font-size': 9,
+        'color': '#9CA3AF',
+        'text-rotation': 'autorotate',
+        'curve-style': 'bezier',
+      }
+    },
+    // Highlighted edges
+    {
+      selector: 'edge:selected',
+      style: {
+        'width': 3,
+        'line-color': '#2563EB',
+        'target-arrow-color': '#2563EB',
+      }
+    },
+  ],
+  layout: { name: 'preset' },
+  wheelSensitivity: 0.3,
+});
+
+// ===== Functions =====
+let currentLayout = 'fcose';
+
+function getNodeLayer(type) {
+  for (const [group, info] of Object.entries(LAYER_GROUPS)) {
+    if (info.nodes.includes(type)) return group;
+  }
+  return 'Shared_共享';
+}
+
+async function searchNode() {
+  const query = document.getElementById('search').value.trim();
+  if (!query) return;
+
+  // Try direct TaxType lookup first (e.g., "TT_VAT", "增值税")
+  const TAX_NAME_MAP = {
+    '增值税':'TT_VAT','企业所得税':'TT_CIT','个人所得税':'TT_PIT','消费税':'TT_CONSUMPTION',
+    '关税':'TT_TARIFF','城建税':'TT_URBAN','教育费附加':'TT_EDUCATION','资源税':'TT_RESOURCE',
+    '土地增值税':'TT_LAND_VAT','房产税':'TT_PROPERTY','印花税':'TT_STAMP','契税':'TT_CONTRACT',
+    '车船税':'TT_VEHICLE','环保税':'TT_ENV','烟叶税':'TT_TOBACCO',
+  };
+  if (TAX_NAME_MAP[query]) {
+    return loadGraphDirect('TaxType', TAX_NAME_MAP[query]);
+  }
+  if (query.startsWith('TT_')) {
+    return loadGraphDirect('TaxType', query);
+  }
+
+  try {
+    // Use vector search API
+    const resp = await fetch(`${API_BASE}/search?q=${encodeURIComponent(query)}&limit=10`);
+    const data = await resp.json();
+    const results = data.results || [];
+    if (!results.length) { alert('未找到: ' + query); return; }
+
+    // Clear and rebuild
+    cy.elements().remove();
+    const addedGroups = new Set();
+    const elements = [];
+    const addedNodes = new Set();
+
+    for (const item of results) {
+      const nodeId = item.id || item.node_id || '';
+      const nodeTable = item.table || item.source_table || '';
+      const nodeLabel = item.text || item.title || item.name || nodeId;
+      if (!nodeId || addedNodes.has(nodeId)) continue;
+      addedNodes.add(nodeId);
+
+      const layer = getNodeLayer(nodeTable);
+      const color = LAYER_COLORS[nodeTable] || '#94A3B8';
+
+      if (!addedGroups.has(layer)) {
+        addedGroups.add(layer);
+        elements.push({
+          group: 'nodes',
+          data: { id: layer, label: layer.replace('_', ' '), color: LAYER_GROUPS[layer]?.color || '#F3F4F6' },
+          classes: 'group',
+        });
+      }
+
+      elements.push({
+        group: 'nodes',
+        data: {
+          id: nodeId, label: nodeLabel.slice(0, 30), type: nodeTable,
+          color: color, size: 25, parent: layer,
+        },
+        classes: 'entity',
+      });
+
+      // Fetch neighbors via graph traversal API
+      try {
+        const nbResp = await fetch(`${API_BASE}/graph?table=${encodeURIComponent(nodeTable)}&id_field=id&id_value=${encodeURIComponent(nodeId)}&depth=1`);
+        const graphData = await nbResp.json();
+        const neighbors = graphData.neighbors || [];
+
+        for (const nb of neighbors.slice(0, 8)) {
+          const nbId = nb.target_id || nb.id || '';
+          const nbType = nb.target_type || '';
+          const nbLabel = nb.target_label || nb.label || nbId;
+          if (!nbId || addedNodes.has(nbId)) continue;
+          addedNodes.add(nbId);
+
+          const nbLayer = getNodeLayer(nbType);
+          const nbColor = LAYER_COLORS[nbType] || '#94A3B8';
+
+          if (!addedGroups.has(nbLayer)) {
+            addedGroups.add(nbLayer);
+            elements.push({
+              group: 'nodes',
+              data: { id: nbLayer, label: nbLayer.replace('_', ' '), color: LAYER_GROUPS[nbLayer]?.color || '#F3F4F6' },
+              classes: 'group',
+            });
+          }
+
+          elements.push({
+            group: 'nodes',
+            data: {
+              id: nbId, label: (nbLabel || '').slice(0, 30), type: nbType,
+              color: nbColor, size: 12, parent: nbLayer,
+            },
+            classes: 'entity',
+          });
+
+          const edgeType = nb.edge_type || '';
+          elements.push({
+            group: 'edges',
+            data: {
+              id: `${nodeId}-${nbId}-${edgeType}`,
+              source: nb.direction === 'incoming' ? nbId : nodeId,
+              target: nb.direction === 'incoming' ? nodeId : nbId,
+              label: EDGE_ZH[edgeType] || edgeType.slice(0, 15),
+              color: getEdgeColor(edgeType),
+            },
+          });
+        }
+      } catch (e) { console.warn('Neighbor fetch failed:', e); }
+    }
+
+    cy.add(elements);
+    runLayout();
+    updateStats();
+    updateLegend(addedGroups);
+
+  } catch (e) {
+    console.error('Search failed:', e);
+    alert('搜索失败，请检查 API 连接');
+  }
+}
+
+function getEdgeColor(type) {
+  const colors = {
+    SUPERSEDES: '#D97706', AMENDS: '#D97706', CONFLICTS_WITH: '#DC2626',
+    REFERENCES_CLAUSE: '#3B82F6', BASED_ON: '#3B82F6', ISSUED_BY: '#6366F1',
+    APPLIES_TO_TAX: '#059669', INTERPRETS: '#F59E0B', WARNS_ABOUT: '#EF4444',
+    DESCRIBES_INCENTIVE: '#10B981', GUIDES_FILING: '#8B5CF6', EXPLAINS_RATE: '#EAB308',
+    PART_OF: '#94A3B8', CHILD_OF: '#94A3B8', GOVERNED_BY: '#7C3AED',
+    TRIGGERS_TAX: '#0891B2', KU_ABOUT_TAX: '#0891B2',
+  };
+  return colors[type] || '#D1D5DB';
+}
+
+function runLayout() {
+  cy.layout({
+    name: currentLayout,
+    animate: true,
+    animationDuration: 600,
+    // fcose options
+    quality: 'default',
+    nodeSeparation: 80,
+    idealEdgeLength: 120,
+    nodeRepulsion: 8000,
+    gravity: 0.3,
+    gravityRange: 200,
+    nestingFactor: 0.15,
+    componentSpacing: 60,
+  }).run();
+}
+
+function toggleLayout() {
+  const layouts = ['fcose', 'cose', 'circle', 'grid'];
+  const idx = layouts.indexOf(currentLayout);
+  currentLayout = layouts[(idx + 1) % layouts.length];
+  runLayout();
+  document.querySelector('.btn-secondary:nth-child(4)').textContent = '布局: ' + currentLayout;
+}
+
+function resetView() {
+  cy.fit();
+  document.getElementById('detail').style.display = 'none';
+}
+
+function updateStats() {
+  document.getElementById('stat-nodes').textContent = cy.nodes('.entity').length;
+  document.getElementById('stat-edges').textContent = cy.edges().length;
+  const n = cy.nodes('.entity').length;
+  const e = cy.edges().length;
+  document.getElementById('stat-density').textContent = n > 0 ? (e / n).toFixed(2) : '0';
+}
+
+function updateLegend(groups) {
+  const legend = document.getElementById('legend');
+  legend.innerHTML = Array.from(groups).map(g => {
+    const info = LAYER_GROUPS[g];
+    const color = info?.color || '#F3F4F6';
+    return `<div class="legend-item"><div class="legend-dot" style="background:${color};border:2px solid ${color.replace('E2','99')}"></div>${g.replace('_', ' ')}</div>`;
+  }).join('');
+}
+
+function exportCanvas() {
+  const canvas = { nodes: [], edges: [] };
+
+  // Groups
+  cy.nodes('.group').forEach(node => {
+    canvas.nodes.push({
+      id: node.id(), type: 'group',
+      x: Math.round(node.position('x')), y: Math.round(node.position('y')),
+      width: Math.round(node.width()) + 40, height: Math.round(node.height()) + 40,
+      label: node.data('label'),
+    });
+  });
+
+  // Entities
+  cy.nodes('.entity').forEach(node => {
+    canvas.nodes.push({
+      id: node.id(), type: 'text',
+      x: Math.round(node.position('x')), y: Math.round(node.position('y')),
+      width: 200, height: 60,
+      text: node.data('label') + '\n' + (node.data('type') || ''),
+    });
+  });
+
+  // Edges
+  cy.edges().forEach(edge => {
+    canvas.edges.push({
+      id: edge.id(),
+      fromNode: edge.source().id(), toNode: edge.target().id(),
+      label: edge.data('label'),
+    });
+  });
+
+  const blob = new Blob([JSON.stringify(canvas, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'cognebula-kg.canvas'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ===== Event handlers =====
+cy.on('tap', 'node.entity', function(evt) {
+  const node = evt.target;
+  const detail = document.getElementById('detail');
+  detail.style.display = 'block';
+  document.getElementById('detail-title').textContent = node.data('label');
+  document.getElementById('detail-type').textContent = node.data('type') + ' | ' + node.id();
+
+  // Show connected edges
+  const edges = node.connectedEdges();
+  const edgeList = document.getElementById('detail-edges');
+  edgeList.innerHTML = edges.map(e => {
+    const other = e.source().id() === node.id() ? e.target() : e.source();
+    return `<div class="edge-item">
+      <span>${other.data('label') || other.id().slice(0,20)}</span>
+      <span class="edge-type-badge">${e.data('label')}</span>
+    </div>`;
+  }).join('');
+});
+
+cy.on('tap', function(evt) {
+  if (evt.target === cy) {
+    document.getElementById('detail').style.display = 'none';
+  }
+});
+
+// Enter key search
+document.getElementById('search').addEventListener('keydown', e => {
+  if (e.key === 'Enter') searchNode();
+});
+
+// ===== Init: load TaxType graph directly =====
+(async function() {
+  document.getElementById('search').value = 'TT_VAT';
+  try {
+    await loadGraphDirect('TaxType', 'TT_VAT');
+  } catch(e) { console.warn('Init load failed:', e); }
+})();
+
+async function loadGraphDirect(table, idValue) {
+  const resp = await fetch(`${API_BASE}/graph?table=${table}&id_field=id&id_value=${encodeURIComponent(idValue)}&depth=1`);
+  const data = await resp.json();
+  if (!data.node) return;
+
+  cy.elements().remove();
+  const addedGroups = new Set();
+  const addedNodes = new Set();
+  const elements = [];
+
+  // Center node
+  const centerLabel = data.node._label || data.node.name || idValue;
+  const centerLayer = getNodeLayer(table);
+  if (!addedGroups.has(centerLayer)) {
+    addedGroups.add(centerLayer);
+    elements.push({ group: 'nodes', data: { id: centerLayer, label: centerLayer.replace('_', ' ') }, classes: 'group' });
+  }
+  addedNodes.add(idValue);
+  elements.push({
+    group: 'nodes',
+    data: { id: idValue, label: centerLabel.slice(0, 30), type: table, color: LAYER_COLORS[table] || '#8B5CF6', size: 40, parent: centerLayer },
+    classes: 'entity',
+  });
+
+  // Neighbors
+  for (const nb of (data.neighbors || []).slice(0, 30)) {
+    const nbId = nb.target_id || '';
+    const nbType = nb.target_type || '';
+    const nbLabel = nb.target_label || nbId;
+    if (!nbId || addedNodes.has(nbId)) continue;
+    addedNodes.add(nbId);
+
+    const nbLayer = getNodeLayer(nbType);
+    if (!addedGroups.has(nbLayer)) {
+      addedGroups.add(nbLayer);
+      elements.push({ group: 'nodes', data: { id: nbLayer, label: nbLayer.replace('_', ' ') }, classes: 'group' });
+    }
+    elements.push({
+      group: 'nodes',
+      data: { id: nbId, label: (nbLabel || '').slice(0, 30), type: nbType, color: LAYER_COLORS[nbType] || '#94A3B8', size: 15, parent: nbLayer },
+      classes: 'entity',
+    });
+    const edgeType = nb.edge_type || '';
+    const src = nb.direction === 'incoming' ? nbId : idValue;
+    const tgt = nb.direction === 'incoming' ? idValue : nbId;
+    elements.push({
+      group: 'edges',
+      data: { id: `${src}-${tgt}-${edgeType}`, source: src, target: tgt, label: EDGE_ZH[edgeType] || edgeType.slice(0, 12), color: getEdgeColor(edgeType) },
+    });
+  }
+
+  cy.add(elements);
+  runLayout();
+  updateStats();
+  updateLegend(addedGroups);
+}
+</script>
+</body>
+</html>

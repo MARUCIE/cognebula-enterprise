@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CogNebula M3 信源审查与数据战略</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --red: #E3120B;
+    --dark: #1A1A2E;
+    --bg: #FFFFFF;
+    --gray-100: #F7F7F7;
+    --gray-200: #ECECEC;
+    --gray-300: #D4D4D4;
+    --gray-500: #6B6B6B;
+    --gray-700: #3A3A3A;
+    --font-headline: 'DM Sans', sans-serif;
+    --font-body: 'Source Serif 4', serif;
+}
+
+html { font-size: 16px; scroll-behavior: smooth; }
+
+body {
+    font-family: var(--font-body);
+    font-weight: 400;
+    color: var(--dark);
+    background: var(--bg);
+    line-height: 1.72;
+    -webkit-font-smoothing: antialiased;
+}
+
+.page-wrapper {
+    display: flex;
+    max-width: 1280px;
+    margin: 0 auto;
+}
+
+nav.toc {
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    width: 260px;
+    min-width: 260px;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 48px 24px 48px 32px;
+    border-right: 1px solid var(--gray-200);
+    font-family: var(--font-headline);
+    font-size: 13px;
+}
+
+nav.toc .toc-label {
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 700;
+    font-size: 11px;
+    color: var(--red);
+    margin-bottom: 20px;
+}
+
+nav.toc ol {
+    list-style: none;
+    counter-reset: toc-counter;
+}
+
+nav.toc ol li {
+    counter-increment: toc-counter;
+    margin-bottom: 10px;
+}
+
+nav.toc ol li a {
+    color: var(--gray-700);
+    text-decoration: none;
+    display: block;
+    padding: 4px 0;
+    transition: color 0.15s;
+    line-height: 1.4;
+}
+
+nav.toc ol li a::before {
+    content: counter(toc-counter) ". ";
+    font-weight: 600;
+    color: var(--gray-500);
+}
+
+nav.toc ol li a:hover,
+nav.toc ol li a.active {
+    color: var(--red);
+}
+
+nav.toc ol li a.active::before {
+    color: var(--red);
+}
+
+main.content {
+    flex: 1;
+    max-width: 960px;
+    padding: 48px 56px 80px 56px;
+}
+
+header.article-header {
+    border-bottom: 3px solid var(--red);
+    padding-bottom: 32px;
+    margin-bottom: 48px;
+}
+
+header.article-header .dateline {
+    font-family: var(--font-headline);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--red);
+    margin-bottom: 16px;
+}
+
+header.article-header h1 {
+    font-family: var(--font-headline);
+    font-weight: 700;
+    font-size: 36px;
+    line-height: 1.15;
+    color: var(--dark);
+    margin-bottom: 10px;
+}
+
+header.article-header .subtitle {
+    font-family: var(--font-body);
+    font-size: 18px;
+    font-style: italic;
+    color: var(--gray-500);
+    line-height: 1.5;
+}
+
+section { margin-bottom: 56px; }
+
+section h2 {
+    font-family: var(--font-headline);
+    font-weight: 700;
+    font-size: 24px;
+    color: var(--dark);
+    border-bottom: 2px solid var(--red);
+    padding-bottom: 8px;
+    margin-bottom: 24px;
+}
+
+section h3 {
+    font-family: var(--font-headline);
+    font-weight: 600;
+    font-size: 18px;
+    color: var(--dark);
+    margin-top: 28px;
+    margin-bottom: 12px;
+}
+
+section h4 {
+    font-family: var(--font-headline);
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--gray-700);
+    margin-top: 20px;
+    margin-bottom: 8px;
+}
+
+p { margin-bottom: 14px; }
+
+ul, ol { margin-bottom: 14px; padding-left: 24px; }
+li { margin-bottom: 6px; }
+
+strong { font-weight: 600; }
+
+code {
+    font-family: 'DM Sans', monospace;
+    font-size: 13px;
+    background: var(--gray-100);
+    padding: 2px 6px;
+    border: 1px solid var(--gray-200);
+}
+
+.kpi-row {
+    display: flex;
+    gap: 0;
+    margin-bottom: 32px;
+    border: 1px solid var(--gray-200);
+}
+
+.kpi-card {
+    flex: 1;
+    padding: 20px 24px;
+    border-right: 1px solid var(--gray-200);
+    text-align: center;
+}
+
+.kpi-card:last-child { border-right: none; }
+
+.kpi-card .kpi-value {
+    font-family: var(--font-headline);
+    font-weight: 700;
+    font-size: 28px;
+    color: var(--dark);
+    line-height: 1.2;
+}
+
+.kpi-card .kpi-value.target { color: var(--red); }
+
+.kpi-card .kpi-label {
+    font-family: var(--font-headline);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--gray-500);
+    margin-top: 4px;
+}
+
+.table-wrap {
+    overflow-x: auto;
+    margin-bottom: 24px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+thead th {
+    font-family: var(--font-headline);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--gray-500);
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 2px solid var(--dark);
+    white-space: nowrap;
+}
+
+tbody td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--gray-200);
+    vertical-align: top;
+}
+
+tbody tr:nth-child(even) { background: var(--gray-100); }
+
+.tag {
+    display: inline-block;
+    font-family: var(--font-headline);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 2px 8px;
+    text-transform: uppercase;
+}
+
+.tag-full { background: #D4EDDA; color: #155724; }
+.tag-semi { background: #FFF3CD; color: #856404; }
+.tag-title { background: #F8D7DA; color: #721C24; }
+.tag-broken { background: var(--gray-200); color: var(--gray-500); }
+.tag-critical { background: var(--red); color: #fff; }
+.tag-high { background: #1A1A2E; color: #fff; }
+.tag-medium { background: #6B6B6B; color: #fff; }
+
+.verdict-box {
+    border-left: 4px solid var(--red);
+    background: var(--gray-100);
+    padding: 20px 24px;
+    margin: 24px 0;
+    font-family: var(--font-headline);
+}
+
+.verdict-box .verdict-label {
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--red);
+    margin-bottom: 6px;
+}
+
+.verdict-box p {
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 0;
+}
+
+.loop-card {
+    border: 1px solid var(--gray-200);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+}
+
+.loop-card .loop-header {
+    font-family: var(--font-headline);
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 8px;
+}
+
+.loop-card .loop-type {
+    font-family: var(--font-headline);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-left: 8px;
+}
+
+.loop-type.reinforcing { color: var(--red); }
+.loop-type.balancing { color: #0D6EFD; }
+
+.loop-card .loop-chain {
+    font-family: var(--font-headline);
+    font-size: 13px;
+    color: var(--gray-700);
+    line-height: 1.8;
+    margin-bottom: 0;
+}
+
+.loop-chain .arrow { color: var(--gray-300); margin: 0 4px; }
+
+.math-block {
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    padding: 16px 24px;
+    font-family: 'DM Sans', monospace;
+    font-size: 14px;
+    margin: 20px 0;
+    line-height: 1.8;
+}
+
+.phase-bar {
+    display: flex;
+    margin: 24px 0 8px;
+    height: 8px;
+}
+
+.phase-bar .phase-segment { height: 100%; }
+.phase-bar .phase-segment:nth-child(1) { background: var(--red); flex: 7; }
+.phase-bar .phase-segment:nth-child(2) { background: var(--dark); flex: 5; }
+.phase-bar .phase-segment:nth-child(3) { background: var(--gray-500); flex: 3; }
+.phase-bar .phase-segment:nth-child(4) { background: var(--gray-300); flex: 1; }
+
+.phase-legend {
+    display: flex;
+    gap: 24px;
+    font-family: var(--font-headline);
+    font-size: 12px;
+    color: var(--gray-500);
+    margin-bottom: 24px;
+}
+
+.phase-legend span::before {
+    content: '';
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+.phase-legend .l1::before { background: var(--red); }
+.phase-legend .l2::before { background: var(--dark); }
+.phase-legend .l3::before { background: var(--gray-500); }
+.phase-legend .l4::before { background: var(--gray-300); }
+
+.risk-high { font-weight: 600; color: var(--red); }
+.risk-medium { font-weight: 600; color: #856404; }
+
+footer {
+    text-align: center;
+    padding: 60px 20px 40px;
+    color: #9B9B9D;
+    font-size: 13px;
+    line-height: 2.2;
+}
+
+@media (max-width: 1024px) {
+    nav.toc { display: none; }
+    main.content { padding: 32px 24px 60px; }
+    .kpi-row { flex-wrap: wrap; }
+    .kpi-card { min-width: 50%; }
+}
+</style>
+</head>
+<body>
+
+<div class="page-wrapper">
+
+<nav class="toc">
+    <div class="toc-label">Contents</div>
+    <ol>
+        <li><a href="#s1">Executive Summary</a></li>
+        <li><a href="#s2">Crawl Depth Audit</a></li>
+        <li><a href="#s3">Missing Data Sources</a></li>
+        <li><a href="#s4">Systems Dynamics Analysis</a></li>
+        <li><a href="#s5">Revised Strategy</a></li>
+        <li><a href="#s6">Cost &amp; Timeline</a></li>
+        <li><a href="#s7">Risk Matrix</a></li>
+    </ol>
+</nav>
+
+<main class="content">
+
+<header class="article-header">
+    <div class="dateline">蜂群审计报告 &mdash; 2026-03-20</div>
+    <h1>CogNebula M3 信源审查与数据战略</h1>
+    <div class="subtitle">从节点生产到边生产的范式转移 &mdash; 基于 Meadows 系统动力学的知识图谱增长战略</div>
+</header>
+
+<!-- Section 1: Executive Summary -->
+<section id="s1">
+    <h2>1. Executive Summary</h2>
+
+    <h3>Current State</h3>
+    <div class="kpi-row">
+        <div class="kpi-card">
+            <div class="kpi-value">408K</div>
+            <div class="kpi-label">Nodes</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">860K</div>
+            <div class="kpi-label">Edges</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">2.109</div>
+            <div class="kpi-label">Density</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">100/100</div>
+            <div class="kpi-label">Quality Score</div>
+        </div>
+    </div>
+
+    <h3>M3 Target</h3>
+    <div class="kpi-row">
+        <div class="kpi-card">
+            <div class="kpi-value target">1M</div>
+            <div class="kpi-label">Nodes</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value target">6M</div>
+            <div class="kpi-label">Edges</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value target">6.0</div>
+            <div class="kpi-label">Density</div>
+        </div>
+    </div>
+
+    <h3>Three Key Findings</h3>
+    <ol>
+        <li><strong>45% 爬虫仅抓标题。</strong> 22 个爬虫中有 10 个只抓取标题或摘要，完全缺乏正文内容。这意味着接近一半的信源管线产出的是"空壳节点" &mdash; 有实体名称，无实质知识，无法生成有效三元组。</li>
+        <li><strong>18 个关键信源缺失。</strong> 财税领域的核心权威来源（全国人大法规库、总局政策库、中注协准则、法院裁判文书等）尚未接入。这直接制约了 ontology 的覆盖面和权威性。</li>
+        <li><strong>密度悖论：边增长必须是节点增长的 8.7 倍。</strong> 要在 1M 节点规模下达到 density 6.0，需要 6M 条边。当前 860K 条边意味着缺口 5.14M。每新增 1 个节点，平均需要同时产出 8.7 条边 &mdash; 否则密度反而下降。</li>
+    </ol>
+
+    <div class="verdict-box">
+        <div class="verdict-label">Verdict: REDESIGN</div>
+        <p>M3 的 L3 层必须从"节点生成引擎"转型为"边生成引擎"。盲目扩充信源只会加剧密度稀释和孤儿节点堆积。</p>
+    </div>
+</section>
+
+<!-- Section 2: Crawl Depth Audit -->
+<section id="s2">
+    <h2>2. Crawl Depth Audit (22 Crawlers)</h2>
+
+    <p>对 CogNebula 全部 22 个爬虫逐一审查抓取深度、默认内容范围及产出质量。按深度分为 A/B/C 三组。</p>
+
+    <h3>Group A &mdash; SOTA (4 crawlers)</h3>
+    <div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>Crawler</th><th>Source</th><th>Depth</th><th>Default Content</th><th>Est. Items</th><th>Assessment</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>fetch_12366</td><td>12366 纳税服务平台</td><td>L3 Full</td><td>完整 Q&amp;A 对</td><td>5,300</td><td><span class="tag tag-full">FULL</span></td></tr>
+            <tr><td>fetch_tax_cases</td><td>多源执法案例</td><td>L3 Full</td><td>案情+处罚+依据</td><td>3,200+</td><td><span class="tag tag-full">FULL</span></td></tr>
+            <tr><td>fetch_baike_kuaiji</td><td>会计百科</td><td>L3 Full</td><td>完整词条正文</td><td>17,000</td><td><span class="tag tag-full">FULL</span></td></tr>
+            <tr><td>fetch_hs_codes</td><td>HS 编码库</td><td>L2 Semi</td><td>编码+品名+税率</td><td>9,700</td><td><span class="tag tag-semi">SEMI-FULL</span></td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <h3>Group B &mdash; Shallow (10 crawlers)</h3>
+    <div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>Crawler</th><th>Source</th><th>Depth</th><th>Default Content</th><th>Est. Items</th><th>Assessment</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>fetch_chinaacc</td><td>中华会计网校</td><td>L1</td><td>标题+链接</td><td>5,000</td><td><span class="tag tag-title">TITLE ONLY</span></td></tr>
+            <tr><td>fetch_chinatax_api</td><td>国税总局 API</td><td>L1.5</td><td>标题+摘要片段</td><td>57,000</td><td><span class="tag tag-title">SNIPPET ONLY</span></td></tr>
+            <tr><td>fetch_provincial</td><td>省级税务局</td><td>L1</td><td>列表元信息</td><td>4 provinces</td><td><span class="tag tag-title">META ONLY</span></td></tr>
+            <tr><td>fetch_npc</td><td>全国人大</td><td>L1</td><td>10 条硬编码</td><td>10</td><td><span class="tag tag-title">SNIPPET</span></td></tr>
+            <tr><td>fetch_casc</td><td>注册会计师协会</td><td>L1</td><td>标题</td><td>Unknown</td><td><span class="tag tag-title">TITLE</span></td></tr>
+            <tr><td>fetch_ctax</td><td>中税网</td><td>L1</td><td>3 个栏目标题</td><td>Unknown</td><td><span class="tag tag-title">TITLE</span></td></tr>
+            <tr><td>fetch_customs</td><td>海关总署</td><td>L1</td><td>标题</td><td>60</td><td><span class="tag tag-title">TITLE</span></td></tr>
+            <tr><td>fetch_stats</td><td>统计局</td><td>L1</td><td>标题</td><td>Unknown</td><td><span class="tag tag-title">TITLE</span></td></tr>
+            <tr><td>fetch_csrc</td><td>证监会</td><td>L0</td><td>无正文抓取</td><td>40 max</td><td><span class="tag tag-broken">NO CONTENT</span></td></tr>
+            <tr><td>fetch_chinatax</td><td>国税总局 SPA</td><td>L0.5</td><td>SPA fallback</td><td>Unstable</td><td><span class="tag tag-broken">UNRELIABLE</span></td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <h3>Group C &mdash; Broken / Unused (3 crawlers)</h3>
+    <div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>Crawler</th><th>Status</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>fetch_cf_browser</td><td><span class="tag tag-broken">UNUSED</span></td><td>CF Worker 浏览器代理，当前无调用方</td></tr>
+            <tr><td>fetch_mof</td><td><span class="tag tag-broken">UNVERIFIED</span></td><td>财政部，未验证产出质量</td></tr>
+            <tr><td>fetch_miit</td><td><span class="tag tag-broken">UNVERIFIED</span></td><td>工信部，未验证产出质量</td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <div class="verdict-box">
+        <div class="verdict-label">Fix Applied</div>
+        <p>daily_pipeline.sh 已新增 <code>--fetch-content</code> 标志，Group B 爬虫将在下一轮执行时自动切换到全文抓取模式。</p>
+    </div>
+</section>
+
+<!-- Section 3: Missing Data Sources -->
+<section id="s3">
+    <h2>3. Missing Data Sources (18 Sources)</h2>
+
+    <p>经全面审查，CogNebula 财税知识图谱当前缺失 18 个关键信源。按优先级分 4 层。</p>
+
+    <h3>Tier 1 &mdash; Government (7 sources)</h3>
+    <div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>Source</th><th>Domain</th><th>Est. Volume</th><th>Difficulty</th><th>Priority</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>NPC Legal DB (全国人大法规库)</td><td>flk.npc.gov.cn</td><td>17,000 docs</td><td>Easy</td><td><span class="tag tag-critical">CRITICAL</span></td></tr>
+            <tr><td>SAT Policy Library (总局政策库)</td><td>fgk.chinatax.gov.cn</td><td>5,000+</td><td>Medium</td><td><span class="tag tag-critical">CRITICAL</span></td></tr>
+            <tr><td>PBC Data (人民银行)</td><td>pbc.gov.cn</td><td>1,000 datasets</td><td>Easy</td><td><span class="tag tag-high">HIGH</span></td></tr>
+            <tr><td>MOF Tax (财政部税政)</td><td>szs.mof.gov.cn</td><td>500</td><td>Easy</td><td><span class="tag tag-high">HIGH</span></td></tr>
+            <tr><td>CFETS (中国外汇交易中心)</td><td>chinamoney.com.cn</td><td>3,600 daily</td><td>Easy</td><td><span class="tag tag-medium">MEDIUM</span></td></tr>
+            <tr><td>OECD TP Profile (转让定价)</td><td>oecd.org</td><td>PDF</td><td>Easy</td><td><span class="tag tag-high">HIGH</span></td></tr>
+            <tr><td>DTA Database (税收协定)</td><td>chinatax.gov.cn</td><td>100+ treaties</td><td>Easy</td><td><span class="tag tag-medium">MEDIUM</span></td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <h3>Tier 2 &mdash; Professional Bodies (4 sources)</h3>
+    <div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>Source</th><th>Domain</th><th>Est. Volume</th><th>Difficulty</th><th>Priority</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>CPA Standards (中注协)</td><td>cicpa.org.cn</td><td>200 standards</td><td>Medium</td><td><span class="tag tag-high">HIGH</span></td></tr>
+            <tr><td>CCTAA Guides (注税协)</td><td>cctaa.cn</td><td>300 guides</td><td>Medium</td><td><span class="tag tag-high">HIGH</span></td></tr>
+            <tr><td>ASBE Standards (企业会计准则)</td><td>aifa.org.cn</td><td>60 standards</td><td>Medium</td><td><span class="tag tag-high">HIGH</span></td></tr>
+            <tr><td>ChinaACC Courses (中华会计网校课程)</td><td>chinaacc.cn</td><td>1,000 modules</td><td>Hard</td><td><span class="tag tag-medium">MEDIUM</span></td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <h3>Tier 3 &mdash; Legal &amp; Corporate (2 sources)</h3>
+    <div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>Source</th><th>Domain</th><th>Est. Volume</th><th>Difficulty</th><th>Priority</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Court Judgments (裁判文书网)</td><td>splcgk.court.gov.cn</td><td>10M+ cases</td><td>Hard</td><td><span class="tag tag-high">HIGH</span></td></tr>
+            <tr><td>Qichacha (企查查)</td><td>qcc.com</td><td>100M+ companies</td><td>Medium</td><td><span class="tag tag-medium">MEDIUM</span></td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <h3>Tier 4-6 &mdash; Supplementary (5 sources)</h3>
+    <div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>Source</th><th>Domain</th><th>Type</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>National Bureau of Statistics (统计局)</td><td>stats.gov.cn</td><td>Macro data</td></tr>
+            <tr><td>Government Procurement (政府采购网)</td><td>ccgp.gov.cn</td><td>Procurement</td></tr>
+            <tr><td>CNIPA Patent (专利公布)</td><td>epub.cnipa.gov.cn</td><td>IP / Patent</td></tr>
+            <tr><td>PKULaw (北大法宝)</td><td>pkulaw.com</td><td>Legal research</td></tr>
+            <tr><td>Shui5 (税屋)</td><td>shui5.cn</td><td>Tax commentary</td></tr>
+        </tbody>
+    </table>
+    </div>
+</section>
+
+<!-- Section 4: Systems Dynamics Analysis -->
+<section id="s4">
+    <h2>4. Systems Dynamics Analysis (Meadows)</h2>
+
+    <p>运用 Donella Meadows 的系统动力学框架，识别 CogNebula 知识图谱增长中的 4 个核心反馈回路。理解这些回路是制定正确战略的前提。</p>
+
+    <div class="loop-card">
+        <div class="loop-header">R1 Depth Enhancement <span class="loop-type reinforcing">REINFORCING &mdash; CURRENTLY INACTIVE</span></div>
+        <p class="loop-chain">
+            Deeper crawl <span class="arrow">&rarr;</span> Better Q&amp;A pairs <span class="arrow">&rarr;</span> More edges <span class="arrow">&rarr;</span> Higher density <span class="arrow">&rarr;</span> Better queries <span class="arrow">&rarr;</span> User feedback <span class="arrow">&rarr;</span> Better crawl priorities <span class="arrow">&rarr;</span> Deeper crawl
+        </p>
+    </div>
+
+    <div class="loop-card">
+        <div class="loop-header">R2 Orphan Death Spiral <span class="loop-type reinforcing">REINFORCING &mdash; NEGATIVE</span></div>
+        <p class="loop-chain">
+            Fast injection <span class="arrow">&rarr;</span> Edges lag behind <span class="arrow">&rarr;</span> Orphan rate up <span class="arrow">&rarr;</span> Quality gate cleanup <span class="arrow">&rarr;</span> Need more injection to compensate <span class="arrow">&rarr;</span> Even worse ratio
+        </p>
+    </div>
+
+    <div class="loop-card">
+        <div class="loop-header">B1 Quality Gate Balance <span class="loop-type balancing">BALANCING</span></div>
+        <p class="loop-chain">
+            More nodes <span class="arrow">&rarr;</span> Harder maintenance <span class="arrow">&rarr;</span> Gate failures <span class="arrow">&rarr;</span> Pipeline slowdown <span class="arrow">&rarr;</span> Fewer nodes
+        </p>
+    </div>
+
+    <div class="loop-card">
+        <div class="loop-header">B2 Density Dilution <span class="loop-type balancing">BALANCING</span></div>
+        <p class="loop-chain">
+            More nodes without edges <span class="arrow">&rarr;</span> Density drops <span class="arrow">&rarr;</span> Graph utility declines <span class="arrow">&rarr;</span> Investment questioned <span class="arrow">&rarr;</span> Fewer resources
+        </p>
+    </div>
+
+    <h3>The Core Math</h3>
+    <div class="math-block">
+        Target density = 6.0 at 1M nodes<br>
+        Required edges = 1,000,000 &times; 6.0 = <strong>6,000,000</strong><br>
+        Current edges = 860,000<br>
+        Edge gap = 6,000,000 &minus; 860,000 = <strong>5,140,000</strong><br>
+        New nodes needed = 1,000,000 &minus; 408,000 = 592,000<br>
+        <strong>Edges per new node = 5,140,000 / 592,000 = 8.68</strong><br><br>
+        Conclusion: Every new node entering the graph must carry an average of <strong>8.7 edges</strong>. Pure node injection without edge generation is structurally self-defeating.
+    </div>
+</section>
+
+<!-- Section 5: Revised Strategy -->
+<section id="s5">
+    <h2>5. Revised Strategy &mdash; Edge-First M3</h2>
+
+    <p>基于 Section 4 的系统动力学分析，M3 战略从传统的"先广度后深度"重新排序为"先深度后广度"，核心引擎从节点生产转向边生产。</p>
+
+    <div class="phase-bar">
+        <div class="phase-segment"></div>
+        <div class="phase-segment"></div>
+        <div class="phase-segment"></div>
+        <div class="phase-segment"></div>
+    </div>
+    <div class="phase-legend">
+        <span class="l1">L1 Depth (W1-7)</span>
+        <span class="l2">L2 Breadth (W8-12)</span>
+        <span class="l3">L3 Edge Engine (W13-15)</span>
+        <span class="l4">L4 Expert Gate (W16)</span>
+    </div>
+
+    <h3>L1 &mdash; Depth Enhancement (W1-7)</h3>
+    <p>修复 Group B 爬虫的全文抓取能力。对每一个新节点自动运行 QA Generation 和 NER+Entity Linking，确保入库时自带 3-5 条边。激活反馈回路 R1。</p>
+    <ul>
+        <li>fetch_chinaacc, fetch_chinatax_api 升级到 L3 全文</li>
+        <li>fetch_provincial 扩展到全部 31 省</li>
+        <li>每条全文自动生成 Q&amp;A 对 + 实体关系三元组</li>
+        <li>验收标准：新节点平均边数 &ge; 3.0</li>
+    </ul>
+
+    <h3>L2 &mdash; Breadth Expansion (W8-12)</h3>
+    <p>按 Tier 1-2 优先级接入新信源，但必须通过"准入协议"才能进入主图。</p>
+
+    <h4>Admission Protocol</h4>
+    <ol>
+        <li>New nodes enter <strong>staging graph</strong> (isolated namespace)</li>
+        <li>Run NER + entity linking against main graph</li>
+        <li>Minimum 3 edges found per node &rarr; promote to main graph</li>
+        <li>Batch density &lt; 3.0 &rarr; <strong>entire batch rejected</strong>, return to depth pipeline</li>
+    </ol>
+
+    <h3>L3 &mdash; Edge Engine (W13-15)</h3>
+    <p>这是 M3 的核心创新。L3 不再生成新节点，而是专门在已有节点之间发现和创建关系。</p>
+    <ul>
+        <li>Gemini Pro 扫描相邻节点对，识别 <code>SUPERSEDES</code> / <code>CONFLICTS_WITH</code> / <code>APPLIES_TO</code> 关系</li>
+        <li>法规时间线：自动标注废止、修订、替代关系</li>
+        <li>跨域桥接：税法 &harr; 会计准则 &harr; 执法案例 &harr; 裁判文书</li>
+        <li>目标：单周产出 &ge; 500K 条新边</li>
+    </ul>
+
+    <h3>L4 &mdash; Expert Review &amp; Final Gate (W16)</h3>
+    <p>人工专家抽检 + 全图质量审计。确认 density &ge; 6.0，orphan rate &lt; 1%，quality score 维持 100/100。</p>
+</section>
+
+<!-- Section 6: Cost & Timeline -->
+<section id="s6">
+    <h2>6. Cost &amp; Timeline</h2>
+
+    <h3>Budget Estimate</h3>
+    <div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>Item</th><th>Usage</th><th>Est. Cost (USD)</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Gemini 2.5 Flash (NER, QA gen, shallow extraction)</td><td>~50M tokens</td><td>$150</td></tr>
+            <tr><td>Gemini 2.5 Pro (edge discovery, conflict detection)</td><td>~8M tokens</td><td>$80</td></tr>
+            <tr><td>Embedding (gemini-embedding-2-preview)</td><td>~20M tokens</td><td>$20</td></tr>
+            <tr><td>Court API / data access</td><td>Bulk query</td><td>~$50</td></tr>
+            <tr><td>Proxy / VPS bandwidth</td><td>Crawl + render</td><td>~$50</td></tr>
+            <tr><td colspan="2" style="font-weight:600; text-align:right;">Total</td><td style="font-weight:600;">~$350</td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <h3>Weekly Timeline</h3>
+    <div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>Week</th><th>Phase</th><th>Node Target</th><th>Density Target</th><th>Key Deliverable</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>W1-2</td><td>L1 Depth</td><td>420K</td><td>2.5</td><td>Group B crawlers upgraded to full-text; QA gen pipeline live</td></tr>
+            <tr><td>W3-4</td><td>L1 Depth</td><td>450K</td><td>3.0</td><td>NER + entity linking auto-edge on all new nodes</td></tr>
+            <tr><td>W5-7</td><td>L1 Depth</td><td>500K</td><td>3.5</td><td>Provincial expansion (31 provinces); broken crawlers fixed or retired</td></tr>
+            <tr><td>W8-9</td><td>L2 Breadth</td><td>600K</td><td>3.8</td><td>Tier 1 sources (NPC, SAT Policy) onboarded via admission protocol</td></tr>
+            <tr><td>W10-12</td><td>L2 Breadth</td><td>750K</td><td>4.2</td><td>Tier 2 sources (CPA, CCTAA, ASBE); court data pilot batch</td></tr>
+            <tr><td>W13-14</td><td>L3 Edge Engine</td><td>800K</td><td>5.0</td><td>Gemini SUPERSEDES/CONFLICTS_WITH scan; 2M new edges</td></tr>
+            <tr><td>W15</td><td>L3 Edge Engine</td><td>900K</td><td>5.5</td><td>Cross-domain bridging (tax &harr; accounting &harr; enforcement)</td></tr>
+            <tr><td>W16</td><td>L4 Expert Gate</td><td>1M</td><td>6.0</td><td>Expert audit pass; production release</td></tr>
+        </tbody>
+    </table>
+    </div>
+</section>
+
+<!-- Section 7: Risk Matrix -->
+<section id="s7">
+    <h2>7. Risk Matrix</h2>
+
+    <div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Mitigation</th></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>KuzuDB OOM on bulk edge creation</td>
+                <td><span class="risk-high">HIGH</span></td>
+                <td><span class="risk-high">HIGH</span></td>
+                <td>Batch edge insertion (10K/batch); monitor RSS; upgrade to 16GB RAM or switch to LanceDB for edge staging</td>
+            </tr>
+            <tr>
+                <td>Density dilution (nodes outpace edges)</td>
+                <td><span class="risk-high">HIGH</span></td>
+                <td><span class="risk-high">HIGH</span></td>
+                <td>Edge-first strategy + admission protocol; batch density &lt; 3.0 auto-rejected</td>
+            </tr>
+            <tr>
+                <td>Court DB anti-crawl (裁判文书网反爬)</td>
+                <td><span class="risk-high">HIGH</span></td>
+                <td><span class="risk-medium">MEDIUM</span></td>
+                <td>Browser Proxy pattern (Chrome fetch); 3-6s random delay; fallback to commercial API</td>
+            </tr>
+            <tr>
+                <td>chinatax_api depth regression</td>
+                <td><span class="risk-medium">MEDIUM</span></td>
+                <td><span class="risk-high">HIGH</span></td>
+                <td>Fix applied (--fetch-content flag); daily monitoring; fallback to fleet-page-fetch VPS render</td>
+            </tr>
+            <tr>
+                <td>Quality gate backlog at scale</td>
+                <td><span class="risk-medium">MEDIUM</span></td>
+                <td><span class="risk-medium">MEDIUM</span></td>
+                <td>Parallel quality gate workers (3x); async staging pipeline; weekly human audit sampling</td>
+            </tr>
+        </tbody>
+    </table>
+    </div>
+</section>
+
+<footer>
+    <p>CogNebula M3 -- Data Source Strategy v1.0</p>
+    <p>Maurice | maurice_wen@proton.me</p>
+    <p style="font-size:12px; margin-top:8px;">2026-03-20 | Data sourced from CogNebula KG API + crawl audit logs</p>
+</footer>
+
+</main>
+</div>
+
+<script>
+(function() {
+    var sections = document.querySelectorAll('section[id]');
+    var links = document.querySelectorAll('nav.toc a');
+    var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+                links.forEach(function(l) { l.classList.remove('active'); });
+                var active = document.querySelector('nav.toc a[href="#' + entry.target.id + '"]');
+                if (active) active.classList.add('active');
+            }
+        });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+    sections.forEach(function(s) { observer.observe(s); });
+})();
+</script>
+
+</body>
+</html>

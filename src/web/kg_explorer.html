@@ -2237,31 +2237,32 @@ async function autoExpandEdges(nodes) {
       if (!data.neighbors) continue;
 
       data.neighbors.forEach(nb => {
-        let nbId = nb.target.slice(0, 60);
-        const idMatch = nb.target.match(/'id':\s*'([^']+)'/);
-        if (idMatch) nbId = idMatch[1].trim();
-        let nbLabel = nbId;
-        const nameMatch = nb.target.match(/'name':\s*'([^']+)'/);
-        if (nameMatch) nbLabel = nameMatch[1].trim();
-        const titleMatch = nb.target.match(/'title':\s*'([^']+)'/);
-        if (titleMatch) nbLabel = titleMatch[1].trim();
+        // Use structured target_id/target_label from API (preferred)
+        let nbId = nb.target_id || "";
+        let nbLabel = nb.target_label || "";
 
-        // Only add edge if target is also in our node set, or add the new node
+        // Fallback: parse from target string if structured fields missing
+        if (!nbId && nb.target) {
+          const idMatch = nb.target.match(/id:\s*([^,}]+)/);
+          nbId = idMatch ? idMatch[1].trim() : nb.target.slice(0, 30);
+        }
+        if (!nbLabel) {
+          nbLabel = getNodeLabel({ id: nbId, title: nb.target_label });
+        }
+
         const eid = node.id + "->" + nbId;
         if (seen.has(nbId)) {
-          // Edge between two existing nodes
           if (!edgesDS.get(eid)) {
             edgesBatch.push({ id: eid, from: node.id, to: nbId, label: (nb.edge_type || "").slice(0, 15) });
           }
         } else if (newNodes.length < 20) {
-          // Add neighbor node + edge
           seen.add(nbId);
           const c = getColor(nb.target_type);
           newNodes.push({
             id: nbId,
-            label: nbLabel.slice(0, 25),
+            label: nbLabel,
             color: { background: c, border: c },
-            title: nb.target_type + ": " + nbId,
+            title: (nb.target_type || "") + ": " + nbLabel,
             font: { color: "#374151" },
             size: 10,
           });

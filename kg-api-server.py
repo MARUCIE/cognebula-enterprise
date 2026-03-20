@@ -121,7 +121,8 @@ WEB_DIR = _Path("/home/kg/cognebula-enterprise/src/web")
 def web_ui():
     html_path = WEB_DIR / "kg_explorer.html"
     if html_path.exists():
-        return FileResponse(html_path, media_type="text/html")
+        return FileResponse(html_path, media_type="text/html",
+                            headers={"Cache-Control": "no-cache, no-store, must-revalidate"})
     return JSONResponse({"error": "Web UI not found", "path": str(html_path)}, status_code=404)
 
 

@@ -199,8 +199,7 @@
 <!-- ============================================================ -->
 <div id="content-curate" class="ml-64 flex-1 overflow-hidden" style="display: none;">
   <!-- Know-Arc Expert Workbench via iframe -->
-  <iframe id="curate-iframe" src="http://localhost:8900/" class="w-full border-none" style="height: calc(100vh - 4rem);"
-    onerror="this.style.display='none'; document.getElementById('curate-fallback').style.display='flex';">
+  <iframe id="curate-iframe" src="/api/v1/ka/" class="w-full border-none" style="height: calc(100vh - 4rem);">
   </iframe>
   <div id="curate-fallback" class="w-full h-full flex-col items-center justify-center gap-4 text-center" style="display:none; height: calc(100vh - 4rem);">
     <span class="material-symbols-outlined text-6xl text-slate-300">cloud_off</span>
@@ -704,7 +703,7 @@ async function loadAdminData() {
 
 // -- Check curate iframe availability --
 function checkCurateService() {
-  fetch('http://localhost:8900/api/v1/health', { signal: AbortSignal.timeout(3000) })
+  fetch(API_BASE + '/ka/health', { signal: AbortSignal.timeout(3000) })
     .then(r => { if (!r.ok) throw new Error(); })
     .catch(() => {
       const iframe = document.getElementById('curate-iframe');

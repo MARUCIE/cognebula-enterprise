@@ -90,6 +90,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ---------------------------------------------------------------------------
+# Know-Arc Expert Workbench integration (mounted at /api/v1/ka/*)
+# ---------------------------------------------------------------------------
+try:
+    import sys
+    sys.path.insert(0, "/home/kg/know-arc")
+    from know_arc.api.router import create_ka_router
+    ka_router = create_ka_router(
+        kuzu_path="/home/kg/know-arc/data/know-arc-graph",
+        sqlite_path="/home/kg/know-arc/data/know-arc.db",
+        results_dir="/home/kg/know-arc/data/results",
+        web_dir="/home/kg/know-arc/know_arc/web",
+    )
+    app.include_router(ka_router)
+    _know_arc_available = True
+except Exception as e:
+    import logging
+    logging.getLogger("kg-api").warning(f"Know-Arc integration failed: {e}")
+    _know_arc_available = False
+
 # Lazy DB connections
 _kuzu_db = None
 _kuzu_conn = None

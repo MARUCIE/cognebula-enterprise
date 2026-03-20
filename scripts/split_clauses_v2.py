@@ -131,7 +131,7 @@ def main():
                         "content": sub["content"][:5000],
                         "keywords": "",
                     })
-                    all_edges.append((sub_id, clause_id))  # PART_OF: sub → parent
+                    all_edges.append((sub_id, doc_id))  # PART_OF: sub-clause → LegalDocument
                     total_sub += 1
 
         total_split += batch_split
@@ -149,9 +149,12 @@ def main():
     edges_csv = f"{CSV_DIR}/sub_clause_part_of.csv"
 
     with open(nodes_csv, "w", newline="") as f:
-        w = csv.writer(f)
+        w = csv.writer(f, quoting=csv.QUOTE_ALL)
         for n in all_nodes:
-            w.writerow([n["id"], n["documentId"], n["clauseNumber"], n["title"], n["content"], n["keywords"]])
+            # Sanitize content: remove newlines and extra whitespace
+            content = n["content"].replace("\n", " ").replace("\r", " ").replace('"', "'")
+            title = n["title"].replace('"', "'")
+            w.writerow([n["id"], n["documentId"], n["clauseNumber"], title, content, n["keywords"]])
 
     with open(edges_csv, "w", newline="") as f:
         w = csv.writer(f)
@@ -164,7 +167,7 @@ def main():
     # COPY FROM
     print("\n[Loading into KuzuDB]")
     try:
-        conn.execute(f'COPY LegalClause FROM "{nodes_csv}" (header=false)')
+        conn.execute(f'COPY LegalClause FROM "{nodes_csv}" (header=false, parallel=false)')
         print(f"  LegalClause: +{total_sub:,} sub-clause nodes")
     except Exception as e:
         print(f"  LegalClause COPY ERROR: {str(e)[:80]}")

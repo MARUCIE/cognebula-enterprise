@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CogNebula M3 信源审查与数据战略</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=Noto+Serif+SC:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --red: #E3120B;
+  --red-light: rgba(227,18,11,0.06);
+  --red-border: rgba(227,18,11,0.15);
+  --navy: #1D2B53;
+  --navy-light: #2A3F6F;
+  --ink: #1A1A1A;
+  --body: #333333;
+  --secondary: #6B6B6B;
+  --muted: #999999;
+  --rule: #DBDBDB;
+  --rule-strong: #1A1A1A;
+  --bg: #FFFFFF;
+  --bg-gray: #F6F6F6;
+  --bg-warm: #FBF9F7;
+  --font-headline: 'DM Sans', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-body: 'Source Serif 4', 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
+  --font-sans: 'DM Sans', 'Noto Sans SC', sans-serif;
+  --font-mono: 'SF Mono', 'Fira Code', monospace;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; border-radius: 0; }
+
+body {
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.75;
+  letter-spacing: 0.01em;
+  color: var(--body);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.container { max-width: 960px; margin: 0 auto; padding: 0 32px; }
+
+/* Masthead */
+.masthead { background: var(--navy); padding: 14px 0; }
+.masthead-inner { display: flex; justify-content: space-between; align-items: center; }
+.masthead-title {
+  font-family: var(--font-headline);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+.masthead-date {
+  font-family: var(--font-headline);
+  color: rgba(255,255,255,0.6);
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+.red-rule { height: 4px; background: var(--red); }
+
+/* Page Header */
+.page-header { padding: 48px 0 32px; border-bottom: 1px solid var(--rule); }
+.page-header h1 {
+  font-family: var(--font-headline);
+  font-weight: 800;
+  font-size: 3rem;
+  color: var(--ink);
+  line-height: 1.15;
+  margin-bottom: 12px;
+}
+.page-header .subtitle {
+  font-family: var(--font-body);
+  font-size: 1.15rem;
+  color: var(--secondary);
+  font-style: italic;
+}
+
+/* KPI Grid */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  margin: 32px 0;
+}
+.kpi {
+  padding: 20px;
+  background: var(--bg);
+}
+.kpi .label {
+  font-family: var(--font-headline);
+  color: var(--red);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+.kpi .value {
+  font-family: var(--font-headline);
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.kpi .detail {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--secondary);
+  margin-top: 4px;
+}
+
+/* Sections */
+.section { padding: 40px 0 32px; border-bottom: 1px solid var(--rule); }
+.section-label {
+  font-family: var(--font-headline);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--red);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.section h2 {
+  font-family: var(--font-headline);
+  font-weight: 800;
+  font-size: 1.6rem;
+  color: var(--ink);
+  line-height: 1.25;
+  margin-bottom: 8px;
+}
+.section-rule {
+  width: 48px;
+  height: 3px;
+  background: var(--red);
+  margin-bottom: 20px;
+}
+.section p { margin-bottom: 14px; }
+.section ul, .section ol { margin: 0 0 16px 20px; }
+.section li { margin-bottom: 6px; }
+
+/* Pull Quote */
+.pull-quote {
+  padding: 24px 0;
+  border-top: 3px solid var(--ink);
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--font-headline);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.35;
+  margin: 24px 0;
+}
+
+/* Callout */
+.callout {
+  background: var(--bg-warm);
+  border-left: 4px solid var(--red);
+  padding: 20px 24px;
+  margin: 20px 0;
+}
+.callout p { margin-bottom: 8px; }
+.callout p:last-child { margin-bottom: 0; }
+.callout-title {
+  font-family: var(--font-headline);
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 15px;
+}
+th {
+  border-bottom: 2px solid var(--ink);
+  font-family: var(--font-headline);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 10px 12px;
+  text-align: left;
+  color: var(--ink);
+  font-weight: 700;
+  white-space: nowrap;
+}
+td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+  min-width: 0;
+}
+tbody tr:last-child td { border-bottom: 2px solid var(--ink); }
+tbody tr:nth-child(even) td { background: var(--bg-gray); }
+table .tag {
+  display: inline-block;
+  font-family: var(--font-headline);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.tag-sota { background: #E8F5E9; color: #2E7D32; }
+.tag-shallow { background: #FFF3E0; color: #E65100; }
+.tag-broken { background: #FFEBEE; color: var(--red); }
+.tag-fix { background: #E3F2FD; color: #1565C0; }
+
+/* Tier Labels */
+.tier-label {
+  font-family: var(--font-headline);
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--red);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* Roadmap Steps */
+.step {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  border-bottom: 1px solid var(--rule);
+}
+.step-num {
+  background: var(--navy);
+  color: white;
+  font-family: var(--font-headline);
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.3;
+}
+.step-content {
+  padding: 20px 24px;
+}
+.step-content h3 {
+  font-family: var(--font-headline);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.step-content p { margin-bottom: 6px; font-size: 15px; }
+.step-done {
+  font-family: var(--font-headline);
+  font-size: 11px;
+  font-weight: 700;
+  color: #2E7D32;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* Risk Grid */
+.risk-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border: 1px solid var(--rule);
+  margin: 20px 0;
+}
+.scenario {
+  padding: 24px;
+  border-right: 1px solid var(--rule);
+}
+.scenario:last-child { border-right: none; }
+.risk-low { border-top: 4px solid #2E7D32; }
+.risk-mid { border-top: 4px solid #E65100; }
+.risk-high { border-top: 4px solid var(--red); }
+.scenario h4 {
+  font-family: var(--font-headline);
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.scenario p { font-size: 14px; color: var(--secondary); }
+
+/* Quality Gates */
+.gate-bar {
+  display: flex;
+  gap: 0;
+  margin: 24px 0;
+  border: 1px solid var(--rule);
+}
+.gate {
+  flex: 1;
+  padding: 12px 8px;
+  text-align: center;
+  border-right: 1px solid var(--rule);
+  font-family: var(--font-headline);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--secondary);
+}
+.gate:last-child { border-right: none; }
+.gate .gate-num {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--ink);
+  display: block;
+}
+
+/* Footer */
+.site-footer {
+  border-top: 3px solid var(--ink);
+  text-align: center;
+  padding: 60px 20px 40px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 2.2;
+}
+.site-footer .sig { font-weight: 600; }
+.site-footer .attr { font-size: 12px; margin-top: 8px; }
+
+/* Print */
+@media print {
+  .masthead { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .kpi-grid, .risk-grid, .step-num { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { font-size: 12pt; }
+}
+@media (max-width: 680px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .risk-grid { grid-template-columns: 1fr; }
+  .step { grid-template-columns: 80px 1fr; }
+  .page-header h1 { font-size: 2rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- Masthead -->
+<div class="masthead">
+  <div class="container masthead-inner">
+    <span class="masthead-title">CogNebula Intelligence</span>
+    <span class="masthead-date">2026-03-20</span>
+  </div>
+</div>
+<div class="red-rule"></div>
+
+<!-- Page Header -->
+<div class="container">
+  <div class="page-header">
+    <h1>CogNebula M3 信源审查与数据战略</h1>
+    <p class="subtitle">蜂群审计报告 -- 22 爬虫深度审计 + 18 遗漏信源 + 系统动力学分析</p>
+  </div>
+
+  <!-- KPI Strip -->
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="label">Nodes</div>
+      <div class="value">408K</div>
+      <div class="detail">Target: 1M</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Edges</div>
+      <div class="value">860K</div>
+      <div class="detail">Target: 6M</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Density</div>
+      <div class="value">2.109</div>
+      <div class="detail">Target: 6.0</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Quality</div>
+      <div class="value">100</div>
+      <div class="detail">Gate score (max 100)</div>
+    </div>
+  </div>
+
+  <!-- Section 1: Executive Summary -->
+  <div class="section">
+    <div class="section-label">Executive Summary</div>
+    <h2>执行摘要</h2>
+    <div class="section-rule"></div>
+
+    <p>CogNebula 知识图谱在 M2 阶段完成了 Ontology v2.2 迁移，节点规模达到 408K，边数 860K，密度 2.109，质量门分数 100。但距离 M3 里程碑目标（1M 节点 / 6M 边 / 密度 6.0）仍有显著缺口。本次蜂群审计对全部 22 个爬虫的采集深度、18 个遗漏高价值信源、以及图谱密度增长的系统动力学进行了全面审查。</p>
+
+    <div class="pull-quote">45% 的爬虫仅抓取标题，未采集正文全文 -- 这是图谱密度停滞的首要瓶颈。</div>
+
+    <p>审计发现三个关键问题：第一，22 个爬虫中仅 4 个达到 SOTA 深度（全文 + 结构化提取），10 个停留在浅层采集（仅标题/摘要），3 个已损坏或未启用；第二，18 个高价值信源尚未接入，其中 8 个建议立即启动；第三，边增长必须达到节点增长的 7 倍才能实现密度目标 -- 这意味着策略必须从"广度优先"转向"深度优先"。</p>
+
+    <div class="callout">
+      <div class="callout-title">密度悖论</div>
+      <p>当前 860K 边 / 408K 节点 = 密度 2.109。要在 1M 节点时达到密度 6.0，需要 6M 边。缺口为 +5.14M 边。新增节点如果不配套大规模边生成，密度反而会下降。深度（边）优先于广度（节点）。</p>
+    </div>
+  </div>
+
+  <!-- Section 2: Crawl Depth Audit -->
+  <div class="section">
+    <div class="section-label">Crawl Depth Audit</div>
+    <h2>爬虫深度审计</h2>
+    <div class="section-rule"></div>
+
+    <p>对 22 个爬虫按采集深度分为三组：Group A（SOTA，全文 + 结构化提取）、Group B（浅层，仅标题/摘要/列表页）、Group C（损坏/未启用）。审计结论：仅 18% 的爬虫达到生产标准。</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Source</th>
+          <th>Depth</th>
+          <th>Default Content</th>
+          <th>Items</th>
+          <th>Assessment</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td colspan="6" style="background:var(--bg-gray);font-family:var(--font-headline);font-weight:700;font-size:12px;letter-spacing:1px;color:var(--red);text-transform:uppercase;">Group A -- SOTA (4)</td>
+        </tr>
+        <tr>
+          <td><strong>fetch_12366</strong></td>
+          <td>12366 税务咨询</td>
+          <td><span class="tag tag-sota">Full</span></td>
+          <td>全文 + QA 对</td>
+          <td>85K</td>
+          <td>生产标准，持续运行</td>
+        </tr>
+        <tr>
+          <td><strong>fetch_tax_cases</strong></td>
+          <td>税务稽查案例</td>
+          <td><span class="tag tag-sota">Full</span></td>
+          <td>全文 + 结构化字段</td>
+          <td>12K</td>
+          <td>高质量，更新频率低</td>
+        </tr>
+        <tr>
+          <td><strong>fetch_baike_kuaiji</strong></td>
+          <td>会计百科</td>
+          <td><span class="tag tag-sota">Full</span></td>
+          <td>词条全文 + 分类</td>
+          <td>28K</td>
+          <td>知识密度高，核心信源</td>
+        </tr>
+        <tr>
+          <td><strong>fetch_hs_codes</strong></td>
+          <td>海关编码库</td>
+          <td><span class="tag tag-sota">Full</span></td>
+          <td>编码 + 税率 + 描述</td>
+          <td>96K</td>
+          <td>结构化完整，边生成率高</td>
+        </tr>
+        <tr>
+          <td colspan="6" style="background:var(--bg-gray);font-family:var(--font-headline);font-weight:700;font-size:12px;letter-spacing:1px;color:#E65100;text-transform:uppercase;">Group B -- Shallow (10)</td>
+        </tr>
+        <tr>
+          <td><strong>fetch_chinaacc</strong></td>
+          <td>中华会计网校</td>
+          <td><span class="tag tag-shallow">Shallow</span></td>
+          <td>标题 + 摘要</td>
+          <td>45K</td>
+          <td>需加 --fetch-content</td>
+        </tr>
+        <tr>
+          <td><strong>fetch_chinatax_api</strong></td>
+          <td>国税总局 API</td>
+          <td><span class="tag tag-shallow">Shallow</span></td>
+          <td>标题 + 文号</td>
+          <td>170K</td>
+          <td>最大增量来源，优先修复</td>
+        </tr>
+        <tr>
+          <td><strong>fetch_provincial</strong></td>
+          <td>省级税务局</td>
+          <td><span class="tag tag-shallow">Shallow</span></td>
+          <td>标题 + 链接</td>
+          <td>38K</td>
+          <td>需逐省适配正文提取</td>
+        </tr>
+        <tr>
+          <td><strong>fetch_npc</strong></td>
+          <td>全国人大法规</td>
+          <td><span class="tag tag-shallow">Shallow</span></td>
+          <td>标题 + 发布日期</td>
+          <td>5K</td>
+          <td>权威性高，需全文</td>
+        </tr>
+        <tr>
+          <td><strong>fetch_casc</strong></td>
+          <td>中注协</td>
+          <td><span class="tag tag-shallow">Shallow</span></td>
+          <td>标题 + 分类</td>
+          <td>8K</td>
+          <td>审计准则需全文</td>
+        </tr>
+        <tr>
+          <td><strong>fetch_ctax</strong></td>
+          <td>中国税务报</td>
+          <td><span class="tag tag-shallow">Shallow</span></td>
+          <td>标题 + 日期</td>
+          <td>22K</td>
+          <td>新闻类，全文价值中等</td>
+        </tr>
+        <tr>
+          <td><strong>fetch_customs</strong></td>
+          <td>海关总署</td>
+          <td><span class="tag tag-shallow">Shallow</span></td>
+          <td>公告标题</td>
+          <td>15K</td>
+          <td>需配合 HS 编码关联</td>
+        </tr>
+        <tr>
+          <td><strong>fetch_stats</strong></td>
+          <td>国家统计局</td>
+          <td><span class="tag tag-shallow">Shallow</span></td>
+          <td>指标名 + 值</td>
+          <td>60K</td>
+          <td>结构化数据，需 API 对接</td>
+        </tr>
+        <tr>
+          <td><strong>fetch_csrc</strong></td>
+          <td>证监会</td>
+          <td><span class="tag tag-shallow">Shallow</span></td>
+          <td>标题 + 文号</td>
+          <td>12K</td>
+          <td>证券税相关，需全文</td>
+        </tr>
+        <tr>
+          <td><strong>fetch_chinatax</strong></td>
+          <td>国税总局网站</td>
+          <td><span class="tag tag-shallow">Shallow</span></td>
+          <td>标题 + 列表</td>
+          <td>30K</td>
+          <td>与 API 版重复，考虑合并</td>
+        </tr>
+        <tr>
+          <td colspan="6" style="background:var(--bg-gray);font-family:var(--font-headline);font-weight:700;font-size:12px;letter-spacing:1px;color:var(--red);text-transform:uppercase;">Group C -- Broken / Unused (3)</td>
+        </tr>
+        <tr>
+          <td><strong>fetch_cf_browser</strong></td>
+          <td>CF Browser Proxy</td>
+          <td><span class="tag tag-broken">Broken</span></td>
+          <td>--</td>
+          <td>0</td>
+          <td>Worker 未部署，需重建</td>
+        </tr>
+        <tr>
+          <td><strong>fetch_chinatax (SPA)</strong></td>
+          <td>国税 SPA 版</td>
+          <td><span class="tag tag-broken">Broken</span></td>
+          <td>空白页</td>
+          <td>0</td>
+          <td>SPA 渲染失败，需 Playwright</td>
+        </tr>
+        <tr>
+          <td><strong>fetch_mof</strong></td>
+          <td>财政部</td>
+          <td><span class="tag tag-broken">Broken</span></td>
+          <td>403 / 超时</td>
+          <td>0</td>
+          <td>反爬升级，需 Browser Proxy</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <div class="callout-title">已实施修复</div>
+      <p><code>daily_pipeline.sh</code> 已更新，为 Group B 全部 10 个爬虫添加 <code>--fetch-content</code> 参数。预计下一轮全量采集后，chinatax_api 单项即可新增 170K+ 全文节点，并触发自动边生成。</p>
+    </div>
+  </div>
+
+  <!-- Section 3: Missing Data Sources -->
+  <div class="section">
+    <div class="section-label">Missing Data Sources</div>
+    <h2>遗漏信源分析</h2>
+    <div class="section-rule"></div>
+
+    <p>通过对业财税合规领域的系统性扫描，识别出 18 个尚未接入的高价值信源，按优先级分为 6 个层级。前三层覆盖核心政府权威源和专业机构，是 M3 必须完成的采集目标。</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Tier</th>
+          <th>Source</th>
+          <th>Domain</th>
+          <th>Est. Volume</th>
+          <th>Priority</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td rowspan="7"><span class="tier-label">Tier 1</span><br><span style="font-size:12px;color:var(--secondary);">Government</span></td>
+          <td><strong>NPC 法规库</strong></td>
+          <td>flk.npc.gov.cn</td>
+          <td>17K docs</td>
+          <td style="color:var(--red);font-weight:700;">Immediate</td>
+        </tr>
+        <tr>
+          <td><strong>SAT 政策库</strong></td>
+          <td>fgk.chinatax.gov.cn</td>
+          <td>50K+ docs</td>
+          <td style="color:var(--red);font-weight:700;">Immediate</td>
+        </tr>
+        <tr>
+          <td><strong>央行数据</strong></td>
+          <td>pbc.gov.cn</td>
+          <td>30K+</td>
+          <td style="color:var(--red);font-weight:700;">Immediate</td>
+        </tr>
+        <tr>
+          <td><strong>CFETS 汇率</strong></td>
+          <td>chinamoney.com.cn</td>
+          <td>Daily series</td>
+          <td style="color:#E65100;font-weight:600;">High</td>
+        </tr>
+        <tr>
+          <td><strong>财政部税政</strong></td>
+          <td>mof.gov.cn/tax</td>
+          <td>15K+</td>
+          <td style="color:var(--red);font-weight:700;">Immediate</td>
+        </tr>
+        <tr>
+          <td><strong>OECD TP Profile</strong></td>
+          <td>oecd.org/tax</td>
+          <td>2K+</td>
+          <td style="color:#E65100;font-weight:600;">High</td>
+        </tr>
+        <tr>
+          <td><strong>DTA 数据库</strong></td>
+          <td>税收协定汇编</td>
+          <td>110+ treaties</td>
+          <td style="color:var(--red);font-weight:700;">Immediate</td>
+        </tr>
+        <tr>
+          <td rowspan="4"><span class="tier-label">Tier 2</span><br><span style="font-size:12px;color:var(--secondary);">Professional</span></td>
+          <td><strong>中注协</strong></td>
+          <td>cicpa.org.cn</td>
+          <td>8K+</td>
+          <td style="color:var(--red);font-weight:700;">Immediate</td>
+        </tr>
+        <tr>
+          <td><strong>税务师协会</strong></td>
+          <td>cctaa.cn</td>
+          <td>5K+</td>
+          <td style="color:var(--red);font-weight:700;">Immediate</td>
+        </tr>
+        <tr>
+          <td><strong>会计准则委</strong></td>
+          <td>aifa.org.cn</td>
+          <td>3K+</td>
+          <td style="color:var(--red);font-weight:700;">Immediate</td>
+        </tr>
+        <tr>
+          <td><strong>中华会计网校</strong></td>
+          <td>chinaacc.com</td>
+          <td>200K+</td>
+          <td style="color:#E65100;font-weight:600;">High</td>
+        </tr>
+        <tr>
+          <td rowspan="2"><span class="tier-label">Tier 3</span><br><span style="font-size:12px;color:var(--secondary);">Legal</span></td>
+          <td><strong>裁判文书网</strong></td>
+          <td>splcgk.court.gov.cn</td>
+          <td>10M+ cases</td>
+          <td style="color:#E65100;font-weight:600;">Conditional</td>
+        </tr>
+        <tr>
+          <td><strong>企查查</strong></td>
+          <td>qcc.com</td>
+          <td>100M+ companies</td>
+          <td style="color:#E65100;font-weight:600;">Conditional</td>
+        </tr>
+        <tr>
+          <td rowspan="2"><span class="tier-label">Tier 4</span><br><span style="font-size:12px;color:var(--secondary);">Specialized</span></td>
+          <td><strong>国家统计局</strong></td>
+          <td>data.stats.gov.cn</td>
+          <td>500K+ series</td>
+          <td style="color:var(--secondary);">Medium</td>
+        </tr>
+        <tr>
+          <td><strong>中国政采网 / CNIPA / MIIT / NDRC</strong></td>
+          <td>Multiple</td>
+          <td>Varies</td>
+          <td style="color:var(--secondary);">Medium</td>
+        </tr>
+        <tr>
+          <td rowspan="2"><span class="tier-label">Tier 5</span><br><span style="font-size:12px;color:var(--secondary);">Aggregators</span></td>
+          <td><strong>北大法宝</strong></td>
+          <td>pkulaw.com</td>
+          <td>5M+ docs</td>
+          <td style="color:var(--secondary);">Medium</td>
+        </tr>
+        <tr>
+          <td><strong>税屋</strong></td>
+          <td>shui5.cn</td>
+          <td>80K+</td>
+          <td style="color:#E65100;font-weight:600;">High</td>
+        </tr>
+        <tr>
+          <td><span class="tier-label">Tier 6</span><br><span style="font-size:12px;color:var(--secondary);">International</span></td>
+          <td><strong>OECD Tax DB / World Bank</strong></td>
+          <td>oecd.org / worldbank.org</td>
+          <td>10K+</td>
+          <td style="color:var(--secondary);">Medium</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>其中标记为 <strong>Immediate</strong> 的 8 个信源（NPC 法规库、SAT 政策库、央行数据、财政部税政、DTA 数据库、中注协、税务师协会、会计准则委），建议在 M3 Phase 2 立即启动采集开发。这 8 个信源预计可贡献 130K+ 高质量节点和 400K+ 关系边。</p>
+  </div>
+
+  <!-- Section 4: Density Strategy -->
+  <div class="section">
+    <div class="section-label">Density Strategy</div>
+    <h2>密度战略</h2>
+    <div class="section-rule"></div>
+
+    <p>图谱密度是衡量知识连通性的核心指标。当前密度 2.109 意味着每个节点平均仅有 2.1 条边，远低于目标值 6.0。密度提升不能靠简单堆砌节点 -- 必须在节点增长的同时，以 7 倍速率增长边数。</p>
+
+    <div class="kpi-grid" style="grid-template-columns: repeat(3, 1fr);">
+      <div class="kpi">
+        <div class="label">Current Edges</div>
+        <div class="value">860K</div>
+        <div class="detail">Density 2.109</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Target Edges</div>
+        <div class="value">6M</div>
+        <div class="detail">Density 6.0 @ 1M nodes</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Gap</div>
+        <div class="value" style="color:var(--red);">+5.14M</div>
+        <div class="detail">Edges to generate</div>
+      </div>
+    </div>
+
+    <div class="pull-quote">策略核心：深度优先于广度。每新增 1 个节点，必须配套生成 6+ 条边。</div>
+
+    <p>四大边增长引擎：</p>
+    <ol>
+      <li><strong>chinatax_api 全文提取</strong> -- 170K 节点升级为全文后，自动提取法规引用链（REFERENCES / AMENDS / SUPERSEDES），预估生成 170K+ 边</li>
+      <li><strong>LR QA 生成管线</strong> -- 基于全文生成问答对，每个 QA 节点关联原文 + 知识点，预估 120K 节点 + 120K 边（管线已运行中）</li>
+      <li><strong>边富化定时任务</strong> -- 关键词匹配生成 RELATES_TO / SIMILAR_TO 边，覆盖跨域关联（税法-会计准则、税法-海关编码等）</li>
+      <li><strong>AI 推理边</strong> -- 利用 Gemini 推理生成 SUPERSEDES / CONFLICTS_WITH / IMPLEMENTS 时序链，覆盖法规演进关系</li>
+    </ol>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Engine</th>
+          <th>Est. Nodes</th>
+          <th>Est. Edges</th>
+          <th>Timeline</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>chinatax_api full text</td>
+          <td>0 (upgrade)</td>
+          <td>170K+</td>
+          <td>W1-2</td>
+          <td><span class="tag tag-fix">In Progress</span></td>
+        </tr>
+        <tr>
+          <td>LR QA pipeline</td>
+          <td>120K</td>
+          <td>120K</td>
+          <td>W2-4</td>
+          <td><span class="tag tag-fix">Running</span></td>
+        </tr>
+        <tr>
+          <td>Edge enrichment cron</td>
+          <td>0</td>
+          <td>500K+</td>
+          <td>W3-6</td>
+          <td><span class="tag tag-shallow">Planned</span></td>
+        </tr>
+        <tr>
+          <td>AI inference edges</td>
+          <td>0</td>
+          <td>200K+</td>
+          <td>W4-8</td>
+          <td><span class="tag tag-shallow">Planned</span></td>
+        </tr>
+        <tr>
+          <td>New sources (8 immediate)</td>
+          <td>130K+</td>
+          <td>400K+</td>
+          <td>W2-6</td>
+          <td><span class="tag tag-shallow">Planned</span></td>
+        </tr>
+        <tr>
+          <td><strong>Total projected</strong></td>
+          <td><strong>+250K</strong></td>
+          <td><strong>+1.39M</strong></td>
+          <td>W1-8</td>
+          <td>--</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <div class="callout-title">NOTE</div>
+      <p>Phase 1 (8 周) 预计将密度从 2.109 提升至约 3.4。达到 6.0 需要 Phase 2 的大规模边富化和 Court/Enterprise 数据接入，预计 M4 完成。</p>
+    </div>
+  </div>
+
+  <!-- Section 5: Implementation Roadmap -->
+  <div class="section">
+    <div class="section-label">Implementation Roadmap</div>
+    <h2>执行路线图</h2>
+    <div class="section-rule"></div>
+
+    <div class="step" style="border-top: 1px solid var(--rule);">
+      <div class="step-num">Phase 1<br>W1-2</div>
+      <div class="step-content">
+        <h3>修复采集深度 + 启用全文参数</h3>
+        <p>为 Group B 全部 10 个爬虫启用 <code>--fetch-content</code>，修复 Group C 的 3 个损坏爬虫。chinatax_api 全文采集为最高优先级。</p>
+        <p><span class="step-done">DONE -- daily_pipeline.sh 已更新</span></p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">Phase 2<br>W2-4</div>
+      <div class="step-content">
+        <h3>新增 5 个易接入信源 + QA 管线扩容</h3>
+        <p>优先接入 NPC 法规库、SAT 政策库、中注协、税务师协会、会计准则委。QA 管线从单线程扩容至 4 并发。</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">Phase 3<br>W4-6</div>
+      <div class="step-content">
+        <h3>专业机构信源 + 边富化冲刺</h3>
+        <p>接入央行数据、财政部税政、DTA 数据库。启动 Edge Enrichment Cron 大规模关键词匹配边生成。</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">Phase 4<br>W6-8</div>
+      <div class="step-content">
+        <h3>裁判文书 + 企业注册（有条件执行）</h3>
+        <p>裁判文书网和企查查数据量巨大（10M+ / 100M+），需评估 KuzuDB 存储容量和 API 成本后决定是否纳入。</p>
+      </div>
+    </div>
+
+    <p style="margin-top:24px;">质量门 -- 每个里程碑必须通过 <code>/api/v1/quality</code> 检查：</p>
+    <div class="gate-bar">
+      <div class="gate"><span class="gate-num">500K</span>Gate 1</div>
+      <div class="gate"><span class="gate-num">600K</span>Gate 2</div>
+      <div class="gate"><span class="gate-num">700K</span>Gate 3</div>
+      <div class="gate"><span class="gate-num">850K</span>Gate 4</div>
+      <div class="gate"><span class="gate-num">1M</span>Gate 5</div>
+    </div>
+  </div>
+
+  <!-- Section 6: Cost Analysis -->
+  <div class="section">
+    <div class="section-label">Cost Analysis</div>
+    <h2>成本分析</h2>
+    <div class="section-rule"></div>
+
+    <p>M3 阶段预计总成本约 $350，主要消耗在 LLM 推理（全文提取 + 边生成 + QA 生成）和外部 API 采购。</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Provider</th>
+          <th>Usage</th>
+          <th>Est. Cost</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Gemini Flash</td>
+          <td>Google AI Studio</td>
+          <td>全文提取 + 边生成 (bulk)</td>
+          <td style="text-align:right;font-family:var(--font-mono);">$150</td>
+        </tr>
+        <tr>
+          <td>Gemini Pro</td>
+          <td>Google AI Studio</td>
+          <td>AI 推理边 + 复杂 QA</td>
+          <td style="text-align:right;font-family:var(--font-mono);">$80</td>
+        </tr>
+        <tr>
+          <td>Embedding</td>
+          <td>gemini-embedding-2</td>
+          <td>新增节点向量化</td>
+          <td style="text-align:right;font-family:var(--font-mono);">$20</td>
+        </tr>
+        <tr>
+          <td>Court API</td>
+          <td>裁判文书网</td>
+          <td>税务案件筛选 (conditional)</td>
+          <td style="text-align:right;font-family:var(--font-mono);">$50</td>
+        </tr>
+        <tr>
+          <td>Proxy / Anti-bot</td>
+          <td>Browser Proxy + VPS</td>
+          <td>反爬代理 + 渲染</td>
+          <td style="text-align:right;font-family:var(--font-mono);">$50</td>
+        </tr>
+        <tr>
+          <td><strong>Total</strong></td>
+          <td></td>
+          <td></td>
+          <td style="text-align:right;font-family:var(--font-mono);font-weight:700;">~$350</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <div class="callout-title">NOTE</div>
+      <p>Google AI Studio 当前账户 $300 credits（有效期至 2026-06-08）可覆盖 Gemini Flash + Pro + Embedding 费用。Court API 和 Proxy 费用仅在 Phase 4 有条件执行时产生。</p>
+    </div>
+  </div>
+
+  <!-- Section 7: Risk Matrix -->
+  <div class="section">
+    <div class="section-label">Risk Matrix</div>
+    <h2>风险矩阵</h2>
+    <div class="section-rule"></div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Risk</th>
+          <th>Probability</th>
+          <th>Impact</th>
+          <th>Mitigation</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>KuzuDB OOM</strong> -- 大规模边创建时内存溢出</td>
+          <td style="color:var(--red);font-weight:600;">High</td>
+          <td style="color:var(--red);font-weight:600;">High</td>
+          <td>分批写入 (10K/batch) + KuzuDB 升级至 0.12+ + 考虑增加 RAM</td>
+        </tr>
+        <tr>
+          <td><strong>反爬升级</strong> -- 政府网站更新反爬策略</td>
+          <td style="color:#E65100;font-weight:600;">Medium</td>
+          <td style="color:#E65100;font-weight:600;">Medium</td>
+          <td>Browser Proxy 模式 + fleet-page-fetch VPS 渲染 + 3-6s 随机延迟</td>
+        </tr>
+        <tr>
+          <td><strong>边质量退化</strong> -- 关键词匹配产生大量噪声边</td>
+          <td style="color:#E65100;font-weight:600;">Medium</td>
+          <td style="color:var(--red);font-weight:600;">High</td>
+          <td>置信度阈值 (>0.85) + 抽样人工审核 + quality gate 持续监控</td>
+        </tr>
+        <tr>
+          <td><strong>API Credits 耗尽</strong> -- Google AI Studio 额度不足</td>
+          <td style="color:var(--secondary);">Low</td>
+          <td style="color:#E65100;font-weight:600;">Medium</td>
+          <td>监控用量 + 备用 AOL 账户 key + 降级至 Flash-only 模式</td>
+        </tr>
+        <tr>
+          <td><strong>裁判文书网限流</strong> -- 大量查询触发 CAPTCHA</td>
+          <td style="color:var(--red);font-weight:600;">High</td>
+          <td style="color:var(--secondary);">Low</td>
+          <td>Phase 4 有条件执行 + 仅筛选税务相关案件 + 低频采集</td>
+        </tr>
+        <tr>
+          <td><strong>Schema 不兼容</strong> -- 新信源数据格式与 v2.2 不匹配</td>
+          <td style="color:var(--secondary);">Low</td>
+          <td style="color:var(--secondary);">Low</td>
+          <td>每个新爬虫必须通过 ontology mapping 审查 + 自动化测试</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="risk-grid">
+      <div class="scenario risk-high">
+        <h4>Worst Case</h4>
+        <p>KuzuDB OOM + 多个信源反爬同时升级，M3 延期 4 周。密度停滞在 2.5。</p>
+      </div>
+      <div class="scenario risk-mid">
+        <h4>Base Case</h4>
+        <p>Phase 1-3 按计划完成，Phase 4 部分执行。密度达到 3.4，节点 650K。</p>
+      </div>
+      <div class="scenario risk-low">
+        <h4>Best Case</h4>
+        <p>全部信源顺利接入，边富化超预期。密度达到 4.0+，节点 800K+。</p>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /.container -->
+
+<!-- Footer -->
+<div class="container">
+  <footer class="site-footer">
+    <p>CogNebula M3 -- Data Source Strategy v1.0</p>
+    <p class="sig">Maurice | maurice_wen@proton.me</p>
+    <p class="attr">2026-03-20 | Data: KuzuDB quality gate API + 22 crawler audit logs + domain expert review</p>
+  </footer>
+</div>
+
+</body>
+</html>

@@ -197,11 +197,24 @@
 <!-- ============================================================ -->
 <!-- CONTENT: CURATE (专家工作台)                                    -->
 <!-- ============================================================ -->
-<div id="content-curate" class="ml-64 flex-1 flex flex-col" style="display: none;">
-  <!-- Content Header -->
+<div id="content-curate" class="ml-64 flex-1 overflow-hidden" style="display: none;">
+  <!-- Know-Arc Expert Workbench via iframe -->
+  <iframe id="curate-iframe" src="http://localhost:8900/" class="w-full border-none" style="height: calc(100vh - 4rem);"
+    onerror="this.style.display='none'; document.getElementById('curate-fallback').style.display='flex';">
+  </iframe>
+  <div id="curate-fallback" class="w-full h-full flex-col items-center justify-center gap-4 text-center" style="display:none; height: calc(100vh - 4rem);">
+    <span class="material-symbols-outlined text-6xl text-slate-300">cloud_off</span>
+    <h2 class="text-xl font-bold text-slate-500">专家工作台服务未连接</h2>
+    <p class="text-sm text-slate-400">请确保 Know-Arc 服务运行在 localhost:8900</p>
+    <code class="text-xs bg-slate-100 px-3 py-1 rounded">cd ~/Projects/24-know-arc && ./start.sh</code>
+  </div>
+</div>
+
+<!-- PLACEHOLDER: original curate content removed, replaced with iframe above -->
+<div style="display:none;">
   <header class="flex items-center justify-between px-10 py-8 bg-surface">
     <div>
-      <h1 class="text-2xl font-bold tracking-tight text-on-surface">专家工作台</h1>
+      <h1 class="text-2xl font-bold tracking-tight text-on-surface">专家工作台 (原始 Stitch 设计)</h1>
       <p class="text-on-surface-variant text-sm mt-1">知识图谱实体抽取与三元组校验系统</p>
     </div>
     <div class="flex items-center gap-6 bg-surface-container-low px-6 py-3 rounded-xl">
@@ -383,6 +396,7 @@
     </section>
   </div>
 </div>
+</div> <!-- close hidden placeholder -->
 
 <!-- ============================================================ -->
 <!-- CONTENT: ADMIN (管理后台)                                      -->
@@ -410,7 +424,7 @@
       <div class="md:col-span-1 bg-surface-container-lowest p-6 rounded-xl flex flex-col justify-between group hover:bg-primary/5 transition-colors border-b-2 border-outline-variant/30">
         <div>
           <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-[0.15em] mb-4">质量评分</p>
-          <h3 class="text-5xl font-extrabold tracking-tighter text-primary">100</h3>
+          <h3 id="admin-quality-score" class="text-5xl font-extrabold tracking-tighter text-primary">--</h3>
         </div>
         <div class="mt-4 flex items-center gap-2 text-emerald-600">
           <span class="material-symbols-outlined text-sm">trending_up</span>
@@ -421,7 +435,7 @@
       <div class="md:col-span-1 bg-surface-container-lowest p-6 rounded-xl border-b-2 border-outline-variant/30">
         <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-[0.15em] mb-4">标签覆盖度</p>
         <div class="flex items-baseline gap-1">
-          <span class="text-4xl font-extrabold text-on-surface">99.3</span>
+          <span id="admin-coverage" class="text-4xl font-extrabold text-on-surface">--</span>
           <span class="text-lg font-bold text-on-surface-variant">%</span>
         </div>
         <div class="w-full bg-surface-container-low h-1.5 rounded-full mt-6 overflow-hidden">
@@ -431,7 +445,7 @@
       <!-- Relation Density -->
       <div class="md:col-span-1 bg-surface-container-lowest p-6 rounded-xl border-b-2 border-outline-variant/30">
         <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-[0.15em] mb-4">关系密度</p>
-        <h3 class="text-4xl font-extrabold text-on-surface">3.977</h3>
+        <h3 id="admin-density" class="text-4xl font-extrabold text-on-surface">--</h3>
         <p class="text-xs text-on-surface-variant mt-4 font-medium">每节点平均连接数</p>
       </div>
       <!-- System Health -->
@@ -651,10 +665,42 @@ document.addEventListener('keydown', function(e) {
   if (e.key === '3') { e.preventDefault(); switchTab('admin'); }
 });
 
+// -- Admin dashboard: load real quality data --
+async function loadAdminData() {
+  try {
+    const res = await fetch(API_BASE + '/quality', { signal: AbortSignal.timeout(10000) });
+    const d = await res.json();
+    const m = d.metrics || {};
+    document.getElementById('admin-quality-score').textContent = d.score || '--';
+    document.getElementById('admin-coverage').textContent =
+      m.title_coverage ? (m.title_coverage * 100).toFixed(1) : '--';
+    document.getElementById('admin-density').textContent =
+      m.edge_density ? m.edge_density.toFixed(3) : '--';
+    // Update coverage bar
+    const bar = document.querySelector('#content-admin .bg-primary.h-full');
+    if (bar && m.title_coverage) bar.style.width = (m.title_coverage * 100) + '%';
+  } catch(e) { console.warn('Admin data load failed:', e); }
+}
+
+// -- Check curate iframe availability --
+function checkCurateService() {
+  fetch('http://localhost:8900/api/v1/health', { signal: AbortSignal.timeout(3000) })
+    .then(r => { if (!r.ok) throw new Error(); })
+    .catch(() => {
+      const iframe = document.getElementById('curate-iframe');
+      const fallback = document.getElementById('curate-fallback');
+      if (iframe) iframe.style.display = 'none';
+      if (fallback) fallback.style.display = 'flex';
+    });
+}
+
 // -- Init --
 switchTab('explore');
 loadStats();
-setInterval(loadStats, 30000); // refresh every 30s
+loadAdminData();
+checkCurateService();
+setInterval(loadStats, 30000);
+setInterval(loadAdminData, 60000);
 </script>
 </body>
 </html>

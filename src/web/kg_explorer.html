@@ -2174,7 +2174,7 @@ function queryToGraph(columns, rows) {
       });
       // Edge between first and last ID
       if (ids.length >= 2) {
-        const relLabel = typeCols.length > 0 && row[typeCols[0]] ? String(row[typeCols[0]]).slice(0, 15) : "";
+        const relLabel = typeCols.length > 0 && row[typeCols[0]] ? String(row[typeCols[0]]).slice(0, 20) : "";
         edgesBatch.push({ from: ids[0], to: ids[ids.length - 1], label: relLabel });
       }
     });
@@ -2253,7 +2253,7 @@ async function autoExpandEdges(nodes) {
         const eid = node.id + "->" + nbId;
         if (seen.has(nbId)) {
           if (!edgesDS.get(eid)) {
-            edgesBatch.push({ id: eid, from: node.id, to: nbId, label: (nb.edge_type || "").slice(0, 15) });
+            edgesBatch.push({ id: eid, from: node.id, to: nbId, label: (nb.edge_type || "").slice(0, 20) });
           }
         } else if (newNodes.length < 20) {
           seen.add(nbId);
@@ -2266,7 +2266,7 @@ async function autoExpandEdges(nodes) {
             font: { color: "#374151" },
             size: 10,
           });
-          edgesBatch.push({ id: eid, from: node.id, to: nbId, label: (nb.edge_type || "").slice(0, 15) });
+          edgesBatch.push({ id: eid, from: node.id, to: nbId, label: (nb.edge_type || "").slice(0, 20) });
         }
       });
     } catch { continue; }
@@ -2441,7 +2441,7 @@ async function expandNodeById(nid) {
       }
       const eid = nid + "->" + nbId;
       if (!edgesDS.get(eid)) {
-        edgesBatch.push({ id: eid, from: nid, to: nbId, label: (nb.edge_type || "").slice(0, 15) });
+        edgesBatch.push({ id: eid, from: nid, to: nbId, label: (nb.edge_type || "").slice(0, 20) });
       }
     });
     if (nodesBatch.length) nodesDS.add(nodesBatch);

@@ -1,0 +1,15 @@
+[Unit]
+Description=CogNebula Finance/Tax KB API
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/Projects/cognebula-enterprise
+ExecStart=/root/Projects/cognebula-enterprise/.venv/bin/uvicorn src.api.kg_api:app --host 0.0.0.0 --port 8400 --workers 1
+Restart=on-failure
+RestartSec=10
+Environment=PYTHONPATH=/root/Projects/cognebula-enterprise
+
+[Install]
+WantedBy=multi-user.target

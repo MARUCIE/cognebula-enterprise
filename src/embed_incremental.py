@@ -120,23 +120,10 @@ def main():
             "embed_text": f"{title}\n{text}"[:3000],
         })
 
-    # RegulationClause
-    r = conn.execute("MATCH (n:RegulationClause) RETURN n.id, n.title, n.fullText")
-    while r.has_next():
-        row = r.get_next()
-        nid = row[0] or ""
-        if nid in existing_ids:
-            continue
-        title = row[1] or ""
-        text = (row[2] or "")[:1500]
-        new_docs.append({
-            "id": nid,
-            "title": title[:200],
-            "node_type": "RegulationClause",
-            "reg_type": "clause",
-            "source": "",
-            "embed_text": f"{title}\n{text}"[:3000],
-        })
+    # RegulationClause -- SKIP embedding (accessed via CLAUSE_OF graph traversal)
+    # Clauses are reachable through their parent LawOrRegulation vectors.
+    # Embedding 42K+ clauses would take ~10 hours with minimal retrieval benefit.
+    log.info("Skipping RegulationClause (accessed via graph traversal, not vector search)")
 
     # Close DB connection to release lock
     del conn

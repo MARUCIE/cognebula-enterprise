@@ -230,7 +230,12 @@ def quality_audit():
         "REFERENCES_CLAUSE", "BASED_ON", "INCENTIVE_BASED_ON", "ISSUED_BY",
         "APPLIES_TO_TAX", "APPLIES_TO_ENTITY", "APPLIES_IN_REGION", "APPLIES_TO_CLASS",
         "REQUIRES_FILING", "GOVERNED_BY", "DEBITS_V2", "CREDITS_V2",
-        "EXPLAINS", "PENALIZED_BY", "TRIGGERED_BY",
+        "INTERPRETS", "EXEMPLIFIED_BY", "EXPLAINS_RATE",
+        "WARNS_ABOUT", "DESCRIBES_INCENTIVE", "GUIDES_FILING",
+        "PENALIZED_BY", "TRIGGERED_BY",
+        "CALCULATED_FROM", "SURCHARGE_OF", "RELATED_TAX",
+        "TRIGGERS_TAX", "INCENTIVE_FOR_TAX", "RULE_FOR_TAX", "FILING_FOR_TAX",
+        "MAPS_TO_ACCOUNT", "RISK_FOR_TAX", "KU_ABOUT_TAX", "AUDIT_FOR_TAX",
     }
 
     # Get all node tables
@@ -294,14 +299,17 @@ def quality_audit():
 
     metrics["title_coverage"] = round(total_with_title / total_nodes, 3) if total_nodes > 0 else 0
 
-    # Edge density (v2.2 edges only)
+    # Edge density (v3.1 edges only)
     total_edges = 0
+    edge_debug = {}
     for edge_label in V2_EDGES:
         try:
             r = conn.execute(f"MATCH ()-[e:{edge_label}]->() RETURN count(e)")
-            total_edges += r.get_next()[0]
-        except:
-            pass
+            c = r.get_next()[0]
+            total_edges += c
+            edge_debug[edge_label] = c
+        except Exception as e:
+            edge_debug[edge_label] = f"ERROR: {str(e)[:80]}"
 
     density = round(total_edges / total_nodes, 3) if total_nodes > 0 else 0
     metrics["edge_density"] = density
@@ -358,6 +366,7 @@ def quality_audit():
         "metrics": metrics,
         "title_stats": {k: v for k, v in sorted(title_stats.items(), key=lambda x: x[1]["total"], reverse=True) if v["total"] > 0},
         "issues": sorted(issues, key=lambda x: 0 if x["severity"] == "high" else 1),
+        # "edge_debug": edge_debug,  # enable for diagnostics
     }
 
 

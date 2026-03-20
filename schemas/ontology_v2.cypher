@@ -1,7 +1,7 @@
--- CogNebula Finance/Tax Knowledge Graph Ontology v2.1
+-- CogNebula Finance/Tax Knowledge Graph Ontology v3.1
 -- Designed by: Gemini 2.5 Pro + 4-advisor council review (Hickey/Meadows/Munger/Musk)
--- Date: 2026-03-19
--- Migration: 70 tables -> 15 node tables + 18 edge tables
+-- Date: 2026-03-20
+-- Migration: 70 tables -> 17 node tables + 36 edge tables
 -- Target: KuzuDB 0.11.3+
 -- Strategy: Dual-track incremental (old tables read-only, new tables receive all writes)
 
@@ -159,16 +159,16 @@ CREATE NODE TABLE IF NOT EXISTS IssuingBody (
 
 
 -- ============================================================
--- PART 2: EDGE TABLES (18)
--- Removed HAS_PARENT (use CHILD_OF reverse) and EXPLAINS_RULE
--- (use EXPLAINS endpoint type) per Hickey review
+-- PART 2: EDGE TABLES (36)
+-- v3.1: EXPLAINS split into 6 precise types (Hickey/Meadows P0)
+-- v3.0: +17 structural/inter-tax/compliance edges
 -- ============================================================
 
 -- --- Structural (2) ---
 CREATE REL TABLE IF NOT EXISTS PART_OF (FROM LegalClause TO LegalDocument);
 CREATE REL TABLE IF NOT EXISTS CHILD_OF (FROM Classification TO Classification);
 
--- --- Legal Evolution (3) [ALL NEW] ---
+-- --- Legal Evolution (3) ---
 CREATE REL TABLE IF NOT EXISTS SUPERSEDES (FROM LegalDocument TO LegalDocument);
 CREATE REL TABLE IF NOT EXISTS AMENDS (FROM LegalDocument TO LegalDocument);
 CREATE REL TABLE IF NOT EXISTS CONFLICTS_WITH (FROM LegalClause TO LegalClause);
@@ -179,19 +179,45 @@ CREATE REL TABLE IF NOT EXISTS BASED_ON (FROM TaxRate TO LegalClause);
 CREATE REL TABLE IF NOT EXISTS INCENTIVE_BASED_ON (FROM TaxIncentive TO LegalClause);
 CREATE REL TABLE IF NOT EXISTS ISSUED_BY (FROM LegalDocument TO IssuingBody);
 
--- --- Applicability & Conditions (4) [Core Value] ---
+-- --- Applicability & Conditions (4) ---
 CREATE REL TABLE IF NOT EXISTS APPLIES_TO_TAX (FROM TaxRate TO TaxType);
 CREATE REL TABLE IF NOT EXISTS APPLIES_TO_ENTITY (FROM TaxRate TO TaxEntity);
 CREATE REL TABLE IF NOT EXISTS APPLIES_IN_REGION (FROM TaxRate TO Region);
 CREATE REL TABLE IF NOT EXISTS APPLIES_TO_CLASS (FROM TaxRate TO Classification);
 
+-- --- Inter-Tax (3) [v3.0] ---
+CREATE REL TABLE IF NOT EXISTS CALCULATED_FROM (FROM TaxType TO TaxType);     -- e.g. 城建税 calculated from VAT
+CREATE REL TABLE IF NOT EXISTS SURCHARGE_OF (FROM TaxType TO TaxType);        -- e.g. 教育费附加 surcharge of VAT
+CREATE REL TABLE IF NOT EXISTS RELATED_TAX (FROM TaxType TO TaxType);         -- general tax relationship
+
+-- --- Tax-Bridge (8) [v3.0] -- break TaxType isolation ---
+CREATE REL TABLE IF NOT EXISTS TRIGGERS_TAX (FROM BusinessActivity TO TaxType);
+CREATE REL TABLE IF NOT EXISTS INCENTIVE_FOR_TAX (FROM TaxIncentiveV2 TO TaxType);
+CREATE REL TABLE IF NOT EXISTS RULE_FOR_TAX (FROM ComplianceRuleV2 TO TaxType);
+CREATE REL TABLE IF NOT EXISTS FILING_FOR_TAX (FROM FilingFormV2 TO TaxType);
+CREATE REL TABLE IF NOT EXISTS MAPS_TO_ACCOUNT (FROM TaxType TO AccountingSubject);
+CREATE REL TABLE IF NOT EXISTS RISK_FOR_TAX (FROM RiskIndicatorV2 TO TaxType);
+CREATE REL TABLE IF NOT EXISTS KU_ABOUT_TAX (FROM KnowledgeUnit TO TaxType);
+CREATE REL TABLE IF NOT EXISTS AUDIT_FOR_TAX (FROM AuditTrigger TO TaxType);
+
 -- --- Filing & Compliance (2) ---
 CREATE REL TABLE IF NOT EXISTS REQUIRES_FILING (FROM BusinessActivity TO FilingForm);
 CREATE REL TABLE IF NOT EXISTS GOVERNED_BY (FROM BusinessActivity TO ComplianceRule);
 
--- --- Accounting (2) ---
-CREATE REL TABLE IF NOT EXISTS DEBITS (FROM BusinessActivity TO AccountingSubject);
-CREATE REL TABLE IF NOT EXISTS CREDITS (FROM BusinessActivity TO AccountingSubject);
+-- --- Accounting (2) [v3.0] ---
+CREATE REL TABLE IF NOT EXISTS DEBITS_V2 (FROM TaxType TO AccountingSubject);
+CREATE REL TABLE IF NOT EXISTS CREDITS_V2 (FROM TaxType TO AccountingSubject);
 
--- --- Knowledge (1) --- (EXPLAINS_RULE removed; use EXPLAINS target type)
-CREATE REL TABLE IF NOT EXISTS EXPLAINS (FROM KnowledgeUnit TO LegalClause);
+-- --- Compliance (2) [v3.0] ---
+CREATE REL TABLE IF NOT EXISTS PENALIZED_BY (FROM ComplianceRuleV2 TO Penalty);
+CREATE REL TABLE IF NOT EXISTS TRIGGERED_BY (FROM AuditTrigger TO RiskIndicatorV2);
+
+-- --- Knowledge (6) [v3.1 EXPLAINS split] ---
+-- Replaces monolithic EXPLAINS (475K edges, 55% of total)
+-- Classification: keyword-based on KnowledgeUnit type + title + content
+CREATE REL TABLE IF NOT EXISTS INTERPRETS (FROM KnowledgeUnit TO LegalClause);            -- default: legal interpretation (82%)
+CREATE REL TABLE IF NOT EXISTS EXEMPLIFIED_BY (FROM KnowledgeUnit TO LegalClause);        -- case studies, examples (1%)
+CREATE REL TABLE IF NOT EXISTS EXPLAINS_RATE (FROM KnowledgeUnit TO LegalClause);         -- tax rate explanations (4%)
+CREATE REL TABLE IF NOT EXISTS WARNS_ABOUT (FROM KnowledgeUnit TO LegalClause);           -- risk warnings, violations (5%)
+CREATE REL TABLE IF NOT EXISTS DESCRIBES_INCENTIVE (FROM KnowledgeUnit TO LegalClause);   -- incentive descriptions (4%)
+CREATE REL TABLE IF NOT EXISTS GUIDES_FILING (FROM KnowledgeUnit TO LegalClause);         -- filing guidance (4%);

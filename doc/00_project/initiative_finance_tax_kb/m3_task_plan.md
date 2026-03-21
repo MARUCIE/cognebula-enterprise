@@ -10,7 +10,13 @@
 - **L3 = 边引擎 (edge engine)，不是节点引擎**
 
 ## Current Phase
-Phase 1: L1 深化 — QA 生成 + KU Backfill 运行中 (tmux m3 @ kg-node)
+Phase 2 A路径 — 爬取扩源 + 质量审核 (2026-03-22 session 结束点)
+
+### 下个 Session 继续点
+1. **mof/ndrc/baike 全文重爬** — 爬虫没有 --fetch-content，agent-fetch 也返回空（政府站反爬）。需要用 fleet-page-fetch 或 Playwright 获取全文。mof 500条、ndrc 592条、baike 4000条。
+2. **Phase B: LLM 合规知识矩阵** — Industry(24)×Tax(19)×Lifecycle(20)×Scenario(50) = 456K 节点。这是到 1M 的唯一路径。需要先设计 schema + 生成框架。
+3. **边密度提升** — density 2.26 → 目标 5.0+。需要 Phase 3 边引擎 (SUPERSEDES/CONFLICTS 批量发现)。
+4. **质量持续审核** — 记住：质量第一，全文完整，不接受 snippet/title-only/LLM 替代。所有入图数据必须 content >= 100 chars 真实爬取内容。
 
 ## Phases
 

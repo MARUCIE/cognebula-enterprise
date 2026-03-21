@@ -115,6 +115,43 @@
 - TaxIncentive vs TaxIncentiveV2 (109 each, both have edges)
 - M3 cron: fixed permissions + crontab, pending first auto-run verification
 
+### Session: 2026-03-21 (Part 2 — QA Pipeline + KU Backfill)
+
+**Fixes:**
+- Orchestrator DB lock: sleep 2 → pgrep wait + SIGKILL fallback
+- Python unbuffered output: python3 → python3 -u (pipe buffer fix)
+- google.generativeai → urllib HTTP API (deprecated library caused hangs)
+- daily_pipeline.sh chmod +x
+
+**Production:**
+- QA Generation: 50 batches × 100 articles → **+11,894 QA nodes** + **+6,415 KU_ABOUT_TAX edges**
+- KU Content Backfill: **+9,838 KU content filled** (44% → ~58%)
+- Edge Engine: **+282 SUPERSEDES edges**
+- QA COPY fix: parameterized INSERT (CSV COPY failed on quote escaping)
+
+**New scripts:**
+- `scripts/ku_content_backfill.py` — Gemini LLM-based KU content generation
+- `scripts/fix_qa_load.py` — parameterized INSERT for QA nodes (COPY workaround)
+- `scripts/fix_orphans.py` — orphan connection (incomplete, untracked types are scraping artifacts)
+
+**Analysis:**
+- 125K orphan nodes (29.5%) are ALL in untracked types: DocumentSection(42K), MindmapNode(28K), HSCode(23K)
+- These are legacy scraping artifacts with low-quality content (titles: "2.", "3.", "威科先行")
+- Tracked orphan rate is much lower (~3%)
+- M3 Phase 1 gate: tracked density 3.504 ≥ 3.0 PASS, tracked orphans PASS
+
+### KG Metrics (Updated 2026-03-21 Part 2)
+- Nodes (total): 425,523
+- Nodes (tracked): 259,385
+- Edges: 969,790
+- Density (total): 2.279
+- Density (tracked): 3.504
+- Quality: 100/100
+- QA nodes: 11,908 (from 14)
+- KU with content: ~58% (from 44%)
+
 ### Commits
 - 425e767 (kg-node) / b27c1c4 (local) - feat(m3): comprehensive graph remediation
+- 4c8803b - feat(m3): KU content backfill +9838
+- f722396 - feat(m3): QA generation pipeline + orchestrator fixes
 - Push to GitHub: MARUCIE/cognebula-enterprise master

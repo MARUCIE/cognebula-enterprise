@@ -29,6 +29,19 @@ from urllib.error import HTTPError
 DB_PATH = "/home/kg/cognebula-enterprise/data/finance-tax-graph"
 CSV_DIR = "/home/kg/cognebula-enterprise/data/edge_csv/m3_qa"
 
+TAX_KEYWORDS = {
+    "增值税": "TT_VAT", "企业所得税": "TT_CIT", "个人所得税": "TT_PIT",
+    "消费税": "TT_CONSUMPTION", "关税": "TT_TARIFF",
+    "城市维护建设税": "TT_URBAN", "城建税": "TT_URBAN",
+    "教育费附加": "TT_EDUCATION", "地方教育附加": "TT_LOCAL_EDU",
+    "资源税": "TT_RESOURCE", "土地增值税": "TT_LAND_VAT",
+    "房产税": "TT_PROPERTY", "城镇土地使用税": "TT_LAND_USE",
+    "车船税": "TT_VEHICLE", "印花税": "TT_STAMP",
+    "契税": "TT_CONTRACT", "耕地占用税": "TT_CULTIVATED",
+    "烟叶税": "TT_TOBACCO", "环境保护税": "TT_ENV",
+    "个税": "TT_PIT", "所得税": "TT_CIT",
+}
+
 # Edge classification keywords (reuse from split_explains.py)
 EDGE_CLASSIFIERS = [
     ("EXEMPLIFIED_BY", ["案例", "举例", "实例", "例如", "比如", "实务"]),
@@ -237,6 +250,22 @@ def main():
         for et, count in dist.most_common():
             print(f"    {et}: {count}")
 
+        # Incremental CSV write (append after each batch to prevent data loss)
+        if qa_results and not args.dry_run:
+            mode = "a" if batch_num > 0 else "w"
+            with open(f"{CSV_DIR}/qa_nodes.csv", mode, newline="") as f:
+                w = csv.writer(f)
+                for qa in qa_results:
+                    w.writerow([qa["ku_id"], "FAQ", qa["question"], qa["answer"], qa["source"]])
+            with open(f"{CSV_DIR}/qa_ku_about_tax.csv", mode, newline="") as f:
+                w = csv.writer(f)
+                for qa in qa_results:
+                    text = f"{qa['question']} {qa['answer']}"
+                    for kw, tid in TAX_KEYWORDS.items():
+                        if kw in text:
+                            w.writerow([qa["ku_id"], tid])
+                            break
+
     if args.dry_run:
         print(f"\n[DRY RUN] Estimated: ~{total_generated:,} QA pairs from {args.max_batches * args.batch_size} articles")
         del conn
@@ -249,60 +278,40 @@ def main():
         del db
         return
 
-    # Write CSV files
-    print(f"\n[Writing CSVs] {len(all_qa):,} QA pairs")
-
-    # Nodes CSV: KnowledgeUnit
+    # CSV already written incrementally
     nodes_csv = f"{CSV_DIR}/qa_nodes.csv"
-    with open(nodes_csv, "w", newline="") as f:
-        w = csv.writer(f)
-        for qa in all_qa:
-            w.writerow([qa["ku_id"], "FAQ", qa["question"], qa["answer"], qa["source"]])
-
-    # Create KU_ABOUT_TAX edges via keyword matching (same as structural edges)
-    TAX_KEYWORDS = {
-        "增值税": "TT_VAT", "企业所得税": "TT_CIT", "个人所得税": "TT_PIT",
-        "消费税": "TT_CONSUMPTION", "关税": "TT_TARIFF",
-        "城市维护建设税": "TT_URBAN", "城建税": "TT_URBAN",
-        "教育费附加": "TT_EDUCATION", "地方教育附加": "TT_LOCAL_EDU",
-        "资源税": "TT_RESOURCE", "土地增值税": "TT_LAND_VAT",
-        "房产税": "TT_PROPERTY", "城镇土地使用税": "TT_LAND_USE",
-        "车船税": "TT_VEHICLE", "印花税": "TT_STAMP",
-        "契税": "TT_CONTRACT", "耕地占用税": "TT_CULTIVATED",
-        "烟叶税": "TT_TOBACCO", "环境保护税": "TT_ENV",
-        "个税": "TT_PIT", "所得税": "TT_CIT",
-    }
-
-    # KU_ABOUT_TAX edges CSV
     tax_edges_csv = f"{CSV_DIR}/qa_ku_about_tax.csv"
-    tax_edge_count = 0
-    with open(tax_edges_csv, "w", newline="") as f:
-        w = csv.writer(f)
-        for qa in all_qa:
+    print(f"\n[CSVs written] {len(all_qa):,} QA pairs (incremental)")
+
+    # Skip COPY FROM (use fix_qa_load.py instead for reliable parameterized INSERT)
+    print("[Loading into KuzuDB via parameterized INSERT]")
+    loaded = 0
+    tax_edges = 0
+    for qa in all_qa:
+        try:
+            conn.execute(
+                "CREATE (k:KnowledgeUnit {id: $id, type: $type, title: $title, content: $content, source: $source})",
+                {"id": qa["ku_id"], "type": "FAQ", "title": qa["question"],
+                 "content": qa["answer"], "source": qa["source"]}
+            )
+            loaded += 1
+            # Tax edge
             text = f"{qa['question']} {qa['answer']}"
             for kw, tid in TAX_KEYWORDS.items():
                 if kw in text:
-                    w.writerow([qa["ku_id"], tid])
-                    tax_edge_count += 1
-                    break  # one tax per QA
-
-    # COPY FROM
-    print(f"\n[Loading into KuzuDB]")
-
-    # First: KU nodes
-    try:
-        conn.execute(f'COPY KnowledgeUnit FROM "{nodes_csv}" (header=false)')
-        print(f"  KnowledgeUnit: +{len(all_qa):,} nodes")
-    except Exception as e:
-        print(f"  KnowledgeUnit COPY ERROR: {str(e)[:80]}")
-
-    # Then: KU_ABOUT_TAX edges
-    if tax_edge_count > 0:
-        try:
-            conn.execute(f'COPY KU_ABOUT_TAX FROM "{tax_edges_csv}" (header=false)')
-            print(f"  KU_ABOUT_TAX: +{tax_edge_count:,} edges")
-        except Exception as e:
-            print(f"  KU_ABOUT_TAX COPY ERROR: {str(e)[:80]}")
+                    try:
+                        conn.execute(
+                            "MATCH (k:KnowledgeUnit {id: $kid}), (t:TaxType {id: $tid}) CREATE (k)-[:KU_ABOUT_TAX]->(t)",
+                            {"kid": qa["ku_id"], "tid": tid}
+                        )
+                        tax_edges += 1
+                    except Exception:
+                        pass
+                    break
+        except Exception:
+            pass  # duplicate or schema error
+    print(f"  KnowledgeUnit: +{loaded:,} nodes")
+    print(f"  KU_ABOUT_TAX: +{tax_edges:,} edges")
 
     # Final stats
     r = conn.execute("MATCH (n) RETURN count(n)")

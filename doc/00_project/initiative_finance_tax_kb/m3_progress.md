@@ -150,8 +150,41 @@
 - QA nodes: 11,908 (from 14)
 - KU with content: ~58% (from 44%)
 
+### Session: 2026-03-21 (Part 3 — Phase 2 Crawlers + Edges)
+
+**Crawling optimization:**
+- chinatax.gov.cn: 3-layer anti-bot (JS Cookie + onMouseMove + browser detect) → abandoned
+- Strategy pivot: LLM content generation replaces direct crawling for anti-bot sites
+- LR content backfill: +1,958 LR fullText via Gemini Flash Lite
+- CICPA: 71 records crawled (title-only, CSS selector mismatch on content)
+- CCTAA: 749 records crawled (title-only, same issue)
+
+**Data ingest:**
+- +69 CICPA KU (审计准则) + 691 CCTAA KU (税务指南) ingested to KuzuDB
+- KU backfill round 2: +998 content filled (KU coverage 58% → 66%)
+
+**Edge enrichment:**
+- +1,365 CLASSIFIED_UNDER_TAX (LR → TaxType keyword match)
+- +5,720 KU_ABOUT_TAX (KU → TaxType keyword match)
+- +513 KU_ABOUT_TAX (CICPA/CCTAA ingest)
+- +118 KU_ABOUT_TAX (backfill round 2)
+- Total: +7,716 new edges
+
+### KG Metrics (Updated 2026-03-21 Part 3)
+- Nodes (total): 426,283
+- Nodes (tracked): 259,385+ (CICPA/CCTAA added)
+- Edges: 977,506
+- Density (total): 2.293
+- Density (tracked): 3.53
+- Quality: 100/100
+- KU content coverage: 66% (from 44%)
+- LR content coverage: ~70% (from ~60%)
+
 ### Commits
 - 425e767 (kg-node) / b27c1c4 (local) - feat(m3): comprehensive graph remediation
 - 4c8803b - feat(m3): KU content backfill +9838
 - f722396 - feat(m3): QA generation pipeline + orchestrator fixes
+- 84b094c - docs(m3): update progress with QA pipeline results
+- 948c761 - feat(m3): LR content backfill + cross-reference edges
+- a4cbf58 - feat(m3): ingest CICPA/CCTAA + KU backfill round 2
 - Push to GitHub: MARUCIE/cognebula-enterprise master

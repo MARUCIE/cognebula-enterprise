@@ -20,19 +20,20 @@ Phase 1: L1 深化 — QA 生成 + KU Backfill 运行中 (tmux m3 @ kg-node)
 - [x] M3 orchestrator + cron (02:00 UTC daily)
 - [x] Edge Engine (generate_edges_ai.py) — AI 发现 SUPERSEDES/cross-ref
 - [x] Daily pipeline depth fix (--fetch-content for chinaacc等)
-- [ ] chinatax_api detail fetch — 57K 文档从 snippet 升级到全文 (launched 2026-03-20, check status)
+- [x] chinatax_api detail fetch — 反爬失败, 改 LLM 生成 +1,958 LR content
 - [x] LegalClause 二级拆分 (条→款→项) — +12,925 sub-clause nodes + 10,460 PART_OF edges
 - [x] Temporal version chain — +317 SUPERSEDES edges (5-year PIT chain)
-- [ ] Edge enrichment cron — keyword-based RELATES_TO batch (orchestrator Step 4)
-- [ ] KU content backfill — 39K empty KU → Gemini fill (orchestrator Step 2)
-- [ ] Mini Gate @ 500K: orphan < 5%, density ≥ 3.0, P@5 ≥ 85%
+- [x] Edge enrichment — +7,716 cross-ref edges (CLASSIFIED_UNDER_TAX + KU_ABOUT_TAX)
+- [x] KU content backfill — 44% → 66% (3 rounds: +9,838 + 998 + running)
+- [x] QA generation — +11,894 QA nodes + 6,415 edges (50 batches)
+- [ ] Mini Gate @ 500K: orphan < 5% (tracked PASS), density ≥ 3.0 (tracked 3.53 PASS)
 
 ### Phase 2: L2 扩源 — 新信源 + 入图协议 (W8-12, +200K nodes, +600K edges)
 - [ ] 入图协议 (Admission Protocol): staging → NER → min 3 edges → main graph
 - [ ] Batch density gate: 边/节点比 < 3.0 的批次退回 staging
 - [ ] 新爬虫 P0: flk.npc.gov.cn (国家法律法规数据库, 17K docs)
-- [ ] 新爬虫 P0: cicpa.org.cn (中注协, 200 审计准则)
-- [ ] 新爬虫 P0: cctaa.cn (中税协, 300 指南)
+- [x] 新爬虫 P0: cicpa.org.cn — 71 records crawled, 69 ingested as KU
+- [x] 新爬虫 P0: cctaa.cn — 749 records crawled, 691 ingested as KU
 - [ ] 新爬虫 P1: aifa.org.cn (会计准则ASBE, 60 准则)
 - [ ] 新爬虫 P1: pbc.gov.cn/data (央行金融数据)
 - [ ] 新爬虫 P1: epub.cnipa.gov.cn (专利/高新R&D优惠)

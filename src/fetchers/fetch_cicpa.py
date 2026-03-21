@@ -59,7 +59,8 @@ def _fetch_list_page(client: httpx.Client, url: str) -> list[dict]:
             if not title or len(title) < 5:
                 continue
             if not href.startswith("http"):
-                href = BASE_URL + href
+                from urllib.parse import urljoin
+                href = urljoin(url, href)
             if "cicpa.org.cn" in href and title:
                 items.append({"title": title, "url": href})
     except Exception as e:

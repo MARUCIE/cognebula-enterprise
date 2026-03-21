@@ -10,7 +10,7 @@
 - **L3 = 边引擎 (edge engine)，不是节点引擎**
 
 ## Current Phase
-Phase 1: L1 深化 (内生加工)
+Phase 1: L1 深化 — QA 生成 + KU Backfill 运行中 (tmux m3 @ kg-node)
 
 ## Phases
 
@@ -20,10 +20,11 @@ Phase 1: L1 深化 (内生加工)
 - [x] M3 orchestrator + cron (02:00 UTC daily)
 - [x] Edge Engine (generate_edges_ai.py) — AI 发现 SUPERSEDES/cross-ref
 - [x] Daily pipeline depth fix (--fetch-content for chinaacc等)
-- [ ] chinatax_api detail fetch — 57K 文档从 snippet 升级到全文
-- [ ] LegalClause 二级拆分 (条→款→项) — +15K 子条款
-- [ ] Temporal version chain — 法规修订链 (SUPERSEDES/AMENDS自动)
-- [ ] Edge enrichment cron — keyword-based RELATES_TO batch
+- [ ] chinatax_api detail fetch — 57K 文档从 snippet 升级到全文 (launched 2026-03-20, check status)
+- [x] LegalClause 二级拆分 (条→款→项) — +12,925 sub-clause nodes + 10,460 PART_OF edges
+- [x] Temporal version chain — +317 SUPERSEDES edges (5-year PIT chain)
+- [ ] Edge enrichment cron — keyword-based RELATES_TO batch (orchestrator Step 4)
+- [ ] KU content backfill — 39K empty KU → Gemini fill (orchestrator Step 2)
 - [ ] Mini Gate @ 500K: orphan < 5%, density ≥ 3.0, P@5 ≥ 85%
 
 ### Phase 2: L2 扩源 — 新信源 + 入图协议 (W8-12, +200K nodes, +600K edges)
@@ -74,6 +75,8 @@ Phase 1: L1 深化 (内生加工)
 4. **批次密度监控**: 每日 cron 输出边/节点比，< 3.0 触发告警
 5. **gemini-2.5-flash-lite**: QA 生成最佳模型 (无 thinking tokens 开销)
 6. **M3 cron 02:00 UTC**: 不影响白天 API 可用性
+7. **python3 -u**: orchestrator 必须 unbuffered 输出 (管道 buffer 导致无日志)
+8. **pgrep 等待**: systemctl stop 后 pgrep 轮询确认进程退出 (sleep 2 不够)
 
 ## Errors Encountered
 1. gemini-2.5-flash-preview-05-20 404 — 模型 ID 过时，改用 gemini-2.5-flash-lite

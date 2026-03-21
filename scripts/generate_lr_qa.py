@@ -23,6 +23,8 @@ import time
 import hashlib
 import argparse
 from pathlib import Path
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 
 DB_PATH = "/home/kg/cognebula-enterprise/data/finance-tax-graph"
 CSV_DIR = "/home/kg/cognebula-enterprise/data/edge_csv/m3_qa"
@@ -46,16 +48,15 @@ def classify_edge(qa_text: str) -> str:
     return "INTERPRETS"
 
 
+GEMINI_MODEL = "gemini-2.5-flash-lite"
+GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
+
+
 def generate_qa_batch(articles: list[dict], api_key: str) -> list[dict]:
-    """Call Gemini 2.5 Flash to generate QA pairs for a batch of articles.
+    """Call Gemini 2.5 Flash Lite via HTTP to generate QA pairs.
 
     Returns list of {article_id, question, answer, edge_type}.
     """
-    import google.generativeai as genai
-
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-2.5-flash-lite")
-
     results = []
     for article in articles:
         aid = article["id"]
@@ -65,35 +66,39 @@ def generate_qa_batch(articles: list[dict], api_key: str) -> list[dict]:
         # Skip articles with too little content
         text = f"{name} {content}".strip()
         if len(text) < 50:
-            print(f"    SKIP {aid[:15]}: text too short ({len(text)} chars)")
             continue
 
-        prompt = f"""你是中国财税法规专家。根据以下法规内容，生成 1-3 个高质量问答对。
+        prompt = (
+            "你是中国财税法规专家。根据以下法规内容，生成 1-3 个高质量问答对。\n\n"
+            f"法规名称: {name}\n"
+            f"法规内容: {text[:2000]}\n\n"
+            "要求:\n"
+            "1. 问题必须具体、可回答（不要\"什么是XX\"这种泛问）\n"
+            "2. 答案要引用法规原文要点，50-200 字\n"
+            "3. 输出 JSON 数组格式: [{\"q\": \"问题\", \"a\": \"答案\"}]\n"
+            "4. 如果法规内容太短或太泛，只生成 1 个问答\n\n"
+            "只输出 JSON 数组，不要其他文字。"
+        )
 
-法规名称: {name}
-法规内容: {text[:2000]}
-
-要求:
-1. 问题必须具体、可回答（不要"什么是XX"这种泛问）
-2. 答案要引用法规原文要点，50-200 字
-3. 输出 JSON 数组格式: [{{"q": "问题", "a": "答案"}}]
-4. 如果法规内容太短或太泛，只生成 1 个问答
-
-只输出 JSON 数组，不要其他文字。"""
+        body = {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {
+                "responseMimeType": "application/json",
+                "maxOutputTokens": 2000,
+                "temperature": 0.3,
+            },
+        }
 
         try:
-            response = model.generate_content(
-                prompt,
-                generation_config=genai.GenerationConfig(
-                    temperature=0.3,
-                    max_output_tokens=2000,
-                ),
+            req = Request(
+                f"{GEMINI_URL}?key={api_key}",
+                data=json.dumps(body).encode(),
+                headers={"Content-Type": "application/json"},
+                method="POST",
             )
-            # Parse JSON from response
-            raw = response.text.strip()
-            # Handle markdown code blocks
-            if raw.startswith("```"):
-                raw = raw.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+            resp = urlopen(req, timeout=30)
+            result = json.loads(resp.read())
+            raw = result["candidates"][0]["content"]["parts"][0]["text"]
 
             qa_pairs = json.loads(raw)
             if not isinstance(qa_pairs, list):
@@ -105,11 +110,8 @@ def generate_qa_batch(articles: list[dict], api_key: str) -> list[dict]:
                 if len(q) < 10 or len(a) < 20:
                     continue
 
-                # Generate deterministic ID
                 qa_hash = hashlib.md5(f"{aid}_{i}_{q}".encode()).hexdigest()[:12]
                 ku_id = f"QA_{qa_hash}"
-
-                # Classify edge type
                 edge_type = classify_edge(f"{q} {a}")
 
                 results.append({
@@ -123,17 +125,18 @@ def generate_qa_batch(articles: list[dict], api_key: str) -> list[dict]:
 
         except json.JSONDecodeError as e:
             print(f"    JSON PARSE ERROR on {aid[:15]}: {str(e)[:60]}")
-            print(f"    Raw response: {raw[:200]}")
             continue
-        except Exception as e:
-            if "429" in str(e) or "quota" in str(e).lower():
+        except HTTPError as e:
+            if e.code == 429:
                 print(f"    Rate limited, sleeping 30s...")
                 time.sleep(30)
             else:
-                print(f"    ERROR on {aid[:15]}: {str(e)[:80]}")
+                print(f"    HTTP {e.code} on {aid[:15]}: {str(e)[:80]}")
+            continue
+        except Exception as e:
+            print(f"    ERROR on {aid[:15]}: {str(e)[:80]}")
             continue
 
-        # Respect rate limits
         time.sleep(0.5)
 
     return results

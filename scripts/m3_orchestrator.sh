@@ -1,6 +1,6 @@
 #!/bin/bash
 # M3 Orchestrator -- Sequential pipeline execution
-# Runs: M3 QA → Daily Crawl (catch-up) → Restart API
+# Runs: Stop API → QA Gen → KU Backfill → Edge Engine → Enrichment → Start API → Density → Crawl
 #
 # Usage: ./scripts/m3_orchestrator.sh [qa_batches] [qa_batch_size]
 #        Default: 50 batches × 100 articles = 5000 articles per run
@@ -11,7 +11,8 @@ cd "$(dirname "$0")/.."
 # Load env
 if [[ -f .env ]]; then set -a; source .env; set +a; fi
 
-VENV="/home/kg/kg-env/bin/python3"
+# -u = unbuffered stdout/stderr (critical for tee pipe logging)
+VENV="/home/kg/kg-env/bin/python3 -u"
 LOG_DIR="data/logs"
 mkdir -p "$LOG_DIR"
 LOG="$LOG_DIR/m3-orchestrator-$(date +%Y%m%d-%H%M).log"
@@ -19,20 +20,31 @@ exec &> >(tee -a "$LOG")
 
 QA_BATCHES="${1:-50}"
 QA_BATCH_SIZE="${2:-100}"
+STEPS=8
 
 echo "================================================================"
 echo "  M3 Orchestrator — $(date)"
 echo "  QA: ${QA_BATCHES} batches × ${QA_BATCH_SIZE} articles"
 echo "================================================================"
 
-# Step 0: Stop API (release DB lock)
-echo "[0/4] Stopping API..."
+# Step 0: Stop API (release KuzuDB flock)
+echo "[0/$STEPS] Stopping API..."
 sudo systemctl stop kg-api || true
-sleep 2
+for i in $(seq 1 15); do
+    if ! pgrep -f "uvicorn.*kg-api-server" >/dev/null 2>&1; then
+        echo "  API stopped (waited ${i}s)"
+        break
+    fi
+    sleep 1
+done
+if pgrep -f "uvicorn.*kg-api-server" >/dev/null 2>&1; then
+    echo "  WARN: API still running after 15s, sending SIGKILL"
+    sudo pkill -9 -f "uvicorn.*kg-api-server" || true
+    sleep 2
+fi
 
-# Step 1: M3 QA Generation
-echo "[1/4] Running M3 QA Generation..."
-# Find next offset from existing QA nodes
+# Step 1: M3 QA Generation (LR articles → KU QA pairs)
+echo "[1/$STEPS] Running M3 QA Generation..."
 OFFSET=$($VENV -c "
 import kuzu
 db = kuzu.Database('data/finance-tax-graph')
@@ -48,21 +60,30 @@ $VENV scripts/generate_lr_qa.py \
     --max-batches "$QA_BATCHES" \
     --offset "$OFFSET" 2>&1 || echo "  WARN: QA generation had errors"
 
-# Step 2: Edge Engine (Meadows: L3 = edge generation, not node generation)
-echo "[2/5] Running Edge Engine (AI relationship discovery)..."
+# Step 2: KU Content Backfill (Gemini → fill empty KU content)
+echo "[2/$STEPS] Running KU Content Backfill..."
+if [[ -f scripts/ku_content_backfill.py ]]; then
+    $VENV scripts/ku_content_backfill.py \
+        --batch-size 20 --max-batches 500 2>&1 || echo "  WARN: KU backfill had errors"
+else
+    echo "  SKIP: ku_content_backfill.py not found"
+fi
+
+# Step 3: Edge Engine (AI relationship discovery — Meadows: L3 = edge engine)
+echo "[3/$STEPS] Running Edge Engine..."
 $VENV scripts/generate_edges_ai.py --batch-size 50 --max-batches 10 2>&1 || echo "  WARN: Edge engine had errors"
 
-# Step 3: Batch edge enrichment (keyword-based, no LLM, fast)
-echo "[3/6] Running batch edge enrichment..."
+# Step 4: Batch edge enrichment (keyword-based, no LLM, fast)
+echo "[4/$STEPS] Running batch edge enrichment..."
 $VENV scripts/enrich_edges_batch.py 2>&1 || echo "  WARN: Enrichment had errors"
 
-# Step 4: Restart API (release DB lock before daily crawl)
-echo "[4/6] Restarting API..."
+# Step 5: Restart API
+echo "[5/$STEPS] Restarting API..."
 sudo systemctl start kg-api
-sleep 3
+sleep 5
 
-# Step 4: Batch density check (Meadows: compress feedback delay from weeks to 1 day)
-echo "[5/6] Batch density check..."
+# Step 6: Density check (Meadows: compress feedback delay from weeks to 1 day)
+echo "[6/$STEPS] Batch density check..."
 curl -sf http://localhost:8400/api/v1/quality 2>/dev/null | python3 -c "
 import json, sys
 d = json.load(sys.stdin)
@@ -76,13 +97,12 @@ print(f'  Nodes: {nodes:,}')
 print(f'  Edges: {edges:,}')
 print(f'  Density: {density:.3f}')
 print(f'  Target: 6.000 (gap: {6.0 - density:.3f})')
-# Alert if density dropped
 if density < 2.0:
     print('  ALERT: Density below 2.0! Dilution detected.')
 " || echo "  WARN: Quality check failed"
 
-# Step 5: Daily Crawl (file-level only, no DB lock needed)
-echo "[6/6] Running Daily Crawl (file output only)..."
+# Step 7: Daily Crawl (file output only, no DB lock needed)
+echo "[7/$STEPS] Running Daily Crawl..."
 if [[ -x scripts/daily_pipeline.sh ]]; then
     timeout 1800 bash scripts/daily_pipeline.sh 2>&1 || echo "  WARN: Daily crawl had errors"
 else

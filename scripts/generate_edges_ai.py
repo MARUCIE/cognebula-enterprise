@@ -28,20 +28,41 @@ import time
 import hashlib
 import argparse
 from pathlib import Path
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 
 DB_PATH = "/home/kg/cognebula-enterprise/data/finance-tax-graph"
 CSV_DIR = "/home/kg/cognebula-enterprise/data/edge_csv/m3_edges"
 os.makedirs(CSV_DIR, exist_ok=True)
 
 
+GEMINI_MODEL = "gemini-2.5-flash-lite"
+GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
+
+
+def _call_gemini(prompt: str, api_key: str) -> str:
+    """Call Gemini API via HTTP and return response text."""
+    body = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {
+            "responseMimeType": "application/json",
+            "maxOutputTokens": 2000,
+            "temperature": 0.1,
+        },
+    }
+    req = Request(
+        f"{GEMINI_URL}?key={api_key}",
+        data=json.dumps(body).encode(),
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    resp = urlopen(req, timeout=30)
+    result = json.loads(resp.read())
+    return result["candidates"][0]["content"]["parts"][0]["text"]
+
+
 def discover_supersedes(conn, api_key: str, batch_size: int = 50, max_batches: int = 20) -> int:
     """Find SUPERSEDES relationships between LegalDocuments using title similarity."""
-    import google.generativeai as genai
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-2.5-flash-lite")
-
-    # Get LegalDocument pairs that might have supersedes relationships
-    # Strategy: group by similar titles (same tax type keyword)
     TAX_KEYWORDS = ["增值税", "企业所得税", "个人所得税", "消费税", "土地增值税",
                      "房产税", "印花税", "车船税", "契税", "资源税", "环保税",
                      "城建税", "教育费附加", "关税"]
@@ -53,7 +74,6 @@ def discover_supersedes(conn, api_key: str, batch_size: int = 50, max_batches: i
         writer = csv.writer(f)
 
         for kw in TAX_KEYWORDS:
-            # Find documents mentioning this tax type, ordered by date
             r = conn.execute(f"""
                 MATCH (d:LawOrRegulation)
                 WHERE d.title CONTAINS '{kw}' AND d.issuedDate IS NOT NULL
@@ -69,32 +89,23 @@ def discover_supersedes(conn, api_key: str, batch_size: int = 50, max_batches: i
             if len(docs) < 2:
                 continue
 
-            # Send batches of doc pairs to Gemini for classification
             for i in range(0, min(len(docs) - 1, batch_size), 5):
                 batch = docs[i:i+10]
                 if len(batch) < 2:
                     break
 
                 doc_list = "\n".join([f"- [{d['date']}] {d['title']} (ID: {d['id']})" for d in batch])
-                prompt = f"""以下是关于"{kw}"的中国税法文件列表（按时间排序）：
-
-{doc_list}
-
-请判断哪些较新的文件替代（SUPERSEDES）了较旧的文件。
-只输出确定的替代关系，格式为 JSON 数组：
-[{{"newer_id": "xxx", "older_id": "yyy", "reason": "简短原因"}}]
-
-如果没有确定的替代关系，输出空数组 []。
-只输出 JSON，不要其他文字。"""
+                prompt = (
+                    f'以下是关于"{kw}"的中国税法文件列表（按时间排序）：\n\n'
+                    f'{doc_list}\n\n'
+                    '请判断哪些较新的文件替代（SUPERSEDES）了较旧的文件。\n'
+                    '只输出确定的替代关系，格式为 JSON 数组：\n'
+                    '[{"newer_id": "xxx", "older_id": "yyy", "reason": "简短原因"}]\n\n'
+                    '如果没有确定的替代关系，输出空数组 []。'
+                )
 
                 try:
-                    response = model.generate_content(
-                        prompt,
-                        generation_config={"temperature": 0.1, "max_output_tokens": 2000},
-                    )
-                    raw = response.text.strip()
-                    if raw.startswith("```"):
-                        raw = raw.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+                    raw = _call_gemini(prompt, api_key)
                     pairs = json.loads(raw)
                     if not isinstance(pairs, list):
                         pairs = []
@@ -106,11 +117,13 @@ def discover_supersedes(conn, api_key: str, batch_size: int = 50, max_batches: i
                             writer.writerow([newer, older])
                             total_edges += 1
 
-                except json.JSONDecodeError:
+                except (json.JSONDecodeError, KeyError):
                     continue
-                except Exception as e:
-                    if "429" in str(e):
+                except HTTPError as e:
+                    if e.code == 429:
                         time.sleep(30)
+                    continue
+                except Exception:
                     continue
 
                 time.sleep(0.5)

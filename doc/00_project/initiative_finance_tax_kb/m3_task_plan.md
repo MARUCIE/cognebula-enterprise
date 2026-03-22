@@ -23,13 +23,13 @@ Phase 2 A+B 并行 — 爬取扩源 + 合规矩阵生成 (2026-03-22 session 2)
 8. **合规矩阵质量验证 PASS** — 3/3 测试节点质量极好 (1500-2200 chars, 引用具体法规条款), 500 条试跑启动
 
 ### 下个 Session 继续点
-1. **Baike 完成后处理** — Baike 进程 PID 122095 还在跑(4h+)，完成后用 `ingest_from_json.py` 从 JSON 入库 (~5K nodes)
-2. **REFERENCES 边创建** — `edge_references.py` 已就绪，等 DB 解锁后运行（KU《法规名》→ LR 匹配）
-3. **合规矩阵继续** — 已完成 2,493/10,000，需要重新启动补完剩余 7,500 条
-4. **合规矩阵扩容** — 10K 验证后扩到 45K (全24×19×20×5组合)，然后扩 Scenario 维度到 20+
-5. **边密度大幅提升** — 当前 2.16，目标 5.0+。已有 KU_ABOUT_TAX Cypher 匹配(+8,348)，还需 SUPERSEDES/CONFLICTS
-6. **API 重启** — Baike 完成后 `sudo systemctl start kg-api`
-7. **质量审核** — 法律数据集 22K 条质量待验证
+1. **Fast Matrix 20K** — 正在 VPS nohup 运行 (PID via pgrep compliance_matrix_fast, log: /tmp/matrix_fast.log)，~9h，完成后 ~501K nodes
+2. **Fast Matrix 扩容** — 20K 完成后继续跑 offset 22600 → 全部 136,800 组合 (24×19×20×15)
+3. **Baike 重跑** — 之前被 kill，需要用修复后的 `recrawl_fulltext.py` 重新跑 (~5K nodes)
+4. **REFERENCES 边创建** — `edge_cypher_batch.py` 已修复可用，+6,749 边已验证
+5. **边密度大幅提升** — 当前 2.17，目标 5.0+。需要更多边类型 (SUPERSEDES/APPLIES_TO 等)
+6. **API 重启** — Fast Matrix 完成后 `sudo systemctl start kg-api`
+7. **到 1M 路径**: 481K + Fast Matrix 134K + Baike 5K + 更多 Scenario(50→) → 1M
 
 ## Phases
 

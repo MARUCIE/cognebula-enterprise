@@ -22,14 +22,23 @@ Phase 2 A+B 并行 — 爬取扩源 + 合规矩阵生成 (2026-03-22 session 2)
 7. **Phase B 合规矩阵框架完成** — generate_compliance_matrix.py, 24×19×20×5=45,600 组合, Gemini 2.5 Flash Lite
 8. **合规矩阵质量验证 PASS** — 3/3 测试节点质量极好 (1500-2200 chars, 引用具体法规条款), 500 条试跑启动
 
+### Session 3 进展 (2026-03-22 evening)
+1. **Fast Matrix 20K 即将完成** — 19,000/20,000 (95%), ~18,800 合规矩阵节点已入库
+2. **STARD 脚本重写** — 从无差别 55K 灌入改为税过滤 ~5.6K + Edge-First (KU_ABOUT_TAX + REFERENCES 同步建边)
+   - 55K 中仅 10.2% (5,624 条) 是财税相关（企业所得税法、税收征管法、会计法等 751 部法律）
+   - 全量灌入会导致密度从 ~2.3 降到 ~1.9，违反 Edge-First 策略
+3. **自动化管线部署** — `m3_continue.sh` 在 kg-node 后台等 Matrix 完成后自动执行:
+   - Step 1: STARD 税过滤灌入 (+5.6K nodes + ~8K edges)
+   - Step 2: Edge density boost (boost_edge_density.py)
+   - Step 3: REFERENCES edge batch (edge_cypher_batch.py)
+   - Step 4: API restart
+   - Step 5: Quality check
+
 ### 下个 Session 继续点
-1. **Fast Matrix 20K** — 正在 VPS nohup 运行 (PID via pgrep compliance_matrix_fast, log: /tmp/matrix_fast.log)，~9h，完成后 ~501K nodes
-2. **Fast Matrix 扩容** — 20K 完成后继续跑 offset 22600 → 全部 136,800 组合 (24×19×20×15)
-3. **Baike 重跑** — 之前被 kill，需要用修复后的 `recrawl_fulltext.py` 重新跑 (~5K nodes)
-4. **REFERENCES 边创建** — `edge_cypher_batch.py` 已修复可用，+6,749 边已验证
-5. **边密度大幅提升** — 当前 2.17，目标 5.0+。需要更多边类型 (SUPERSEDES/APPLIES_TO 等)
-6. **API 重启** — Fast Matrix 完成后 `sudo systemctl start kg-api`
-7. **到 1M 路径**: 481K + Fast Matrix 134K + Baike 5K + 更多 Scenario(50→) → 1M
+1. **Fast Matrix 扩容** — 20K 完成后继续跑 offset 22600 → 全部 136,800 组合 (24×19×20×15)
+2. **Baike 重跑** — 之前被 kill，需要用修复后的 `recrawl_fulltext.py` 重新跑 (~5K nodes)
+3. **边密度持续提升** — 当前 ~2.3，目标 5.0+。需要更多边类型 (SUPERSEDES/APPLIES_TO 等)
+4. **到 1M 路径**: 481K + Fast Matrix 134K + STARD 5.6K + Baike 5K + 更多 Scenario(50→) → 1M
 
 ## Phases
 

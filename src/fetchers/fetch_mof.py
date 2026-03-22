@@ -80,8 +80,25 @@ def _parse_listing(html: str) -> list[dict]:
     return items
 
 
+def _fetch_via_fleet(url: str) -> str:
+    """Fallback: fetch via fleet-page-fetch VPS browser proxy."""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ["ssh", "kg-node", f"curl -sf 'http://100.106.223.39:19801/fetch' -X POST -H 'Content-Type: application/json' -d '{{\"url\": \"{url}\"}}'"],
+            capture_output=True, text=True, timeout=60
+        )
+        if result.returncode == 0 and result.stdout:
+            import json as _json
+            data = _json.loads(result.stdout)
+            return data.get("markdown", data.get("text", ""))[:50000]
+    except Exception as e:
+        log.warning("Fleet fetch failed for %s: %s", url, e)
+    return ""
+
+
 def _fetch_detail(client: httpx.Client, url: str) -> str:
-    """Fetch article body text, truncated to 3000 chars."""
+    """Fetch full article body text. Falls back to fleet-page-fetch if httpx returns empty."""
     try:
         time.sleep(5)
         resp = client.get(url, headers=_headers(), timeout=15)
@@ -91,10 +108,14 @@ def _fetch_detail(client: httpx.Client, url: str) -> str:
             tag.decompose()
         content_div = soup.select_one("div.TRS_Editor, div.pages_content, div.content, #zoom")
         text = content_div.get_text(separator="\n", strip=True) if content_div else soup.get_text(separator="\n", strip=True)
-        return text[:3000]
+        if len(text) >= 100:
+            return text[:50000]
     except Exception as e:
         log.warning("Detail fetch failed for %s: %s", url, e)
-        return ""
+
+    # Fallback: browser rendering via VPS
+    log.info("Trying fleet-page-fetch fallback for %s", url)
+    return _fetch_via_fleet(url)
 
 
 def fetch(output_dir: str, max_pages: int = 10, fetch_detail: bool = True) -> list[dict]:

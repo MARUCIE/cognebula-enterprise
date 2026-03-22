@@ -175,11 +175,11 @@ def _fetch_detail(client: httpx.Client, url: str) -> dict:
 
         if content_el:
             text = content_el.get_text(separator="\n", strip=True)
-            result["content"] = text[:5000]
+            result["content"] = text[:50000]
         else:
             body = soup.find("body")
             if body:
-                result["content"] = body.get_text(separator="\n", strip=True)[:3000]
+                result["content"] = body.get_text(separator="\n", strip=True)[:50000]
 
         # Related terms: internal links within content
         entry_re = re.compile(r"^/v\d+\.html$")

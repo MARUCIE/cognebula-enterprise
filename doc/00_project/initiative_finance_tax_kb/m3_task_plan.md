@@ -10,13 +10,26 @@
 - **L3 = 边引擎 (edge engine)，不是节点引擎**
 
 ## Current Phase
-Phase 2 A路径 — 爬取扩源 + 质量审核 (2026-03-22 session 结束点)
+Phase 2 A+B 并行 — 爬取扩源 + 合规矩阵生成 (2026-03-22 session 2)
+
+### Session 2 进展 (2026-03-22)
+1. **Swarm fulltext backfill 修复+运行** — LegalClause schema bug 修复 (regulationId→documentId, articleNumber→clauseNumber), +298 KU content recovered
+2. **Fetcher 研究完成** — mof/ndrc/baike 三个 fetcher 都有 fetch_detail 能力，但生产用 --no-detail 跑（title-only），且内容截断到 3000 chars
+3. **Fetcher 升级** — 去掉 3000 char 截断 (→50K)，添加 fleet-page-fetch 浏览器兜底，添加 error page 检测
+4. **MOF 子域名 502** — gss/jrs/nys 等子域名全部 502（CDN/WAF 层面），即使 VPS 浏览器也无法访问。MOF 只能获取 listing 信息
+5. **NDRC 全文爬取成功** — httpx 直接成功，2000-4000 chars 级别全文，正在入库
+6. **Baike 全文爬取启动** — 5 分类 5000 条目标，3-5s polite delay，后台运行中
+7. **Phase B 合规矩阵框架完成** — generate_compliance_matrix.py, 24×19×20×5=45,600 组合, Gemini 2.5 Flash Lite
+8. **合规矩阵质量验证 PASS** — 3/3 测试节点质量极好 (1500-2200 chars, 引用具体法规条款), 500 条试跑启动
 
 ### 下个 Session 继续点
-1. **mof/ndrc/baike 全文重爬** — 爬虫没有 --fetch-content，agent-fetch 也返回空（政府站反爬）。需要用 fleet-page-fetch 或 Playwright 获取全文。mof 500条、ndrc 592条、baike 4000条。
-2. **Phase B: LLM 合规知识矩阵** — Industry(24)×Tax(19)×Lifecycle(20)×Scenario(50) = 456K 节点。这是到 1M 的唯一路径。需要先设计 schema + 生成框架。
-3. **边密度提升** — density 2.26 → 目标 5.0+。需要 Phase 3 边引擎 (SUPERSEDES/CONFLICTS 批量发现)。
-4. **质量持续审核** — 记住：质量第一，全文完整，不接受 snippet/title-only/LLM 替代。所有入图数据必须 content >= 100 chars 真实爬取内容。
+1. **Baike 完成后处理** — Baike 进程 PID 122095 还在跑(4h+)，完成后用 `ingest_from_json.py` 从 JSON 入库 (~5K nodes)
+2. **REFERENCES 边创建** — `edge_references.py` 已就绪，等 DB 解锁后运行（KU《法规名》→ LR 匹配）
+3. **合规矩阵继续** — 已完成 2,493/10,000，需要重新启动补完剩余 7,500 条
+4. **合规矩阵扩容** — 10K 验证后扩到 45K (全24×19×20×5组合)，然后扩 Scenario 维度到 20+
+5. **边密度大幅提升** — 当前 2.16，目标 5.0+。已有 KU_ABOUT_TAX Cypher 匹配(+8,348)，还需 SUPERSEDES/CONFLICTS
+6. **API 重启** — Baike 完成后 `sudo systemctl start kg-api`
+7. **质量审核** — 法律数据集 22K 条质量待验证
 
 ## Phases
 
@@ -74,8 +87,10 @@ Phase 2 A路径 — 爬取扩源 + 质量审核 (2026-03-22 session 结束点)
 2. 裁判文书网 DES3 加密是否有社区解决方案？(GitHub Leon406/wenshukt)
 3. KuzuDB 在 1M 节点时性能如何？(单写锁, 归档软件)
 4. Edge Engine 的 Gemini 成本控制 (每天 ~$2, 16 周 ~$224)
+5. flk.npc.gov.cn SPA 重构后如何获取数据？(需要 Playwright CDP 拦截实际 XHR)
 
 ## Decisions Made
+0. **flk.npc.gov.cn SPA 阻塞** (2026-03-22): 2025年重构为 Vue SPA，旧 REST API 不再工作。需要 Playwright CDP 拦截方案或用 twang2218/law-datasets GitHub 数据集替代
 1. **Edge-First 战略** (Meadows): L3 = 边引擎，不是节点引擎
 2. **深度优先于广度**: L1 派生节点自带 3-5 边，L2 新源需要额外建边管线
 3. **入图协议**: staging → NER → min 3 edges → main graph (锁死 R2 死亡螺旋)

@@ -124,7 +124,7 @@ def task2_legal_clause_fill(conn):
         r = conn.execute(
             "MATCH (c:LegalClause) "
             "WHERE c.content IS NULL OR size(c.content) < 20 "
-            "RETURN c.id, c.regulationId, c.articleNumber, c.title "
+            "RETURN c.id, c.documentId, c.clauseNumber, c.title "
             f"LIMIT {batch_size}"
         )
 
@@ -154,19 +154,28 @@ def task2_legal_clause_fill(conn):
                     pass
                 continue
 
-            # Try to get parent LR fullText
+            # Try to get parent LegalDocument content, fallback to LR fullText
             if item["reg_id"]:
                 try:
+                    # First try LegalDocument (documentId links here)
                     r2 = conn.execute(
-                        "MATCH (lr:LawOrRegulation {id: $rid}) "
-                        "WHERE lr.fullText IS NOT NULL AND size(lr.fullText) >= 100 "
-                        "RETURN lr.fullText LIMIT 1",
+                        "MATCH (ld:LegalDocument {id: $rid}) "
+                        "WHERE ld.content IS NOT NULL AND size(ld.content) >= 100 "
+                        "RETURN ld.content LIMIT 1",
                         {"rid": item["reg_id"]}
                     )
+                    if not r2.has_next():
+                        # Fallback: try LawOrRegulation
+                        r2 = conn.execute(
+                            "MATCH (lr:LawOrRegulation {id: $rid}) "
+                            "WHERE lr.fullText IS NOT NULL AND size(lr.fullText) >= 100 "
+                            "RETURN lr.fullText LIMIT 1",
+                            {"rid": item["reg_id"]}
+                        )
                     if r2.has_next():
                         full_text = str(r2.get_next()[0])
-                        # Extract clause by article number
-                        art_num = item["article"]
+                        # Extract clause by clauseNumber
+                        art_num = item["article"]  # mapped from clauseNumber
                         if art_num:
                             import re
                             pattern = f"第{art_num}条[\\s　]*(.*?)(?=第\\d+条|$)"

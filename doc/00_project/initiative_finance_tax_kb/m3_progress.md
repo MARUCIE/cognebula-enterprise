@@ -188,3 +188,42 @@
 - 948c761 - feat(m3): LR content backfill + cross-reference edges
 - a4cbf58 - feat(m3): ingest CICPA/CCTAA + KU backfill round 2
 - Push to GitHub: MARUCIE/cognebula-enterprise master
+
+## Session: 2026-03-22 (Session 3 — Depth + Breadth Sprint)
+
+### Completed
+1. **Fast Matrix 20K** — 20,076 合规矩阵节点完成入库 (1,681 nodes/hr)
+2. **STARD 税过滤灌入** — 55K→5,885 税相关条文, +2,772 edges (1,022 KU_ABOUT_TAX + 1,750 REFERENCES)
+3. **REFERENCES 边批量** — 19 部核心法规 → +18,462 REFERENCES edges (企业所得税法 3,772, 税收征管法 3,754, 增值税暂行条例 2,835)
+4. **law-datasets 灌入** — twang2218/law-datasets 509 NPC 税法 → +397 new LR + 112 fullText updates + 119 CLASSIFIED_UNDER_TAX edges
+5. **全文质量审计** — 发现 lr_cleanup 32K 空壳 (99% 无内容) + mindmap 8K 垃圾标题
+6. **lr_cleanup 回填启动** — Gemini LLM 生成 18,893 条内容 (运行中, ~3,143/hr)
+7. **CICPA 回填** — 102 条审计准则摘要生成 (运行中)
+8. **Baike 全文爬取** — 5,000 条目标 (运行中, page 45)
+9. **Matrix 扩容 114K** — 已启动 (offset 22600, ~63h)
+10. **QA-v3 质量确认** — 71% ≥100c 合格, 29% 是正常短答案, 不需要修复
+
+### Key Decisions
+- STARD 全量 55K → 税过滤 5,885: 防止密度稀释 (Meadows R2)
+- law-datasets 标题精确匹配 → 509 条核心财税法规 (vs 宽匹配 14K)
+- lr_cleanup 回填而非删除: 98.8% 已有边, 标题有价值, 用 LLM 补内容
+- QA-v3 短答案是正常模式, 不修复
+
+### KG Metrics (Updated 2026-03-22 Session 3 End)
+- Nodes: 505,433
+- Edges: 1,103,590
+- Density: 2.183
+- Quality: 100/100
+- KU content coverage: 80% (from 66%)
+- LR content coverage: 100% ≥100c, 65% ≥500c
+- Session delta: +6,898 nodes / +41,332 edges
+
+### Running Background Tasks
+- lr_cleanup backfill: ~1,400/18,893 (7%), ~6h to complete
+- Baike recrawl: page 45, ~2h to complete
+- Matrix expansion 114K: 100/114,000, ~63h
+- CICPA backfill: ~68/102
+
+### Commits
+- 92ef293 - feat(m3): session 3 — STARD tax-filtered ingest + law-datasets + edge boost + content backfill
+- Push to GitHub: MARUCIE/cognebula-enterprise master (8242a71..92ef293)

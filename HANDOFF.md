@@ -10,7 +10,11 @@ Session 3 末尾发生了 KuzuDB WAL OOM 事件：
 3. 删除 WAL = 回退到最后一个 checkpoint 状态 → **大量 KU content 丢失**
 
 **影响**: gemini-qa-v3(23K), mindmap(28K), flk_npc(22K) 等信源的 content 字段被清空。
-**恢复方案**: 这些内容已在 `data/recrawl/` 和 `data/backfill/` 目录的 JSON 文件中，需要重新批量 SET + 每批 CHECKPOINT。
+**恢复方案**: `scripts/restore_ku_content.py` 已在运行（`/tmp/restore_ku_content.log`）。
+- lr_cleanup: 18,713 条 DONE (14,999 updated)
+- compliance_matrix: 20K+ 条 IN PROGRESS
+- baike/ndrc/mindmap: 待续
+- SafeDB 模式: CHECKPOINT/50 + RECONNECT/10K 防 OOM
 
 **教训**: KuzuDB 8GB RAM VPS 上的关键规则：
 - 每 50 条写入后必须 CHECKPOINT

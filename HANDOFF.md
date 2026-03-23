@@ -85,21 +85,25 @@ Session 3 末尾发生了 KuzuDB WAL OOM 事件：
 
 ## 下个 Session 优先事项
 
-### P0: KU Content 覆盖率继续提升 (11.9% → 20%+)
+### P0: QA 答案生成 (后台运行中)
 
-已恢复的稳定基线: 17,671/148,752 KU (11.9%)。按源分析剩余缺口：
+**长跑任务**: `scripts/generate_qa_answers.py` 在 kg-node VPS 后台运行
+- 用 Gemini 2.5 Flash Lite 为 23,546 条 QA 节点生成答案
+- 速率: ~35 条/分钟，预计 ~11 小时完成
+- 日志: `/tmp/qa_gen.log`
+- 输出: `data/backfill/qa_answers.jsonl` (支持断点续跑)
+- **API 已停止** — 完成后需: `sudo systemctl start kg-api`
+- 预计完成后 KU 覆盖率: 12.6% → ~28% (+23K)
 
-| 来源 | 缺口 | 可恢复性 | 策略 |
-|------|------|---------|------|
-| mindmap (28.5K) | 28,522 | 低 | 思维导图节点本身就是短标签，接受 |
-| lr_cleanup (23.9K) | ~14K | 受限 | CSV/JSONL 已最大化利用，reconnect 丢数据 |
-| gemini-qa-v3 (23.5K) | 23,546 | 中 | 有 Q 无 A，需 LLM 生成答案或从 clause_qa 匹配 |
-| flk_npc (22.4K) | 22,447 | 高 | 法规全文可从 flk.npc.gov.cn 爬取 |
-| compliance_matrix (13.8K) | ~7K | 低 | 分析文本 <100c，需 LLM 扩写 |
-| stard_statute (5.9K) | 5,885 | 中 | 需从 STARD 源恢复全文 |
-| lecture/CPA (~6K) | ~6K | 低 | 讲义切片，内容本身就是要点 |
+### P1: 剩余缺口 (QA 完成后)
 
-**高性价比方向**: flk_npc 浏览器爬取 (22K法规全文) > LLM 为 QA 生成答案 (23K)
+| 来源 | 缺口 | 状态 |
+|------|------|------|
+| mindmap (28.5K) | 28,522 | 天然短内容，接受 |
+| lr_cleanup (~14K) | ~14K | reconnect 限制，需 16GB+ VPS 重跑 |
+| flk_npc (22K) | ~22K | WAF+SPA 双重防护，Playwright 测试通过但 API 拦截 |
+| compliance_matrix (~7K) | ~7K | 分析文本 <100c |
+| stard/lecture (~12K) | ~12K | 低优先级 |
 
 ### P1: 结构质量修复
 

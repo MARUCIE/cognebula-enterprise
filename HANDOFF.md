@@ -105,17 +105,29 @@ Session 3 末尾发生了 KuzuDB WAL OOM 事件：
 | compliance_matrix (~7K) | ~7K | 分析文本 <100c |
 | stard/lecture (~12K) | ~12K | 低优先级 |
 
-### P1: 结构质量修复
+### 执行队列 (QA 完成后按顺序)
 
-4. **RegulationClause 标题覆盖率 47%** — 15,786 条缺标题，需要从 fullText 提取
-5. **边密度攻坚** — 2.14 → 3.0+ (需 ~400K 新边)
-6. **boost_edge_density 第二轮** — KU 有 content 后关键词匹配能建更多边
+```bash
+# 1. 等 QA 完成 (检查: ps aux | grep generate_qa_answers)
+# 2. lr_cleanup 无reconnect恢复
+/home/kg/kg-env/bin/python3 -u scripts/restore_lr_no_reconnect.py 2>&1 | tee /tmp/restore_lr_norec.log
 
-### P2: 扩容
+# 3. SUPERSEDES 时间链边
+/home/kg/kg-env/bin/python3 -u scripts/build_temporal_edges.py 2>&1 | tee /tmp/temporal_edges.log
 
-7. Matrix 扩容重试 (之前 DB lock 失败)
-8. SUPERSEDES 批量发现 (法规时间链)
-9. APPLIES_TO_ENTITY 扩展
+# 4. 恢复 API
+sudo systemctl start kg-api
+
+# 5. RegulationClause 标题已修复 (99.5%), 无需再处理
+# 6. 边密度第二轮 boost
+/home/kg/kg-env/bin/python3 -u scripts/boost_edge_density.py 2>&1 | tee /tmp/edge_boost2.log
+```
+
+### P2: 扩容 (后续)
+
+- Matrix 扩容重试 (之前 DB lock 失败)
+- APPLIES_TO_ENTITY 扩展 (17 纳税主体 × 法规适用性)
+- KuzuDB 迁移评估 (16GB+ 实例或 PostgreSQL)
 
 ## 关键决策记录
 

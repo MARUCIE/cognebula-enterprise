@@ -1,8 +1,26 @@
-# HANDOFF.md — CogNebula M3 Session 3→4 状态交接
+# HANDOFF.md — CogNebula M3 Session 4→5 状态交接
 
-> Updated: 2026-03-23 05:00 CST
+> Updated: 2026-03-23 16:15 CST
 
-## CRITICAL: WAL 删除导致数据回退
+## Session 4 完成: KU Content 恢复
+
+### 问题诊断
+v1 restore_ku_content.py 有致命 bug: `set_content()` 无条件写入，导致好内容被空/短内容覆盖。
+覆盖率从 10.3% 降到 2.2%。
+
+### 修复动作
+1. **restore_ku_content_v2.py** — 安全恢复，仅在新内容 ≥100c 且比现有更长时才写入
+   - lr_cleanup JSONL: +18,449 | baike: +2,767 | NDRC: +593 | CICPA: +91 | compliance_matrix: +17,638
+   - 结果: 2.2% → 5.3%
+2. **restore_ku_from_csv.py** — 从原始 CSV 源文件补充 JSONL 未覆盖的记录
+   - lr_cleanup CSV: +19,927 (CSV 有 32K 条，JSONL 仅 18K)
+   - 结果: 5.3% → 10.9% (15,717/143,893)
+
+### 关键教训
+- KuzuDB SET 操作必须先查现有值再决定是否写入（防覆盖）
+- CSV 源文件比 LLM 回填 JSONL 覆盖面更广（32K vs 18K）
+
+## PREVIOUS: WAL 删除导致数据回退
 
 Session 3 末尾发生了 KuzuDB WAL OOM 事件：
 1. lr_cleanup 回填 18,713 条 SET 操作导致 WAL 过大 → DB 无法打开
@@ -21,17 +39,17 @@ Session 3 末尾发生了 KuzuDB WAL OOM 事件：
 - 单条 content 截断到 2000c（减少 buffer pressure）
 - 长时间写入进程每 14,000 条需要重启 DB 连接释放 buffer pool
 
-## 图谱当前状态 (WAL 恢复后)
+## 图谱当前状态 (Session 4 完成)
 
-| 指标 | 值 | 目标 | NOTE |
-|------|-----|------|------|
-| Nodes | 505,549 | 1,000,000 | 节点数正确 |
-| Edges | 1,103,690 | 6,000,000 | 边数正确 |
-| Density | 2.183 | 6.0 | |
-| KU content ≥100c | **11.7%** | 95%+ | **严重回退，需重填** |
-| ASBE (官方全文) | 20 条 | 42 条 | 已入库 |
-| CICPA (回填) | 91 条 | 140 条 | 已入库 |
-| lr_cleanup (回填) | 4,710 >=100c | 32,765 | 已入库但大部分 <100c |
+| 指标 | 值 | 目标 | Session 4 变化 |
+|------|-----|------|---------------|
+| Nodes | 505,674 | 1,000,000 | +4,859 (12366 FAQ) |
+| Edges | 1,076,926 | 6,000,000 | +5,976 (引用+关联+税种) |
+| Density | 2.130 | 6.0 | - |
+| KU content ≥100c | **13.8%** (20,576/148,752) | 95%+ | 从 2.2% 恢复 |
+| Title Coverage | **99.5%** | 99%+ | 从 96.3% 修复 (RegulationClause 全修) |
+| Quality Score | 100 | 100 | PASS |
+| API | healthy | - | uvicorn :8400 |
 
 ## 后台长跑任务 (kg-node VPS)
 
@@ -60,39 +78,33 @@ Session 3 末尾发生了 KuzuDB WAL OOM 事件：
 
 ## 下个 Session 优先事项
 
-### P0: KU content 大规模回填 (WAL 回退修复)
+### P0: KU Content 覆盖率攻坚 (10.9% → 50%+)
 
-0. **重新 SET 所有信源的 content** — 从 recrawl JSON + QA JSON 文件中恢复
-   - 必须每 50 条 CHECKPOINT + 每 14K 条重启连接
-   - gemini-qa-v3: 需要从原始生成 JSON 恢复
-   - mindmap/flk_npc: 需要从 doc-tax/ 原始文件恢复
-   - compliance_matrix: 需要从 CSV 备份恢复
+现有 128K KU 缺内容。按数据源分析可恢复空间：
 
-### P1: 官方信源浏览器爬取 (用户明确要求)
+| 数据源 | 估算 KU 数 | 内容状态 | 动作 |
+|--------|-----------|----------|------|
+| chinatax | ~57K | 仅标题 | **需浏览器爬取全文** (反爬: JS+鼠标+检测) |
+| 12366 热点 | ~84K raw | 未入库 | 检查是否可批量入库为 KU |
+| mindmap | ~28K | MindmapNode 表 | 内容本身短，非 KU 表 |
+| gemini-qa-v3 | ~23K | 短答案 | QA 模式正常，不修复 |
+| ASBE 官方 | 42 条 | 需重爬 | MOF 网站 rate limit |
 
-1. **kjs.mof.gov.cn (ASBE 42 条)** — 被 rate limit，等 1-2h 解除后用 agent-browser-session 重爬
-   - `eval "document.body.innerText"` 确认可抓全文
-   - 第一次 Playwright 拿到 14/33 全文 (但结果被覆盖丢失)
-   - 策略: `domcontentloaded` + eval 提取 + 每页爬完 close tab
+1. **12366 hotspot 入库分析** — raw 目录有 84K FAQ，检查结构是否适合批量入库
+2. **chinatax 浏览器爬取** — agent-browser-session + Patchright 反检测
+3. **ASBE 官方全文** — MOF 网站解除 rate limit 后用 agent-browser 重爬
 
-2. **chinatax.gov.cn (57K 政策全文)** — 3 层反爬 (JS Cookie + onMouseMove + browser detect)
-   - 需要 agent-browser-session (Patchright 反检测) + Browser Proxy 模式
-   - 已有 title-only 数据在 KuzuDB，需补全文
+### P1: 结构质量修复
 
-3. **flk.npc.gov.cn (17K 法规全文)** — Vue SPA，需要 Playwright CDP 拦截
-   - law-datasets 已覆盖 509 条核心税法，剩余 ~16K 非税法规优先级低
+4. **RegulationClause 标题覆盖率 47%** — 15,786 条缺标题，需要从 fullText 提取
+5. **边密度攻坚** — 2.14 → 3.0+ (需 ~400K 新边)
+6. **boost_edge_density 第二轮** — KU 有 content 后关键词匹配能建更多边
 
-### P1: 入库 + 二次质量审计
+### P2: 扩容
 
-4. 等 Matrix 扩容暂停时插入: lr_cleanup 回填 + CICPA + Baike + ASBE
-5. 第二轮 boost_edge_density (回填后 KU 有内容了，关键词匹配能建更多边)
-6. 质量审计: KU 覆盖率 80%→?%, 孤儿率, 密度变化
-
-### P2: 边密度攻坚 (Meadows Edge-First)
-
-7. 密度 2.18 → 3.0+: 需要 ~400K 新边
+7. Matrix 扩容重试 (之前 DB lock 失败)
 8. SUPERSEDES 批量发现 (法规时间链)
-9. APPLIES_TO_ENTITY 扩展 (17 纳税主体 × 法规适用性)
+9. APPLIES_TO_ENTITY 扩展
 
 ## 关键决策记录
 

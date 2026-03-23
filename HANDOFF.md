@@ -105,10 +105,16 @@ Session 3 末尾发生了 KuzuDB WAL OOM 事件：
 | compliance_matrix (~7K) | ~7K | 分析文本 <100c |
 | stard/lecture (~12K) | ~12K | 低优先级 |
 
-### 执行队列 (QA 完成后按顺序)
+### 执行队列 (QA + chinatax 爬取完成后按顺序)
 
 ```bash
-# 1. 等 QA 完成 (检查: ps aux | grep generate_qa_answers)
+# 0. 检查后台任务完成
+ps aux | grep -E "generate_qa|crawl_chinatax" | grep -v grep
+# 如果还在运行, 等待。如果已结束, 继续
+
+# 1. chinatax 全文入库 (从爬取结果)
+/home/kg/kg-env/bin/python3 -u scripts/ingest_chinatax_fulltext.py 2>&1 | tee /tmp/ingest_ct.log
+
 # 2. chinaacc + local-doctax 入库 (+3.5K 新 KU)
 /home/kg/kg-env/bin/python3 -u scripts/ingest_chinaacc.py 2>&1 | tee /tmp/ingest_chinaacc.log
 
@@ -119,11 +125,6 @@ Session 3 末尾发生了 KuzuDB WAL OOM 事件：
 /home/kg/kg-env/bin/python3 -u scripts/build_temporal_edges.py 2>&1 | tee /tmp/temporal_edges.log
 
 # 5. 恢复 API
-sudo systemctl start kg-api
-
-# 6. 边密度第二轮 boost (需先停 API)
-sudo systemctl stop kg-api
-/home/kg/kg-env/bin/python3 -u scripts/boost_edge_density.py 2>&1 | tee /tmp/edge_boost2.log
 sudo systemctl start kg-api
 ```
 

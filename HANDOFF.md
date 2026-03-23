@@ -109,18 +109,22 @@ Session 3 末尾发生了 KuzuDB WAL OOM 事件：
 
 ```bash
 # 1. 等 QA 完成 (检查: ps aux | grep generate_qa_answers)
-# 2. lr_cleanup 无reconnect恢复
+# 2. chinaacc + local-doctax 入库 (+3.5K 新 KU)
+/home/kg/kg-env/bin/python3 -u scripts/ingest_chinaacc.py 2>&1 | tee /tmp/ingest_chinaacc.log
+
+# 3. lr_cleanup 无reconnect恢复 (+14K content)
 /home/kg/kg-env/bin/python3 -u scripts/restore_lr_no_reconnect.py 2>&1 | tee /tmp/restore_lr_norec.log
 
-# 3. SUPERSEDES 时间链边
+# 4. SUPERSEDES 时间链边
 /home/kg/kg-env/bin/python3 -u scripts/build_temporal_edges.py 2>&1 | tee /tmp/temporal_edges.log
 
-# 4. 恢复 API
+# 5. 恢复 API
 sudo systemctl start kg-api
 
-# 5. RegulationClause 标题已修复 (99.5%), 无需再处理
-# 6. 边密度第二轮 boost
+# 6. 边密度第二轮 boost (需先停 API)
+sudo systemctl stop kg-api
 /home/kg/kg-env/bin/python3 -u scripts/boost_edge_density.py 2>&1 | tee /tmp/edge_boost2.log
+sudo systemctl start kg-api
 ```
 
 ### P2: 扩容 (后续)

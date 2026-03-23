@@ -46,10 +46,17 @@ Session 3 末尾发生了 KuzuDB WAL OOM 事件：
 | Nodes | 505,674 | 1,000,000 | +4,859 (12366 FAQ) |
 | Edges | 1,076,926 | 6,000,000 | +5,976 (引用+关联+税种) |
 | Density | 2.130 | 6.0 | - |
-| KU content ≥100c | **13.8%** (20,576/148,752) | 95%+ | 从 2.2% 恢复 |
-| Title Coverage | **99.5%** | 99%+ | 从 96.3% 修复 (RegulationClause 全修) |
+| KU content ≥100c | **11.9%** (17,671/148,752) | 50%+ | 从 2.2% 恢复 (稳定基线) |
+| Title Coverage | **99.5%** | 99%+ | 从 96.3% 修复 |
 | Quality Score | 100 | 100 | PASS |
 | API | healthy | - | uvicorn :8400 |
+
+### KuzuDB 8GB VPS 已知问题
+- **reconnect 导致数据丢失**: SafeDB._reconnect() (del db → new Database) 会使之前 CHECKPOINT 的部分数据丢失
+- 实测: CSV CHECKPOINT=13.6% → JSONL reconnect 后降到 8.4%
+- **根因**: 8GB 内存压力下 buffer pool 释放与 WAL 持久化竞争
+- **规避**: 避免在同一脚本中多次 reconnect，改用独立脚本分批处理
+- **长期方案**: 升级到 16GB+ 实例或迁移到 PostgreSQL
 
 ## 后台长跑任务 (kg-node VPS)
 
@@ -78,21 +85,21 @@ Session 3 末尾发生了 KuzuDB WAL OOM 事件：
 
 ## 下个 Session 优先事项
 
-### P0: KU Content 覆盖率攻坚 (10.9% → 50%+)
+### P0: KU Content 覆盖率继续提升 (11.9% → 20%+)
 
-现有 128K KU 缺内容。按数据源分析可恢复空间：
+已恢复的稳定基线: 17,671/148,752 KU (11.9%)。按源分析剩余缺口：
 
-| 数据源 | 估算 KU 数 | 内容状态 | 动作 |
-|--------|-----------|----------|------|
-| chinatax | ~57K | 仅标题 | **需浏览器爬取全文** (反爬: JS+鼠标+检测) |
-| 12366 热点 | ~84K raw | 未入库 | 检查是否可批量入库为 KU |
-| mindmap | ~28K | MindmapNode 表 | 内容本身短，非 KU 表 |
-| gemini-qa-v3 | ~23K | 短答案 | QA 模式正常，不修复 |
-| ASBE 官方 | 42 条 | 需重爬 | MOF 网站 rate limit |
+| 来源 | 缺口 | 可恢复性 | 策略 |
+|------|------|---------|------|
+| mindmap (28.5K) | 28,522 | 低 | 思维导图节点本身就是短标签，接受 |
+| lr_cleanup (23.9K) | ~14K | 受限 | CSV/JSONL 已最大化利用，reconnect 丢数据 |
+| gemini-qa-v3 (23.5K) | 23,546 | 中 | 有 Q 无 A，需 LLM 生成答案或从 clause_qa 匹配 |
+| flk_npc (22.4K) | 22,447 | 高 | 法规全文可从 flk.npc.gov.cn 爬取 |
+| compliance_matrix (13.8K) | ~7K | 低 | 分析文本 <100c，需 LLM 扩写 |
+| stard_statute (5.9K) | 5,885 | 中 | 需从 STARD 源恢复全文 |
+| lecture/CPA (~6K) | ~6K | 低 | 讲义切片，内容本身就是要点 |
 
-1. **12366 hotspot 入库分析** — raw 目录有 84K FAQ，检查结构是否适合批量入库
-2. **chinatax 浏览器爬取** — agent-browser-session + Patchright 反检测
-3. **ASBE 官方全文** — MOF 网站解除 rate limit 后用 agent-browser 重爬
+**高性价比方向**: flk_npc 浏览器爬取 (22K法规全文) > LLM 为 QA 生成答案 (23K)
 
 ### P1: 结构质量修复
 

@@ -8,6 +8,7 @@ from pathlib import Path as _Path
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 import kuzu
 import lancedb
 import numpy as np
@@ -82,6 +83,11 @@ app = FastAPI(
     version="1.0.0",
     description="Finance/Tax Knowledge Graph query service"
 )
+
+# Mount the static frontend UI
+import os
+if os.path.isdir("src/web"):
+    app.mount("/ui", StaticFiles(directory="src/web", html=True), name="ui")
 
 app.add_middleware(
     CORSMiddleware,

@@ -1806,9 +1806,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
    ======================================== */
 
 // Connect to real KG API on kg-node (Tailscale)
-const API = window.location.hostname === "localhost" || window.location.protocol === "file:"
-  ? "http://100.75.77.112:8400"
-  : window.location.origin;
+const API = window.location.origin;
 let network = null;
 let nodesDS = new vis.DataSet();
 let edgesDS = new vis.DataSet();

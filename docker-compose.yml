@@ -1,44 +1,20 @@
+version: '3.8'
+
 services:
   cognebula-api:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
     container_name: cognebula-api
     ports:
-      - "8766:8766"
+      - "8400:8400"
     volumes:
-      - ./data:/data
+      # Mount data directories for KuzuDB and LanceDB persistence
+      - ./data/finance-tax-graph:/data/finance-tax-graph
+      - ./data/lancedb:/data/lancedb
     environment:
       - HOST=0.0.0.0
-      - PORT=8766
-      - REDIS_URL=redis://redis:6379
-      - ENABLE_LANCEDB=true
-    depends_on:
-      - redis
+      - PORT=8400
+      - DB_PATH=/data/finance-tax-graph
+      - LANCE_PATH=/data/lancedb
     restart: unless-stopped
-
-  cognebula-worker:
-    build:
-      context: .
-      dockerfile: Dockerfile.sota
-    container_name: cognebula-worker
-    volumes:
-      - ./data:/data
-    environment:
-      - REDIS_URL=redis://redis:6379
-      - MODE=worker
-    depends_on:
-      - redis
-    restart: unless-stopped
-
-  redis:
-    image: redis:7-alpine
-    container_name: cognebula-redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    restart: unless-stopped
-
-volumes:
-  redis_data:

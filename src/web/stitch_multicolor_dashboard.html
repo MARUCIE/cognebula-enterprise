@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased selection:bg-indigo-200 selection:text-indigo-900">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nebula Insights - Polished Multi-Color Dashboard</title>
+    <!-- Hyper-refined typography using Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        /* Stripe-style layered shadows for deep glassmorphism */
+                        'stripe': '0 13px 27px -5px rgba(50,50,93,0.15), 0 8px 16px -8px rgba(0,0,0,0.15)',
+                        'stripe-hover': '0 30px 60px -12px rgba(50,50,93,0.15), 0 18px 36px -18px rgba(0,0,0,0.15)',
+                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.05)',
+                        'inner-light': 'inset 0 1px 1px rgba(255, 255, 255, 0.6)',
+                    },
+                    colors: {
+                        stripe: {
+                            purple: '#A78BFA', /* soft lavender */
+                            pink: '#FBCFE8', /* muted pink */
+                            blue: '#BAE6FD', /* icy blue */
+                            slate: '#334155', /* softer slate */
+                        }
+                    },
+                    transitionTimingFunction: {
+                        /* Buttery smooth animations */
+                        'spring': 'cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                        'smooth': 'cubic-bezier(0.25, 1, 0.5, 1)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f8fafc;
+            overflow-x: hidden;
+        }
+        
+        /* Softer, muted multi-color animated background */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            overflow: hidden;
+            background: #f8fafc;
+        }
+
+        .bg-shape {
+            position: absolute;
+            filter: blur(120px);
+            opacity: 0.6;
+            animation: float 24s infinite alternate ease-in-out;
+            border-radius: 50%;
+        }
+
+        .bg-shape-1 { background: #FBCFE8; width: 45vw; height: 45vw; top: -15%; left: -10%; animation-delay: 0s; }
+        .bg-shape-2 { background: #E9D5FF; width: 55vw; height: 55vw; bottom: -20%; right: -15%; animation-delay: -5s; }
+        .bg-shape-3 { background: #BAE6FD; width: 40vw; height: 40vw; top: 35%; left: 35%; animation-delay: -10s; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .bg-shape { animation: none; opacity: 0.4; }
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+            33% { transform: translate(5%, 10%) scale(1.05) rotate(3deg); }
+            66% { transform: translate(-5%, 5%) scale(0.95) rotate(-3deg); }
+            100% { transform: translate(-10%, -5%) scale(1.02) rotate(0deg); }
+        }
+
+        /* Fluid Gradient Text - Softened */
+        .text-gradient {
+            background: linear-gradient(135deg, #F472B6 0%, #A78BFA 50%, #7DD3FC 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* Extreme Glassmorphism Bento Cards */
+        .bento-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            border-radius: 2rem; /* Extreme rounding for bento grid */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 24px 48px -12px rgba(0, 0, 0, 0.05);
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Subtle inner highlight border */
+        .bento-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 2rem;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0.4) 100%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        .bento-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.03), 0 32px 64px -12px rgba(50, 50, 93, 0.08);
+            background: rgba(255, 255, 255, 0.85);
+        }
+        
+        .bento-card:focus-within {
+             outline: 2px solid #A78BFA;
+             outline-offset: 2px;
+        }
+
+        /* Polished Primary Button - Softer Gradient */
+        .btn-primary {
+            background: linear-gradient(135deg, #A78BFA 0%, #C084FC 100%);
+            color: white;
+            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+        }
+        
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #C084FC 0%, #F472B6 100%);
+            z-index: -1;
+            transition: opacity 0.3s ease;
+            opacity: 0;
+        }
+
+        .btn-primary:hover::before {
+            opacity: 1;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(167, 139, 250, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 5px -1px rgba(167, 139, 250, 0.3);
+        }
+        
+        /* Vibrant Solid Gradient Card - Muted to Pastel */
+        .card-solid-gradient {
+            background: linear-gradient(135deg, #93C5FD 0%, #6EE7B7 100%);
+            border: none;
+            color: #1E293B; /* Darker text for readability on pastel */
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.6), 0 10px 20px -5px rgba(147, 197, 253, 0.4);
+        }
+        .card-solid-gradient::before { display: none; }
+        .card-solid-gradient:hover {
+            background: linear-gradient(135deg, #6EE7B7 0%, #93C5FD 100%);
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.7), 0 15px 30px -5px rgba(147, 197, 253, 0.5);
+        }
+
+        /* Refined Progress Bar - Muted */
+        .progress-bar-container {
+            background: rgba(0,0,0,0.04);
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+        }
+        
+        .progress-bar-fill {
+            background: linear-gradient(90deg, #6EE7B7, #A7F3D0);
+            box-shadow: 0 2px 6px rgba(110, 231, 183, 0.4), inset 0 1px 1px rgba(255,255,255,0.6);
+        }
+    </style>
+</head>
+<body class="text-stripe-slate min-h-screen relative p-4 sm:p-8 md:p-12 lg:p-16">
+    <!-- Animated Multicolor Background for soft vibrancy -->
+    <div class="animated-bg" aria-hidden="true">
+        <div class="bg-shape bg-shape-1"></div>
+        <div class="bg-shape bg-shape-2"></div>
+        <div class="bg-shape bg-shape-3"></div>
+    </div>
+
+    <div class="max-w-7xl mx-auto relative z-10">
+        <!-- Header -->
+        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-12 sm:mb-16 gap-6">
+            <div>
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter text-gradient pb-1 leading-tight">
+                    Nebula Insights
+                </h1>
+                <p class="text-slate-500 font-semibold tracking-widest mt-2 text-xs sm:text-sm uppercase">Enterprise Ontology Dashboard</p>
+            </div>
+            <button class="btn-primary px-8 py-3.5 rounded-full font-bold text-sm sm:text-base tracking-wide shadow-stripe focus:ring-4 focus:ring-stripe-purple/30 outline-none">
+                Generate Report
+            </button>
+        </header>
+
+        <!-- World-class Bento Grid Alignment -->
+        <main class="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-6 md:gap-8 auto-rows-[minmax(280px,auto)]">
+            
+            <!-- Hero Card: Knowledge Graph Health -->
+            <article class="bento-card md:col-span-6 lg:col-span-8 p-8 md:p-10 flex flex-col justify-between group">
+                <header class="relative z-10">
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50/80 text-indigo-600 text-xs font-extrabold tracking-widest uppercase mb-6 border border-indigo-100/50 backdrop-blur-sm shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse shadow-[0_0_8px_rgba(129,140,248,0.5)]"></span>
+                        System Health
+                    </div>
+                    <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-800 mb-4 leading-tight">
+                        Knowledge Graph <br class="hidden sm:block"/> Connectivity
+                    </h2>
+                    <p class="text-slate-600 text-base sm:text-lg leading-relaxed max-w-lg font-medium">
+                        Your enterprise ontology is expanding rapidly. Structural connectivity has improved by <span class="text-indigo-500 font-bold bg-indigo-50 px-1.5 py-0.5 rounded-md">24%</span> this week, unlocking new semantic relationships.
+                    </p>
+                </header>
+                
+                <div class="relative z-10 flex flex-wrap items-end gap-x-12 gap-y-6 mt-12">
+                    <div>
+                        <div class="text-5xl sm:text-6xl font-black text-indigo-500 tracking-tighter">505<span class="text-3xl text-indigo-300 font-bold">k</span></div>
+                        <div class="text-xs sm:text-sm font-bold text-slate-500 uppercase tracking-widest mt-2">Total Nodes</div>
+                    </div>
+                    <div class="hidden sm:block h-16 w-px bg-slate-200/80"></div>
+                    <div>
+                        <div class="text-5xl sm:text-6xl font-black text-rose-400 tracking-tighter">1.07<span class="text-3xl text-rose-300 font-bold">M</span></div>
+                        <div class="text-xs sm:text-sm font-bold text-slate-500 uppercase tracking-widest mt-2">Total Edges</div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Stats Card 1: Title Coverage -->
+            <article class="bento-card card-solid-gradient md:col-span-3 lg:col-span-4 p-8 flex flex-col justify-center items-center text-center">
+                <div class="p-4 bg-white/40 rounded-2xl backdrop-blur-md mb-6 inline-flex shadow-[0_8px_16px_rgba(0,0,0,0.05)] border border-white/50 transition-transform duration-300 group-hover:scale-110">
+                    <svg class="w-8 h-8 text-slate-700 drop-shadow-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <div class="text-6xl sm:text-7xl font-black tracking-tighter mb-2 text-slate-800 drop-shadow-sm">99.5<span class="text-4xl">%</span></div>
+                <h3 class="font-bold text-lg sm:text-xl text-slate-700 tracking-wide">Title Coverage</h3>
+                <p class="text-slate-600 text-sm mt-3 font-semibold bg-white/40 px-3 py-1 rounded-full border border-white/30">Exceeding SLA by 2.5%</p>
+            </article>
+
+            <!-- Stats Card 2: KU Content -->
+            <article class="bento-card md:col-span-3 lg:col-span-4 p-8 flex flex-col justify-between">
+                <div>
+                    <div class="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center mb-6 border border-emerald-100 shadow-sm transition-colors duration-300 group-hover:bg-emerald-100">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 tracking-tight">KU Content Restoration</h3>
+                </div>
+                
+                <div class="mt-8">
+                    <div class="flex justify-between items-baseline mb-3">
+                        <span class="text-sm font-bold text-slate-500 uppercase tracking-wider">Progress</span>
+                        <span class="text-2xl font-black text-emerald-500 tracking-tight">11.9%</span>
+                    </div>
+                    <div class="w-full progress-bar-container rounded-full h-3 sm:h-4 overflow-hidden">
+                        <div class="progress-bar-fill h-full rounded-full transition-all duration-1000 ease-out" style="width: 11.9%" role="progressbar" aria-valuenow="11.9" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div class="mt-5 p-4 bg-slate-50/80 rounded-xl border border-slate-200/60 shadow-inner">
+                        <p class="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">
+                            <span class="font-bold text-slate-700">Goal:</span> 50%+ coverage required for M3 milestone.
+                        </p>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Action Card: Pipeline Status -->
+            <article class="bento-card md:col-span-6 lg:col-span-8 p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 bg-white/70">
+                <div class="flex items-start sm:items-center gap-5 sm:gap-6">
+                    <div class="relative flex-shrink-0">
+                        <div class="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center border border-amber-200/60 shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] transition-transform duration-300 hover:scale-105">
+                            <svg class="w-7 h-7 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                        </div>
+                        <div class="absolute -top-1.5 -right-1.5 w-4 h-4 bg-amber-300 rounded-full border-[2.5px] border-white animate-pulse shadow-sm"></div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl sm:text-2xl font-bold text-slate-800 tracking-tight">
+                            Pipeline Status: <span class="text-amber-500">Active</span>
+                        </h3>
+                        <p class="text-slate-500 mt-2 font-medium text-sm sm:text-base">
+                            Matrix expansion <span class="font-bold text-slate-600 bg-white shadow-sm px-2 py-1 rounded-md text-xs sm:text-sm border border-slate-200/80 tracking-wide">200 / 114,000</span> running in background.
+                        </p>
+                    </div>
+                </div>
+                <button class="w-full sm:w-auto bg-slate-700 text-white px-8 py-3.5 rounded-xl font-bold hover:bg-slate-600 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 ease-spring whitespace-nowrap focus:ring-4 focus:ring-slate-700/20 outline-none">
+                    View Logs
+                </button>
+            </article>
+
+        </main>
+    </div>
+</body>
+</html>

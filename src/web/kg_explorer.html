@@ -65,14 +65,16 @@
   --header-h: 60px;
   --canvas-dot: #CBD5E1;
 }
-html, body { height: 100%; overflow: hidden; }
+html, body { height: 100%; overflow: hidden; font-size: max(13px, 0.9vw); }
 body {
   font-family: var(--font);
   background: var(--bg);
   color: var(--text);
-  font-size: 14px;
+  font-size: 1rem;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  text-justify: inter-ideograph;
+  word-break: keep-all;
 }
 ::selection { background: var(--primary-light); color: var(--primary); }
 ::-webkit-scrollbar { width: 6px; height: 6px; }

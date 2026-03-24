@@ -75,9 +75,97 @@
     font-size: 10px; font-weight: 600; padding: 2px 8px;
     border-radius: 4px; background: #EFF6FF; color: #3B82F6;
   }
+
+        /* Softer, muted multi-color animated background */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            overflow: hidden;
+            background: #f8fafc;
+        }
+
+        .bg-shape {
+            position: absolute;
+            filter: blur(120px);
+            opacity: 0.6;
+            animation: float 24s infinite alternate ease-in-out;
+            border-radius: 50%;
+        }
+
+        .bg-shape-1 { background: #FBCFE8; width: 45vw; height: 45vw; top: -15%; left: -10%; animation-delay: 0s; }
+        .bg-shape-2 { background: #E9D5FF; width: 55vw; height: 55vw; bottom: -20%; right: -15%; animation-delay: -5s; }
+        .bg-shape-3 { background: #BAE6FD; width: 40vw; height: 40vw; top: 35%; left: 35%; animation-delay: -10s; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .bg-shape { animation: none; opacity: 0.4; }
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+            33% { transform: translate(5%, 10%) scale(1.05) rotate(3deg); }
+            66% { transform: translate(-5%, 5%) scale(0.95) rotate(-3deg); }
+            100% { transform: translate(-10%, -5%) scale(1.02) rotate(0deg); }
+        }
+
+        /* Extreme Glassmorphism Bento Cards */
+        .bento-card, .glass, .glass-panel, .bento-overlay, .triple-card {
+            background: rgba(255, 255, 255, 0.7) !important;
+            backdrop-filter: blur(24px) !important;
+            -webkit-backdrop-filter: blur(24px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.9) !important;
+            border-radius: 2rem !important; /* Extreme rounding for bento grid */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 24px 48px -12px rgba(0, 0, 0, 0.05) !important;
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1) !important;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Subtle inner highlight border */
+        .bento-card::before, .glass::before, .bento-overlay::before, .triple-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 2rem !important;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0.4) 100%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        .bento-card:hover, .glass:hover, .bento-overlay:hover, .triple-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.03), 0 32px 64px -12px rgba(50, 50, 93, 0.08) !important;
+            background: rgba(255, 255, 255, 0.85) !important;
+        }
+        
+        header.glass-panel {
+            border-radius: 0 !important;
+        }
+        header.glass-panel::before {
+            display: none;
+        }
+        
+        .toolbar.glass {
+            border-radius: 2rem !important;
+        }
+
 </style>
 </head>
 <body>
+
+    <!-- Animated Multicolor Background for soft vibrancy -->
+    <div class="animated-bg" aria-hidden="true">
+        <div class="bg-shape bg-shape-1"></div>
+        <div class="bg-shape bg-shape-2"></div>
+        <div class="bg-shape bg-shape-3"></div>
+    </div>
+
 
 <div class="toolbar">
   <input id="search" type="text" placeholder="搜索实体或关系..." autofocus>

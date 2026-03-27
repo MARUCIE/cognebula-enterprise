@@ -298,7 +298,7 @@ export default function SettingsPage() {
               <CrownIcon />
               <span
                 className="font-display font-bold"
-                style={{ fontSize: 16, letterSpacing: "-0.01em" }}
+                style={{ fontSize: 16 }}
               >
                 企业尊享版 (Pro Plus)
               </span>

@@ -10,7 +10,7 @@ export default function DashboardPage() {
         <h2
           className="font-display font-extrabold"
           style={{
-            fontSize: "2.5rem",
+            fontSize: "1.75rem",
             lineHeight: 1.2,
             color: "var(--color-text-primary)",
             maxWidth: 480,
@@ -26,7 +26,7 @@ export default function DashboardPage() {
       <section
         className="grid gap-5"
         style={{
-          gridTemplateColumns: "1fr 1fr 1fr auto",
+          gridTemplateColumns: "repeat(4, 1fr)",
           marginBottom: "var(--space-8)",
         }}
       >
@@ -54,7 +54,7 @@ export default function DashboardPage() {
             padding: "var(--space-4) var(--space-6)",
             borderRadius: "var(--radius-md)",
             background: "linear-gradient(135deg, #FDF6EB 0%, #F9EDD8 100%)",
-            minWidth: 160,
+            minHeight: 120,
           }}
         >
           <span
@@ -110,9 +110,10 @@ export default function DashboardPage() {
               gridTemplateColumns: "minmax(200px, 1.2fr) 1fr 1fr 140px 100px",
               padding: "10px 16px",
               background: "var(--color-surface-container-low)",
-              fontSize: 12,
-              fontWeight: 600,
+              fontSize: 11,
+              fontWeight: 700,
               color: "var(--color-text-secondary)",
+              textTransform: "uppercase" as const,
             }}
           >
             <span>客户名称</span>
@@ -203,7 +204,7 @@ export default function DashboardPage() {
             </span>
           </div>
           <p style={{ fontSize: 13, color: "var(--color-text-tertiary)", marginBottom: "var(--space-6)" }}>
-            4 位 AI 专员正在并发工作中
+            3 位 AI 专员正在并发工作中
           </p>
 
           <div className="flex flex-col gap-4">
@@ -291,7 +292,7 @@ export default function DashboardPage() {
               需要专家解读？
             </p>
             <p style={{ fontSize: 12, color: "var(--color-text-secondary)", marginBottom: 12, lineHeight: 1.6 }}>
-              AI 生成的报告含财税知识，您可以让智能财税理顾问进行 1 对 1 深度咨询。
+              AI 生成的报告含财税知识，您可以让智能财税顾问进行 1 对 1 深度咨询。
             </p>
             <button
               className="font-medium"
@@ -537,7 +538,7 @@ function ApprovalRow({
 
   return (
     <div
-      className="grid items-center"
+      className="grid items-center table-row-hover"
       style={{
         gridTemplateColumns: "minmax(200px, 1.2fr) 1fr 1fr 140px 100px",
         padding: "14px 16px",

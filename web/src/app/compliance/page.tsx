@@ -16,7 +16,6 @@ export default function ComplianceDashboardPage() {
               fontSize: "2rem",
               lineHeight: 1.2,
               color: "var(--color-text-primary)",
-              letterSpacing: "-0.01em",
             }}
           >
             合规管理看板

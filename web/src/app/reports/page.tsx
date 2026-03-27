@@ -226,8 +226,6 @@ export default function ReportsCenterPage() {
                   zIndex: 1,
                   fontSize: 10,
                   fontWeight: 700,
-                  textTransform: "uppercase" as const,
-                  letterSpacing: "0.12em",
                   color: "var(--color-text-secondary)",
                 }}
               >
@@ -454,7 +452,7 @@ function ReportRow({
 }: ReportRowData & { alt?: boolean }) {
   return (
     <div
-      className="grid items-center"
+      className="grid items-center table-row-hover"
       style={{
         gridTemplateColumns: "minmax(240px, 1.5fr) 160px 180px 1fr 100px",
         padding: "16px 24px",

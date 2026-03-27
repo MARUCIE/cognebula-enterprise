@@ -487,7 +487,6 @@ export default function AuditWorkbenchPage() {
                   fontSize: 10,
                   fontWeight: 700,
                   color: "var(--color-text-tertiary)",
-                  letterSpacing: "0.06em",
                   marginBottom: 2,
                 }}
               >
@@ -556,7 +555,6 @@ function FlowStep({
           style={{
             fontSize: 10,
             fontWeight: 700,
-            letterSpacing: "0.06em",
             color: isActive
               ? "var(--color-primary)"
               : isDone

@@ -264,6 +264,12 @@ hr {
   font-weight: 700;
 }
 
+/* --- Table row hover (subtle warmth) --- */
+.table-row-hover:hover {
+  background: var(--color-surface-variant) !important;
+  cursor: default;
+}
+
 /* --- Selection color --- */
 ::selection {
   background: var(--color-primary-fixed);

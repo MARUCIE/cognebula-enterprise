@@ -298,7 +298,7 @@ function CustomerRow({
 
   return (
     <div
-      className="grid items-center"
+      className="grid items-center table-row-hover"
       style={{
         gridTemplateColumns: gridCols,
         height: 36,

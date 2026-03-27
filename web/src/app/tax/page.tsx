@@ -405,9 +405,9 @@ export default function IntelligentTaxPage() {
             gridTemplateColumns: "120px minmax(160px, 1.5fr) 100px 1fr 120px 140px",
             padding: "10px var(--space-8)",
             background: "var(--color-surface-container-low)",
-            fontSize: 10,
-            fontWeight: 800,
-            textTransform: "uppercase",
+            fontSize: 11,
+            fontWeight: 700,
+            textTransform: "uppercase" as const,
             color: "var(--color-text-secondary)",
           }}
         >

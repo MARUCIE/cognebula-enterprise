@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface": "#f9f9f7",
+                        "on-secondary-fixed": "#291800",
+                        "on-tertiary-container": "#e48f60",
+                        "on-primary-container": "#7ea5e2",
+                        "primary": "#00244a",
+                        "on-primary-fixed": "#001c3b",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "tertiary": "#421800",
+                        "primary-container": "#003a70",
+                        "on-secondary-fixed-variant": "#614000",
+                        "tertiary-fixed-dim": "#ffb68f",
+                        "surface-dim": "#dadad8",
+                        "error-container": "#ffdad6",
+                        "primary-fixed-dim": "#a6c8ff",
+                        "on-primary-fixed-variant": "#18477e",
+                        "inverse-on-surface": "#f1f1ef",
+                        "secondary": "#815600",
+                        "on-surface": "#1a1c1b",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed": "#ffddb1",
+                        "on-error-container": "#93000a",
+                        "inverse-primary": "#a6c8ff",
+                        "secondary-container": "#ffc56d",
+                        "inverse-surface": "#2f3130",
+                        "surface-variant": "#e2e3e1",
+                        "surface-tint": "#355f97",
+                        "on-secondary-container": "#785000",
+                        "secondary-fixed-dim": "#f6bc65",
+                        "background": "#f9f9f7",
+                        "on-tertiary-fixed-variant": "#73350c",
+                        "surface-container-highest": "#e2e3e1",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container": "#eeeeec",
+                        "on-tertiary": "#ffffff",
+                        "surface-bright": "#f9f9f7",
+                        "surface-container-high": "#e8e8e6",
+                        "primary-fixed": "#d5e3ff",
+                        "outline": "#737781",
+                        "on-tertiary-fixed": "#331100",
+                        "on-primary": "#ffffff",
+                        "outline-variant": "#c3c6d1",
+                        "tertiary-fixed": "#ffdbca",
+                        "surface-container-low": "#f4f4f2",
+                        "tertiary-container": "#632901",
+                        "on-surface-variant": "#434750",
+                        "on-background": "#1a1c1b"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { font-family: 'Inter', sans-serif; background-color: #f9f9f7; color: #1d1b19; }
+        .font-manrope { font-family: 'Manrope', sans-serif; }
+    </style>
+</head>
+<body class="flex min-h-screen">
+<!-- Sidebar Wrapper -->
+<aside class="w-[240px] h-screen sticky left-0 top-0 bg-[#f4f4f2] flex flex-col py-6 px-4 font-manrope text-sm antialiased border-none">
+<!-- Brand Header -->
+<div class="mb-10 px-2">
+<h1 class="text-xl font-bold text-[#003A70] tracking-tight">灵阙财税</h1>
+<p class="text-xs text-on-surface-variant/70 mt-1">专业财务AI助手</p>
+</div>
+<!-- Navigation Tabs -->
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 text-[#1d1b19] font-bold border-l-4 border-[#c5913e] bg-white/50 transition-all translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+                财务报告
+            </a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-[#434750] hover:text-[#003A70] hover:bg-[#eeeeec] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="fact_check">fact_check</span>
+                智能审计
+            </a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-[#434750] hover:text-[#003A70] hover:bg-[#eeeeec] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+                系统设置
+            </a>
+</nav>
+<!-- CTA -->
+<div class="mt-auto px-2">
+<button class="w-full bg-gradient-to-b from-[#00244a] to-[#003a70] text-white py-3 rounded shadow-lg shadow-[#003a70]/10 flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                新建审计任务
+            </button>
+</div>
+<!-- Footer Tabs -->
+<div class="mt-8 pt-6 border-t border-outline-variant/10 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-[#434750] hover:text-[#003A70] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+                个人中心
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#434750] hover:text-[#003A70] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+                退出登录
+            </a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col min-w-0">
+<!-- Top Navigation -->
+<header class="w-full h-16 sticky top-0 z-40 bg-[#f9f9f7]/85 backdrop-blur-md flex justify-between items-center px-8 border-b border-[#c3c6d1]/15">
+<div class="flex items-center gap-4">
+<h2 class="text-[#003a70] font-manrope text-lg font-bold">财务报告中心</h2>
+<span class="bg-primary-fixed text-on-primary-fixed-variant text-[10px] px-2 py-0.5 rounded-full font-bold">V2.4 AI ALPHA</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 text-on-surface-variant">
+<button class="material-symbols-outlined hover:text-[#003a70] transition-all" data-icon="notifications">notifications</button>
+<button class="material-symbols-outlined hover:text-[#003a70] transition-all" data-icon="help_outline">help_outline</button>
+</div>
+<div class="h-8 w-[1px] bg-outline-variant/20"></div>
+<div class="flex items-center gap-3">
+<button class="bg-[#c5913e] text-white px-4 py-1.5 rounded-sm text-sm font-semibold active:scale-95 transition-transform">审核通过</button>
+<img alt="管理员头像" class="w-8 h-8 rounded-full border border-outline-variant/30" data-alt="professional portrait of a middle-aged male executive in a sharp business suit with a confident expression and minimalist background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKvD3D-gepeqhvzLnRorVi7cWmqiUebMs5Tj7SLZ0n2Rly9J78pl14_t5YntQ7RrBNENNYrB3INXrHFgSFG3ho3Ypm1joHsuEY31-TNehn6_gh8Z0iqtCJL5a-HlEVxXQ-ulWy33qpvXg63lNB8l3oOAEQFTh_TqOKZtFLezWy2CFm73-nO3r_7FRXVoU_o5_tCZEYiiNW0EOOFsxFpVku6px5meXOTkLw6J5-oNNenqqlJBv5pn8fvVrauqc0w7ldwHsqU-OKiWBe"/>
+</div>
+</div>
+</header>
+<!-- Canvas -->
+<section class="p-8 space-y-10 max-w-7xl mx-auto w-full">
+<!-- KPI Dashboard (Editorial Professionalism Style) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="bg-surface-container-low p-8 relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-6xl" data-icon="description">description</span>
+</div>
+<p class="text-on-surface-variant text-sm font-medium mb-2">本月生成报告</p>
+<h3 class="text-4xl font-manrope font-extrabold text-[#00244a]">1,284</h3>
+<div class="mt-4 flex items-center gap-2 text-xs font-bold text-secondary">
+<span class="material-symbols-outlined text-sm" data-icon="trending_up">trending_up</span>
+                        较上月增长 12%
+                    </div>
+</div>
+<div class="bg-surface-container-low p-8 relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-6xl" data-icon="verified">verified</span>
+</div>
+<p class="text-on-surface-variant text-sm font-medium mb-2">AI 准确率</p>
+<h3 class="text-4xl font-manrope font-extrabold text-[#00244a]">99.8%</h3>
+<div class="mt-4 flex items-center gap-2 text-xs font-bold text-on-tertiary-container">
+<span class="material-symbols-outlined text-sm" data-icon="bolt">bolt</span>
+                        处于行业领先水平
+                    </div>
+</div>
+<div class="bg-surface-container-low p-8 relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-6xl" data-icon="hourglass_empty">hourglass_empty</span>
+</div>
+<p class="text-on-surface-variant text-sm font-medium mb-2">待复核任务</p>
+<h3 class="text-4xl font-manrope font-extrabold text-[#00244a]">42</h3>
+<div class="mt-4 flex items-center gap-2 text-xs font-bold text-error">
+<span class="material-symbols-outlined text-sm" data-icon="priority_high">priority_high</span>
+                        包含 5 个紧急项目
+                    </div>
+</div>
+</div>
+<!-- Main Content Area: Report Grid -->
+<div class="space-y-6">
+<div class="flex justify-between items-end pb-2 border-b border-outline-variant/10">
+<div>
+<h4 class="text-2xl font-manrope font-bold text-[#1d1b19]">实时报告列表</h4>
+<p class="text-on-surface-variant text-sm mt-1">智能引擎实时监控并生成的财务摘要</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-4 py-2 bg-surface-container-lowest text-primary text-sm font-semibold border border-outline-variant/20 hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="filter_list">filter_list</span>
+                            筛选
+                        </button>
+<button class="flex items-center gap-2 px-4 py-2 bg-surface-container-lowest text-primary text-sm font-semibold border border-outline-variant/20 hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="download">download</span>
+                            批量导出
+                        </button>
+<button class="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-primary to-primary-container text-white text-sm font-semibold rounded-sm shadow-md shadow-primary/20">
+                            全部批准
+                        </button>
+</div>
+</div>
+<!-- Table Container - No borders, tonal separation -->
+<div class="overflow-hidden">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant text-xs uppercase tracking-wider">
+<th class="px-6 py-4 font-bold">客户名称 / 报告类型</th>
+<th class="px-6 py-4 font-bold">生成日期</th>
+<th class="px-6 py-4 font-bold">状态</th>
+<th class="px-6 py-4 font-bold text-right">资产总计 (CNY)</th>
+<th class="px-6 py-4 font-bold text-center">操作</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/5">
+<!-- Row 1 -->
+<tr class="bg-surface-container-lowest hover:bg-surface-container/30 transition-colors group">
+<td class="px-6 py-5">
+<div class="font-bold text-[#1d1b19]">中铁建设集团有限公司</div>
+<div class="text-xs text-on-surface-variant">资产负债表 (Asset Balance Sheet)</div>
+</td>
+<td class="px-6 py-5 text-sm font-medium text-on-surface-variant">2023-11-24 14:20</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#d5e3ff] text-[#003A70]">
+<span class="w-1.5 h-1.5 rounded-full bg-[#003A70] animate-pulse"></span>
+                                        AI GENERATED
+                                    </span>
+</td>
+<td class="px-6 py-5 text-right font-manrope font-bold tabular-nums text-[#1d1b19]">
+                                    45,280,000.00
+                                </td>
+<td class="px-6 py-5 text-center">
+<button class="text-[#c5913e] hover:underline text-xs font-bold flex items-center justify-center gap-1 mx-auto">
+                                        查看详情
+                                        <span class="material-symbols-outlined text-xs" data-icon="chevron_right">chevron_right</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="bg-surface hover:bg-surface-container/30 transition-colors group">
+<td class="px-6 py-5">
+<div class="font-bold text-[#1d1b19]">阿里巴巴（中国）网络技术</div>
+<div class="text-xs text-on-surface-variant">损益表 (Profit &amp; Loss Statement)</div>
+</td>
+<td class="px-6 py-5 text-sm font-medium text-on-surface-variant">2023-11-24 10:15</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-800">
+<span class="material-symbols-outlined text-xs" data-icon="verified" style="font-variation-settings: 'FILL' 1;">verified</span>
+                                        HUMAN REVIEWED
+                                    </span>
+</td>
+<td class="px-6 py-5 text-right font-manrope font-bold tabular-nums text-[#1d1b19]">
+                                    128,450,200.00
+                                </td>
+<td class="px-6 py-5 text-center">
+<button class="text-[#c5913e] hover:underline text-xs font-bold flex items-center justify-center gap-1 mx-auto">
+                                        查看详情
+                                        <span class="material-symbols-outlined text-xs" data-icon="chevron_right">chevron_right</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="bg-surface-container-lowest hover:bg-surface-container/30 transition-colors group">
+<td class="px-6 py-5">
+<div class="font-bold text-[#1d1b19]">腾讯科技（深圳）有限公司</div>
+<div class="text-xs text-on-surface-variant">现金流量表 (Cash Flow Statement)</div>
+</td>
+<td class="px-6 py-5 text-sm font-medium text-on-surface-variant">2023-11-23 16:45</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-error-container text-on-error-container">
+<span class="material-symbols-outlined text-xs" data-icon="warning">warning</span>
+                                        FLAGGED FOR REVIEW
+                                    </span>
+</td>
+<td class="px-6 py-5 text-right font-manrope font-bold tabular-nums text-[#1d1b19]">
+                                    92,000,540.00
+                                </td>
+<td class="px-6 py-5 text-center">
+<button class="text-[#c5913e] hover:underline text-xs font-bold flex items-center justify-center gap-1 mx-auto">
+                                        查看详情
+                                        <span class="material-symbols-outlined text-xs" data-icon="chevron_right">chevron_right</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="bg-surface hover:bg-surface-container/30 transition-colors group">
+<td class="px-6 py-5">
+<div class="font-bold text-[#1d1b19]">美团点评（北京）科技有限公司</div>
+<div class="text-xs text-on-surface-variant">年度财务摘要 (Annual Summary)</div>
+</td>
+<td class="px-6 py-5 text-sm font-medium text-on-surface-variant">2023-11-23 09:00</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#d5e3ff] text-[#003A70]">
+<span class="w-1.5 h-1.5 rounded-full bg-[#003A70] animate-pulse"></span>
+                                        AI GENERATED
+                                    </span>
+</td>
+<td class="px-6 py-5 text-right font-manrope font-bold tabular-nums text-[#1d1b19]">
+                                    34,120,000.00
+                                </td>
+<td class="px-6 py-5 text-center">
+<button class="text-[#c5913e] hover:underline text-xs font-bold flex items-center justify-center gap-1 mx-auto">
+                                        查看详情
+                                        <span class="material-symbols-outlined text-xs" data-icon="chevron_right">chevron_right</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Bento Section: AI Insights & Quick Actions -->
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-8 pb-12">
+<!-- Large Glassmorphism Card -->
+<div class="lg:col-span-3 bg-surface-container-lowest/85 backdrop-blur-xl p-8 shadow-2xl shadow-primary/5 relative border-t-2 border-[#c5913e]">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h5 class="text-lg font-bold text-[#00244a]">AI 异常检测分析</h5>
+<p class="text-xs text-on-surface-variant">基于深度学习的财务数据健康监测</p>
+</div>
+<span class="material-symbols-outlined text-secondary" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+<div class="space-y-4">
+<div class="p-4 bg-surface-container rounded-sm border-l-2 border-secondary">
+<p class="text-[10px] font-bold text-secondary mb-1">风险提示</p>
+<p class="text-sm font-medium text-[#1d1b19]">检测到中铁建设集团的现金流与往期相比存在 15% 的异常偏移，建议人工核实。</p>
+</div>
+<div class="p-4 bg-surface-container rounded-sm border-l-2 border-primary">
+<p class="text-[10px] font-bold text-primary mb-1">合规性</p>
+<p class="text-sm font-medium text-[#1d1b19]">当前 95% 的报告已完成增值税法合规性检查。</p>
+</div>
+</div>
+<!-- Decorative chart placeholder -->
+<div class="flex items-center justify-center bg-[#f4f4f2] h-40 relative overflow-hidden">
+<div class="absolute inset-0 flex items-end justify-around px-8 pb-4 opacity-30">
+<div class="w-8 bg-primary h-24"></div>
+<div class="w-8 bg-secondary h-32"></div>
+<div class="w-8 bg-primary h-16"></div>
+<div class="w-8 bg-secondary h-20"></div>
+</div>
+<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest relative z-10">Trend Visualization</p>
+</div>
+</div>
+</div>
+<!-- Vertical Quick Action Card -->
+<div class="bg-[#00244a] p-8 text-white flex flex-col justify-between">
+<div>
+<h5 class="text-lg font-manrope font-bold mb-4">快速导出中心</h5>
+<ul class="space-y-4">
+<li class="flex items-center gap-3 text-sm group cursor-pointer">
+<span class="material-symbols-outlined text-secondary text-sm" data-icon="file_present">file_present</span>
+<span class="group-hover:text-secondary-fixed transition-colors">PDF 标准财报</span>
+</li>
+<li class="flex items-center gap-3 text-sm group cursor-pointer">
+<span class="material-symbols-outlined text-secondary text-sm" data-icon="table_chart">table_chart</span>
+<span class="group-hover:text-secondary-fixed transition-colors">Excel 完整明细</span>
+</li>
+<li class="flex items-center gap-3 text-sm group cursor-pointer">
+<span class="material-symbols-outlined text-secondary text-sm" data-icon="analytics">analytics</span>
+<span class="group-hover:text-secondary-fixed transition-colors">AI 智能解读报告</span>
+</li>
+</ul>
+</div>
+<button class="w-full mt-8 py-3 bg-white/10 hover:bg-white/20 text-xs font-bold border border-white/20 transition-all uppercase tracking-widest">
+                        Manage Destinations
+                    </button>
+</div>
+</div>
+</section>
+</main>
+</body></html>

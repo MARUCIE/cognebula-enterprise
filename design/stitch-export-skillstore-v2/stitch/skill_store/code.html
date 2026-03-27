@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>灵阙财税 - 技能商店</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "secondary-fixed-dim": "#f6bc65",
+              "primary-container": "#003a70",
+              "secondary": "#815600",
+              "on-secondary": "#ffffff",
+              "on-surface": "#1a1c1b",
+              "on-primary-fixed": "#001c3b",
+              "on-primary-container": "#7ea5e2",
+              "inverse-on-surface": "#f1f1ef",
+              "surface-container-lowest": "#ffffff",
+              "secondary-container": "#ffc56d",
+              "on-surface-variant": "#434750",
+              "error-container": "#ffdad6",
+              "on-primary-fixed-variant": "#18477e",
+              "on-secondary-fixed": "#291800",
+              "inverse-surface": "#2f3130",
+              "surface-container-high": "#e8e8e6",
+              "on-error": "#ffffff",
+              "on-background": "#1a1c1b",
+              "tertiary": "#262422",
+              "surface-container-highest": "#e2e3e1",
+              "on-primary": "#ffffff",
+              "primary-fixed-dim": "#a6c8ff",
+              "outline": "#737781",
+              "on-tertiary": "#ffffff",
+              "tertiary-fixed-dim": "#cbc5c2",
+              "on-tertiary-fixed": "#1d1b19",
+              "secondary-fixed": "#ffddb1",
+              "tertiary-fixed": "#e7e1de",
+              "on-tertiary-container": "#a7a29f",
+              "surface-variant": "#e2e3e1",
+              "surface-container-low": "#f4f4f2",
+              "error": "#ba1a1a",
+              "on-secondary-container": "#785000",
+              "tertiary-container": "#3c3937",
+              "surface": "#f9f9f7",
+              "outline-variant": "#c3c6d1",
+              "background": "#f9f9f7",
+              "on-secondary-fixed-variant": "#614000",
+              "inverse-primary": "#a6c8ff",
+              "surface-container": "#eeeeec",
+              "surface-bright": "#f9f9f7",
+              "surface-tint": "#355f97",
+              "on-tertiary-fixed-variant": "#494644",
+              "primary-fixed": "#d5e3ff",
+              "surface-dim": "#dadad8",
+              "primary": "#00244a",
+              "on-error-container": "#93000a"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      body { background-color: #f9f9f7; font-family: 'Inter', sans-serif; }
+      .glass-effect { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); }
+    </style>
+</head>
+<body class="flex min-h-screen text-on-surface">
+<!-- Sidebar Navigation -->
+<aside class="w-[240px] h-screen sticky top-0 left-0 flex flex-col bg-[#f4f4f2] dark:bg-stone-900 font-['Manrope'] antialiased text-sm tracking-tight z-50 overflow-y-auto">
+<div class="flex flex-col h-full py-6 px-4">
+<!-- Brand Logo -->
+<div class="flex items-center gap-3 px-2 mb-8">
+<div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_balance</span>
+</div>
+<div>
+<h1 class="text-xl font-bold tracking-tight text-[#003A70] dark:text-blue-200">灵阙财税</h1>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant/70">AI-Staffed Firm</p>
+</div>
+</div>
+<!-- Main Navigation -->
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#434750] hover:bg-white/40 transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-lg">dashboard</span>
+<span>工作台</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#434750] hover:bg-white/40 transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-lg">groups</span>
+<span>AI团队</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#434750] hover:bg-white/40 transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-lg">person_book</span>
+<span>客户中心</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#434750] hover:bg-white/40 transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-lg">receipt_long</span>
+<span>智能报税</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#434750] hover:bg-white/40 transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-lg">assessment</span>
+<span>报告中心</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#003A70] font-bold border-r-4 border-[#815600] bg-white/50" href="#">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">storefront</span>
+<span>技能商店</span>
+</a>
+</nav>
+<div class="mt-auto space-y-6">
+<button class="w-full bg-primary text-white py-3 px-4 rounded-xl flex items-center justify-center gap-2 font-medium hover:opacity-90 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-sm">add</span>
+<span>发起新咨询</span>
+</button>
+<div class="pt-6 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-[#434750] hover:text-[#003A70]" href="#">
+<span class="material-symbols-outlined text-lg">settings</span>
+<span>设置</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#434750] hover:text-[#003A70]" href="#">
+<span class="material-symbols-outlined text-lg">help</span>
+<span>帮助中心</span>
+</a>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col min-w-0">
+<!-- Top Navigation (Shell Only) -->
+<header class="w-full h-16 sticky top-0 z-40 bg-[#f9f9f7]/80 backdrop-blur-md flex justify-between items-center px-8 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 text-sm font-medium text-[#434750]">
+<a class="hover:text-[#815600] transition-colors" href="#">企业概览</a>
+<a class="hover:text-[#815600] transition-colors" href="#">税务日历</a>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#434750] cursor-pointer hover:text-primary transition-colors">notifications</span>
+<span class="material-symbols-outlined text-[#434750] cursor-pointer hover:text-primary transition-colors">chat_bubble_outline</span>
+</div>
+<div class="h-8 w-8 rounded-full overflow-hidden bg-surface-container-high ring-1 ring-outline-variant/30">
+<img class="w-full h-full object-cover" data-alt="close up professional portrait of a business executive with friendly expression in a modern office" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDOaIH6bx786Zy7uFDCBrFz2vXCui2O19lXrhdt1PM-5anhI95XzndNyO1eDop8U5ipxthqD1JtWtKEHLJPWwTsT5oyHsMkKuQpaRqDJNuN9DSUwPrJs7TYfr7wAYlCE-0n1tprVlfpTiHLiDxlUTnIRQ6yydtE5BYVY6CsGQtfbOGH4WaC-A8N4rz5gVaV0es3RbtSJLuNCt2zY5dH3VgxBk8HnamvomJzDZlddPHi5qHLPDLUelbs4uEqB8W7N7sdglna3FueGj8q"/>
+</div>
+<button class="bg-[#00244a] text-white px-4 py-1.5 rounded text-sm font-medium hover:opacity-90 active:opacity-70 transition-all">导出报告</button>
+</div>
+</header>
+<!-- Hero Banner Section -->
+<section class="px-8 pt-8">
+<div class="rounded-2xl p-8 flex justify-between items-center bg-gradient-to-br from-[#003a70]/10 to-[#f9f9f7] relative overflow-hidden">
+<!-- Abstract Texture -->
+<div class="absolute inset-0 opacity-10 pointer-events-none">
+<div class="absolute top-0 right-0 w-64 h-64 bg-secondary rounded-full blur-[80px]"></div>
+</div>
+<div class="relative z-10">
+<h2 class="text-3xl font-headline font-extrabold text-[#00244a] mb-2">为您的 AI 员工招募新技能</h2>
+<p class="text-on-surface-variant font-medium opacity-80">基于 OpenClaw 的 37,000+ 技能生态</p>
+</div>
+<div class="relative z-10 w-96">
+<div class="flex items-center bg-white rounded-xl shadow-sm px-4 py-3 focus-within:ring-2 ring-secondary/20 transition-all">
+<span class="material-symbols-outlined text-on-surface-variant mr-3">search</span>
+<input class="border-none bg-transparent w-full text-sm focus:ring-0 p-0 placeholder:text-outline" placeholder="搜索技能、Agent或财税分类..." type="text"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Category Tabs -->
+<section class="px-8 mt-8">
+<div class="flex items-center gap-8 border-b border-surface-container-high">
+<button class="pb-3 text-sm font-medium text-on-surface-variant hover:text-primary transition-colors relative">
+                    全部 <span class="text-xs opacity-60 ml-1">(247)</span>
+</button>
+<button class="pb-3 text-sm font-bold text-[#003A70] relative">
+                    税务 <span class="text-xs opacity-60 ml-1">(86)</span>
+<div class="absolute bottom-0 left-0 w-full h-0.5 bg-[#815600]"></div>
+</button>
+<button class="pb-3 text-sm font-medium text-on-surface-variant hover:text-primary transition-colors relative">
+                    记账 <span class="text-xs opacity-60 ml-1">(45)</span>
+</button>
+<button class="pb-3 text-sm font-medium text-on-surface-variant hover:text-primary transition-colors relative">
+                    合规 <span class="text-xs opacity-60 ml-1">(52)</span>
+</button>
+<button class="pb-3 text-sm font-medium text-on-surface-variant hover:text-primary transition-colors relative">
+                    客户服务 <span class="text-xs opacity-60 ml-1">(38)</span>
+</button>
+<button class="pb-3 text-sm font-medium text-on-surface-variant hover:text-primary transition-colors relative">
+                    通用 <span class="text-xs opacity-60 ml-1">(26)</span>
+</button>
+</div>
+</section>
+<!-- Skill Cards Grid -->
+<section class="px-8 py-8 grid grid-cols-1 xl:grid-cols-3 gap-6">
+<!-- Card 1 -->
+<div class="bg-surface-container-lowest rounded-2xl p-6 shadow-sm border border-transparent hover:border-secondary/20 transition-all group">
+<div class="flex justify-between items-start mb-4">
+<div class="w-12 h-12 bg-primary-container/10 rounded-xl flex items-center justify-center text-primary-container font-bold text-xl">
+                        增
+                    </div>
+<div class="flex flex-col items-end">
+<span class="text-[#C5913E] text-sm font-black italic tracking-widest flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+                            GRADE S
+                        </span>
+</div>
+</div>
+<h3 class="text-lg font-bold text-primary mb-2">增值税申报检查</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed mb-6 h-10 overflow-hidden">自动检查增值税申报表的完整性和准确性，确保数据勾稽一致。</p>
+<div class="flex flex-wrap gap-2 mb-6">
+<span class="px-2 py-1 bg-surface-container-low text-[11px] text-on-surface-variant rounded-md font-medium">适用: 林税安</span>
+<span class="px-2 py-1 bg-surface-container-low text-[11px] text-on-surface-variant rounded-md font-medium">适用: 赵合规</span>
+</div>
+<button class="w-full py-2.5 rounded-xl bg-gradient-to-br from-[#00244a] to-[#003a70] text-white text-sm font-bold flex items-center justify-center gap-2 group-hover:shadow-md transition-all">
+<span class="material-symbols-outlined text-sm">download</span>
+                    安装技能
+                </button>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest rounded-2xl p-6 shadow-sm border border-transparent hover:border-secondary/20 transition-all group">
+<div class="flex justify-between items-start mb-4">
+<div class="w-12 h-12 bg-secondary-container/20 rounded-xl flex items-center justify-center text-secondary font-bold text-xl">
+                        税
+                    </div>
+<div class="flex flex-col items-end">
+<span class="text-primary-container text-sm font-black italic tracking-widest flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">verified_user</span>
+                            GRADE A
+                        </span>
+</div>
+</div>
+<h3 class="text-lg font-bold text-primary mb-2">企业所得税汇算</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed mb-6 h-10 overflow-hidden">智能匹配最新财税法规，自动生成年度汇算清缴报告与底稿。</p>
+<div class="flex flex-wrap gap-2 mb-6">
+<span class="px-2 py-1 bg-surface-container-low text-[11px] text-on-surface-variant rounded-md font-medium">适用: 林税安</span>
+</div>
+<button class="w-full py-2.5 rounded-xl bg-gradient-to-br from-[#00244a] to-[#003a70] text-white text-sm font-bold flex items-center justify-center gap-2 group-hover:shadow-md transition-all">
+<span class="material-symbols-outlined text-sm">download</span>
+                    安装技能
+                </button>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-lowest rounded-2xl p-6 shadow-sm border border-transparent hover:border-secondary/20 transition-all group">
+<div class="flex justify-between items-start mb-4">
+<div class="w-12 h-12 bg-[#81C784]/20 rounded-xl flex items-center justify-center text-[#2E7D32] font-bold text-xl">
+                        合
+                    </div>
+<div class="flex flex-col items-end">
+<span class="text-[#C5913E] text-sm font-black italic tracking-widest flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+                            GRADE S
+                        </span>
+</div>
+</div>
+<h3 class="text-lg font-bold text-primary mb-2">合规风险库同步</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed mb-6 h-10 overflow-hidden">实时同步全国财税合规风险库，根据历史行为精准预警潜在风险。</p>
+<div class="flex flex-wrap gap-2 mb-6">
+<span class="px-2 py-1 bg-surface-container-low text-[11px] text-on-surface-variant rounded-md font-medium">适用: 赵合规</span>
+</div>
+<button class="w-full py-2.5 rounded-xl bg-gradient-to-br from-[#00244a] to-[#003a70] text-white text-sm font-bold flex items-center justify-center gap-2 group-hover:shadow-md transition-all">
+<span class="material-symbols-outlined text-sm">download</span>
+                    安装技能
+                </button>
+</div>
+</section>
+<!-- Informative Intelligence Module -->
+<section class="px-8 pb-8">
+<div class="bg-surface-container-lowest rounded-2xl p-6 border-l-4 border-secondary/40 glass-effect">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-secondary">auto_awesome</span>
+<h4 class="font-bold text-primary">AI 智能推荐</h4>
+</div>
+<p class="text-sm text-on-surface-variant leading-relaxed">基于您当前的“服务业”客户群及“季度末”时点，建议优先部署 <span class="text-secondary font-bold">外币报表折算</span> 与 <span class="text-secondary font-bold">研发费用加计扣除</span> 技能模块。这些模块能有效提升林税安在即将到来的纳税期处理效率 45% 以上。</p>
+</div>
+</section>
+</main>
+<!-- Right Sidebar: Installed Skills -->
+<aside class="w-[280px] bg-white h-screen sticky top-0 right-0 border-l border-surface-container-high p-6 flex flex-col overflow-y-auto z-30">
+<header class="flex justify-between items-center mb-8">
+<h2 class="text-base font-bold text-primary">已安装技能 <span class="text-on-surface-variant/50 font-medium ml-1">(47)</span></h2>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:rotate-90 transition-transform">sync</span>
+</header>
+<!-- Group: 林税安 -->
+<div class="mb-8">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-8 h-8 rounded-full bg-primary-fixed overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="professional woman in corporate attire, realistic AI persona avatar portrait with soft professional lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuASBOnccVkApKYap7FvKPGAsMeqaQzVE8MyzqrK4uxYlrvQu73FIY_ay9dCBPP9ki8SbNzu65sotbFDQfBDuGFiXGEw5S81Uz6sHsdwmdJVAzoVy9NQ5u01oRqrj5jC6yiRZ_RCFbdvsiOqDfXA8M0_8CpJL6EENrgMWp8YFckEXub0nw3pPwIknrvWiaAahlfFvK_lZm3H_pF8M1t6x_C_C83hhrMlEazaeQVGIu9rBLQncskwma-lKi9yfZrH5VdQ9mgcgFtINQ9F"/>
+</div>
+<div>
+<h3 class="text-sm font-bold text-primary">林税安</h3>
+<p class="text-[10px] text-on-surface-variant">12项技能已部署</p>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-container-low transition-colors group">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 rounded-full bg-secondary"></div>
+<span class="text-xs text-on-surface-variant">发票勾选确认</span>
+</div>
+<span class="material-symbols-outlined text-[14px] text-outline opacity-0 group-hover:opacity-100 cursor-pointer">settings</span>
+</div>
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-container-low transition-colors group">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 rounded-full bg-secondary"></div>
+<span class="text-xs text-on-surface-variant">个税计算器</span>
+</div>
+<span class="material-symbols-outlined text-[14px] text-outline opacity-0 group-hover:opacity-100 cursor-pointer">settings</span>
+</div>
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-container-low transition-colors group">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 rounded-full bg-secondary"></div>
+<span class="text-xs text-on-surface-variant">纳税信用云监控</span>
+</div>
+<span class="material-symbols-outlined text-[14px] text-outline opacity-0 group-hover:opacity-100 cursor-pointer">settings</span>
+</div>
+</div>
+</div>
+<!-- Group: 赵合规 -->
+<div class="mb-8">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-8 h-8 rounded-full bg-tertiary-fixed overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="sharp focused portrait of a mature male executive in formal suit, serious expression, high-end studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtH88Aj8fGb8qxkhW1BMkcShqhk0ZdhS3S3sPWiNXLH2pUbGuPDXelDWglHVbCzzd-cuuAm6tc08YXU7VL7W9Rgs2cKJPIGAbLPc1y0PNrXDlcIauxcfCQMXfal6pPivkxWCqxoho0-YGrstfGxwUBb2z8L1QndrTn2FucbJcKoWL5JxGnT-f9Sp6dMH49IJIAfqsmMti22io8YCh9MzQd-ZfDGLJQQGJvYBOJKLEPOSwtKbS0b66IzPrvy0N23WBe3YXA05UZ3psI"/>
+</div>
+<div>
+<h3 class="text-sm font-bold text-primary">赵合规</h3>
+<p class="text-[10px] text-on-surface-variant">8项技能已部署</p>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-container-low transition-colors group">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 rounded-full bg-error/40"></div>
+<span class="text-xs text-on-surface-variant">两税比对分析</span>
+</div>
+<span class="material-symbols-outlined text-[14px] text-outline opacity-0 group-hover:opacity-100 cursor-pointer">settings</span>
+</div>
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-container-low transition-colors group">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 rounded-full bg-error/40"></div>
+<span class="text-xs text-on-surface-variant">异常发票实时熔断</span>
+</div>
+<span class="material-symbols-outlined text-[14px] text-outline opacity-0 group-hover:opacity-100 cursor-pointer">settings</span>
+</div>
+</div>
+</div>
+<div class="mt-auto pt-6 border-t border-surface-container-high text-center">
+<p class="text-[11px] text-on-surface-variant/60 leading-tight">灵阙财税技能库严格遵守国家网络安全及金融数据处理合规标准。</p>
+</div>
+</aside>
+</body></html>

@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Manrope:wght@500;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "tertiary-container": "#632901",
+                        "tertiary": "#421800",
+                        "on-tertiary-fixed-variant": "#73350c",
+                        "surface-variant": "#e2e3e1",
+                        "on-surface-variant": "#434750",
+                        "inverse-primary": "#a6c8ff",
+                        "on-tertiary-container": "#e48f60",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb68f",
+                        "surface-bright": "#f9f9f7",
+                        "primary-fixed": "#d5e3ff",
+                        "on-primary-fixed-variant": "#18477e",
+                        "secondary": "#815600",
+                        "on-primary-fixed": "#001c3b",
+                        "on-primary": "#ffffff",
+                        "on-surface": "#1a1c1b",
+                        "on-secondary-fixed": "#291800",
+                        "inverse-on-surface": "#f1f1ef",
+                        "on-secondary-fixed-variant": "#614000",
+                        "on-error-container": "#93000a",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#785000",
+                        "secondary-container": "#ffc56d",
+                        "surface-container": "#eeeeec",
+                        "surface-container-high": "#e8e8e6",
+                        "outline": "#737781",
+                        "surface-tint": "#355f97",
+                        "surface-dim": "#dadad8",
+                        "error": "#ba1a1a",
+                        "surface": "#f9f9f7",
+                        "background": "#f9f9f7",
+                        "on-error": "#ffffff",
+                        "secondary-fixed-dim": "#f6bc65",
+                        "outline-variant": "#c3c6d1",
+                        "on-primary-container": "#7ea5e2",
+                        "surface-container-low": "#f4f4f2",
+                        "tertiary-fixed": "#ffdbca",
+                        "primary": "#00244a",
+                        "surface-container-highest": "#e2e3e1",
+                        "inverse-surface": "#2f3130",
+                        "secondary-fixed": "#ffddb1",
+                        "primary-fixed-dim": "#a6c8ff",
+                        "on-secondary": "#ffffff",
+                        "primary-container": "#003a70",
+                        "error-container": "#ffdad6",
+                        "on-background": "#1a1c1b",
+                        "on-tertiary-fixed": "#331100"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Manrope', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased flex">
+<!-- SideNavBar (Authority: JSON) -->
+<aside class="w-[240px] h-screen fixed left-0 top-0 bg-[#f4f4f2] dark:bg-slate-900 flex flex-col h-full py-6 font-manrope text-sm z-50">
+<div class="px-6 mb-8 flex items-center gap-3">
+<div class="w-10 h-10 bg-primary-container rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">account_balance</span>
+</div>
+<div>
+<div class="text-lg font-black text-[#003A70]">灵阙财税</div>
+<div class="text-[10px] text-on-surface-variant uppercase tracking-widest">AI 智能财税专家</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-6 py-3 text-[#434750] dark:text-slate-400 hover:text-[#003A70] dark:hover:text-blue-300 transition-all active:scale-95" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>工作台</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-[#434750] dark:text-slate-400 hover:text-[#003A70] dark:hover:text-blue-300 transition-all active:scale-95" href="#">
+<span class="material-symbols-outlined">smart_toy</span>
+<span>AI 团队</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-[#434750] dark:text-slate-400 hover:text-[#003A70] dark:hover:text-blue-300 transition-all active:scale-95" href="#">
+<span class="material-symbols-outlined">group</span>
+<span>客户中心</span>
+</a>
+<!-- Active State: 智能报税 -->
+<a class="flex items-center gap-3 px-6 py-3 text-[#1d1b19] dark:text-white border-l-4 border-[#815600] bg-[#eeeeec] dark:bg-slate-800 transition-all" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">receipt_long</span>
+<span class="font-bold">智能报税</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-[#434750] dark:text-slate-400 hover:text-[#003A70] dark:hover:text-blue-300 transition-all active:scale-95" href="#">
+<span class="material-symbols-outlined">assessment</span>
+<span>报告中心</span>
+</a>
+</nav>
+<div class="px-6 mt-auto">
+<button class="w-full py-3 bg-gradient-to-b from-primary to-primary-container text-white rounded-lg font-bold flex items-center justify-center gap-2 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-sm">add</span>
+<span>发起新任务</span>
+</button>
+<div class="mt-6 border-t border-outline-variant opacity-20 pt-4">
+<a class="flex items-center gap-3 text-[#434750] dark:text-slate-400 hover:text-error transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span>退出登录</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 ml-[240px] min-h-screen">
+<!-- TopAppBar (Authority: JSON) -->
+<header class="w-full top-0 sticky bg-[#f9f9f7] dark:bg-slate-950 flex justify-between items-center h-16 px-8 w-full z-40 font-manrope antialiased">
+<div class="flex items-center gap-6">
+<h1 class="text-2xl font-bold text-[#003A70] dark:text-blue-500 tracking-tight">智能报税</h1>
+<nav class="hidden md:flex gap-6 text-sm">
+<a class="text-[#003A70] font-bold border-b-2 border-[#815600] pb-1" href="#">当前进度</a>
+<a class="text-[#434750] dark:text-slate-400 hover:bg-[#eeeeec] px-2 py-1 rounded transition-colors" href="#">历史申报</a>
+<a class="text-[#434750] dark:text-slate-400 hover:bg-[#eeeeec] px-2 py-1 rounded transition-colors" href="#">税收政策</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative flex items-center bg-[#f4f4f2] rounded-full px-4 py-1.5">
+<span class="material-symbols-outlined text-outline text-sm">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-48 placeholder:text-outline" placeholder="搜索报表、文档..." type="text"/>
+</div>
+<div class="flex items-center gap-3">
+<button class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:bg-[#eeeeec] rounded-full transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:bg-[#eeeeec] rounded-full transition-colors">
+<span class="material-symbols-outlined">help</span>
+</button>
+<div class="h-8 w-[1px] bg-outline-variant opacity-30 mx-1"></div>
+<div class="flex items-center gap-2 pl-2">
+<img alt="User Avatar" class="w-8 h-8 rounded-full object-cover grayscale" data-alt="close-up portrait of a professional businessman in a navy suit against a clean studio background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCwaSUOp1pQOl6dO_0lfs2e99TCCT8iaHa3Ex79SIDEFp71gjRuQgClbBhnG1zZHbnKd9Xtwwc0pkNz6ShiJVNbS9AxCSu_vkTQDG8MT9uj1BoTeiJZtee2zjvHW6dyad6YEXk24Bs4KXQwDAbMP0WmF0dDl1-9SOL7RDLOirJuj5iFWAUAbsExQ2J5a4wKYdhfE9lANiWjMopC-JwAdT0KFJqX67aOhh-hGR07LmYU4wYJJFl19udQe_xlZ0ZwcfnC7OOghunTWmuW"/>
+<span class="text-sm font-semibold text-primary">陈会计</span>
+</div>
+</div>
+</div>
+</header>
+<!-- Page Canvas -->
+<div class="p-10 space-y-12 max-w-[1400px]">
+<!-- AI Progress Tracker (Bento Layout) -->
+<section>
+<div class="flex items-center justify-between mb-8">
+<div>
+<h2 class="text-3xl font-extrabold text-[#1d1b19] tracking-tight">2024年Q3 季度税收申报进度</h2>
+<p class="text-on-surface-variant mt-1">AI 正在根据最新的财务数据实时同步您的税务报表。</p>
+</div>
+<div class="flex items-center gap-4">
+<span class="flex items-center gap-2 px-3 py-1 bg-primary-fixed text-primary text-xs font-bold rounded-full">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                            AI 正在处理
+                        </span>
+<div class="text-right">
+<div class="text-xs text-on-surface-variant uppercase font-bold tracking-widest">截止日期</div>
+<div class="text-lg font-bold text-error">2024-10-15</div>
+</div>
+</div>
+</div>
+<!-- Process Flow Cards -->
+<div class="grid grid-cols-4 gap-6">
+<!-- Step 1: Data Collection -->
+<div class="bg-surface-container-lowest p-6 rounded-lg relative overflow-hidden group">
+<div class="absolute top-0 left-0 w-full h-1 bg-secondary opacity-20"></div>
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">folder_open</span>
+</div>
+<span class="material-symbols-outlined text-secondary">check_circle</span>
+</div>
+<h3 class="font-bold text-lg mb-1">数据采集</h3>
+<p class="text-xs text-on-surface-variant">发票、银行流水已同步</p>
+<div class="mt-6 h-1 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-full"></div>
+</div>
+</div>
+<!-- Step 2: Verification (Current) -->
+<div class="bg-surface-container-lowest p-6 rounded-lg relative overflow-hidden ring-1 ring-primary-container shadow-2xl shadow-primary/5">
+<div class="absolute top-0 left-0 w-full h-1 bg-primary"></div>
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">fact_check</span>
+</div>
+<span class="text-xs font-bold text-primary">进行中</span>
+</div>
+<h3 class="font-bold text-lg mb-1">智能核验</h3>
+<p class="text-xs text-on-surface-variant">正在进行税务合规性审查</p>
+<div class="mt-6 h-1 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary w-2/3"></div>
+</div>
+</div>
+<!-- Step 3: Filing -->
+<div class="bg-surface-container-low p-6 rounded-lg opacity-60">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center">
+<span class="material-symbols-outlined text-outline">send_and_archive</span>
+</div>
+</div>
+<h3 class="font-bold text-lg mb-1">系统申报</h3>
+<p class="text-xs text-on-surface-variant">待核验完成后自动发起</p>
+</div>
+<!-- Step 4: Confirmation -->
+<div class="bg-surface-container-low p-6 rounded-lg opacity-60">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center">
+<span class="material-symbols-outlined text-outline">verified</span>
+</div>
+</div>
+<h3 class="font-bold text-lg mb-1">申报完成</h3>
+<p class="text-xs text-on-surface-variant">等待税局回执</p>
+</div>
+</div>
+</section>
+<!-- Review Needed & Summary (Asymmetric Grid) -->
+<section class="grid grid-cols-12 gap-10">
+<!-- Left: Review Needed -->
+<div class="col-span-8 space-y-6">
+<div class="flex items-center justify-between">
+<h2 class="text-xl font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-error">warning</span>
+                            待人工复核事项
+                        </h2>
+<span class="text-sm font-medium text-on-surface-variant">共 3 项异常</span>
+</div>
+<!-- Review Cards -->
+<div class="space-y-4">
+<!-- Card 1 -->
+<div class="bg-surface-container-lowest p-5 rounded flex items-center gap-6 group hover:shadow-lg hover:shadow-black/5 transition-all">
+<div class="w-14 h-14 bg-[#fef2f2] rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-[#991b1b]" style="font-variation-settings: 'FILL' 1;">description</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-bold text-[#1d1b19]">差旅发票存疑</span>
+<span class="px-2 py-0.5 bg-error-container text-on-error-container text-[10px] font-bold rounded">高风险</span>
+</div>
+<p class="text-sm text-on-surface-variant">发票号码：77210034，金额 ¥4,200.00。AI 识别为非经营性支出，请核实其业务相关性。</p>
+</div>
+<div class="flex flex-col items-end gap-2">
+<button class="px-4 py-2 border-2 border-outline-variant text-xs font-bold hover:bg-surface-container transition-colors">查看详情</button>
+<div class="text-[10px] text-on-surface-variant">15分钟前更新</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest p-5 rounded flex items-center gap-6 group hover:shadow-lg hover:shadow-black/5 transition-all">
+<div class="w-14 h-14 bg-surface-container rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">sync_problem</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-bold text-[#1d1b19]">银行流水未对账</span>
+<span class="px-2 py-0.5 bg-secondary-container text-on-secondary-container text-[10px] font-bold rounded">待处理</span>
+</div>
+<p class="text-sm text-on-surface-variant">存在一笔 ¥128,000.00 的入账缺少对应的业务合同样本，可能影响进项抵扣。</p>
+</div>
+<div class="flex flex-col items-end gap-2">
+<button class="px-4 py-2 border-2 border-outline-variant text-xs font-bold hover:bg-surface-container transition-colors">补录附件</button>
+<div class="text-[10px] text-on-surface-variant">1小时前更新</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-lowest p-5 rounded flex items-center gap-6 group hover:shadow-lg hover:shadow-black/5 transition-all">
+<div class="w-14 h-14 bg-surface-container rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">calculate</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-bold text-[#1d1b19]">研发费用加计扣除校验</span>
+<span class="px-2 py-0.5 bg-primary-fixed text-primary text-[10px] font-bold rounded">建议核查</span>
+</div>
+<p class="text-sm text-on-surface-variant">AI 识别到新的研发立项，是否将相关人力成本纳入本季申报范围？</p>
+</div>
+<div class="flex flex-col items-end gap-2">
+<button class="px-4 py-2 border-2 border-outline-variant text-xs font-bold hover:bg-surface-container transition-colors">立即确认</button>
+<div class="text-[10px] text-on-surface-variant">2小时前更新</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right: Summary Sidebar -->
+<div class="col-span-4 space-y-6">
+<div class="bg-primary text-white p-8 rounded relative overflow-hidden">
+<!-- Background Pattern -->
+<div class="absolute inset-0 opacity-10 pointer-events-none">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 100 100">
+<path d="M0 0 L100 0 L100 100 Z" fill="white"></path>
+</svg>
+</div>
+<div class="relative z-10">
+<div class="flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="text-xs font-bold uppercase tracking-widest opacity-80">AI 税务简报</span>
+</div>
+<div class="space-y-6">
+<div>
+<div class="text-sm opacity-70">预计应缴纳税额</div>
+<div class="text-4xl font-black font-headline tracking-tighter mt-1">¥ 45,829.30</div>
+</div>
+<div class="h-[1px] bg-white opacity-20"></div>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<div class="text-[10px] opacity-70 uppercase">增值税</div>
+<div class="text-lg font-bold">¥ 32,100.00</div>
+</div>
+<div>
+<div class="text-[10px] opacity-70 uppercase">附加税</div>
+<div class="text-lg font-bold">¥ 3,210.00</div>
+</div>
+</div>
+<button class="w-full py-4 bg-secondary text-white font-bold text-sm tracking-wide rounded hover:bg-[#a67100] transition-colors flex items-center justify-center gap-2">
+<span>确认并生成报表</span>
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-low p-6 rounded border-l-4 border-secondary">
+<h4 class="font-bold text-sm mb-4">税务优化建议</h4>
+<ul class="space-y-3">
+<li class="flex gap-3 text-sm">
+<span class="material-symbols-outlined text-secondary text-lg">lightbulb</span>
+<span class="text-on-surface-variant">识别到 2 项符合高新企业减税政策的支出，建议更新资质。</span>
+</li>
+<li class="flex gap-3 text-sm">
+<span class="material-symbols-outlined text-secondary text-lg">lightbulb</span>
+<span class="text-on-surface-variant">当前社保基数调整可节约本季人力成本约 ¥3,400。</span>
+</li>
+</ul>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded space-y-4">
+<div class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">实时合规雷达</div>
+<div class="relative h-48 w-full flex items-center justify-center">
+<!-- Simulated Chart Aesthetic -->
+<div class="w-32 h-32 rounded-full border-8 border-surface-container flex items-center justify-center relative">
+<div class="absolute inset-0 rounded-full border-8 border-primary border-t-transparent -rotate-45"></div>
+<div class="text-center">
+<div class="text-2xl font-black text-primary">98%</div>
+<div class="text-[10px] text-on-surface-variant font-bold">合规指数</div>
+</div>
+</div>
+</div>
+<p class="text-[10px] text-center text-on-surface-variant px-4">基于当前 1,204 条财务记录与最新税法实时比对</p>
+</div>
+</div>
+</section>
+<!-- Sophisticated Data Table (Table for context) -->
+<section class="bg-surface-container-low rounded-lg overflow-hidden">
+<div class="px-8 py-6 flex items-center justify-between bg-surface-container">
+<h2 class="text-lg font-bold">本期进项发票明细 (待核验)</h2>
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-2 text-sm text-primary font-bold">
+<span class="material-symbols-outlined text-sm">download</span>
+                            导出明细
+                        </button>
+</div>
+</div>
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+<th class="px-8 py-4">发票号码</th>
+<th class="px-8 py-4">销方名称</th>
+<th class="px-8 py-4">开票日期</th>
+<th class="px-8 py-4">项目类型</th>
+<th class="px-8 py-4 text-right">含税总计</th>
+<th class="px-8 py-4 text-right">状态</th>
+</tr>
+</thead>
+<tbody class="text-sm divide-y divide-outline-variant/10">
+<tr class="bg-white hover:bg-surface transition-colors">
+<td class="px-8 py-4 font-mono">0032149582</td>
+<td class="px-8 py-4 font-bold text-primary">北京宏达科技有限公司</td>
+<td class="px-8 py-4">2024-09-12</td>
+<td class="px-8 py-4">技术服务费</td>
+<td class="px-8 py-4 text-right font-medium">¥ 12,000.00</td>
+<td class="px-8 py-4 text-right">
+<span class="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded">自动核验通过</span>
+</td>
+</tr>
+<tr class="bg-surface-container-lowest hover:bg-surface transition-colors">
+<td class="px-8 py-4 font-mono">0032149583</td>
+<td class="px-8 py-4 font-bold text-primary">上海润丰办公设备中心</td>
+<td class="px-8 py-4">2024-09-15</td>
+<td class="px-8 py-4">办公用品</td>
+<td class="px-8 py-4 text-right font-medium">¥ 1,240.00</td>
+<td class="px-8 py-4 text-right">
+<span class="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded">自动核验通过</span>
+</td>
+</tr>
+<tr class="bg-white hover:bg-surface transition-colors">
+<td class="px-8 py-4 font-mono text-error">0032149584</td>
+<td class="px-8 py-4 font-bold text-primary">广州某某餐饮管理有限公司</td>
+<td class="px-8 py-4">2024-09-18</td>
+<td class="px-8 py-4">差旅餐费</td>
+<td class="px-8 py-4 text-right font-medium">¥ 4,200.00</td>
+<td class="px-8 py-4 text-right">
+<span class="px-2 py-0.5 bg-error-container text-on-error-container text-[10px] font-bold rounded">需要人工干预</span>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="px-8 py-4 bg-surface-container flex justify-center">
+<button class="text-xs font-bold text-on-surface-variant hover:text-primary transition-colors">查看全部 142 张发票</button>
+</div>
+</section>
+</div>
+</main>
+<!-- Floating AI Assistant (Signature Glassmorphism) -->
+<div class="fixed bottom-10 right-10 z-[60]">
+<div class="bg-surface-container-lowest/85 backdrop-blur-[20px] shadow-2xl shadow-primary/10 rounded-xl p-4 w-[320px] ring-1 ring-outline-variant/20">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-secondary flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-sm" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+</div>
+<div>
+<div class="text-xs font-bold">灵阙 AI 助手</div>
+<div class="text-[10px] text-green-600 flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-green-600 animate-pulse"></span>
+                        在线为您服务
+                    </div>
+</div>
+</div>
+<div class="bg-surface-container-low rounded p-3 mb-4">
+<p class="text-xs leading-relaxed text-on-surface">您好！检测到 Q3 季度还有 3 项异常未处理，可能会影响您的申报速度。需要我现在为您自动生成合规说明吗？</p>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 py-2 bg-primary text-white text-[10px] font-bold rounded transition-all active:scale-95">是的，请生成</button>
+<button class="flex-1 py-2 border border-outline-variant text-[10px] font-bold rounded hover:bg-surface-container transition-all">稍后处理</button>
+</div>
+</div>
+</div>
+</body></html>

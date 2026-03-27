@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>灵阙融合 -- 多表面架构设计 v1.0</title>
+<style>
+  :root {
+    --mckinsey-blue: #003A70;
+    --mckinsey-blue-light: #E8EFF5;
+    --mckinsey-blue-mid: #1B5297;
+    --mckinsey-accent: #0070C0;
+    --mckinsey-gold: #C5913E;
+    --mckinsey-dark: #1A1A2E;
+    --mckinsey-text: #2C2C2C;
+    --mckinsey-text-secondary: #5A5A5A;
+    --mckinsey-surface: #FFFFFF;
+    --mckinsey-surface-alt: #F7F8FA;
+    --mckinsey-border: #E2E5EA;
+    --mckinsey-success: #1B7A4E;
+    --mckinsey-warning: #C5913E;
+    --mckinsey-danger: #C44536;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "Source Han Serif SC", "Noto Serif CJK SC", Georgia, "Times New Roman", serif;
+    color: var(--mckinsey-text);
+    background: var(--mckinsey-surface);
+    line-height: 1.85;
+    -webkit-font-smoothing: antialiased;
+    word-break: keep-all;
+  }
+
+  /* Hero */
+  .hero {
+    background: linear-gradient(135deg, var(--mckinsey-blue) 0%, var(--mckinsey-dark) 100%);
+    color: #fff;
+    padding: 5vw 0 4vw;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero > * {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 4vw;
+    padding-right: 4vw;
+  }
+  .hero::after {
+    content: "";
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 40%;
+    background: linear-gradient(135deg, transparent 0%, rgba(197, 145, 62, 0.08) 100%);
+  }
+  .hero-tag {
+    font-family: "Inter", "SF Pro", system-ui, sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--mckinsey-gold);
+    margin-bottom: 1.5rem;
+  }
+  .hero h1 {
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+    font-weight: 800;
+    line-height: 1.3;
+    margin-bottom: 1rem;
+    max-width: 800px;
+  }
+  .hero-subtitle {
+    font-size: 1rem;
+    opacity: 0.75;
+    max-width: 720px;
+    line-height: 1.8;
+  }
+  .hero-meta {
+    margin-top: 2rem;
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 0.75rem;
+    opacity: 0.5;
+    letter-spacing: 0.05em;
+  }
+
+  /* Container */
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 4vw;
+  }
+
+  /* Section */
+  .section {
+    padding: 4rem 0 3rem;
+    border-bottom: 1px solid var(--mckinsey-border);
+  }
+  .section:last-of-type { border-bottom: none; }
+
+  .section-number {
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--mckinsey-accent);
+    margin-bottom: 0.75rem;
+  }
+  .section h2 {
+    font-size: clamp(1.3rem, 2.2vw, 1.7rem);
+    font-weight: 700;
+    color: var(--mckinsey-blue);
+    margin-bottom: 1.5rem;
+    line-height: 1.4;
+  }
+  .section h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--mckinsey-text);
+    margin: 2rem 0 0.75rem;
+  }
+  p { margin-bottom: 1rem; }
+
+  /* Verdict Banner */
+  .verdict-banner {
+    background: var(--mckinsey-blue-light);
+    border-left: 4px solid var(--mckinsey-blue);
+    padding: 1.5rem 2rem;
+    margin: 2rem 0;
+    border-radius: 0 8px 8px 0;
+  }
+  .verdict-banner strong {
+    color: var(--mckinsey-blue);
+    font-size: 1.05rem;
+  }
+  .verdict-banner p {
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+    color: var(--mckinsey-text-secondary);
+    font-size: 0.92rem;
+  }
+
+  /* Key Insight box */
+  .insight-box {
+    background: linear-gradient(135deg, #FDF6EB 0%, #F9EDD8 100%);
+    border-left: 4px solid var(--mckinsey-gold);
+    padding: 1.5rem 2rem;
+    margin: 1.5rem 0;
+    border-radius: 0 8px 8px 0;
+  }
+  .insight-box .label {
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--mckinsey-gold);
+    margin-bottom: 0.5rem;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-size: 0.88rem;
+  }
+  thead th {
+    background: var(--mckinsey-blue);
+    color: #fff;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.8rem;
+    letter-spacing: 0.03em;
+  }
+  thead th:first-child { border-radius: 6px 0 0 0; }
+  thead th:last-child { border-radius: 0 6px 0 0; }
+  tbody td {
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--mckinsey-border);
+    vertical-align: top;
+  }
+  tbody tr:nth-child(even) { background: var(--mckinsey-surface-alt); }
+  tbody tr:hover { background: var(--mckinsey-blue-light); }
+
+  /* Architecture diagram */
+  .arch-diagram {
+    background: var(--mckinsey-dark);
+    color: #E0E0E0;
+    padding: 2rem;
+    border-radius: 8px;
+    margin: 1.5rem 0;
+    font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+    font-size: 0.78rem;
+    line-height: 1.7;
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  /* Priority cards */
+  .priority-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.2rem;
+    margin: 1.5rem 0;
+  }
+  .priority-card {
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid var(--mckinsey-border);
+  }
+  .priority-card.p0 { border-left: 4px solid var(--mckinsey-danger); }
+  .priority-card.p1 { border-left: 4px solid var(--mckinsey-warning); }
+  .priority-card.p2 { border-left: 4px solid var(--mckinsey-accent); }
+  .priority-card.p3 { border-left: 4px solid var(--mckinsey-border); }
+  .priority-card .tag {
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+  }
+  .priority-card.p0 .tag { color: var(--mckinsey-danger); }
+  .priority-card.p1 .tag { color: var(--mckinsey-warning); }
+  .priority-card.p2 .tag { color: var(--mckinsey-accent); }
+  .priority-card.p3 .tag { color: var(--mckinsey-text-secondary); }
+  .priority-card h4 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  .priority-card p {
+    font-size: 0.85rem;
+    color: var(--mckinsey-text-secondary);
+    margin-bottom: 0;
+  }
+
+  /* ADR table */
+  .adr-id {
+    font-family: "Inter", system-ui, sans-serif;
+    font-weight: 700;
+    color: var(--mckinsey-accent);
+    font-size: 0.8rem;
+  }
+
+  /* Swarm contribution */
+  .swarm-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+    margin: 1.5rem 0;
+  }
+  .swarm-card {
+    padding: 1.5rem;
+    border-radius: 8px;
+    background: var(--mckinsey-surface-alt);
+    border: 1px solid var(--mckinsey-border);
+  }
+  .swarm-card .name {
+    font-family: "Inter", system-ui, sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--mckinsey-blue);
+    margin-bottom: 0.25rem;
+  }
+  .swarm-card .role {
+    font-size: 0.75rem;
+    color: var(--mckinsey-text-secondary);
+    margin-bottom: 0.75rem;
+  }
+  .swarm-card .insight {
+    font-size: 0.88rem;
+    font-style: italic;
+    line-height: 1.7;
+  }
+
+  /* Not-build list */
+  .not-build {
+    background: #FFF5F5;
+    border-left: 4px solid var(--mckinsey-danger);
+    padding: 1.5rem 2rem;
+    margin: 1.5rem 0;
+    border-radius: 0 8px 8px 0;
+  }
+  .not-build .label {
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--mckinsey-danger);
+    margin-bottom: 0.5rem;
+  }
+  .not-build ul {
+    margin-left: 1.2rem;
+    font-size: 0.9rem;
+    color: var(--mckinsey-text-secondary);
+  }
+  .not-build li { margin-bottom: 0.3rem; }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 60px 20px 40px;
+    color: #9B9B9D;
+    font-size: 13px;
+    line-height: 2.2;
+    font-family: "Inter", system-ui, sans-serif;
+  }
+
+  @media (max-width: 768px) {
+    .hero { padding: 8vw 0; }
+    .hero > * { padding-left: 5vw; padding-right: 5vw; }
+    .hero h1 { max-width: 100%; }
+    .hero-subtitle { max-width: 100%; }
+    .container { padding: 0 5vw; }
+    .swarm-grid { grid-template-columns: 1fr; }
+    .priority-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<header class="hero">
+  <div class="hero-tag">Architecture Decision Record</div>
+  <h1>灵阙融合多表面架构设计</h1>
+  <p class="hero-subtitle">
+    4 路蜂群共识：从 4 个独立表面收敛为 2 个部署应用 + 2 个渲染变体。
+    架构边界由数据权限划定，不由 UI 复杂度划定。
+  </p>
+  <div class="hero-meta">v1.0 | 2026-03-27 | Swarm Consensus (Drucker / Jobs / Hickey / Hara)</div>
+</header>
+
+<div class="container">
+
+  <!-- Section 1: Problem -->
+  <section class="section">
+    <div class="section-number">Section 01</div>
+    <h2>问题重述：为什么 4 个表面是伪命题</h2>
+
+    <p>最初的提案包含 4 个独立用户界面：</p>
+
+    <table>
+      <thead>
+        <tr><th>#</th><th>表面</th><th>目标用户</th><th>当前状态</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>S1</td><td>PC 工作台</td><td>客户（老板/CFO）</td><td>已建成 10 页</td></tr>
+        <tr><td>S2</td><td>专家工作台</td><td>内部专家</td><td>遗留 D3.js</td></tr>
+        <tr><td>S3</td><td>运营后台</td><td>平台运营者</td><td>未建</td></tr>
+        <tr><td>S4</td><td>移动客户端</td><td>客户（手机）</td><td>未建</td></tr>
+      </tbody>
+    </table>
+
+    <div class="verdict-banner">
+      <strong>蜂群判决：4 个表面是一种 Complection（编织）</strong>
+      <p>真实结构是 2 种信息需求（客户 vs 内部）+ 2 种渲染密度（桌面 vs 移动）。
+         S2 和 S3 服务同一类用户（内部团队），深度不同而已。
+         S4 是 S1 的不同渲染方式，不是独立系统。</p>
+    </div>
+
+    <div class="insight-box">
+      <div class="label">CORE PRINCIPLE</div>
+      <p style="margin-bottom:0; font-size:1.05rem; font-weight:600; color:var(--mckinsey-blue);">
+        架构边界应由数据权限划定，不由 UI 复杂度或部署便利性划定。
+        当你看到 4 个"东西"时，先问它们是不是 2 个东西的 2 种渲染。
+      </p>
+    </div>
+  </section>
+
+  <!-- Section 2: Target Architecture -->
+  <section class="section">
+    <div class="section-number">Section 02</div>
+    <h2>目标架构：2 个应用，1 个 Monorepo</h2>
+
+    <div class="arch-diagram">
+lingque-fusion/
+├── packages/                          # 共享代码
+│   ├── ui/                            # 设计组件（按钮、卡片、布局）
+│   ├── api-client/                    # 类型安全 API Client（3 个后端子系统）
+│   ├── auth/                          # JWT 验证 + RBAC 中间件
+│   └── types/                         # 共享领域类型（Agent, Task, Client）
+│
+├── apps/
+│   ├── office/                        # 表面 A：客户侧（PC + PWA）
+│   │   └── src/app/                   #   10 页已建成
+│   │       ├── page.tsx               #   今日概览
+│   │       ├── ai-team/               #   AI 团队 + 专家工作站
+│   │       ├── tax/ clients/ ...      #   报税 / 客户 / 合规 / 审计 / 报告
+│   │       ├── skills/                #   技能商店 (OpenClaw)
+│   │       └── settings/              #   系统设置
+│   │
+│   └── internal/                      # 表面 B：平台内部
+│       └── src/app/
+│           ├── (ops)/                 #   运营路由组：客户健康 / Agent 指标 / 账单
+│           ├── (expert)/              #   专家路由组：KG Explorer / 推理链 / 规则调试
+│           └── (shared)/              #   共享路由组：登录 / 设置
+│
+└── [后端子系统不变]</div>
+
+    <h3>为什么是 2 而不是 4</h3>
+    <table>
+      <thead>
+        <tr><th>原则</th><th>应用</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>架构边界 = 数据权限边界</td><td>客户看自己的数据；内部看全部数据。这才是真正的边界</td></tr>
+        <tr><td>Expert + Ops 是同一类用户的不同深度</td><td>都是"运营平台的团队" -- 按 Tab 分区，不按 App 分离</td></tr>
+        <tr><td>Mobile 是渲染变体而非新关注点</td><td>同样的信息需求（委托工作），不同的密度。PWA + 微信优先</td></tr>
+        <tr><td>1 人团队只能维护 2 个应用</td><td>界面通货膨胀（Interface Inflation）是产品死亡的真实原因</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Section 3: Surface Definitions -->
+  <section class="section">
+    <div class="section-number">Section 03</div>
+    <h2>表面定义与设计语言</h2>
+
+    <h3>表面 A：Office（客户工作台）</h3>
+    <table>
+      <thead>
+        <tr><th>维度</th><th>定义</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>用户</td><td>财税公司老板、CFO、财务总监</td></tr>
+        <tr><td>隐喻</td><td>走进虚拟办公室，7 个 AI 员工在工作</td></tr>
+        <tr><td>信息密度</td><td>中（聊天 + 看板 + 审批）</td></tr>
+        <tr><td>交互模式</td><td>委托式（"帮我做 XX"）</td></tr>
+        <tr><td>数据权限</td><td>仅自己公司的 Agent、任务、工作流；仅命名 KG 查询</td></tr>
+        <tr><td>设计语言</td><td><strong>Digital Atelier</strong> -- Heritage Blue + Prestige Gold + Cream，充足留白，低密度</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>移动策略（Phase 6+）：</strong>PWA manifest + 微信服务号模板消息推送 + H5 审批页。
+       移动端只做 3 件事：审批 / 异常感知 / 快速对话。Native App 仅在验证实际使用模式后考虑。</p>
+
+    <h3>表面 B：Internal（内部控制台）</h3>
+    <table>
+      <thead>
+        <tr><th>路由组</th><th>角色要求</th><th>功能</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>(ops)</code></td><td>admin</td><td>多租户客户健康矩阵、Agent 性能看板、计费管理、系统告警、技能策展</td></tr>
+        <tr><td><code>(expert)</code></td><td>expert 或 admin</td><td>KG Explorer (D3.js)、推理链查看器、合规规则调试器、数据质量审计</td></tr>
+        <tr><td><code>(shared)</code></td><td>任意内部角色</td><td>登录、个人设置</td></tr>
+      </tbody>
+    </table>
+    <p><strong>设计语言：</strong>Bloomberg Ops（运营）+ Terminal Academia（专家）。
+       深色侧边栏、高密度表格、状态色放大、KG Explorer 使用力导向图 + 等宽标签。</p>
+  </section>
+
+  <!-- Section 4: API Architecture -->
+  <section class="section">
+    <div class="section-number">Section 04</div>
+    <h2>API 架构：无网关，直连后端</h2>
+
+    <div class="arch-diagram">
+┌──────────────┐         ┌──────────────┐
+│  apps/office │         │apps/internal │
+└──────┬───────┘         └──────┬───────┘
+       │    packages/api-client  │
+       │    (类型安全, JWT 附带) │
+   ┌───┴─────────────────────────┴───┐
+   │         REST API 层              │
+   │    (JSON 信封, JWT 鉴权)         │
+   ├──────────┬──────────┬───────────┤
+   │          │          │           │
+   ▼          ▼          ▼           │
+ Agent      KG         OpenClaw     │
+ Runtime    Semantic    Skills      │
+ (FastAPI   Layer       API         │
+ +PG)       (FastAPI    (CF Workers │
+ :8400      +Kuzu       +D1)        │
+            +Lance)                 │
+└────────────────────────────────────┘
+  各子系统：独立部署、独立鉴权、独立失败</div>
+
+    <h3>KG 访问三层模型</h3>
+    <table>
+      <thead>
+        <tr><th>层级</th><th>端点</th><th>角色</th><th>用途</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>T1 命名查询</td><td><code>/api/kg/query/{name}</code></td><td>customer+</td><td>参数化查询，返回结构化结果</td></tr>
+        <tr><td>T2 探索模板</td><td><code>/api/kg/explore</code></td><td>expert+</td><td>15 个图遍历模板（expand_node, trace_path, subgraph...）</td></tr>
+        <tr><td>T3 原始查询</td><td><code>/api/kg/admin/raw</code></td><td>admin only</td><td>Ad-hoc Cypher（带查询成本限制），YAGNI 直到验证需求</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Section 5: Auth -->
+  <section class="section">
+    <div class="section-number">Section 05</div>
+    <h2>认证与权限：单 JWT，三角色</h2>
+
+    <div class="arch-diagram">
+interface JWTPayload {
+  sub: string                              // 用户 ID
+  role: 'customer' | 'expert' | 'admin'   // 单一角色
+  org_id: string                           // 客户公司 ID 或 'platform'
+}</div>
+
+    <table>
+      <thead>
+        <tr><th>角色</th><th>apps/office</th><th>internal (ops)</th><th>internal (expert)</th><th>KG T1</th><th>KG T2</th><th>KG T3</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>customer</td><td>完全访问</td><td>403</td><td>403</td><td>Yes</td><td>No</td><td>No</td></tr>
+        <tr><td>expert</td><td>只读（调试）</td><td>403</td><td>完全访问</td><td>Yes</td><td>Yes</td><td>No</td></tr>
+        <tr><td>admin</td><td>完全访问</td><td>完全访问</td><td>完全访问</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+      </tbody>
+    </table>
+
+    <p>前端 middleware 负责路由级访问控制。后端负责数据级访问控制（基于 org_id 的行级安全）。
+       不需要 OAuth Provider 或 Authorization Server -- 3 个角色不值得那个复杂度。</p>
+  </section>
+
+  <!-- Section 6: Priority -->
+  <section class="section">
+    <div class="section-number">Section 06</div>
+    <h2>构建优先级</h2>
+
+    <div class="priority-grid">
+      <div class="priority-card p0">
+        <div class="tag">P0 -- 立即</div>
+        <h4>Office 迭代</h4>
+        <p>10 页已建成。下一步：添加 accountability 层（谁做了什么决策、出错通知机制），让老板信任 AI 的工作。</p>
+      </div>
+      <div class="priority-card p1">
+        <div class="tag">P1 -- 下一冲刺</div>
+        <h4>Internal (Ops)</h4>
+        <p>运营可见性 = 扩张前提。先建 3 页：客户健康矩阵、Agent 性能看板、系统告警。没有它只能服务 5 个客户。</p>
+      </div>
+      <div class="priority-card p2">
+        <div class="tag">P2 -- P1 之后</div>
+        <h4>Internal (Expert)</h4>
+        <p>迁移遗留 D3.js KG Explorer 到 Internal App。新增推理链查看器。连接 KG Semantic Layer T2 端点。</p>
+      </div>
+      <div class="priority-card p3">
+        <div class="tag">P3 -- Phase 6+</div>
+        <h4>移动 PWA + 微信</h4>
+        <p>先用真实客户验证移动使用模式 3 个月。PWA manifest + 微信服务号 + H5 审批页。Native App 仅在验证后考虑。</p>
+      </div>
+    </div>
+
+    <div class="not-build">
+      <div class="label">EXPLICITLY NOT BUILDING</div>
+      <ul>
+        <li>独立 Expert Workbench 应用（合并进 Internal App 的 Tab）</li>
+        <li>独立 Mobile App（PWA + 微信服务号代替）</li>
+        <li>API Gateway（直连 3 个后端子系统，避免编织失败域）</li>
+        <li>OAuth Authorization Server（单 JWT 足够）</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Section 7: ADR -->
+  <section class="section">
+    <div class="section-number">Section 07</div>
+    <h2>架构决策记录（ADR）</h2>
+
+    <table>
+      <thead>
+        <tr><th>编号</th><th>决策</th><th>选择</th><th>否决</th><th>理由</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="adr-id">ADR-S1</td><td>表面数量</td><td>2 个应用</td><td>4 个应用</td><td>数据权限边界 = 架构边界</td></tr>
+        <tr><td class="adr-id">ADR-S2</td><td>移动策略</td><td>PWA + 微信</td><td>Native App</td><td>1 人团队无法维护 iOS + Android</td></tr>
+        <tr><td class="adr-id">ADR-S3</td><td>代码组织</td><td>Monorepo (turborepo)</td><td>多仓库</td><td>共享包消除重复，应用保持隔离</td></tr>
+        <tr><td class="adr-id">ADR-S4</td><td>API 拓扑</td><td>直连，无网关</td><td>统一网关</td><td>避免编织失败域，网关增加延迟和单点故障</td></tr>
+        <tr><td class="adr-id">ADR-S5</td><td>认证模型</td><td>单 JWT + 角色声明</td><td>OAuth + 授权服务器</td><td>3 个角色不值得那个复杂度</td></tr>
+        <tr><td class="adr-id">ADR-S6</td><td>KG 访问</td><td>三层递进</td><td>开放 Cypher</td><td>15 个探索模板覆盖 95% 专家需求</td></tr>
+        <tr><td class="adr-id">ADR-S7</td><td>专家工作台</td><td>Internal App 路由组</td><td>独立应用</td><td>同一用户群，同一数据权限，Tab 分离即可</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Section 8: Swarm -->
+  <section class="section">
+    <div class="section-number">Section 08</div>
+    <h2>蜂群顾问贡献</h2>
+
+    <div class="swarm-grid">
+      <div class="swarm-card">
+        <div class="name">Peter Drucker</div>
+        <div class="role">产品战略 / 客户定义 / 优先级</div>
+        <div class="insight">"管理的前提是可见性。S3（运营后台）最紧迫 -- 看不到客户健康状态，谈什么扩张？Mobile 推迟 6 个月，用企业微信 webhook 代替。"</div>
+      </div>
+      <div class="swarm-card">
+        <div class="name">Steve Jobs</div>
+        <div class="role">用户体验 / 设计系统 / 品牌</div>
+        <div class="insight">"一套 Tokens，四套 Visual Language。品牌一致性不在颜色和圆角，在术语和状态色。Mobile 只做 3 件事：审批、异常、快聊。其他全砍。"</div>
+      </div>
+      <div class="swarm-card">
+        <div class="name">Rich Hickey</div>
+        <div class="role">技术架构 / 简单性 / 状态管理</div>
+        <div class="insight">"4 表面 → 3 关注点 + 1 渲染变体 → 2 个应用。不要加 API Gateway -- 那是把 3 个独立失败域编织在一起。前端不持有任何 source-of-truth 状态。"</div>
+      </div>
+      <div class="swarm-card">
+        <div class="name">Kenya Hara</div>
+        <div class="role">极简审计 / 存在性检验</div>
+        <div class="insight">"Expert Workbench 没有不可替代的功能 -- 全部属于 Ops 后台的调试 Tab。一个人的团队只负担得起一张客户的脸、一张自己的脸。空白本身就是潜力。"</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <p>灵阙融合 v1.0 -- Multi-Surface Architecture Decision Record</p>
+  <p>Maurice | maurice_wen@proton.me</p>
+  <p style="font-size:12px; margin-top:8px;">2026-03-27 | Swarm consensus from Drucker / Jobs / Hickey / Hara advisors</p>
+</footer>
+
+</body>
+</html>

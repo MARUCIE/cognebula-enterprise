@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-container": "#632901",
+              "tertiary": "#421800",
+              "on-tertiary-fixed-variant": "#73350c",
+              "surface-variant": "#e2e3e1",
+              "on-surface-variant": "#434750",
+              "inverse-primary": "#a6c8ff",
+              "on-tertiary-container": "#e48f60",
+              "on-tertiary": "#ffffff",
+              "tertiary-fixed-dim": "#ffb68f",
+              "surface-bright": "#f9f9f7",
+              "primary-fixed": "#d5e3ff",
+              "on-primary-fixed-variant": "#18477e",
+              "secondary": "#815600",
+              "on-primary-fixed": "#001c3b",
+              "on-primary": "#ffffff",
+              "on-surface": "#1a1c1b",
+              "on-secondary-fixed": "#291800",
+              "inverse-on-surface": "#f1f1ef",
+              "on-secondary-fixed-variant": "#614000",
+              "on-error-container": "#93000a",
+              "surface-container-lowest": "#ffffff",
+              "on-secondary-container": "#785000",
+              "secondary-container": "#ffc56d",
+              "surface-container": "#eeeeec",
+              "surface-container-high": "#e8e8e6",
+              "outline": "#737781",
+              "surface-tint": "#355f97",
+              "surface-dim": "#dadad8",
+              "error": "#ba1a1a",
+              "surface": "#f9f9f7",
+              "background": "#f9f9f7",
+              "on-error": "#ffffff",
+              "secondary-fixed-dim": "#f6bc65",
+              "outline-variant": "#c3c6d1",
+              "on-primary-container": "#7ea5e2",
+              "surface-container-low": "#f4f4f2",
+              "tertiary-fixed": "#ffdbca",
+              "primary": "#00244a",
+              "surface-container-highest": "#e2e3e1",
+              "inverse-surface": "#2f3130",
+              "secondary-fixed": "#ffddb1",
+              "primary-fixed-dim": "#a6c8ff",
+              "on-secondary": "#ffffff",
+              "primary-container": "#003a70",
+              "error-container": "#ffdad6",
+              "on-background": "#1a1c1b",
+              "on-tertiary-fixed": "#331100"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f9f9f7;
+      }
+      .font-manrope { font-family: 'Manrope', sans-serif; }
+      .glass-modal {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(20px);
+      }
+      .ai-glow-active {
+        box-shadow: 0 0 15px rgba(213, 227, 255, 0.8);
+      }
+    </style>
+</head>
+<body class="text-on-surface antialiased">
+<!-- SideNavBar Shell -->
+<aside class="w-[240px] h-screen fixed left-0 top-0 bg-[#f4f4f2] dark:bg-slate-900 flex flex-col h-full py-6 font-manrope text-sm z-50">
+<div class="px-6 mb-8">
+<h1 class="text-lg font-black text-[#003A70]">灵阙财税</h1>
+<p class="text-xs text-on-surface-variant">AI 智能财税专家</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-6 py-3 text-[#434750] dark:text-slate-400 hover:text-[#003A70] dark:hover:text-blue-300 transition-all active:scale-95" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>工作台</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-[#1d1b19] dark:text-white border-l-4 border-[#815600] bg-[#eeeeec] dark:bg-slate-800 active:scale-95" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+<span class="font-bold">AI 团队</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-[#434750] dark:text-slate-400 hover:text-[#003A70] dark:hover:text-blue-300 transition-all active:scale-95" href="#">
+<span class="material-symbols-outlined">group</span>
+<span>客户中心</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-[#434750] dark:text-slate-400 hover:text-[#003A70] dark:hover:text-blue-300 transition-all active:scale-95" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span>智能报税</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-[#434750] dark:text-slate-400 hover:text-[#003A70] dark:hover:text-blue-300 transition-all active:scale-95" href="#">
+<span class="material-symbols-outlined">assessment</span>
+<span>报告中心</span>
+</a>
+</nav>
+<div class="px-6 mt-4">
+<button class="w-full bg-primary-container text-white py-3 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-sm">add</span>
+<span>发起新任务</span>
+</button>
+</div>
+<div class="mt-auto border-t border-outline-variant border-opacity-10 pt-4">
+<a class="flex items-center gap-3 px-6 py-3 text-[#434750] dark:text-slate-400 hover:text-[#003A70] transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span>退出登录</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-[240px] min-h-screen">
+<!-- TopAppBar Shell -->
+<header class="w-full top-0 sticky bg-[#f9f9f7] dark:bg-slate-950 flex justify-between items-center h-16 px-8 w-full z-40">
+<div class="flex items-center gap-4">
+<h2 class="text-xl font-bold font-manrope text-primary tracking-tight">AI 团队管理</h2>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+<span class="absolute -top-1 -right-1 w-2 h-2 bg-secondary rounded-full"></span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">help</span>
+<span class="material-symbols-outlined text-on-surface-variant">settings</span>
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container">
+<img alt="User Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkPN0JMa-xD3Ttrwg6h3XdmnPGlsJdw6ybcFUHiXDPR5Lptsy5CCpYejsATCNOuL_n47EDSKjMl6Bd9GIXDhKgtYV69mnqIk6T8w3ysqM8nbrfiPxldRtS1RbW9B5QQNY4nNBaz8xEHJQkR_qAlAMSi8fBwneXgImZ36yP6nusEmAe-Ah6XfLFCxZaKFxFpgRHHXHEnO2E8J3nvsEcRgSLiIxDAcB55L3_WdUMNVG1tiniHTCtJeg_iehdoZC_utuOqnR7RZZyMw8x"/>
+</div>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="p-8 max-w-7xl mx-auto space-y-12">
+<!-- Hero Stats Section -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-surface-container-low p-6 rounded-xl border-l-4 border-primary">
+<p class="text-on-surface-variant text-xs mb-1">团队活跃度</p>
+<h3 class="text-3xl font-manrope font-extrabold text-primary">98.4%</h3>
+<div class="mt-4 flex items-center gap-2">
+<span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+<span class="text-xs text-on-surface-variant">所有系统运行正常</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl border-l-4 border-secondary">
+<p class="text-on-surface-variant text-xs mb-1">本月处理任务</p>
+<h3 class="text-3xl font-manrope font-extrabold text-primary">1,284</h3>
+<p class="mt-4 text-xs text-secondary font-medium">+12% 较上月增长</p>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl border-l-4 border-outline-variant">
+<p class="text-on-surface-variant text-xs mb-1">平均响应时间</p>
+<h3 class="text-3xl font-manrope font-extrabold text-primary">1.2s</h3>
+<p class="mt-4 text-xs text-on-surface-variant">全天候实时响应</p>
+</div>
+</section>
+<!-- AI Agents Directory (Bento Grid) -->
+<section class="space-y-6">
+<div class="flex justify-between items-end">
+<div>
+<h3 class="text-2xl font-manrope font-bold text-primary">专项 AI 专家目录</h3>
+<p class="text-on-surface-variant">管理并分配您的自动化财税团队</p>
+</div>
+<button class="text-secondary font-bold text-sm flex items-center gap-1 hover:underline">
+                        查看全部团队成员 <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Agent 1: Tax Specialist -->
+<div class="md:col-span-8 bg-surface-container-lowest p-8 rounded-xl relative overflow-hidden flex flex-col justify-between min-h-[320px]">
+<div class="absolute top-0 right-0 p-8">
+<span class="bg-green-100 text-green-800 text-[10px] font-bold px-3 py-1 rounded-full flex items-center gap-1">
+<span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span> 正在运行 (Active)
+                            </span>
+</div>
+<div class="flex items-start gap-6">
+<div class="w-20 h-20 bg-primary rounded-xl flex items-center justify-center ai-glow-active">
+<span class="material-symbols-outlined text-white text-4xl">receipt_long</span>
+</div>
+<div class="space-y-2">
+<h4 class="text-2xl font-bold text-primary">税务专家 AI</h4>
+<p class="text-on-surface-variant max-w-md">专注于增值税、企业所得税申报及税务筹划建议。具备全行业税务法规实时更新库。</p>
+</div>
+</div>
+<div class="mt-12 grid grid-cols-3 gap-8">
+<div>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-wider font-bold">本月申报</p>
+<p class="text-xl font-manrope font-bold text-primary">150 份</p>
+</div>
+<div>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-wider font-bold">合规评分</p>
+<p class="text-xl font-manrope font-bold text-secondary">100.0</p>
+</div>
+<div>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-wider font-bold">节省税款</p>
+<p class="text-xl font-manrope font-bold text-primary">¥1.2M</p>
+</div>
+</div>
+<div class="mt-8 flex gap-3">
+<button class="bg-primary text-white px-6 py-2.5 rounded text-sm font-bold flex items-center gap-2 hover:opacity-90">
+<span class="material-symbols-outlined text-sm">assignment_turned_in</span> 分配任务
+                            </button>
+<button class="bg-surface-container text-on-surface-variant px-6 py-2.5 rounded text-sm font-bold hover:bg-surface-container-high transition-colors">
+                                配置参数
+                            </button>
+</div>
+<div class="absolute -bottom-10 -right-10 opacity-5">
+<span class="material-symbols-outlined text-[200px]" style="font-variation-settings: 'FILL' 1;">receipt_long</span>
+</div>
+</div>
+<!-- Agent 2: Audit Specialist -->
+<div class="md:col-span-4 bg-surface-container-lowest p-8 rounded-xl border border-outline-variant border-opacity-20 flex flex-col">
+<div class="flex justify-between items-start mb-6">
+<div class="w-14 h-14 bg-surface-container rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-2xl">policy</span>
+</div>
+<span class="bg-secondary-container text-on-secondary-container text-[10px] font-bold px-3 py-1 rounded-full">
+                                深度训练中 (Training)
+                            </span>
+</div>
+<h4 class="text-xl font-bold text-primary mb-2">审计专家 AI</h4>
+<p class="text-on-surface-variant text-sm flex-1 leading-relaxed">
+                            自动扫描账目风险，提供内部控制建议。当前正在学习“2024最新跨国避税审计准则”。
+                        </p>
+<div class="mt-6 pt-6 border-t border-surface-container">
+<div class="flex justify-between text-xs mb-2">
+<span class="text-on-surface-variant">训练进度</span>
+<span class="font-bold">78%</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
+<div class="bg-secondary h-full w-[78%]"></div>
+</div>
+</div>
+<button class="mt-8 w-full border border-primary text-primary px-6 py-2.5 rounded text-sm font-bold hover:bg-primary-fixed transition-colors">
+                            查看审计轨迹
+                        </button>
+</div>
+<!-- Agent 3: Payroll Specialist -->
+<div class="md:col-span-4 bg-surface-container-lowest p-8 rounded-xl border border-outline-variant border-opacity-20 flex flex-col">
+<div class="flex justify-between items-start mb-6">
+<div class="w-14 h-14 bg-surface-container rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-2xl">person_pin</span>
+</div>
+<span class="bg-surface-container text-on-surface-variant text-[10px] font-bold px-3 py-1 rounded-full">
+                                空闲 (Idle)
+                            </span>
+</div>
+<h4 class="text-xl font-bold text-primary mb-2">薪酬专家 AI</h4>
+<p class="text-on-surface-variant text-sm flex-1 leading-relaxed">
+                            处理全国社保核算、个税扣缴及工资单分发。
+                        </p>
+<div class="mt-6 flex items-center gap-4">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border-2 border-white bg-blue-100 flex items-center justify-center text-[10px]">HR</div>
+<div class="w-6 h-6 rounded-full border-2 border-white bg-orange-100 flex items-center justify-center text-[10px]">FIN</div>
+</div>
+<span class="text-[10px] text-on-surface-variant">已连接 2 个业务模块</span>
+</div>
+<button class="mt-8 w-full bg-primary text-white px-6 py-2.5 rounded text-sm font-bold hover:opacity-90">
+                            立即唤醒
+                        </button>
+</div>
+<!-- AI Insights Card -->
+<div class="md:col-span-8 glass-modal rounded-xl p-8 border border-white flex gap-8 items-center">
+<div class="w-24 h-24 flex-shrink-0">
+<img class="w-full h-full object-cover rounded-full" data-alt="Futuristic glowing AI sphere with floating particles, deep blue and gold colors, soft bioluminescent light on a clean desk surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjJHhlUWs1jT04KbtJTaQ2y906iOtwS500nhiPHJUId-dL7J0JPn1I2h_KlQFY3UDl_J_tlBhMWkW0tcsfIcGFciYBe87nAzURHUrAqjn8reP9xdWMPUS4yaHcyq-jgUxz5PK9OpnjUravEGzNSIWWrKYz67sFdCH3r4ffoSaipdCgCQ_CmoKqVUPFbDo-hkNeP6sJc2ZmWTWe2uwJSpRrxFwpcQxm7TQEsmiqTuYpOUUNMfSX-NrH4t2sVl9RcaVhc1Q4li8KNOF9"/>
+</div>
+<div class="space-y-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<h5 class="text-sm font-bold text-secondary uppercase tracking-widest">AI 团队智能建议</h5>
+</div>
+<p class="text-lg text-primary leading-tight font-medium">
+                                “根据近期增值税进项数据分析，建议‘税务专家 AI’在下周开启针对电子信息行业的专项核销策略。”
+                            </p>
+<button class="text-primary text-sm font-bold flex items-center gap-2 hover:opacity-70 transition-opacity">
+                                立即应用此建议 <span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Active Workflows / Queue -->
+<section class="space-y-6">
+<h3 class="text-xl font-manrope font-bold text-primary">实时工作队列</h3>
+<div class="bg-surface-container-low rounded-lg overflow-hidden">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container border-b border-outline-variant border-opacity-10">
+<th class="px-6 py-4 text-xs font-bold text-on-surface-variant">任务详情</th>
+<th class="px-6 py-4 text-xs font-bold text-on-surface-variant">分配专家</th>
+<th class="px-6 py-4 text-xs font-bold text-on-surface-variant">优先级</th>
+<th class="px-6 py-4 text-xs font-bold text-on-surface-variant">状态</th>
+<th class="px-6 py-4 text-xs font-bold text-on-surface-variant text-right">操作</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant divide-opacity-5">
+<tr class="bg-surface hover:bg-surface-container-lowest transition-colors">
+<td class="px-6 py-5">
+<div class="flex flex-col">
+<span class="font-bold text-primary">Q3 企业所得税预缴申报</span>
+<span class="text-xs text-on-surface-variant">截止日期: 2024-10-15</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-primary">receipt_long</span>
+<span class="text-sm">税务专家 AI</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="text-xs font-bold text-error bg-error-container px-2 py-0.5 rounded">紧急</span>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+<span class="text-sm">正在计算 (85%)</span>
+</div>
+</td>
+<td class="px-6 py-5 text-right">
+<button class="text-primary text-sm font-bold hover:underline">详情</button>
+</td>
+</tr>
+<tr class="bg-surface-container-lowest hover:bg-surface transition-colors">
+<td class="px-6 py-5">
+<div class="flex flex-col">
+<span class="font-bold text-primary">9月份全员社保汇缴核对</span>
+<span class="text-xs text-on-surface-variant">关联单据: 450张</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-primary">person_pin</span>
+<span class="text-sm">薪酬专家 AI</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="text-xs font-bold text-primary bg-primary-fixed px-2 py-0.5 rounded">普通</span>
+</td>
+<td class="px-6 py-5">
+<span class="text-sm text-on-surface-variant italic">队列中</span>
+</td>
+<td class="px-6 py-5 text-right">
+<button class="text-primary text-sm font-bold hover:underline">调整</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+</main>
+</body></html>

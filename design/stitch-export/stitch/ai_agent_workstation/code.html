@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+
+<html class="light" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary-fixed": "#291800",
+              "secondary-container": "#ffc56d",
+              "surface-variant": "#e2e3e1",
+              "surface-dim": "#dadad8",
+              "on-surface": "#1a1c1b",
+              "on-surface-variant": "#434750",
+              "surface-container-low": "#f4f4f2",
+              "primary": "#00244a",
+              "surface-container-high": "#e8e8e6",
+              "surface": "#f9f9f7",
+              "primary-fixed": "#d5e3ff",
+              "tertiary": "#421800",
+              "on-tertiary-fixed-variant": "#73350c",
+              "tertiary-fixed-dim": "#ffb68f",
+              "on-secondary-fixed-variant": "#614000",
+              "tertiary-container": "#632901",
+              "surface-tint": "#355f97",
+              "surface-bright": "#f9f9f7",
+              "error": "#ba1a1a",
+              "secondary-fixed": "#ffddb1",
+              "on-tertiary-fixed": "#331100",
+              "surface-container": "#eeeeec",
+              "tertiary-fixed": "#ffdbca",
+              "inverse-on-surface": "#f1f1ef",
+              "primary-fixed-dim": "#a6c8ff",
+              "primary-container": "#003a70",
+              "error-container": "#ffdad6",
+              "on-primary-container": "#7ea5e2",
+              "surface-container-highest": "#e2e3e1",
+              "surface-container-lowest": "#ffffff",
+              "outline": "#737781",
+              "inverse-surface": "#2f3130",
+              "on-error-container": "#93000a",
+              "on-background": "#1a1c1b",
+              "inverse-primary": "#a6c8ff",
+              "on-tertiary-container": "#e48f60",
+              "secondary-fixed-dim": "#f6bc65",
+              "secondary": "#815600",
+              "on-error": "#ffffff",
+              "background": "#f9f9f7",
+              "on-tertiary": "#ffffff",
+              "on-secondary-container": "#785000",
+              "on-primary-fixed": "#001c3b",
+              "on-primary-fixed-variant": "#18477e",
+              "on-primary": "#ffffff",
+              "outline-variant": "#c3c6d1",
+              "on-secondary": "#ffffff"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; background-color: #f9f9f7; }
+        .font-manrope { font-family: 'Manrope', sans-serif; }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- SideNavBar Integration -->
+<aside class="fixed left-0 top-0 h-screen w-[240px] z-50 bg-[#f4f4f2] dark:bg-slate-900 flex flex-col h-full py-8">
+<div class="px-6 mb-10">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-primary rounded-sm flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-sm" style="font-variation-settings: 'FILL' 1;">account_balance</span>
+</div>
+<div>
+<h1 class="text-lg font-bold text-[#1d1b19] dark:text-slate-100 font-manrope leading-tight">Precision &amp; Prestige</h1>
+<p class="text-[10px] text-on-surface-variant tracking-widest uppercase">The Digital Registrar</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<div class="group flex items-center py-3 text-[#1d1b19] dark:text-white border-l-4 border-[#815600] pl-3 cursor-pointer transition-colors duration-200 font-manrope text-sm font-medium tracking-tight">
+<span class="material-symbols-outlined mr-3 text-[#003A70]">dashboard</span>
+                工作台
+            </div>
+<div class="group flex items-center py-3 text-[#434750] dark:text-slate-400 pl-4 hover:bg-[#eeeeec] dark:hover:bg-slate-800 cursor-pointer transition-colors duration-200 font-manrope text-sm font-medium tracking-tight">
+<span class="material-symbols-outlined mr-3">groups</span>
+                AI 团队
+            </div>
+<div class="group flex items-center py-3 text-[#434750] dark:text-slate-400 pl-4 hover:bg-[#eeeeec] dark:hover:bg-slate-800 cursor-pointer transition-colors duration-200 font-manrope text-sm font-medium tracking-tight">
+<span class="material-symbols-outlined mr-3">person_book</span>
+                客户中心
+            </div>
+<div class="group flex items-center py-3 text-[#434750] dark:text-slate-400 pl-4 hover:bg-[#eeeeec] dark:hover:bg-slate-800 cursor-pointer transition-colors duration-200 font-manrope text-sm font-medium tracking-tight">
+<span class="material-symbols-outlined mr-3">account_balance_wallet</span>
+                智能报税
+            </div>
+<div class="group flex items-center py-3 text-[#434750] dark:text-slate-400 pl-4 hover:bg-[#eeeeec] dark:hover:bg-slate-800 cursor-pointer transition-colors duration-200 font-manrope text-sm font-medium tracking-tight">
+<span class="material-symbols-outlined mr-3">description</span>
+                报告中心
+            </div>
+</nav>
+<div class="mt-auto px-4 space-y-1 border-t border-outline-variant/10 pt-6">
+<div class="flex items-center py-2 text-[#434750] pl-4 hover:bg-[#eeeeec] cursor-pointer transition-colors font-manrope text-sm font-medium">
+<span class="material-symbols-outlined mr-3">settings</span>
+                设置
+            </div>
+<div class="flex items-center py-2 text-[#434750] pl-4 hover:bg-[#eeeeec] cursor-pointer transition-colors font-manrope text-sm font-medium">
+<span class="material-symbols-outlined mr-3">help</span>
+                帮助
+            </div>
+</div>
+</aside>
+<!-- TopNavBar Integration -->
+<header class="fixed top-0 right-0 left-[240px] h-16 z-40 bg-[#f9f9f7]/85 backdrop-blur-xl border-b border-slate-200/15 flex justify-between items-center px-8 w-full">
+<div class="flex items-center gap-8">
+<div class="flex items-center bg-surface-container px-3 py-1.5 rounded-lg border border-outline-variant/20">
+<span class="material-symbols-outlined text-on-surface-variant text-xl mr-2">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-64 placeholder:text-on-surface-variant/50" placeholder="搜索工作流、文件或客户..." type="text"/>
+</div>
+<nav class="flex gap-6">
+<a class="text-[#003A70] font-bold border-b-2 border-[#815600] pb-1 font-manrope text-base" href="#">仪表盘</a>
+<a class="text-[#434750] hover:text-[#815600] transition-all font-manrope text-base" href="#">任务</a>
+<a class="text-[#434750] hover:text-[#815600] transition-all font-manrope text-base" href="#">通知</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<button class="bg-gradient-to-b from-primary to-primary-container text-white px-5 py-2 rounded-sm font-manrope font-semibold text-sm shadow-sm active:scale-95 transition-transform">
+                新建任务
+            </button>
+<div class="flex gap-4 text-on-surface-variant">
+<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors">notifications</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors">settings</span>
+<div class="w-8 h-8 rounded-full bg-surface-container-high overflow-hidden border border-outline-variant/30">
+<img alt="User Profile Avatar" class="w-full h-full object-cover" data-alt="professional portrait of a confident male executive in a neutral studio setting with soft lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzmsACF0eiRdZtiTQaASy6ROqWWESicTzn4HUOU___eRm3wchrKbrxGzut3tQ0_Hf-X21Ril5hRnL1ehxN0yQJWuEUtNj6-Qa8hnbph1vWdhR6u9_QM7tVkOKfSle26V4nrEIa0gn4-dS0YWQGrfkuMXCxfTsZqAorfGPOXIYRQlwIwiIMAwLrwheIRY0vo9-TqiC_vMpAXxnTcP6HxxXMvpms0YT5Z0dBfqRrcglnexZHMP4jv01WH3khloe7x15VvDsbuEFvFbie"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="ml-[240px] pt-16 min-h-screen">
+<div class="p-8 max-w-[1400px] mx-auto grid grid-cols-12 gap-8">
+<!-- Left Panel (320px logic) -->
+<div class="col-span-12 lg:col-span-3 space-y-8 min-w-[320px]">
+<!-- Agent Badge Card -->
+<section class="bg-surface-container-lowest p-8 rounded-sm shadow-sm border border-outline-variant/10">
+<div class="flex flex-col items-center text-center">
+<div class="relative mb-6">
+<div class="w-32 h-32 rounded-full p-1 bg-gradient-to-tr from-primary to-secondary">
+<div class="w-full h-full rounded-full bg-white p-1 overflow-hidden">
+<div class="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-primary-container flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover opacity-90" data-alt="sophisticated studio portrait of a serious asian male professional in a sharp dark suit against a minimalist grey background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7Bjqjf-3w8onm3jix0ht6SbWdueOaLNPeC7CPRxJO72RZXyVLuXxo7n9zSRAsd0g2rkE9DGzbKvLusCQVYpX1-BPbxBFX3NHHE4xtEW3VUIO3pG0w6sut6d5tQ2iYv-H2OkDaH6nwsv3cuJd5JWOXZALk0QxMROYYujkWJ7H6b2Px5HviNLr0JC4F05Oq38cXR2qzKzbbi0gOtuMo7cJjjCirEspbtnCS2kd_b8zgxQjWbpPrhNpJdDKkvr7gy7hzCwL10MqStGWk"/>
+</div>
+</div>
+</div>
+<div class="absolute bottom-1 right-1 w-6 h-6 bg-green-500 border-2 border-white rounded-full"></div>
+</div>
+<h2 class="text-3xl font-extrabold font-manrope text-primary mb-1">林税安</h2>
+<p class="text-secondary font-semibold mb-4 tracking-wide text-sm">高级税务会计</p>
+<div class="inline-flex items-center px-3 py-1 bg-primary/5 text-primary text-[10px] font-mono font-bold mb-4 rounded-full border border-primary/10">
+                            ID: LQ-TX-001
+                        </div>
+<div class="w-full py-2 bg-primary text-white rounded-sm text-xs font-bold tracking-widest mb-6">
+                            税务部
+                        </div>
+<blockquote class="italic text-on-surface-variant text-sm leading-relaxed border-l-2 border-secondary/30 pl-4 py-1">
+                            “准确是我的底线，法规是我的武器”
+                        </blockquote>
+</div>
+</section>
+<!-- Skill Tree Visualization -->
+<section class="bg-surface-container-low p-6 rounded-sm">
+<h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-tighter mb-6 flex items-center">
+<span class="material-symbols-outlined text-sm mr-2" style="font-variation-settings: 'FILL' 1;">account_tree</span>
+                        能力图谱 / SKILL TREE
+                    </h3>
+<div class="relative space-y-6">
+<!-- Root Node -->
+<div class="flex justify-center">
+<div class="bg-primary text-white px-6 py-2 rounded-lg text-sm font-bold shadow-md">核心能力</div>
+</div>
+<!-- Connection Lines (Visual Decor) -->
+<div class="absolute left-1/2 top-10 w-px h-[calc(100%-80px)] bg-outline-variant/30 -translate-x-1/2 -z-10"></div>
+<!-- Child Nodes -->
+<div class="space-y-4">
+<!-- Skill 1 -->
+<div class="flex items-center gap-4 group">
+<div class="w-1/2 flex justify-end">
+<div class="bg-surface-container-lowest p-3 border border-outline-variant/20 rounded-lg flex items-center gap-3 w-full group-hover:border-primary/50 transition-colors">
+<div class="w-8 h-8 rounded bg-secondary/10 flex items-center justify-center text-secondary font-black text-xs">S</div>
+<div>
+<p class="text-xs font-bold text-primary">税法知识</p>
+<p class="text-[9px] text-on-surface-variant">4.2k 次调用</p>
+</div>
+</div>
+</div>
+<div class="w-1.5 h-1.5 bg-secondary rounded-full"></div>
+<div class="flex-1 border-t border-dashed border-outline-variant/50"></div>
+</div>
+<!-- Skill 2 -->
+<div class="flex items-center gap-4 group">
+<div class="flex-1 border-t border-dashed border-outline-variant/50"></div>
+<div class="w-1.5 h-1.5 bg-secondary rounded-full"></div>
+<div class="w-1/2">
+<div class="bg-surface-container-lowest p-3 border border-outline-variant/20 rounded-lg flex items-center gap-3 w-full group-hover:border-primary/50 transition-colors">
+<div class="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary font-black text-xs">A</div>
+<div>
+<p class="text-xs font-bold text-primary">申报执行</p>
+<p class="text-[9px] text-on-surface-variant">2.8k 次调用</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Skill 3 -->
+<div class="flex items-center gap-4 group">
+<div class="w-1/2 flex justify-end">
+<div class="bg-surface-container-lowest p-3 border border-outline-variant/20 rounded-lg flex items-center gap-3 w-full group-hover:border-primary/50 transition-colors">
+<div class="w-8 h-8 rounded bg-secondary/10 flex items-center justify-center text-secondary font-black text-xs">S</div>
+<div>
+<p class="text-xs font-bold text-primary">合规审计</p>
+<p class="text-[9px] text-on-surface-variant">1.5k 次调用</p>
+</div>
+</div>
+</div>
+<div class="w-1.5 h-1.5 bg-secondary rounded-full"></div>
+<div class="flex-1 border-t border-dashed border-outline-variant/50"></div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Panel -->
+<div class="col-span-12 lg:col-span-9 flex flex-col gap-8">
+<!-- Chat Interface (Top) -->
+<section class="flex-1 bg-surface-container-lowest rounded-sm border border-outline-variant/10 flex flex-col overflow-hidden min-h-[500px]">
+<div class="p-6 border-b border-outline-variant/5 flex justify-between items-center bg-surface-container-low/30">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">forum</span>
+<h3 class="font-manrope font-bold text-primary">交互工作流</h3>
+</div>
+<div class="flex gap-2">
+<button class="p-2 hover:bg-surface-container-high rounded transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">history</span>
+</button>
+<button class="p-2 hover:bg-surface-container-high rounded transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Messages -->
+<div class="flex-1 p-8 space-y-8 overflow-y-auto">
+<!-- User Message -->
+<div class="flex justify-end">
+<div class="max-w-[70%] bg-surface-container-high px-6 py-4 rounded-2xl rounded-tr-none">
+<p class="text-sm text-on-surface leading-relaxed font-medium">帮我查一下杭州明达科技的增值税申报情况。</p>
+<span class="block text-[10px] text-on-surface-variant mt-2 text-right">10:42 AM</span>
+</div>
+</div>
+<!-- Agent Message -->
+<div class="flex gap-4">
+<div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-white text-lg" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+</div>
+<div class="max-w-[85%] space-y-4">
+<div class="bg-surface-container-low px-6 py-4 rounded-2xl rounded-tl-none border border-outline-variant/10">
+<p class="text-sm text-on-surface leading-loose">
+                                        已为您调取 <span class="font-bold text-primary">杭州明达科技有限公司</span> 2023年度Q3至Q4的增值税申报记录。
+                                        <br/><br/>
+                                        根据系统比对，该客户当前状态为 <span class="text-green-600 font-bold">已按期申报</span>。上季度应纳税额为 <span class="font-mono text-secondary font-bold">¥124,500.00</span>，已享受高新技术企业增值税加计抵减。
+                                    </p>
+<!-- Citation Cards -->
+<div class="mt-6 grid grid-cols-2 gap-3">
+<div class="flex items-start gap-3 p-3 bg-surface-container-lowest border border-outline-variant/30 rounded-lg hover:border-secondary/50 cursor-pointer transition-all">
+<span class="material-symbols-outlined text-secondary text-base">description</span>
+<div>
+<p class="text-[11px] font-bold text-primary truncate">2023_Q4_VAT_Return.pdf</p>
+<p class="text-[9px] text-on-surface-variant">官方税务凭证 · 2.4MB</p>
+</div>
+</div>
+<div class="flex items-start gap-3 p-3 bg-surface-container-lowest border border-outline-variant/30 rounded-lg hover:border-secondary/50 cursor-pointer transition-all">
+<span class="material-symbols-outlined text-secondary text-base">analytics</span>
+<div>
+<p class="text-[11px] font-bold text-primary truncate">税负波动分析报告</p>
+<p class="text-[9px] text-on-surface-variant">AI 生成分析 · 实时</p>
+</div>
+</div>
+</div>
+</div>
+<span class="block text-[10px] text-on-surface-variant ml-2">10:42 AM · 响应耗时 1.2s</span>
+</div>
+</div>
+</div>
+<!-- Input Area -->
+<div class="p-6 bg-surface-container-low/50">
+<div class="relative flex items-center">
+<input class="w-full bg-surface-container-lowest border-2 border-outline-variant/20 rounded-xl px-6 py-4 pr-32 focus:border-primary focus:ring-0 transition-all font-body text-sm" placeholder="输入指令或补充客户信息..." type="text"/>
+<div class="absolute right-3 flex items-center gap-2">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">attach_file</span>
+</button>
+<button class="bg-primary text-white p-2.5 rounded-lg shadow-lg shadow-primary/20 active:scale-95 transition-all">
+<span class="material-symbols-outlined">send</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Task History (Bottom) -->
+<section class="bg-surface-container-lowest rounded-sm border border-outline-variant/10 overflow-hidden">
+<div class="p-6 border-b border-outline-variant/5">
+<h3 class="font-manrope font-bold text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">history</span>
+                            最近处理任务
+                        </h3>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant">
+<th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest">任务</th>
+<th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest">客户</th>
+<th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest w-48">置信度</th>
+<th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-right">时间</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr class="hover:bg-surface-container-low/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-green-500"></div>
+<span class="text-xs font-bold text-primary">月度增值税申报</span>
+</div>
+</td>
+<td class="px-6 py-4 text-xs text-on-surface-variant">杭州明达科技</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="flex-1 h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[98%]"></div>
+</div>
+<span class="text-[10px] font-mono font-bold text-primary">98%</span>
+</div>
+</td>
+<td class="px-6 py-4 text-xs text-on-surface-variant text-right font-mono">10:42:15</td>
+</tr>
+<tr class="hover:bg-surface-container-low/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-yellow-500"></div>
+<span class="text-xs font-bold text-primary">所得税预缴校对</span>
+</div>
+</td>
+<td class="px-6 py-4 text-xs text-on-surface-variant">上海锐意商贸</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="flex-1 h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[85%]"></div>
+</div>
+<span class="text-[10px] font-mono font-bold text-secondary">85%</span>
+</div>
+</td>
+<td class="px-6 py-4 text-xs text-on-surface-variant text-right font-mono">09:15:30</td>
+</tr>
+<tr class="hover:bg-surface-container-low/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-green-500"></div>
+<span class="text-xs font-bold text-primary">进项发票批量查验</span>
+</div>
+</td>
+<td class="px-6 py-4 text-xs text-on-surface-variant">深圳领航物流</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="flex-1 h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[100%]"></div>
+</div>
+<span class="text-[10px] font-mono font-bold text-primary">100%</span>
+</div>
+</td>
+<td class="px-6 py-4 text-xs text-on-surface-variant text-right font-mono">昨天 17:40</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+</div>
+</main>
+</body></html>

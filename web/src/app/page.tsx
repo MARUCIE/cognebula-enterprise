@@ -7,16 +7,6 @@ export default function DashboardPage() {
     <div>
       {/* ── Welcome header ── */}
       <section style={{ marginBottom: "var(--space-8)" }}>
-        <p
-          className="font-body uppercase tracking-[0.12em]"
-          style={{
-            fontSize: 11,
-            color: "var(--color-text-tertiary)",
-            marginBottom: "var(--space-2)",
-          }}
-        >
-          Welcome back, Manager
-        </p>
         <h2
           className="font-display font-extrabold"
           style={{

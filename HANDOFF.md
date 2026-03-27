@@ -1,60 +1,47 @@
-# HANDOFF.md -- CogNebula Session 11
+# HANDOFF.md -- CogNebula Session 11 (Frontend Sprint)
 
-> Last updated: 2026-03-27T17:50Z
+> Last updated: 2026-03-27T20:30Z
 
 ## Session 11 Summary
 
-### Phase 5: Stitch Code Translation -- COMPLETE
-- 10 Next.js pages built from Stitch prototypes (parallel 3-agent construction)
-- Root layout: Sidebar (240px) + TopBar + scrollable main
-- All pages use static mock data (no API integration yet)
-- Build: 12/12 routes, zero TypeScript errors
+### Phase 5 Code Translation + P1 Ops + UX Audit — ALL COMPLETE
 
-### 3-Round UI Polish -- COMPLETE
-| Round | Fix | Scope |
-|-------|-----|-------|
-| 1 | TopBar dynamic page titles (usePathname + route map) | TopBar.tsx |
-| 2 | Missing footer on skills page | skills/page.tsx |
-| 3 | `word-break: break-all` → `keep-all` (CJK anti-orphan) | globals.css |
-| 3 | Removed 22x `letterSpacing` from Chinese text | 10 files |
-| 3+ | Removed all root `maxWidth` constraints (fluid layout fix) | 10 pages |
+| Milestone | Status | Commit |
+|-----------|--------|--------|
+| 10 customer pages (Stitch → Next.js) | DONE | e5d3875 |
+| 3-round UI polish (CJK + fluid layout) | DONE | e5d3875 |
+| Multi-surface architecture ADR (4→2 apps) | DONE | e5d3875 |
+| 3 ops pages (Bloomberg density) | DONE | 86b7c22 |
+| CF Pages deploy (lingque-desktop.pages.dev) | DONE | 33cb6ad |
+| UX audit (4-advisor swarm) | DONE | df7d006 → ae911c8 |
+| McKinsey Skill gotchas #12 #13 | DONE | ae911c8 |
 
-### Multi-Surface Architecture Decision -- COMPLETE
-- 4 advisors (Drucker/Jobs/Hickey/Hara) swarm consensus
-- **4 surfaces → 2 apps**: office (customer) + internal (ops + expert)
-- Expert Workbench merges into Internal App as route group
-- Mobile deferred to PWA + WeChat notifications
-- ADR: `MULTI_SURFACE_ARCHITECTURE_V1.md` + McKinsey Blue HTML
-- SYSTEM_ARCHITECTURE.md updated to v2.2
+### Audit-Driven TOP 10 Fixes (IN PROGRESS)
 
-## Pages Built (`/web/src/app/`)
+| # | Fix | Status | Source |
+|---|-----|--------|--------|
+| 1 | Dashboard approval table → move above activity feed | TODO | Jobs |
+| 2 | Unify AI role name → "AI 专员" across all pages | TODO | Orwell |
+| 3 | Reports page REDO (功能目录 → 任务驱动) | TODO | Jobs+Hara |
+| 4 | Ops customers English KPI labels → Chinese | TODO | Orwell |
+| 5 | Error messages rewrite (dev logs → actionable Chinese) | TODO | Orwell |
+| 6 | Alerts default view → "未解决" tab | TODO | Jobs |
+| 7 | Cross-page nav links (Alerts → Agent detail) | TODO | Jobs |
+| 8 | "置信度" → "建议准确率" | TODO | Orwell |
+| 9 | Remove "WELCOME BACK, MANAGER" from Dashboard | TODO | Orwell |
+| 10 | Sidebar semantic grouping | TODO | Hara |
 
-| Route | Page | Key Content |
-|-------|------|-------------|
-| `/` | Dashboard | KPI cards, activity feed, approval table, gold savings |
-| `/ai-team` | AI Team | Stats bar, hero 林税安 card, 7-agent grid, task queue |
-| `/ai-team/[id]` | Agent Workstation | 2-col (profile + chat), skill tree S/A/B/C, task history |
-| `/tax` | Intelligent Tax | 4-stage pipeline, review queue, advisor panel |
-| `/clients` | Client Center | 1,240 clients table, AI insight panel, 95% compliance |
-| `/compliance` | Compliance Dashboard | 30 traffic light cards (6-col), law citations |
-| `/audit` | Audit Workbench | 4-step flow, FND codes, AI assistant, findings |
-| `/reports` | Financial Reporting | 3 status badges, anomaly detection, export center |
-| `/skills` | Skill Store | Hero, 6 skills with ratings, agent chips, installed sidebar |
-| `/settings` | System Settings | Company profile, AI behavior sliders, team mgmt |
+### Production
+- URL: https://lingque-desktop.pages.dev
+- Build: 22 pages, 0 errors, static export
+- GitHub: MARUCIE/cognebula-enterprise (master)
 
-## Uncommitted Changes
-All session work is uncommitted. Ready for git commit.
+### Files Modified This Session
+- web/src/app/ (13 page files + 2 components + globals.css + layout)
+- web/src/app/ops/ (3 new pages + layout)
+- doc/00_project/initiative_lingque_fusion/ (6 docs: SYSTEM_ARCHITECTURE, MULTI_SURFACE_ARCHITECTURE, PAGE_MAP, UX_AUDIT)
+- design/screenshots/production/ (13 screenshots)
+- design/screenshots/final/ (13 screenshots)
 
-## Next Steps (Priority Order)
-
-1. **Commit** current work
-2. **P0**: Office iterate -- accountability layer (audit trail, error notification badges)
-3. **P1**: Internal Ops app -- customer health matrix, agent metrics, system alerts
-4. **P2**: Expert migration -- D3.js KG Explorer → Internal App route group
-5. **P3**: Mobile PWA + WeChat Service Account integration
-
-## Dev Environment
-- `cd /Users/mauricewen/Projects/27-cognebula-enterprise/web && npm run dev -- -p 3456`
-- Build: `npx next build` (12/12 routes, 0 errors)
-- Stitch project: 17645280878972994034
-- Screenshots: `design/screenshots/final/` (10 pages)
+### Skill Updates
+- html-mckinsey-style: +Gotcha #12 (hero alignment) + #13 (table number wrap) + Hero Banner CSS updated

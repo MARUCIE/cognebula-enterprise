@@ -55,7 +55,7 @@ const FINDINGS = [
 
 const FOOTER_STATS = [
   { label: "当前审计效率", value: "提升 420%", color: "var(--color-primary)" },
-  { label: "模型置信度", value: "99.8%", color: "var(--color-secondary-dim)" },
+  { label: "模型准确率", value: "99.8%", color: "var(--color-secondary-dim)" },
   { label: "疑似风险总额", value: "¥ 2,840,100", color: "var(--color-danger)" },
 ];
 

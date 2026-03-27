@@ -34,7 +34,7 @@ const ALERTS: Alert[] = [
   { id: "ALT-001", source: "agent", severity: "critical", title: "Agent 周小秘 连续 3 次任务失败", desc: "错误率 5.3% 超过阈值 3%. 最近错误: KG query timeout. 建议暂停任务分配并检查 Agent 状态.", customer: "云峰智源", timestamp: "2024-11-15 14:30", status: "open" },
   { id: "ALT-002", source: "kg", severity: "critical", title: "KG 增值税政策节点 14 天未更新", desc: "节点 chinatax:vat_policy_2024 最后更新时间 2024-11-01. 超过 7 天更新周期. 可能导致税务建议过时.", timestamp: "2024-11-15 12:00", status: "open" },
   // Warning (4)
-  { id: "ALT-003", source: "agent", severity: "warning", title: "张审核置信度持续偏低", desc: "过去 7 天平均置信度 96.3%, 接近预警线 95%. 审计任务质量可能受影响.", customer: "美团点评", timestamp: "2024-11-15 10:15", status: "acknowledged" },
+  { id: "ALT-003", source: "agent", severity: "warning", title: "张审核准确率持续偏低", desc: "过去 7 天平均准确率 96.3%, 接近预警线 95%. 审计任务质量可能受影响.", customer: "美团点评", timestamp: "2024-11-15 10:15", status: "acknowledged" },
   { id: "ALT-004", source: "billing", severity: "warning", title: "云峰智源企业版即将到期", desc: "订阅到期日 2024-12-01, 剩余 16 天. 客户尚未确认续费意向.", customer: "云峰智源", timestamp: "2024-11-15 09:00", status: "open" },
   { id: "ALT-005", source: "compliance", severity: "warning", title: "新增税务政策待合规审查", desc: "财政部 2024 年第 47 号公告已发布, 涉及研发费用加计扣除调整. 需更新合规规则库.", timestamp: "2024-11-14 16:30", status: "open" },
   { id: "ALT-006", source: "api", severity: "warning", title: "OpenClaw Skills API 响应延迟", desc: "过去 1 小时 P95 延迟 2,340ms, 正常值 <500ms. 技能商店页面加载可能受影响.", timestamp: "2024-11-14 15:45", status: "acknowledged" },
@@ -55,10 +55,11 @@ const ALERTS: Alert[] = [
    Filter configs
    ================================================================ */
 
-type SeverityFilter = "all" | "critical" | "warning" | "info" | "resolved";
+type SeverityFilter = "all" | "open" | "critical" | "warning" | "info" | "resolved";
 type SourceFilter = "all" | Source;
 
 const SEVERITY_FILTERS: Array<{ key: SeverityFilter; label: string; count: number }> = [
+  { key: "open", label: "待处理", count: 9 },
   { key: "all", label: "全部", count: 15 },
   { key: "critical", label: "严重", count: 2 },
   { key: "warning", label: "警告", count: 4 },
@@ -108,6 +109,7 @@ function isResolved(a: Alert): boolean {
 
 function matchSeverityFilter(a: Alert, f: SeverityFilter): boolean {
   if (f === "all") return true;
+  if (f === "open") return !isResolved(a);
   if (f === "resolved") return isResolved(a);
   return a.severity === f && !isResolved(a);
 }
@@ -122,7 +124,7 @@ function matchSourceFilter(a: Alert, f: SourceFilter): boolean {
    ================================================================ */
 
 export default function OpsAlertsPage() {
-  const [activeSeverity, setActiveSeverity] = useState<SeverityFilter>("all");
+  const [activeSeverity, setActiveSeverity] = useState<SeverityFilter>("open");
   const [activeSource, setActiveSource] = useState<SourceFilter>("all");
 
   const filtered = ALERTS.filter(

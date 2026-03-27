@@ -405,7 +405,7 @@ export default function AgentWorkstationPage() {
           >
             <span>任务</span>
             <span>客户</span>
-            <span>置信度</span>
+            <span>建议准确率</span>
             <span style={{ textAlign: "right" }}>时间</span>
           </div>
 

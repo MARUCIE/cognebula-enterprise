@@ -149,23 +149,23 @@ export default function OpsCustomersPage() {
           marginBottom: "var(--space-6)",
         }}
       >
-        <KpiCard label="TOTAL CLIENTS" value={String(CUSTOMERS.length)} />
+        <KpiCard label="客户总数" value={String(CUSTOMERS.length)} />
         <KpiCard
-          label="HEALTHY"
+          label="健康"
           value={String(healthCounts.green)}
           tint="var(--color-success)"
         />
         <KpiCard
-          label="ATTENTION"
+          label="待关注"
           value={String(healthCounts.yellow)}
           tint="var(--color-warning)"
         />
         <KpiCard
-          label="CRITICAL"
+          label="风险客户"
           value={String(healthCounts.red)}
           tint="var(--color-danger)"
         />
-        <KpiCard label="AVG UTILIZATION" value={`${avgUtil}%`} />
+        <KpiCard label="平均利用率" value={`${avgUtil}%`} />
       </section>
 
       {/* -- Customer health table -- */}

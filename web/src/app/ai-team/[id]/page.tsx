@@ -3,6 +3,18 @@
    Hardcoded agent: 林税安 (LQ-TX-001)
    All data is static mock for initial build. */
 
+export function generateStaticParams() {
+  return [
+    { id: "lin-shui-an" },
+    { id: "zhao-he-gui" },
+    { id: "chen-shui-ce" },
+    { id: "wang-ji-zhang" },
+    { id: "zhang-shen-he" },
+    { id: "li-ke-fu" },
+    { id: "zhou-xiao-mi" },
+  ];
+}
+
 const agent = {
   id: "LQ-TX-001",
   name: "林税安",

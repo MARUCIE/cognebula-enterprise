@@ -12,6 +12,12 @@ const navItems = [
   { href: "/skills", label: "技能商店", icon: SkillIcon },
 ];
 
+const opsNavItems = [
+  { href: "/ops/customers", label: "客户健康", icon: OpsCustomersIcon },
+  { href: "/ops/agents", label: "Agent 监控", icon: OpsAgentsIcon },
+  { href: "/ops/alerts", label: "系统告警", icon: OpsAlertsIcon },
+];
+
 const bottomItems = [
   { href: "/settings", label: "设置", icon: SettingsIcon },
   { href: "/help", label: "帮助中心", icon: HelpIcon },
@@ -103,6 +109,71 @@ export function Sidebar() {
                 }}
               >
                 {/* Active state: 4px gold left pillar */}
+                {isActive && (
+                  <span
+                    className="absolute left-0 top-1/2 -translate-y-1/2"
+                    style={{
+                      width: 4,
+                      height: 20,
+                      borderRadius: "0 2px 2px 0",
+                      background: "var(--color-secondary)",
+                    }}
+                  />
+                )}
+                <item.icon active={isActive} />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Ops section divider + nav */}
+        <div style={{ padding: "var(--space-4) var(--space-6) 0" }}>
+          <div style={{ height: 1, background: "rgba(255,255,255,0.08)", marginBottom: "var(--space-3)" }} />
+          <span
+            className="font-medium uppercase"
+            style={{
+              fontSize: 10,
+              color: "var(--color-sidebar-text)",
+              opacity: 0.4,
+              letterSpacing: "0.16em",
+              display: "block",
+              padding: "0 10px",
+              marginBottom: "var(--space-2)",
+            }}
+          >
+            OPS
+          </span>
+        </div>
+        <nav style={{ padding: "0 var(--space-3)" }}>
+          {opsNavItems.map((item) => {
+            const isActive = pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="w-full flex items-center gap-3 relative text-left transition-colors"
+                style={{
+                  padding: "10px 12px 10px 16px",
+                  marginBottom: 2,
+                  borderRadius: "var(--radius-sm)",
+                  color: isActive
+                    ? "var(--color-sidebar-text-active)"
+                    : "var(--color-sidebar-text)",
+                  background: isActive
+                    ? "rgba(255, 255, 255, 0.08)"
+                    : "transparent",
+                  fontSize: 13,
+                  fontWeight: isActive ? 600 : 400,
+                  textDecoration: "none",
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) e.currentTarget.style.background = "var(--color-sidebar-hover)";
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) e.currentTarget.style.background = "transparent";
+                }}
+              >
                 {isActive && (
                   <span
                     className="absolute left-0 top-1/2 -translate-y-1/2"
@@ -261,6 +332,42 @@ function HelpIcon({ active }: { active: boolean }) {
       <circle cx="12" cy="12" r="10" stroke={c} strokeWidth="1.8" />
       <path d="M9 9a3 3 0 115 2.5c0 1.5-2 2-2 3" stroke={c} strokeWidth="1.8" strokeLinecap="round" />
       <circle cx="12" cy="18" r="0.5" fill={c} stroke={c} strokeWidth="1" />
+    </svg>
+  );
+}
+
+/* ---- Ops Icons ---- */
+
+function OpsCustomersIcon({ active }: { active: boolean }) {
+  const c = active ? "var(--color-on-primary)" : "var(--color-sidebar-text)";
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <rect x="3" y="3" width="7" height="7" rx="1.5" stroke={c} strokeWidth="1.8" />
+      <rect x="14" y="3" width="7" height="7" rx="1.5" stroke={c} strokeWidth="1.8" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" stroke={c} strokeWidth="1.8" />
+      <rect x="14" y="14" width="7" height="7" rx="1.5" stroke={c} strokeWidth="1.8" />
+    </svg>
+  );
+}
+
+function OpsAgentsIcon({ active }: { active: boolean }) {
+  const c = active ? "var(--color-on-primary)" : "var(--color-sidebar-text)";
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="3" stroke={c} strokeWidth="1.8" />
+      <path d="M12 1v4M12 19v4M4.2 4.2l2.8 2.8M17 17l2.8 2.8M1 12h4M19 12h4M4.2 19.8l2.8-2.8M17 7l2.8-2.8" stroke={c} strokeWidth="1.8" strokeLinecap="round" />
+      <circle cx="12" cy="12" r="9" stroke={c} strokeWidth="1.2" strokeDasharray="3 3" />
+    </svg>
+  );
+}
+
+function OpsAlertsIcon({ active }: { active: boolean }) {
+  const c = active ? "var(--color-on-primary)" : "var(--color-sidebar-text)";
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <path d="M12 2L2 20h20L12 2z" stroke={c} strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M12 9v5" stroke={c} strokeWidth="2" strokeLinecap="round" />
+      <circle cx="12" cy="17" r="0.5" fill={c} stroke={c} strokeWidth="1" />
     </svg>
   );
 }

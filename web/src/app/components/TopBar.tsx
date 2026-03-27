@@ -12,6 +12,9 @@ const pageTitles: Record<string, string> = {
   "/compliance": "合规管理看板",
   "/audit": "智能审计工作台",
   "/settings": "系统设置",
+  "/ops/customers": "客户健康矩阵",
+  "/ops/agents": "Agent 性能监控",
+  "/ops/alerts": "系统告警中心",
 };
 
 function getPageTitle(pathname: string): string {

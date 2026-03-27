@@ -249,6 +249,21 @@ hr {
   color: var(--color-primary);
 }
 
+/* --- Bloomberg Ops density overrides --- */
+.ops-density {
+  --ops-row-height: 36px;
+  --ops-cell-padding: 8px 12px;
+  --ops-font-base: 12px;
+  --ops-font-header: 11px;
+  --ops-card-padding: var(--space-4);
+  font-size: var(--ops-font-base);
+}
+.badge-critical {
+  background: color-mix(in srgb, var(--color-danger) 20%, transparent);
+  color: var(--color-danger);
+  font-weight: 700;
+}
+
 /* --- Selection color --- */
 ::selection {
   background: var(--color-primary-fixed);

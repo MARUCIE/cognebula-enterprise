@@ -31,20 +31,20 @@ interface Alert {
 
 const ALERTS: Alert[] = [
   // Critical (2)
-  { id: "ALT-001", source: "agent", severity: "critical", title: "Agent 周小秘 连续 3 次任务失败", desc: "错误率 5.3% 超过阈值 3%. 最近错误: KG query timeout. 建议暂停任务分配并检查 Agent 状态.", customer: "云峰智源", timestamp: "2024-11-15 14:30", status: "open" },
-  { id: "ALT-002", source: "kg", severity: "critical", title: "KG 增值税政策节点 14 天未更新", desc: "节点 chinatax:vat_policy_2024 最后更新时间 2024-11-01. 超过 7 天更新周期. 可能导致税务建议过时.", timestamp: "2024-11-15 12:00", status: "open" },
+  { id: "ALT-001", source: "agent", severity: "critical", title: "AI 专员 周小秘 连续 3 次任务失败", desc: "错误率 5.3% 超过阈值 3%。最近错误：知识图谱查询超时。建议暂停任务分配并检查专员状态。", customer: "云峰智源", timestamp: "2024-11-15 14:30", status: "open" },
+  { id: "ALT-002", source: "kg", severity: "critical", title: "增值税政策知识节点 14 天未更新", desc: "增值税政策 2024 版最后更新于 2024-11-01，已超过 7 天更新周期。可能导致税务建议不准确，请尽快安排知识库更新。", timestamp: "2024-11-15 12:00", status: "open" },
   // Warning (4)
   { id: "ALT-003", source: "agent", severity: "warning", title: "张审核准确率持续偏低", desc: "过去 7 天平均准确率 96.3%, 接近预警线 95%. 审计任务质量可能受影响.", customer: "美团点评", timestamp: "2024-11-15 10:15", status: "acknowledged" },
   { id: "ALT-004", source: "billing", severity: "warning", title: "云峰智源企业版即将到期", desc: "订阅到期日 2024-12-01, 剩余 16 天. 客户尚未确认续费意向.", customer: "云峰智源", timestamp: "2024-11-15 09:00", status: "open" },
   { id: "ALT-005", source: "compliance", severity: "warning", title: "新增税务政策待合规审查", desc: "财政部 2024 年第 47 号公告已发布, 涉及研发费用加计扣除调整. 需更新合规规则库.", timestamp: "2024-11-14 16:30", status: "open" },
-  { id: "ALT-006", source: "api", severity: "warning", title: "OpenClaw Skills API 响应延迟", desc: "过去 1 小时 P95 延迟 2,340ms, 正常值 <500ms. 技能商店页面加载可能受影响.", timestamp: "2024-11-14 15:45", status: "acknowledged" },
+  { id: "ALT-006", source: "api", severity: "warning", title: "技能市场接口响应延迟", desc: "过去 1 小时响应时间偏高（2.3秒），正常应在 0.5 秒以内。技能商店页面加载可能变慢。", timestamp: "2024-11-14 15:45", status: "acknowledged" },
   // Info (3)
   { id: "ALT-007", source: "agent", severity: "info", title: "林税安完成季度高峰处理", desc: "Q3 增值税申报批量处理完成, 42 家客户全部提交成功, 零错误.", timestamp: "2024-11-15 11:00", status: "resolved" },
   { id: "ALT-008", source: "kg", severity: "info", title: "KG 月度健康检查通过", desc: "344K 节点, 1M 边. 数据质量评分 100/100. 无异常发现.", timestamp: "2024-11-14 08:00", status: "resolved" },
   { id: "ALT-009", source: "billing", severity: "info", title: "本月收入目标达成 87%", desc: "当前 MRR \u00A589,400, 目标 \u00A5102,800. 预计月底可达 95%+.", timestamp: "2024-11-13 18:00", status: "resolved" },
   // Resolved (6 more)
   { id: "ALT-010", source: "agent", severity: "warning", title: "王记账任务队列积压已清除", desc: "积压从 23 个降至 0. 处理耗时 4.2 小时.", timestamp: "2024-11-13 14:00", status: "resolved" },
-  { id: "ALT-011", source: "api", severity: "warning", title: "Poe LLM API 恢复正常", desc: "13:00-13:45 期间出现间歇性 502. 已自动切换回 Gemini fallback. 现已恢复.", timestamp: "2024-11-13 13:50", status: "resolved" },
+  { id: "ALT-011", source: "api", severity: "warning", title: "AI 语言模型接口已恢复正常", desc: "13:00-13:45 期间出现间歇性故障，系统已自动切换至备用模型，现已完全恢复。", timestamp: "2024-11-13 13:50", status: "resolved" },
   { id: "ALT-012", source: "compliance", severity: "info", title: "年度审计准备文档已生成", desc: "林税安 + 赵合规协作完成 2024 年度审计底稿, 覆盖 12 家企业版客户.", timestamp: "2024-11-12 17:00", status: "resolved" },
   { id: "ALT-013", source: "kg", severity: "info", title: "法规更新批量导入完成", desc: "新增 47 条法规节点, 更新 183 条关联边. 来源: 国家税务总局 2024-Q3 批次.", timestamp: "2024-11-12 10:30", status: "resolved" },
   { id: "ALT-014", source: "agent", severity: "info", title: "赵合规技能树升级完成", desc: "新增 '跨境电商税务合规' 技能 (S级). 从 OpenClaw 安装成功.", timestamp: "2024-11-11 16:00", status: "resolved" },
@@ -70,7 +70,7 @@ const SEVERITY_FILTERS: Array<{ key: SeverityFilter; label: string; count: numbe
 const SOURCE_FILTERS: Array<{ key: SourceFilter; label: string }> = [
   { key: "all", label: "全部来源" },
   { key: "kg", label: "KG" },
-  { key: "agent", label: "Agent" },
+  { key: "agent", label: "AI 专员" },
   { key: "billing", label: "计费" },
   { key: "api", label: "API" },
   { key: "compliance", label: "合规" },
@@ -78,7 +78,7 @@ const SOURCE_FILTERS: Array<{ key: SourceFilter; label: string }> = [
 
 const SOURCE_LABEL: Record<Source, string> = {
   kg: "KG",
-  agent: "Agent",
+  agent: "AI 专员",
   billing: "计费",
   api: "API",
   compliance: "合规",

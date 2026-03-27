@@ -194,7 +194,7 @@ export default function OpsCustomersPage() {
           <span>公司名称</span>
           <span>订阅</span>
           <span>最后活跃</span>
-          <span>Agent利用率</span>
+          <span>AI 专员利用率</span>
           <span>完成率</span>
           <span>错误率</span>
           <span>健康</span>
@@ -335,7 +335,7 @@ function CustomerRow({
         {c.lastActive}
       </span>
 
-      {/* Agent utilization: number + mini bar */}
+      {/* AI utilization: number + mini bar */}
       <span className="flex items-center gap-2">
         <MiniBar pct={c.agentUtil} />
         <span className="tabular-nums" style={{ fontSize: 11, color: "var(--color-text-secondary)" }}>

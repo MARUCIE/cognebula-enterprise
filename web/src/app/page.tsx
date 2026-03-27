@@ -76,6 +76,84 @@ export default function DashboardPage() {
         </div>
       </section>
 
+      {/* ── Approval table (action-first: before activity feed) ── */}
+      <section
+        style={{
+          padding: "var(--space-6)",
+          borderRadius: "var(--radius-md)",
+          background: "var(--color-surface-container-lowest)",
+          boxShadow: "var(--shadow-sm)",
+          marginBottom: "var(--space-8)",
+        }}
+      >
+        <div className="flex items-center justify-between" style={{ marginBottom: "var(--space-6)" }}>
+          <h3
+            className="font-display font-semibold"
+            style={{ fontSize: 16, color: "var(--color-text-primary)" }}
+          >
+            关键审批事项
+          </h3>
+          <div className="flex items-center gap-4" style={{ fontSize: 13 }}>
+            <button className="font-medium" style={{ color: "var(--color-primary)" }}>
+              待筛审批 (12)
+            </button>
+            <button style={{ color: "var(--color-text-tertiary)" }}>已完成</button>
+          </div>
+        </div>
+
+        {/* Table -- No-Line Rule: use background color shifts, no borders */}
+        <div style={{ borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
+          {/* Header */}
+          <div
+            className="grid items-center"
+            style={{
+              gridTemplateColumns: "minmax(200px, 1.2fr) 1fr 1fr 140px 100px",
+              padding: "10px 16px",
+              background: "var(--color-surface-container-low)",
+              fontSize: 12,
+              fontWeight: 600,
+              color: "var(--color-text-secondary)",
+            }}
+          >
+            <span>客户名称</span>
+            <span>事项类型</span>
+            <span>AI 建议</span>
+            <span>更新时间</span>
+            <span style={{ textAlign: "right" }}>操作</span>
+          </div>
+
+          {/* Rows */}
+          <ApprovalRow
+            initials="LH"
+            initialsColor="var(--color-dept-tax)"
+            name="联合创新贸易有限公司"
+            type="高额认定费用核算"
+            suggestion="建议通过"
+            suggestionStatus="success"
+            time="2024-10-15 14:22"
+          />
+          <ApprovalRow
+            initials="YF"
+            initialsColor="var(--color-warning)"
+            name="云峰智源股份"
+            type="跨省税收协定确认"
+            suggestion="人工干预"
+            suggestionStatus="warning"
+            time="2024-10-15 11:05"
+            rowAlt
+          />
+          <ApprovalRow
+            initials="SC"
+            initialsColor="var(--color-dept-client)"
+            name="时代传媒有限公司"
+            type="月度进项税额抵扣"
+            suggestion="建议调整"
+            suggestionStatus="danger"
+            time="2024-10-15 09:48"
+          />
+        </div>
+      </section>
+
       {/* ── Two-column: Activity feed + Reports ── */}
       <section
         className="grid gap-6"
@@ -121,11 +199,11 @@ export default function DashboardPage() {
                   background: "var(--color-success)",
                 }}
               />
-              Active Processing
+              处理中
             </span>
           </div>
           <p style={{ fontSize: 13, color: "var(--color-text-tertiary)", marginBottom: "var(--space-6)" }}>
-            4 位 AI 代理人正在并发工作中
+            4 位 AI 专员正在并发工作中
           </p>
 
           <div className="flex flex-col gap-4">
@@ -228,83 +306,6 @@ export default function DashboardPage() {
               立即咨询
             </button>
           </div>
-        </div>
-      </section>
-
-      {/* ── Approval table ── */}
-      <section
-        style={{
-          padding: "var(--space-6)",
-          borderRadius: "var(--radius-md)",
-          background: "var(--color-surface-container-lowest)",
-          boxShadow: "var(--shadow-sm)",
-        }}
-      >
-        <div className="flex items-center justify-between" style={{ marginBottom: "var(--space-6)" }}>
-          <h3
-            className="font-display font-semibold"
-            style={{ fontSize: 16, color: "var(--color-text-primary)" }}
-          >
-            关键审批事项
-          </h3>
-          <div className="flex items-center gap-4" style={{ fontSize: 13 }}>
-            <button className="font-medium" style={{ color: "var(--color-primary)" }}>
-              待筛审批 (12)
-            </button>
-            <button style={{ color: "var(--color-text-tertiary)" }}>已完成</button>
-          </div>
-        </div>
-
-        {/* Table -- No-Line Rule: use background color shifts, no borders */}
-        <div style={{ borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
-          {/* Header */}
-          <div
-            className="grid items-center"
-            style={{
-              gridTemplateColumns: "minmax(200px, 1.2fr) 1fr 1fr 140px 100px",
-              padding: "10px 16px",
-              background: "var(--color-surface-container-low)",
-              fontSize: 12,
-              fontWeight: 600,
-              color: "var(--color-text-secondary)",
-            }}
-          >
-            <span>客户名称</span>
-            <span>事项类型</span>
-            <span>AI 建议</span>
-            <span>更新时间</span>
-            <span style={{ textAlign: "right" }}>操作</span>
-          </div>
-
-          {/* Rows */}
-          <ApprovalRow
-            initials="LH"
-            initialsColor="var(--color-dept-tax)"
-            name="联合创新贸易有限公司"
-            type="高额认定费用核算"
-            suggestion="建议通过"
-            suggestionStatus="success"
-            time="2024-10-15 14:22"
-          />
-          <ApprovalRow
-            initials="YF"
-            initialsColor="var(--color-warning)"
-            name="云峰智源股份"
-            type="跨省税收协定确认"
-            suggestion="人工干预"
-            suggestionStatus="warning"
-            time="2024-10-15 11:05"
-            rowAlt
-          />
-          <ApprovalRow
-            initials="SC"
-            initialsColor="var(--color-dept-client)"
-            name="时代传媒有限公司"
-            type="月度进项税额抵扣"
-            suggestion="建议调整"
-            suggestionStatus="danger"
-            time="2024-10-15 09:48"
-          />
         </div>
       </section>
 

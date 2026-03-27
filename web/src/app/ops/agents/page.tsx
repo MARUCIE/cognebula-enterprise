@@ -67,11 +67,11 @@ const SKILLS: SkillStat[] = [
 ];
 
 const ERRORS: ErrorRecord[] = [
-  { time: "2024-11-15 14:23", agent: "周小秘", client: "云峰智源",   type: "timeout",         typeLabel: "超时",     message: "KG query timeout: expand_node on entity_89234, 耗时 >30s",               borderColor: "var(--color-warning)" },
-  { time: "2024-11-15 09:17", agent: "张审核", client: "美团点评",   type: "confidence_low",  typeLabel: "低准确率", message: "审计异常检测准确率 67.2%, 低于阈值 85%",                                    borderColor: "var(--color-secondary)" },
-  { time: "2024-11-14 16:45", agent: "赵合规", client: "华夏贸易",   type: "data_missing",    typeLabel: "数据缺失", message: "跨境税务合规: 缺少转让定价文档 TP-2024-Q3",                                 borderColor: "var(--color-danger)" },
-  { time: "2024-11-13 11:30", agent: "周小秘", client: "光影传媒",   type: "api_failure",     typeLabel: "API故障",  message: "OpenClaw Skills API 502: 技能加载失败 skill_id=ocw_78123",                 borderColor: "var(--color-danger)" },
-  { time: "2024-11-13 08:55", agent: "陈税策", client: "泰和养老",   type: "confidence_low",  typeLabel: "低准确率", message: "所得税优化建议准确率 72.1%, 需人工审核",                                      borderColor: "var(--color-secondary)" },
+  { time: "2024-11-15 14:23", agent: "周小秘", client: "云峰智源",   type: "timeout",         typeLabel: "超时",     message: "知识图谱查询超时（>30秒），建议检查数据量或分批处理",               borderColor: "var(--color-warning)" },
+  { time: "2024-11-15 09:17", agent: "张审核", client: "美团点评",   type: "confidence_low",  typeLabel: "低准确率", message: "审计异常检测准确率 67.2%，低于阈值 85%，建议人工复核",                    borderColor: "var(--color-secondary)" },
+  { time: "2024-11-14 16:45", agent: "赵合规", client: "华夏贸易",   type: "data_missing",    typeLabel: "数据缺失", message: "跨境税务合规检查缺少转让定价文档（2024年Q3），请联系客户补充",                                 borderColor: "var(--color-danger)" },
+  { time: "2024-11-13 11:30", agent: "周小秘", client: "光影传媒",   type: "api_failure",     typeLabel: "接口故障",  message: "技能市场接口异常，技能加载失败，已自动重试",                 borderColor: "var(--color-danger)" },
+  { time: "2024-11-13 08:55", agent: "陈税策", client: "泰和养老",   type: "confidence_low",  typeLabel: "低准确率", message: "所得税优化建议准确率 72.1%，低于标准，需人工审核确认",                                      borderColor: "var(--color-secondary)" },
 ];
 
 /* ================================================================
@@ -91,7 +91,7 @@ export default function OpsAgentsPage() {
             color: "var(--color-text-primary)",
           }}
         >
-          Agent 性能监控
+          AI 专员性能监控
         </h2>
         <p
           style={{
@@ -100,7 +100,7 @@ export default function OpsAgentsPage() {
             marginTop: "var(--space-1)",
           }}
         >
-          {AGENTS.length} agents | 过去 7 天数据
+          {AGENTS.length} 位 AI 专员 | 过去 7 天数据
         </p>
       </section>
 
@@ -143,7 +143,7 @@ export default function OpsAgentsPage() {
               marginBottom: "var(--space-4)",
             }}
           >
-            Agent 利用率 (7天)
+            AI 专员利用率 (7天)
           </h3>
           <div className="flex flex-col" style={{ gap: 8 }}>
             {AGENTS.map((a) => (
@@ -522,7 +522,7 @@ function ErrorTable({ errors }: { errors: ErrorRecord[] }) {
         }}
       >
         <span>时间</span>
-        <span>Agent</span>
+        <span>专员</span>
         <span>客户</span>
         <span>错误类型</span>
         <span>错误信息</span>

@@ -3,18 +3,21 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const navItems = [
+const dailyNavItems = [
   { href: "/", label: "工作台", icon: DashboardIcon },
-  { href: "/ai-team", label: "AI 团队", icon: TeamIcon },
   { href: "/clients", label: "客户中心", icon: ClientIcon },
-  { href: "/tax", label: "智能报税", icon: TaxIcon },
   { href: "/reports", label: "报告中心", icon: ReportIcon },
+];
+
+const proNavItems = [
+  { href: "/tax", label: "智能报税", icon: TaxIcon },
+  { href: "/ai-team", label: "AI 团队", icon: TeamIcon },
   { href: "/skills", label: "技能商店", icon: SkillIcon },
 ];
 
 const opsNavItems = [
   { href: "/ops/customers", label: "客户健康", icon: OpsCustomersIcon },
-  { href: "/ops/agents", label: "Agent 监控", icon: OpsAgentsIcon },
+  { href: "/ops/agents", label: "AI 专员监控", icon: OpsAgentsIcon },
   { href: "/ops/alerts", label: "系统告警", icon: OpsAlertsIcon },
 ];
 
@@ -77,119 +80,27 @@ export function Sidebar() {
           </div>
         </div>
 
-        {/* Main navigation */}
+        {/* Daily operations */}
         <nav className="mt-2" style={{ padding: "0 var(--space-3)" }}>
-          {navItems.map((item) => {
-            const isActive =
-              item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="w-full flex items-center gap-3 relative text-left transition-colors"
-                style={{
-                  padding: "10px 12px 10px 16px",
-                  marginBottom: 2,
-                  borderRadius: "var(--radius-sm)",
-                  color: isActive
-                    ? "var(--color-sidebar-text-active)"
-                    : "var(--color-sidebar-text)",
-                  background: isActive
-                    ? "rgba(255, 255, 255, 0.08)"
-                    : "transparent",
-                  fontSize: 14,
-                  fontWeight: isActive ? 600 : 400,
-                  textDecoration: "none",
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive) e.currentTarget.style.background = "var(--color-sidebar-hover)";
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) e.currentTarget.style.background = "transparent";
-                }}
-              >
-                {/* Active state: 4px gold left pillar */}
-                {isActive && (
-                  <span
-                    className="absolute left-0 top-1/2 -translate-y-1/2"
-                    style={{
-                      width: 4,
-                      height: 20,
-                      borderRadius: "0 2px 2px 0",
-                      background: "var(--color-secondary)",
-                    }}
-                  />
-                )}
-                <item.icon active={isActive} />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
+          {dailyNavItems.map((item) => (
+            <NavLink key={item.href} item={item} pathname={pathname} />
+          ))}
         </nav>
 
-        {/* Ops section divider + nav */}
-        <div style={{ padding: "var(--space-4) var(--space-6) 0" }}>
-          <div style={{ height: 1, background: "rgba(255,255,255,0.08)", marginBottom: "var(--space-3)" }} />
-          <span
-            className="font-medium uppercase"
-            style={{
-              fontSize: 10,
-              color: "var(--color-sidebar-text)",
-              opacity: 0.4,
-              letterSpacing: "0.16em",
-              display: "block",
-              padding: "0 10px",
-              marginBottom: "var(--space-2)",
-            }}
-          >
-            OPS
-          </span>
-        </div>
+        {/* Professional tools section */}
+        <SectionLabel label="专业工具" />
         <nav style={{ padding: "0 var(--space-3)" }}>
-          {opsNavItems.map((item) => {
-            const isActive = pathname.startsWith(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="w-full flex items-center gap-3 relative text-left transition-colors"
-                style={{
-                  padding: "10px 12px 10px 16px",
-                  marginBottom: 2,
-                  borderRadius: "var(--radius-sm)",
-                  color: isActive
-                    ? "var(--color-sidebar-text-active)"
-                    : "var(--color-sidebar-text)",
-                  background: isActive
-                    ? "rgba(255, 255, 255, 0.08)"
-                    : "transparent",
-                  fontSize: 13,
-                  fontWeight: isActive ? 600 : 400,
-                  textDecoration: "none",
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive) e.currentTarget.style.background = "var(--color-sidebar-hover)";
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) e.currentTarget.style.background = "transparent";
-                }}
-              >
-                {isActive && (
-                  <span
-                    className="absolute left-0 top-1/2 -translate-y-1/2"
-                    style={{
-                      width: 4,
-                      height: 20,
-                      borderRadius: "0 2px 2px 0",
-                      background: "var(--color-secondary)",
-                    }}
-                  />
-                )}
-                <item.icon active={isActive} />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
+          {proNavItems.map((item) => (
+            <NavLink key={item.href} item={item} pathname={pathname} />
+          ))}
+        </nav>
+
+        {/* Ops section */}
+        <SectionLabel label="OPS" />
+        <nav style={{ padding: "0 var(--space-3)" }}>
+          {opsNavItems.map((item) => (
+            <NavLink key={item.href} item={item} pathname={pathname} size="sm" />
+          ))}
         </nav>
       </div>
 
@@ -240,6 +151,83 @@ export function Sidebar() {
         ))}
       </div>
     </aside>
+  );
+}
+
+/* ---- Shared sub-components ---- */
+
+function SectionLabel({ label }: { label: string }) {
+  return (
+    <div style={{ padding: "var(--space-4) var(--space-6) 0" }}>
+      <div style={{ height: 1, background: "rgba(255,255,255,0.08)", marginBottom: "var(--space-3)" }} />
+      <span
+        className="font-medium uppercase"
+        style={{
+          fontSize: 10,
+          color: "var(--color-sidebar-text)",
+          opacity: 0.4,
+          letterSpacing: "0.16em",
+          display: "block",
+          padding: "0 10px",
+          marginBottom: "var(--space-2)",
+        }}
+      >
+        {label}
+      </span>
+    </div>
+  );
+}
+
+function NavLink({
+  item,
+  pathname,
+  size = "md",
+}: {
+  item: { href: string; label: string; icon: React.ComponentType<{ active: boolean }> };
+  pathname: string;
+  size?: "md" | "sm";
+}) {
+  const isActive =
+    item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+  return (
+    <Link
+      href={item.href}
+      className="w-full flex items-center gap-3 relative text-left transition-colors"
+      style={{
+        padding: "10px 12px 10px 16px",
+        marginBottom: 2,
+        borderRadius: "var(--radius-sm)",
+        color: isActive
+          ? "var(--color-sidebar-text-active)"
+          : "var(--color-sidebar-text)",
+        background: isActive
+          ? "rgba(255, 255, 255, 0.08)"
+          : "transparent",
+        fontSize: size === "sm" ? 13 : 14,
+        fontWeight: isActive ? 600 : 400,
+        textDecoration: "none",
+      }}
+      onMouseEnter={(e) => {
+        if (!isActive) e.currentTarget.style.background = "var(--color-sidebar-hover)";
+      }}
+      onMouseLeave={(e) => {
+        if (!isActive) e.currentTarget.style.background = "transparent";
+      }}
+    >
+      {isActive && (
+        <span
+          className="absolute left-0 top-1/2 -translate-y-1/2"
+          style={{
+            width: 4,
+            height: 20,
+            borderRadius: "0 2px 2px 0",
+            background: "var(--color-secondary)",
+          }}
+        />
+      )}
+      <item.icon active={isActive} />
+      <span>{item.label}</span>
+    </Link>
   );
 }
 

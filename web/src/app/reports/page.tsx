@@ -231,7 +231,7 @@ export default function ReportsCenterPage() {
                   color: "var(--color-text-secondary)",
                 }}
               >
-                Trend Visualization
+                趋势分析
               </span>
             </div>
           </div>
@@ -317,7 +317,7 @@ const REPORTS: ReportRowData[] = [
     reportTypeEn: "Asset Balance Sheet",
     date: "2024-11-24 14:20",
     status: "ai",
-    statusLabel: "AI GENERATED",
+    statusLabel: "AI 生成",
     amount: "45,280,000.00",
   },
   {
@@ -326,7 +326,7 @@ const REPORTS: ReportRowData[] = [
     reportTypeEn: "Profit & Loss Statement",
     date: "2024-11-24 10:15",
     status: "reviewed",
-    statusLabel: "HUMAN REVIEWED",
+    statusLabel: "已人工复核",
     amount: "128,450,200.00",
   },
   {
@@ -335,7 +335,7 @@ const REPORTS: ReportRowData[] = [
     reportTypeEn: "Cash Flow Statement",
     date: "2024-11-23 16:45",
     status: "flagged",
-    statusLabel: "FLAGGED",
+    statusLabel: "需关注",
     amount: "92,000,540.00",
   },
   {
@@ -344,7 +344,7 @@ const REPORTS: ReportRowData[] = [
     reportTypeEn: "Annual Summary",
     date: "2024-11-23 09:00",
     status: "ai",
-    statusLabel: "AI GENERATED",
+    statusLabel: "AI 生成",
     amount: "34,120,000.00",
   },
   {
@@ -353,7 +353,7 @@ const REPORTS: ReportRowData[] = [
     reportTypeEn: "Monthly Tax Report",
     date: "2024-11-22 17:30",
     status: "reviewed",
-    statusLabel: "HUMAN REVIEWED",
+    statusLabel: "已人工复核",
     amount: "215,800,000.00",
   },
   {
@@ -362,7 +362,7 @@ const REPORTS: ReportRowData[] = [
     reportTypeEn: "Quarterly Audit Report",
     date: "2024-11-22 11:00",
     status: "flagged",
-    statusLabel: "FLAGGED",
+    statusLabel: "需关注",
     amount: "67,340,800.00",
   },
   {
@@ -371,7 +371,7 @@ const REPORTS: ReportRowData[] = [
     reportTypeEn: "Annual Financial Report",
     date: "2024-11-21 15:45",
     status: "ai",
-    statusLabel: "AI GENERATED",
+    statusLabel: "AI 生成",
     amount: "189,560,000.00",
   },
 ];

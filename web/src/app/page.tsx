@@ -215,6 +215,7 @@ export default function DashboardPage() {
               task="正在处理 上海鸿腾科技有限公司 2024 Q3 销项税核验"
               status="progress"
               statusLabel="正在核算"
+              href="/ai-team/lin-shui-an"
             />
             <ActivityItem
               avatar="A4"
@@ -223,6 +224,7 @@ export default function DashboardPage() {
               task="已验证 北京万事金业 分公司年度支出 127 笔异常项中 42 项"
               status="progress"
               statusLabel="数据调验"
+              href="/ai-team/zhang-shen-he"
             />
             <ActivityItem
               avatar="R2"
@@ -231,6 +233,7 @@ export default function DashboardPage() {
               task="完成 深圳微波智能科技 8月存货审核 月报企业资产评估"
               status="done"
               statusLabel="已就绪"
+              href="/ai-team/chen-shui-ce"
             />
           </div>
         </div>
@@ -417,6 +420,7 @@ function ActivityItem({
   task,
   status,
   statusLabel,
+  href,
 }: {
   avatar: string;
   avatarColor: string;
@@ -424,14 +428,20 @@ function ActivityItem({
   task: string;
   status: "progress" | "done";
   statusLabel: string;
+  href?: string;
 }) {
+  const Wrapper = href ? "a" : "div";
   return (
-    <div
+    <Wrapper
+      {...(href ? { href } : {})}
       className="flex items-start gap-4"
       style={{
         padding: "var(--space-4)",
         borderRadius: "var(--radius-sm)",
         background: "var(--color-surface)",
+        textDecoration: "none",
+        color: "inherit",
+        display: "flex",
       }}
     >
       <div
@@ -476,7 +486,7 @@ function ActivityItem({
           {task}
         </p>
       </div>
-    </div>
+    </Wrapper>
   );
 }
 

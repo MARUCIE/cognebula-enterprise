@@ -261,14 +261,23 @@ function AgentCard({ agent: a }: { agent: Agent }) {
   const s = statusConfig[a.status];
   const isError = a.status === "error";
 
+  const slug = AGENT_SLUG[a.name] ?? "";
+
   return (
-    <div
+    <Link
+      href={`/ai-team/${slug}`}
       style={{
+        display: "block",
         padding: "var(--space-3)",
         borderRadius: "var(--radius-md)",
         background: "var(--color-surface-container-lowest)",
         borderLeft: isError ? "3px solid var(--color-danger)" : "3px solid transparent",
+        textDecoration: "none",
+        color: "inherit",
+        transition: "box-shadow 0.15s ease",
       }}
+      onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "var(--shadow-sm)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "none"; }}
     >
       {/* Top row: avatar + name + status */}
       <div
@@ -364,7 +373,7 @@ function AgentCard({ agent: a }: { agent: Agent }) {
           </span>
         </span>
       </div>
-    </div>
+    </Link>
   );
 }
 

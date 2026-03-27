@@ -23,7 +23,6 @@ const opsNavItems = [
 
 const bottomItems = [
   { href: "/settings", label: "设置", icon: SettingsIcon },
-  { href: "/help", label: "帮助中心", icon: HelpIcon },
 ];
 
 export function Sidebar() {

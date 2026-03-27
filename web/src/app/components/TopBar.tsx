@@ -1,6 +1,8 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 
 const pageTitles: Record<string, string> = {
   "/": "今日概览",
@@ -24,9 +26,31 @@ function getPageTitle(pathname: string): string {
   return pageTitles[pathname] ?? "今日概览";
 }
 
+const NOTIFICATIONS = [
+  { id: 1, type: "action" as const, text: "云峰智源: Q3 增值税申报异常，需人工确认", href: "/clients/yunfeng-zhiyuan", time: "14:30" },
+  { id: 2, type: "action" as const, text: "深圳极智: 2 份报告待审批", href: "/reports", time: "11:20" },
+  { id: 3, type: "info" as const, text: "林税安完成 42 家 Q3 增值税批量申报", time: "10:00" },
+  { id: 4, type: "info" as const, text: "赵合规更新合规规则库（+47 条法规节点）", time: "09:15" },
+  { id: 5, type: "info" as const, text: "王记账完成腾讯科技月度凭证录入", time: "08:30" },
+];
+
 export function TopBar() {
   const pathname = usePathname();
   const title = getPageTitle(pathname);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setNotifOpen(false);
+      }
+    }
+    if (notifOpen) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [notifOpen]);
+
+  const actionCount = NOTIFICATIONS.filter((n) => n.type === "action").length;
 
   return (
     <header
@@ -66,44 +90,141 @@ export function TopBar() {
           </span>
         </div>
 
-        {/* Notification bell */}
-        <button
-          className="relative flex items-center justify-center transition-colors"
-          style={{ width: 36, height: 36, borderRadius: "var(--radius-sm)" }}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9z"
-              stroke="var(--color-text-secondary)"
-              strokeWidth="1.8"
-            />
-            <path d="M13.73 21a2 2 0 01-3.46 0" stroke="var(--color-text-secondary)" strokeWidth="1.8" />
-          </svg>
-          {/* Notification dot */}
-          <span
-            className="absolute"
-            style={{
-              top: 6,
-              right: 7,
-              width: 7,
-              height: 7,
-              borderRadius: "50%",
-              background: "var(--color-danger)",
-            }}
-          />
-        </button>
+        {/* Notification bell + popover */}
+        <div ref={notifRef} style={{ position: "relative" }}>
+          <button
+            className="relative flex items-center justify-center transition-colors"
+            style={{ width: 36, height: 36, borderRadius: "var(--radius-sm)" }}
+            onClick={() => setNotifOpen((v) => !v)}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9z"
+                stroke="var(--color-text-secondary)"
+                strokeWidth="1.8"
+              />
+              <path d="M13.73 21a2 2 0 01-3.46 0" stroke="var(--color-text-secondary)" strokeWidth="1.8" />
+            </svg>
+            {actionCount > 0 && (
+              <span
+                className="absolute flex items-center justify-center"
+                style={{
+                  top: 4,
+                  right: 4,
+                  width: 16,
+                  height: 16,
+                  borderRadius: "50%",
+                  background: "var(--color-danger)",
+                  color: "#fff",
+                  fontSize: 9,
+                  fontWeight: 700,
+                }}
+              >
+                {actionCount}
+              </span>
+            )}
+          </button>
 
-        {/* Help icon */}
-        <button
-          className="flex items-center justify-center"
-          style={{ width: 36, height: 36, borderRadius: "var(--radius-sm)" }}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" stroke="var(--color-text-secondary)" strokeWidth="1.8" />
-            <path d="M9 9a3 3 0 115 2.5c0 1.5-2 2-2 3" stroke="var(--color-text-secondary)" strokeWidth="1.8" strokeLinecap="round" />
-            <circle cx="12" cy="18" r="0.5" fill="var(--color-text-secondary)" />
-          </svg>
-        </button>
+          {/* Notification popover */}
+          {notifOpen && (
+            <div
+              style={{
+                position: "absolute",
+                top: 44,
+                right: 0,
+                width: 380,
+                borderRadius: "var(--radius-md)",
+                background: "var(--color-surface-container-lowest)",
+                boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
+                zIndex: 100,
+                overflow: "hidden",
+              }}
+            >
+              {/* Header */}
+              <div
+                style={{
+                  padding: "12px 16px",
+                  background: "var(--color-surface-container-low)",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: "var(--color-text-primary)",
+                }}
+              >
+                待处理 {actionCount} 件 · 今日动态 {NOTIFICATIONS.length - actionCount} 条
+              </div>
+
+              {/* Action items */}
+              {NOTIFICATIONS.filter((n) => n.type === "action").map((n) => (
+                <div
+                  key={n.id}
+                  className="flex items-center justify-between"
+                  style={{
+                    padding: "10px 16px",
+                    borderBottom: "1px solid var(--color-surface-container)",
+                    background: "color-mix(in srgb, var(--color-danger) 4%, var(--color-surface-container-lowest))",
+                  }}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-primary)", margin: 0, lineHeight: 1.5 }}>
+                      {n.text}
+                    </p>
+                    <span style={{ fontSize: 10, color: "var(--color-text-tertiary)" }}>{n.time}</span>
+                  </div>
+                  <button
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      padding: "4px 12px",
+                      borderRadius: "var(--radius-sm)",
+                      background: "var(--color-primary)",
+                      color: "var(--color-on-primary)",
+                      whiteSpace: "nowrap",
+                      flexShrink: 0,
+                      marginLeft: 8,
+                    }}
+                  >
+                    处理
+                  </button>
+                </div>
+              ))}
+
+              {/* Info items */}
+              {NOTIFICATIONS.filter((n) => n.type === "info").map((n) => (
+                <div
+                  key={n.id}
+                  style={{
+                    padding: "8px 16px",
+                    borderBottom: "1px solid var(--color-surface-container)",
+                    fontSize: 12,
+                    color: "var(--color-text-secondary)",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  <span>{n.text}</span>
+                  <span style={{ fontSize: 10, color: "var(--color-text-tertiary)", marginLeft: 8 }}>{n.time}</span>
+                </div>
+              ))}
+
+              {/* Footer */}
+              <Link
+                href="/ops/alerts"
+                style={{
+                  display: "block",
+                  padding: "10px 16px",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "var(--color-primary)",
+                  textAlign: "center",
+                  textDecoration: "none",
+                  background: "var(--color-surface-container-low)",
+                }}
+                onClick={() => setNotifOpen(false)}
+              >
+                查看全部告警 &rarr;
+              </Link>
+            </div>
+          )}
+        </div>
 
         {/* Settings gear */}
         <button

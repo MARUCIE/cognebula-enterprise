@@ -290,6 +290,7 @@
     vertical-align: top;
     line-height: 1.6;
   }
+  tbody td:first-child { white-space: nowrap; text-align: center; }
   tbody tr:nth-child(even) td { background: var(--surface-alt); }
   tbody tr:nth-child(odd) td { background: var(--surface); }
 
@@ -677,11 +678,11 @@
   <table>
     <thead>
       <tr>
-        <th style="width:3%">#</th>
-        <th style="width:14%">页面</th>
-        <th style="width:7%">评级</th>
-        <th style="width:38%">主要问题</th>
-        <th style="width:38%">核心亮点</th>
+        <th style="width:40px; white-space:nowrap">#</th>
+        <th style="width:15%">页面</th>
+        <th style="width:60px">评级</th>
+        <th style="width:auto">主要问题</th>
+        <th style="width:auto">核心亮点</th>
       </tr>
     </thead>
     <tbody>

@@ -337,7 +337,7 @@ export default function AITeamPage() {
           {taskQueue.map((task, i) => (
             <div
               key={task.title}
-              className="grid items-center"
+              className="grid items-center table-row-hover"
               style={{
                 gridTemplateColumns: "minmax(200px, 1.5fr) 1fr 100px 1fr 80px",
                 padding: "14px 16px",

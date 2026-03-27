@@ -212,7 +212,7 @@ export default function SettingsPage() {
           {TEAM_MEMBERS.map((member, i) => (
             <div
               key={member.email}
-              className="grid items-center"
+              className="grid items-center table-row-hover"
               style={{
                 gridTemplateColumns: "1.5fr 1fr 1fr 80px",
                 padding: "14px 20px",

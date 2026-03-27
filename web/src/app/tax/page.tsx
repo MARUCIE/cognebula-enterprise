@@ -423,7 +423,7 @@ export default function IntelligentTaxPage() {
         {invoiceTable.map((row, i) => (
           <div
             key={row.number}
-            className="grid items-center"
+            className="grid items-center table-row-hover"
             style={{
               gridTemplateColumns: "120px minmax(160px, 1.5fr) 100px 1fr 120px 140px",
               padding: "14px var(--space-8)",

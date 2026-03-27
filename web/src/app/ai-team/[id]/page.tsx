@@ -413,7 +413,7 @@ export default function AgentWorkstationPage() {
           {taskHistory.map((row, i) => (
             <div
               key={row.task}
-              className="grid items-center"
+              className="grid items-center table-row-hover"
               style={{
                 gridTemplateColumns: "minmax(160px, 1.5fr) 1fr minmax(120px, 1fr) 100px",
                 padding: "12px 20px",

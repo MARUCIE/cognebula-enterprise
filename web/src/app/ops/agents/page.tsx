@@ -456,7 +456,7 @@ function SkillTable({ skills }: { skills: SkillStat[] }) {
       {skills.map((sk, i) => (
         <div
           key={sk.name}
-          className="grid items-center"
+          className="grid items-center table-row-hover"
           style={{
             gridTemplateColumns: SKILL_GRID_COLS,
             padding: "5px 10px",
@@ -532,7 +532,7 @@ function ErrorTable({ errors }: { errors: ErrorRecord[] }) {
       {errors.map((e, i) => (
         <div
           key={`${e.time}-${e.agent}`}
-          className="grid items-center"
+          className="grid items-center table-row-hover"
           style={{
             gridTemplateColumns: ERROR_GRID_COLS,
             padding: "6px 12px",

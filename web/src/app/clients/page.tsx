@@ -580,7 +580,7 @@ function ClientRow({
 
   return (
     <div
-      className="grid items-center"
+      className="grid items-center table-row-hover"
       style={{
         gridTemplateColumns: "minmax(220px, 1.5fr) 1fr 140px 120px 100px",
         padding: "16px 24px",

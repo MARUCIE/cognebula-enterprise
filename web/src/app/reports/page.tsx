@@ -36,30 +36,63 @@ export default function ReportsCenterPage() {
         />
       </section>
 
-      {/* ── Report table section ── */}
+      {/* ── Action-first: Pending tasks ── */}
+      <section style={{ marginBottom: "var(--space-8)" }}>
+        <div className="flex items-center justify-between" style={{ marginBottom: "var(--space-4)" }}>
+          <div>
+            <h3
+              className="font-display font-bold"
+              style={{ fontSize: 18, color: "var(--color-text-primary)" }}
+            >
+              待处理报告
+            </h3>
+            <p style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 2 }}>
+              以下报告需要您审核或确认
+            </p>
+          </div>
+          <button
+            className="flex items-center gap-2 font-bold"
+            style={{
+              fontSize: 12,
+              padding: "8px 20px",
+              borderRadius: "var(--radius-md)",
+              background: "linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-container) 100%)",
+              color: "var(--color-on-primary)",
+            }}
+          >
+            全部批准
+          </button>
+        </div>
+
+        <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
+          {REPORTS.filter((r) => r.status === "flagged").map((r) => (
+            <PendingCard key={r.company} report={r} urgency="flagged" />
+          ))}
+          {REPORTS.filter((r) => r.status === "ai").map((r) => (
+            <PendingCard key={r.company} report={r} urgency="review" />
+          ))}
+        </div>
+      </section>
+
+      {/* ── Full report history ── */}
       <section style={{ marginBottom: "var(--space-8)" }}>
         {/* Table header */}
         <div
           className="flex justify-between items-end"
           style={{ marginBottom: "var(--space-4)" }}
         >
-          <div>
-            <h3
-              className="font-display font-bold"
-              style={{ fontSize: 22, color: "var(--color-text-primary)" }}
-            >
-              实时报告列表
-            </h3>
-            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", marginTop: 4 }}>
-              智能引擎实时监控并生成的财务摘要
-            </p>
-          </div>
+          <h3
+            className="font-display font-bold"
+            style={{ fontSize: 16, color: "var(--color-text-primary)" }}
+          >
+            全部报告记录
+          </h3>
           <div className="flex gap-3">
             <button
               className="flex items-center gap-2 font-semibold"
               style={{
-                fontSize: 13,
-                padding: "8px 16px",
+                fontSize: 12,
+                padding: "6px 14px",
                 borderRadius: "var(--radius-md)",
                 background: "var(--color-surface-container-lowest)",
                 color: "var(--color-primary)",
@@ -72,8 +105,8 @@ export default function ReportsCenterPage() {
             <button
               className="flex items-center gap-2 font-semibold"
               style={{
-                fontSize: 13,
-                padding: "8px 16px",
+                fontSize: 12,
+                padding: "6px 14px",
                 borderRadius: "var(--radius-md)",
                 background: "var(--color-surface-container-lowest)",
                 color: "var(--color-primary)",
@@ -82,18 +115,6 @@ export default function ReportsCenterPage() {
             >
               <DownloadIcon />
               批量导出
-            </button>
-            <button
-              className="flex items-center gap-2 font-bold"
-              style={{
-                fontSize: 13,
-                padding: "8px 20px",
-                borderRadius: "var(--radius-md)",
-                background: "linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-container) 100%)",
-                color: "var(--color-on-primary)",
-              }}
-            >
-              全部批准
             </button>
           </div>
         </div>
@@ -604,6 +625,61 @@ function InsightCard({
       >
         {text}
       </p>
+    </div>
+  );
+}
+
+function PendingCard({
+  report: r,
+  urgency,
+}: {
+  report: ReportRowData;
+  urgency: "flagged" | "review";
+}) {
+  const isFlagged = urgency === "flagged";
+  const borderColor = isFlagged ? "var(--color-danger)" : "var(--color-primary)";
+  const actionLabel = isFlagged ? "立即核查" : "确认并批准";
+  const actionBg = isFlagged ? "var(--color-danger)" : "var(--color-primary)";
+
+  return (
+    <div
+      style={{
+        padding: "var(--space-5)",
+        borderRadius: "var(--radius-md)",
+        background: "var(--color-surface-container-lowest)",
+        borderLeft: `3px solid ${borderColor}`,
+        boxShadow: "var(--shadow-sm)",
+      }}
+    >
+      <div className="flex items-start justify-between" style={{ marginBottom: "var(--space-3)" }}>
+        <div>
+          <p className="font-bold" style={{ fontSize: 14, color: "var(--color-text-primary)", marginBottom: 2 }}>
+            {r.company}
+          </p>
+          <p style={{ fontSize: 11, color: "var(--color-text-tertiary)" }}>
+            {r.reportType} | {r.date.split(" ")[0]}
+          </p>
+        </div>
+        <StatusBadge status={r.status} label={r.statusLabel} />
+      </div>
+      <p
+        className="tabular-nums font-display font-bold"
+        style={{ fontSize: 18, color: "var(--color-text-primary)", marginBottom: "var(--space-3)" }}
+      >
+        &yen;{r.amount}
+      </p>
+      <button
+        className="font-bold"
+        style={{
+          fontSize: 11,
+          padding: "6px 16px",
+          borderRadius: "var(--radius-sm)",
+          background: actionBg,
+          color: "var(--color-on-primary)",
+        }}
+      >
+        {actionLabel}
+      </button>
     </div>
   );
 }

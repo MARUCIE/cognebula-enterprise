@@ -2,6 +2,20 @@
    Layout reference: design/stitch-export/stitch/ai_ai_team/screen.png
    All data is static mock for initial build. */
 
+"use client";
+
+import Link from "next/link";
+
+const AGENT_SLUG: Record<string, string> = {
+  "林税安": "lin-shui-an",
+  "赵合规": "zhao-he-gui",
+  "陈税策": "chen-shui-ce",
+  "王记账": "wang-ji-zhang",
+  "张审核": "zhang-shen-he",
+  "李客服": "li-ke-fu",
+  "周小秘": "zhou-xiao-mi",
+};
+
 const agents = [
   {
     id: "LQ-TX-001",
@@ -609,8 +623,10 @@ function StatusBadge({ status }: { status: "active" | "training" | "idle" }) {
 type Agent = (typeof agents)[number];
 
 function AgentCard({ agent }: { agent: Agent }) {
+  const slug = AGENT_SLUG[agent.name] ?? "";
   return (
-    <div
+    <Link
+      href={`/ai-team/${slug}`}
       style={{
         padding: "var(--space-6)",
         borderRadius: "var(--radius-md)",
@@ -619,7 +635,12 @@ function AgentCard({ agent }: { agent: Agent }) {
         display: "flex",
         flexDirection: "column",
         gap: "var(--space-4)",
+        textDecoration: "none",
+        color: "inherit",
+        transition: "box-shadow 0.15s ease",
       }}
+      onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 2px 12px rgba(0,0,0,0.08)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "var(--shadow-sm)"; }}
     >
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
@@ -677,20 +698,27 @@ function AgentCard({ agent }: { agent: Agent }) {
           {agent.id}
         </span>
       </div>
-    </div>
+    </Link>
   );
 }
 
 function CompactAgentCard({ agent }: { agent: Agent }) {
+  const slug = AGENT_SLUG[agent.name] ?? "";
   return (
-    <div
+    <Link
+      href={`/ai-team/${slug}`}
       className="flex flex-col flex-1"
       style={{
         padding: "var(--space-6)",
         borderRadius: "var(--radius-md)",
         background: "var(--color-surface-container-lowest)",
         boxShadow: "var(--shadow-sm)",
+        textDecoration: "none",
+        color: "inherit",
+        transition: "box-shadow 0.15s ease",
       }}
+      onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 2px 12px rgba(0,0,0,0.08)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "var(--shadow-sm)"; }}
     >
       <div className="flex justify-between items-start" style={{ marginBottom: "var(--space-4)" }}>
         <AgentAvatar initials={agent.icon} color={agent.deptColor} textColor="var(--color-on-primary)" size={48} />
@@ -747,6 +775,6 @@ function CompactAgentCard({ agent }: { agent: Agent }) {
       >
         {agent.status === "idle" ? "立即唤醒" : "查看详情"}
       </button>
-    </div>
+    </Link>
   );
 }

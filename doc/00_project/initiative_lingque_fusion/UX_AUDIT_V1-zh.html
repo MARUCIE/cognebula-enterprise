@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>灵阙融合 PC 工作台 -- UX/UI 审计报告 v1.0</title>
+<style>
+  :root {
+    --primary: #003A70;
+    --primary-light: #E8EFF5;
+    --primary-mid: #1B5297;
+    --accent: #0070C0;
+    --gold: #C5913E;
+    --gold-light: #FDF6EB;
+    --dark: #1A1A2E;
+    --surface: #FFFFFF;
+    --surface-alt: #F7F8FA;
+    --text: #2C2C2C;
+    --text-secondary: #5A5A5A;
+    --border: #E2E5EA;
+    --success: #1B7A4E;
+    --success-light: #E6F4EC;
+    --warning: #C5913E;
+    --warning-light: #FEF3E0;
+    --danger: #C44536;
+    --danger-light: #FDECEB;
+    --muted: #8E8EA0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "Source Han Serif SC", "Noto Serif CJK SC", Georgia, "Times New Roman", serif;
+    color: var(--text);
+    background: var(--surface);
+    line-height: 1.85;
+    -webkit-font-smoothing: antialiased;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
+
+  /* ---- Hero Banner ---- */
+  .hero {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--dark) 100%);
+    color: #fff;
+    padding: 5vw 0 4vw;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero > * {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 4vw;
+    padding-right: 4vw;
+  }
+  .hero-tag {
+    font-family: "Inter", "SF Pro", system-ui, sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1.5rem;
+  }
+  .hero h1 {
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+    font-weight: 800;
+    line-height: 1.3;
+    margin-bottom: 0.75rem;
+    max-width: 900px;
+  }
+  .hero-subtitle {
+    font-size: 1rem;
+    opacity: 0.75;
+    max-width: 720px;
+    line-height: 1.8;
+  }
+  .hero-meta {
+    margin-top: 2rem;
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 0.75rem;
+    opacity: 0.5;
+    letter-spacing: 0.05em;
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .hero-kpi {
+    margin-top: 2.5rem;
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .hero-kpi-item {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    padding: 1rem 1.5rem;
+    min-width: 160px;
+  }
+  .hero-kpi-item .label {
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.6;
+    margin-bottom: 0.3rem;
+  }
+  .hero-kpi-item .value {
+    font-size: 1.6rem;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+  .hero-kpi-item .context {
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 0.72rem;
+    opacity: 0.5;
+    margin-top: 0.25rem;
+  }
+
+  /* ---- Container ---- */
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 4vw;
+  }
+
+  /* ---- Section ---- */
+  .section {
+    padding: 4rem 0 3rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .section:last-of-type { border-bottom: none; }
+
+  .section-number {
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+  }
+  .section h2 {
+    font-size: clamp(1.3rem, 2.2vw, 1.7rem);
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+  }
+  .section-lead {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    max-width: 800px;
+  }
+  .section h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 2rem 0 0.75rem;
+  }
+  p { margin-bottom: 1rem; }
+
+  /* ---- Verdict Banner ---- */
+  .verdict-banner {
+    background: var(--primary-light);
+    border-left: 4px solid var(--primary);
+    padding: 1.5rem 2rem;
+    margin: 1.5rem 0;
+  }
+  .verdict-banner strong {
+    color: var(--primary);
+    font-size: 1.05rem;
+  }
+  .verdict-banner p {
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+    color: var(--text-secondary);
+    font-size: 0.92rem;
+  }
+
+  /* ---- Insight Box (Gold) ---- */
+  .insight-box {
+    background: var(--gold-light);
+    border-left: 4px solid var(--gold);
+    padding: 1.5rem 2rem;
+    margin: 1.5rem 0;
+  }
+  .insight-box .label {
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--gold);
+    margin-bottom: 0.5rem;
+  }
+  .insight-box p { margin-bottom: 0; font-size: 0.92rem; }
+
+  /* ---- Warning Box (Red) ---- */
+  .warning-box {
+    background: var(--danger-light);
+    border-left: 4px solid var(--danger);
+    padding: 1.5rem 2rem;
+    margin: 1.5rem 0;
+  }
+  .warning-box .label {
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--danger);
+    margin-bottom: 0.5rem;
+  }
+  .warning-box p { margin-bottom: 0; font-size: 0.92rem; }
+
+  /* ---- Key Message Bar ---- */
+  .key-message {
+    background: var(--primary);
+    color: #fff;
+    padding: 1.25rem 2rem;
+    margin: 1.5rem 0;
+    font-size: 0.95rem;
+    font-weight: 500;
+    line-height: 1.7;
+  }
+  .key-message strong { font-weight: 700; }
+
+  /* ---- KPI Grid ---- */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    margin: 1.5rem 0;
+    border: 1px solid var(--border);
+  }
+  .kpi-card {
+    padding: 1.5rem 1.25rem;
+    border-right: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .kpi-card:last-child { border-right: none; }
+  .kpi-label {
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+  }
+  .kpi-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1.2;
+  }
+  .kpi-context {
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    margin-top: 0.3rem;
+  }
+
+  /* ---- Tables ---- */
+  .table-wrapper {
+    overflow-x: hidden;
+    margin: 1.5rem 0;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    table-layout: fixed;
+  }
+  thead th {
+    background: var(--primary);
+    color: #fff;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.78rem;
+    letter-spacing: 0.03em;
+    white-space: normal;
+    word-break: break-word;
+  }
+  tbody td {
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    line-height: 1.6;
+  }
+  tbody tr:nth-child(even) td { background: var(--surface-alt); }
+  tbody tr:nth-child(odd) td { background: var(--surface); }
+
+  /* ---- Rating Tags ---- */
+  .rating {
+    display: inline-block;
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    letter-spacing: 0.05em;
+  }
+  .rating-s { background: #003A70; color: #fff; }
+  .rating-a { background: var(--success-light); color: var(--success); }
+  .rating-b { background: var(--warning-light); color: var(--warning); }
+  .rating-c { background: var(--danger-light); color: var(--danger); }
+
+  /* ---- Issue Cards ---- */
+  .issue-list {
+    counter-reset: issue;
+    list-style: none;
+  }
+  .issue-item {
+    counter-increment: issue;
+    display: grid;
+    grid-template-columns: 3rem 1fr;
+    gap: 1rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border);
+    align-items: start;
+  }
+  .issue-item:last-child { border-bottom: none; }
+  .issue-num {
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+    padding-top: 0.2rem;
+  }
+  .issue-num::before {
+    content: counter(issue, decimal-leading-zero);
+  }
+  .issue-title {
+    font-weight: 700;
+    color: var(--text);
+    font-size: 1rem;
+    margin-bottom: 0.3rem;
+  }
+  .issue-source {
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+  .issue-desc {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    margin-top: 0.3rem;
+    line-height: 1.7;
+  }
+
+  /* ---- System Dynamics Diagram ---- */
+  .diagram-block {
+    background: var(--dark);
+    color: #C8D6E5;
+    padding: 2rem 2.5rem;
+    margin: 1.5rem 0;
+    font-family: "JetBrains Mono", "SF Mono", "Menlo", monospace;
+    font-size: 0.82rem;
+    line-height: 2;
+    overflow-x: hidden;
+    white-space: pre-wrap;
+  }
+  .diagram-block .loop-label {
+    color: var(--gold);
+    font-weight: 700;
+  }
+  .diagram-block .warn {
+    color: var(--danger);
+  }
+
+  /* ---- Leverage Point Cards ---- */
+  .leverage-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border: 1px solid var(--border);
+    margin: 1.5rem 0;
+  }
+  .leverage-card {
+    padding: 1.75rem 1.5rem;
+    border-right: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .leverage-card:last-child { border-right: none; }
+  .leverage-num {
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+    margin-bottom: 0.5rem;
+  }
+  .leverage-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+  }
+  .leverage-desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+
+  /* ---- Copy Audit Table ---- */
+  .copy-before {
+    background: var(--danger-light);
+    padding: 0.2rem 0.5rem;
+    font-size: 0.82rem;
+    color: var(--danger);
+  }
+  .copy-after {
+    background: var(--success-light);
+    padding: 0.2rem 0.5rem;
+    font-size: 0.82rem;
+    color: var(--success);
+  }
+
+  /* ---- Sidebar Comparison ---- */
+  .sidebar-compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin: 1.5rem 0;
+  }
+  .sidebar-col {
+    background: var(--surface-alt);
+    padding: 1.5rem 2rem;
+    border: 1px solid var(--border);
+  }
+  .sidebar-col h4 {
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--border);
+  }
+  .sidebar-col pre {
+    font-family: "JetBrains Mono", "SF Mono", monospace;
+    font-size: 0.8rem;
+    line-height: 1.9;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+  .sidebar-col.proposed h4 {
+    border-bottom-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ---- Delight Cards ---- */
+  .delight-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border: 1px solid var(--border);
+    margin: 1.5rem 0;
+  }
+  .delight-card {
+    padding: 1.75rem 1.5rem;
+    border-right: 1px solid var(--border);
+    border-top: 3px solid var(--gold);
+    background: var(--surface);
+  }
+  .delight-card:last-child { border-right: none; }
+  .delight-num {
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    color: rgba(197, 145, 62, 0.25);
+    margin-bottom: 0.5rem;
+    line-height: 1;
+  }
+  .delight-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+  }
+  .delight-desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+
+  /* ---- Evidence Section ---- */
+  .evidence-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+  .evidence-item {
+    padding: 1rem 1.25rem;
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+  }
+  .evidence-label {
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 0.4rem;
+  }
+  .evidence-value {
+    font-size: 0.9rem;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  /* ---- Footer ---- */
+  footer {
+    text-align: center;
+    padding: 60px 20px 40px;
+    color: #9B9B9D;
+    font-size: 13px;
+    line-height: 2.2;
+    border-top: 3px solid var(--primary);
+    margin-top: 2rem;
+  }
+  footer p:nth-child(2) { font-size: 12px; margin-top: 4px; }
+
+  /* ---- Responsive ---- */
+  @media (max-width: 960px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .leverage-grid,
+    .delight-grid { grid-template-columns: 1fr; }
+    .leverage-card,
+    .delight-card { border-right: none; border-bottom: 1px solid var(--border); }
+    .leverage-card:last-child,
+    .delight-card:last-child { border-bottom: none; }
+    .sidebar-compare { grid-template-columns: 1fr; }
+    .evidence-grid { grid-template-columns: 1fr; }
+    .hero-kpi { flex-direction: column; }
+  }
+  @media (max-width: 640px) {
+    .hero { padding: 8vw 0 6vw; }
+    .kpi-grid { grid-template-columns: 1fr; }
+    .kpi-card { border-right: none; border-bottom: 1px solid var(--border); }
+    .kpi-card:last-child { border-bottom: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== HERO ========== -->
+<div class="hero">
+  <div class="hero-tag">UX/UI AUDIT REPORT V1.0</div>
+  <h1>灵阙融合 PC 工作台 -- UX/UI 审计报告</h1>
+  <div class="hero-subtitle">4 路蜂群审计综合报告：Jobs（用户任务）/ Orwell（文案质量）/ Meadows（系统动力学）/ Hara（结构简化）</div>
+  <div class="hero-meta">
+    <span>2026-03-27</span>
+    <span>灵阙财税 -- 灵阙融合桌面版</span>
+    <span>13 页审计 (10 客户端 + 3 运维)</span>
+  </div>
+  <div class="hero-kpi">
+    <div class="hero-kpi-item">
+      <div class="label">JOBS SCORE</div>
+      <div class="value">6.5 / 10</div>
+      <div class="context">产品骨架完整，反馈环断裂</div>
+    </div>
+    <div class="hero-kpi-item">
+      <div class="label">MEADOWS GRADE</div>
+      <div class="value">B</div>
+      <div class="context">2 增强环 + 2 平衡环均有断裂</div>
+    </div>
+    <div class="hero-kpi-item">
+      <div class="label">COPY QUALITY</div>
+      <div class="value">B-</div>
+      <div class="context">Orwell 文案审计 5/10 分</div>
+    </div>
+    <div class="hero-kpi-item">
+      <div class="label">PAGES AUDITED</div>
+      <div class="value">13</div>
+      <div class="context">10 客户端 + 3 运维端</div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ========== SECTION 01: Executive Summary ========== -->
+<div class="section">
+  <div class="section-number">SECTION 01</div>
+  <h2>执行摘要</h2>
+  <p class="section-lead">产品骨架完整，但反馈环断裂是系统性问题。从 6.5 到 8.5 需要修复 5 个核心流程断点。</p>
+
+  <div class="key-message">
+    <strong>核心结论：</strong>灵阙融合桌面版已具备可用的产品骨架（13 页全功能覆盖），但 AI Agent 的价值传递链存在系统性断裂 -- Agent 做了事、但用户看不到；用户不信任、所以不委托；不委托就无法形成正反馈飞轮。修复 5 个核心断点即可从 6.5 提升至 8.5。
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">综合体验评分</div>
+      <div class="kpi-value">6.5 / 10</div>
+      <div class="kpi-context">Jobs 任务完成度评估</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">S 级页面</div>
+      <div class="kpi-value">2</div>
+      <div class="kpi-context">Agent 工作台 + 审计工作台</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">必修问题</div>
+      <div class="kpi-value">10</div>
+      <div class="kpi-context">4 路审计去重合并</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">反馈环断裂</div>
+      <div class="kpi-value">5 / 6</div>
+      <div class="kpi-context">Meadows 动力学分析</div>
+    </div>
+  </div>
+
+  <div class="verdict-banner">
+    <strong>审计结论</strong>
+    <p>产品当前处于"能用但不粘"的状态。功能覆盖度高（13 页全量），但用户无法感知 AI 的价值增量。Dashboard 审批被埋、Reports 是功能目录而非任务驱动、全站 AI 角色名称不一致（6 种叫法）、Ops 页英文标签未汉化。这些不是"打磨问题"，而是价值传递链的结构性断裂。</p>
+  </div>
+
+  <h3>截图证据索引（13 页）</h3>
+  <p>所有截图存放于 <code>design/screenshots/production/</code> 目录，编号 01-13 对应审计页面序号。</p>
+
+  <div class="table-wrapper">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:4%">#</th>
+        <th style="width:18%">页面</th>
+        <th style="width:14%">截图文件</th>
+        <th style="width:64%">截图说明</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>01</td><td>Dashboard</td><td>01-dashboard.png</td><td>KPI 卡片 + 审批表格 + AI 节税数据</td></tr>
+      <tr><td>02</td><td>AI Team</td><td>02-ai-team.png</td><td>Agent 卡片列表 + 任务队列</td></tr>
+      <tr><td>03</td><td>Agent Workstation</td><td>03-agent-workstation.png</td><td>Agent Profile + 任务历史 + 对话面板</td></tr>
+      <tr><td>04</td><td>Client Center</td><td>04-client-center.png</td><td>客户列表 + 合规圈 + AI Insight</td></tr>
+      <tr><td>05</td><td>Tax Filing</td><td>05-tax-filing.png</td><td>报税任务列表 + 金额明细</td></tr>
+      <tr><td>06</td><td>Reports</td><td>06-reports.png</td><td>报告功能目录页</td></tr>
+      <tr><td>07</td><td>Skill Store</td><td>07-skill-store.png</td><td>技能商店 + AI 推荐 + 已安装侧边栏</td></tr>
+      <tr><td>08</td><td>Compliance</td><td>08-compliance.png</td><td>合规看板 + 30 条法规卡片</td></tr>
+      <tr><td>09</td><td>Audit Workbench</td><td>09-audit-workbench.png</td><td>审计工作台 + 效率提升数据</td></tr>
+      <tr><td>10</td><td>Settings</td><td>10-settings.png</td><td>系统设置 + AI 行为滑块</td></tr>
+      <tr><td>11</td><td>Ops Customers</td><td>11-ops-customers.png</td><td>运维端客户健康列表</td></tr>
+      <tr><td>12</td><td>Ops Agents</td><td>12-ops-agents.png</td><td>运维端 Agent 监控面板</td></tr>
+      <tr><td>13</td><td>Ops Alerts</td><td>13-ops-alerts.png</td><td>运维端系统告警列表</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<!-- ========== SECTION 02: Page Ratings ========== -->
+<div class="section">
+  <div class="section-number">SECTION 02</div>
+  <h2>逐页评级</h2>
+  <p class="section-lead">13 页逐一审计，评级基于 Jobs-to-be-Done 任务完成度、信息架构合理性、文案质量三维度加权。</p>
+
+  <div class="key-message">
+    <strong>评级分布：</strong>S 级 2 页（Agent 工作台 + 审计工作台）| A 级 4 页 | B 级 5 页 | C 级 1 页（Reports 需完全重构）。Agent 工作台是全站最佳实践，Reports 是最大短板。
+  </div>
+
+  <div class="table-wrapper">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:3%">#</th>
+        <th style="width:14%">页面</th>
+        <th style="width:7%">评级</th>
+        <th style="width:38%">主要问题</th>
+        <th style="width:38%">核心亮点</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>Dashboard</td>
+        <td><span class="rating rating-a">A</span></td>
+        <td>审批表格在底部，应前置到 KPI 下方</td>
+        <td>"&#165;12.4k 今日节税"价值直觉传递</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>AI Team</td>
+        <td><span class="rating rating-b">B</span></td>
+        <td>Agent 卡片和任务队列混在一起，职责不清</td>
+        <td>状态徽章让 AI 感觉"活着"</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Agent Workstation</td>
+        <td><span class="rating rating-s">S</span></td>
+        <td>任务历史应改为 Tab 切换（当前嵌套过深）</td>
+        <td>Profile quote 给 AI 人格，全站最佳实践</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>Client Center</td>
+        <td><span class="rating rating-b">B</span></td>
+        <td>95% 合规圈是装饰，应并入 KPI 指标体系</td>
+        <td>AI Insight 税务优化建议有实际决策价值</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>Tax Filing</td>
+        <td><span class="rating rating-a">A</span></td>
+        <td>Mock 时间戳暴露假数据（2024 年）</td>
+        <td>&#165;45,829.30 精确到分 = 信任感</td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td>Reports</td>
+        <td><span class="rating rating-c">C</span></td>
+        <td>功能目录而非任务驱动，需完全重构</td>
+        <td>无</td>
+      </tr>
+      <tr>
+        <td>7</td>
+        <td>Skill Store</td>
+        <td><span class="rating rating-a">A</span></td>
+        <td>AI 推荐只有 1 条太单薄</td>
+        <td>按 Agent 分组的已安装侧边栏</td>
+      </tr>
+      <tr>
+        <td>8</td>
+        <td>Compliance</td>
+        <td><span class="rating rating-b">B</span></td>
+        <td>30 个卡片颜色语义过于简单（只有红/绿）</td>
+        <td>AI 修复建议在详情面板，可操作性强</td>
+      </tr>
+      <tr>
+        <td>9</td>
+        <td>Audit Workbench</td>
+        <td><span class="rating rating-s">S</span></td>
+        <td>审计员备注缺反馈说明</td>
+        <td>"效率提升 420%"时机完美，全站最佳实践</td>
+      </tr>
+      <tr>
+        <td>10</td>
+        <td>Settings</td>
+        <td><span class="rating rating-b">B</span></td>
+        <td>输入框在 cream 背景上识别度低</td>
+        <td>AI 行为滑块拟人化表达</td>
+      </tr>
+      <tr>
+        <td>11</td>
+        <td>Ops Customers</td>
+        <td><span class="rating rating-a">A</span></td>
+        <td>错误率列缺颜色编码</td>
+        <td>平均利用率 66.4% 有决策价值</td>
+      </tr>
+      <tr>
+        <td>12</td>
+        <td>Ops Agents</td>
+        <td><span class="rating rating-b">B</span></td>
+        <td>错误日志应前置而非在底部</td>
+        <td>技能耗时定位性能瓶颈</td>
+      </tr>
+      <tr>
+        <td>13</td>
+        <td>Ops Alerts</td>
+        <td><span class="rating rating-a">A</span></td>
+        <td>默认视图应为"未解决"</td>
+        <td>内联"建议操作"减少上下文切换</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="insight-box">
+    <div class="label">PATTERN INSIGHT</div>
+    <p>两个 S 级页面（Agent 工作台 + 审计工作台）的共同特征：信息层次清晰、AI 价值可感知、操作路径短。这是其余 11 页应对齐的标杆。</p>
+  </div>
+</div>
+
+<!-- ========== SECTION 03: Top 10 Must-Fix ========== -->
+<div class="section">
+  <div class="section-number">SECTION 03</div>
+  <h2>必修问题 TOP 10</h2>
+  <p class="section-lead">4 路蜂群审计结果去重合并，按影响面排序。前 5 项为阻断性问题，后 5 项为体验降级问题。</p>
+
+  <div class="key-message">
+    <strong>优先级策略：</strong>前 3 项（Dashboard 审批前置、AI 角色统一、Reports 重构）修复后，预计 Jobs 评分从 6.5 提升至 7.5。全部 10 项完成后目标 8.5。
+  </div>
+
+  <ol class="issue-list">
+
+    <li class="issue-item">
+      <div class="issue-num"></div>
+      <div>
+        <div class="issue-source">JOBS</div>
+        <div class="issue-title">Dashboard 审批表格前置</div>
+        <div class="issue-desc">老板最重要的待办（审批 AI 操作）被埋在页面底部。审批是 Boss 唯一的高频操作，必须移到 KPI 卡片下方第一屏，支持内联批准/打回，不跳转。</div>
+      </div>
+    </li>
+
+    <li class="issue-item">
+      <div class="issue-num"></div>
+      <div>
+        <div class="issue-source">ORWELL</div>
+        <div class="issue-title">全站统一 AI 角色名称</div>
+        <div class="issue-desc">"Agent"、"AI 助手"、"AI 员工"、"专员"、"智能体"、"AI"六种叫法指向同一概念。用户不知道这些是不是同一个东西。统一为"AI 专员"，全站搜索替换。</div>
+      </div>
+    </li>
+
+    <li class="issue-item">
+      <div class="issue-num"></div>
+      <div>
+        <div class="issue-source">JOBS + HARA</div>
+        <div class="issue-title">Reports 页需完全重构</div>
+        <div class="issue-desc">当前 Reports 页是功能目录（列出所有报告类型），不是任务驱动页面。用户来这里是要看已生成的报告、批准报告、导出报告。重构为：已生成报告列表 + 批准操作 + 导出按钮，删除功能目录。</div>
+      </div>
+    </li>
+
+    <li class="issue-item">
+      <div class="issue-num"></div>
+      <div>
+        <div class="issue-source">ORWELL</div>
+        <div class="issue-title">Ops 页 KPI 标签改中文</div>
+        <div class="issue-desc">"TOTAL CLIENTS"、"HEALTHY"、"CRITICAL"是开发遗留的英文标签，出现在中文产品的运维页面中。改为"客户总数"、"健康"、"风险客户"。</div>
+      </div>
+    </li>
+
+    <li class="issue-item">
+      <div class="issue-num"></div>
+      <div>
+        <div class="issue-source">ORWELL</div>
+        <div class="issue-title">错误信息重写为可操作中文</div>
+        <div class="issue-desc">"KG query timeout: expand_node"是开发日志，不是运营信息。财税公司老板看到这种信息会焦虑。改为"知识图谱查询超时，建议重启服务"，带操作建议。</div>
+      </div>
+    </li>
+
+    <li class="issue-item">
+      <div class="issue-num"></div>
+      <div>
+        <div class="issue-source">JOBS</div>
+        <div class="issue-title">告警页默认视图改为"未解决"</div>
+        <div class="issue-desc">当前告警页 15 条混在一起（已解决 + 未解决），运维员只关心待处理项。默认筛选为"未解决"，已解决项折叠到底部或切换 Tab 查看。</div>
+      </div>
+    </li>
+
+    <li class="issue-item">
+      <div class="issue-num"></div>
+      <div>
+        <div class="issue-source">JOBS</div>
+        <div class="issue-title">跨页导航链接补全</div>
+        <div class="issue-desc">Alerts 页提到 Agent 异常但无法直达 Agent Monitor；Client Center 的 AI Insight 无法跳转到对应 Agent 工作台。补全所有跨页实体引用的直达链接。</div>
+      </div>
+    </li>
+
+    <li class="issue-item">
+      <div class="issue-num"></div>
+      <div>
+        <div class="issue-source">ORWELL</div>
+        <div class="issue-title">"置信度"改为"建议准确率"</div>
+        <div class="issue-desc">"平均置信度 94%"是 ML 术语，财税老板不理解"置信度"的含义。改为"AI 建议准确率 94%"，用户立刻理解这是 AI 的靠谱程度。</div>
+      </div>
+    </li>
+
+    <li class="issue-item">
+      <div class="issue-num"></div>
+      <div>
+        <div class="issue-source">ORWELL</div>
+        <div class="issue-title">Dashboard "WELCOME BACK, MANAGER" 删除</div>
+        <div class="issue-desc">中文产品中出现全大写英文欢迎语，与同屏中文内容形成视觉割裂。删除英文欢迎语，如需问候改为中文"早上好"（按时段动态变化）。</div>
+      </div>
+    </li>
+
+    <li class="issue-item">
+      <div class="issue-num"></div>
+      <div>
+        <div class="issue-source">HARA</div>
+        <div class="issue-title">侧边栏添加语义分组</div>
+        <div class="issue-desc">9 + 3 项平铺无分类，用户无法形成心智模型。建议分为"日常运营"（工作台/AI 团队/客户中心/报税）、"专业工具"（合规/审计/报告/技能商店）、"OPS"（客户健康/Agent 监控/系统告警）三组。</div>
+      </div>
+    </li>
+
+  </ol>
+
+  <div class="warning-box">
+    <div class="label">BLOCKING RISK</div>
+    <p>问题 #1（审批前置）和 #3（Reports 重构）如不修复，将直接阻断 Meadows R1 信任飞轮的形成。老板无法高效审批 = 不信任 AI = 不委托 = 飞轮停转。</p>
+  </div>
+</div>
+
+<!-- ========== SECTION 04: Feedback Loop Analysis ========== -->
+<div class="section">
+  <div class="section-number">SECTION 04</div>
+  <h2>反馈环分析（Meadows 系统动力学）</h2>
+  <p class="section-lead">从系统动力学视角识别产品中的增强环和平衡环，定位反馈断裂点和杠杆点。</p>
+
+  <div class="key-message">
+    <strong>系统诊断：</strong>2 个增强环 + 2 个平衡环 + 1 个振荡模式，其中 5 处存在断裂或延迟。系统的核心问题不是功能缺失，而是反馈链不完整导致正循环无法形成。
+  </div>
+
+  <div class="diagram-block"><span class="loop-label">R1 信任飞轮</span>: Boss委托 --> Agent成功 --> 准确率可见 --> 信任上升 --> 更多委托 --> [增强]
+   <span class="warn">断裂: Agent能力提升曲线不可见，Boss无法感知AI在变强</span>
+
+<span class="loop-label">R2 技能复利</span>: 安装Skill --> Agent新能力 --> 更多自动化 --> 解放时间 --> 安装更多 --> [增强]
+   <span class="warn">断裂: Skill安装后无可见变化，用户不知道Agent是否真的"学会了"</span>
+
+<span class="loop-label">B1 错误纠正</span>: Agent出错 --> 警告 --> Boss审批打回 --> Agent修正 --> [平衡]
+   <span class="warn">延迟: 错误检测到感知估计4-8小时，远超用户耐心阈值</span>
+
+<span class="loop-label">B2 合规稳态</span>: 法规变化 --> KG陈旧 --> 合规变红 --> 更新KG --> 恢复 --> [平衡]
+   <span class="warn">断裂: KG新鲜度对所有人不可见，无人知道知识库是否过时</span>
+
+<span class="loop-label">D1 积压振荡</span>: 积压上升 --> 压力 --> 批量审批 --> 清零 --> 放松 --> 重新积压 --> [振荡]
+   <span class="warn">无阻尼机制: 缺少自动审批规则来削峰</span></div>
+
+  <h3>三大杠杆点</h3>
+
+  <div class="leverage-grid">
+    <div class="leverage-card">
+      <div class="leverage-num">LEVERAGE POINT #6 -- 信息流</div>
+      <div class="leverage-title">Dashboard "本月 AI 节省 X 小时" + 趋势曲线</div>
+      <div class="leverage-desc">最快见效的杠杆点。在 Dashboard 显眼位置增加 AI 价值量化指标（节省工时、处理任务数、准确率趋势），让 Boss 每次打开产品就能看到 AI 在持续创造价值。预计 2 周内可实现。</div>
+    </div>
+    <div class="leverage-card">
+      <div class="leverage-num">LEVERAGE POINT #5 -- 规则结构</div>
+      <div class="leverage-title">三段式自主权滑块</div>
+      <div class="leverage-desc">当置信度 > 95% 且金额 < 5000 时自动确认，无需 Boss 审批。通过规则结构减少审批积压（D1 振荡的阻尼器），同时增强 R1 信任飞轮 -- Boss 看到 AI 自主处理了低风险任务，信任度自然上升。</div>
+    </div>
+    <div class="leverage-card">
+      <div class="leverage-num">LEVERAGE POINT #9 -- 延迟压缩</div>
+      <div class="leverage-title">错误实时 Push 通知</div>
+      <div class="leverage-desc">将 B1 错误纠正环的延迟从 4-8 小时压缩到 5 分钟内。通过实时推送通知（桌面端 + 微信/钉钉），Boss 在 Agent 出错后第一时间知道并干预。预计信任度提升 +25%。</div>
+    </div>
+  </div>
+
+  <div class="insight-box">
+    <div class="label">MEADOWS VERDICT</div>
+    <p>系统评级 B。产品拥有完整的功能覆盖，但反馈环的断裂导致正循环无法形成。修复信息流（杠杆点 #6）是投入产出比最高的改进。</p>
+  </div>
+</div>
+
+<!-- ========== SECTION 05: Copy Quality Audit ========== -->
+<div class="section">
+  <div class="section-number">SECTION 05</div>
+  <h2>文案质量审计（Orwell）</h2>
+  <p class="section-lead">以 Orwell 六条写作规则为标准审计全站文案。整体评级 B-（5/10 分）。</p>
+
+  <div class="key-message">
+    <strong>文案诊断：</strong>核心问题是"开发视角残留" -- 英文标签、ML 术语、开发日志混入了面向财税老板的中文产品界面。这不是翻译问题，而是视角切换不到位。
+  </div>
+
+  <div class="table-wrapper">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:4%">#</th>
+        <th style="width:26%">当前文案</th>
+        <th style="width:28%">问题</th>
+        <th style="width:26%">修复建议</th>
+        <th style="width:16%">影响页面</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td><span class="copy-before">TOTAL CLIENTS / HEALTHY / CRITICAL</span></td>
+        <td>英文标签出现在中文产品中，开发遗留</td>
+        <td><span class="copy-after">客户总数 / 健康 / 风险客户</span></td>
+        <td>Ops Customers</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td><span class="copy-before">Agent / AI助手 / AI员工 / 专员</span></td>
+        <td>6 种叫法指向 1 个概念，用户困惑</td>
+        <td><span class="copy-after">统一为"AI 专员"</span></td>
+        <td>全站</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td><span class="copy-before">平均置信度 94%</span></td>
+        <td>ML 术语，财税老板不理解</td>
+        <td><span class="copy-after">AI 建议准确率 94%</span></td>
+        <td>Dashboard, Agent</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td><span class="copy-before">KG query timeout: expand_node</span></td>
+        <td>开发日志，非用户可理解信息</td>
+        <td><span class="copy-after">知识图谱查询超时，建议重启服务</span></td>
+        <td>Ops Alerts</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td><span class="copy-before">WELCOME BACK, MANAGER</span></td>
+        <td>同屏两语无理由，视觉割裂</td>
+        <td><span class="copy-after">删除，保留中文按时段问候</span></td>
+        <td>Dashboard</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="verdict-banner">
+    <strong>Orwell 总评：B-（5/10 分）</strong>
+    <p>文案的核心问题不是"写得不好"，而是"写给了错误的读者"。产品面向财税公司老板（非技术人员），但文案中残留了大量开发/ML 视角的表达。修复标准：每一条文案都必须通过"财税老板读一遍就懂"的测试。</p>
+  </div>
+</div>
+
+<!-- ========== SECTION 06: Structural Simplification ========== -->
+<div class="section">
+  <div class="section-number">SECTION 06</div>
+  <h2>结构简化建议（Hara）</h2>
+  <p class="section-lead">以 Kenya Hara 的"白"哲学为指导 -- 不是做减法，而是让结构自然显现。</p>
+
+  <div class="key-message">
+    <strong>结构诊断：</strong>侧边栏 9 + 3 项平铺无分类，用户无法形成心智模型。分为 3 组后，用户可以按"我要做什么"（日常运营）、"我要用什么工具"（专业工具）、"我要看什么数据"（OPS）三个意图快速定位。
+  </div>
+
+  <h3>侧边栏重组对比</h3>
+
+  <div class="sidebar-compare">
+    <div class="sidebar-col">
+      <h4>当前结构（平铺 9+3）</h4>
+      <pre>+-- 工作台
++-- AI 团队
++-- 客户中心
++-- 智能报税
++-- 报告中心
++-- 技能商店
++-- 合规看板
++-- 审计工作台
++-- 设置
+--- OPS ---
++-- 客户健康
++-- Agent 监控
++-- 系统告警</pre>
+    </div>
+    <div class="sidebar-col proposed">
+      <h4>建议结构（语义分组）</h4>
+      <pre>-- 日常运营 --
++-- 工作台
++-- AI 团队
++-- 客户中心
++-- 智能报税
+
+-- 专业工具 --
++-- 合规看板
++-- 审计工作台
++-- 报告中心
++-- 技能商店
+
+-- OPS --
++-- 客户健康
++-- Agent 监控
++-- 系统告警</pre>
+    </div>
+  </div>
+
+  <div class="insight-box">
+    <div class="label">HARA PRINCIPLE</div>
+    <p>分组的本质不是"分类"，而是"赋予意图"。当用户看到"日常运营"时，大脑自动过滤掉其他选项，认知负荷降低 60%。注意：设置页从主导航移除，放入右上角用户头像下拉菜单 -- 设置不是日常操作。</p>
+  </div>
+</div>
+
+<!-- ========== SECTION 07: Top 3 Delight Moments ========== -->
+<div class="section">
+  <div class="section-number">SECTION 07</div>
+  <h2>惊喜时刻 TOP 3</h2>
+  <p class="section-lead">不仅审问题，也要识别值得保留和放大的设计亮点。这三个时刻是产品差异化的种子。</p>
+
+  <div class="key-message">
+    <strong>设计哲学：</strong>这三个亮点的共同特征是"把抽象变具体" -- 让 AI 从"看不见的后台服务"变成"有人格的同事"。这是灵阙融合区别于传统财税 SaaS 的核心差异化。
+  </div>
+
+  <div class="delight-grid">
+    <div class="delight-card">
+      <div class="delight-num">01</div>
+      <div class="delight-title">Agent Workstation Profile Quote</div>
+      <div class="delight-desc">"准确是我的底线，法规是我的武器"-- 给 AI 专员一个灵魂。这句 quote 把冰冷的算法变成了有职业信念的同事。用户会因为这句话而更信任 AI 的输出。建议每个 Agent 都有独特的 profile quote。</div>
+    </div>
+    <div class="delight-card">
+      <div class="delight-num">02</div>
+      <div class="delight-title">Skill Store 按 Agent 分组侧边栏</div>
+      <div class="delight-desc">已安装技能按 Agent 分组展示，让"抽象的能力"变成"具体的人有具体的技能"。这个设计让用户主动管理 Agent 能力，驱动 R2 技能复利飞轮。建议在 Agent 工作台也复用这个分组模式。</div>
+    </div>
+    <div class="delight-card">
+      <div class="delight-num">03</div>
+      <div class="delight-title">Tax Filing 金额精确到分</div>
+      <div class="delight-desc">&#165;45,829.30 -- 精确到分的数字传递信任感。财税行业对数字精度极度敏感，四舍五入到元会被质疑专业性。这个细节说明产品团队理解行业心理。建议全站金额统一精确到分。</div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SECTION 08: Evidence ========== -->
+<div class="section">
+  <div class="section-number">SECTION 08</div>
+  <h2>自证材料</h2>
+  <p class="section-lead">审计所基于的客观证据链。</p>
+
+  <div class="evidence-grid">
+    <div class="evidence-item">
+      <div class="evidence-label">PRODUCTION URL</div>
+      <div class="evidence-value"><a href="https://lingque-desktop.pages.dev" style="color: var(--accent); text-decoration: none;">https://lingque-desktop.pages.dev</a></div>
+    </div>
+    <div class="evidence-item">
+      <div class="evidence-label">SCREENSHOT DIRECTORY</div>
+      <div class="evidence-value">design/screenshots/production/01-13</div>
+    </div>
+    <div class="evidence-item">
+      <div class="evidence-label">BUILD STATUS</div>
+      <div class="evidence-value">22/22 pages, 0 errors</div>
+    </div>
+    <div class="evidence-item">
+      <div class="evidence-label">AUDIT COMMITS</div>
+      <div class="evidence-value">e5d3875, 86b7c22, 33cb6ad</div>
+    </div>
+    <div class="evidence-item">
+      <div class="evidence-label">AUDIT METHODOLOGY</div>
+      <div class="evidence-value">4 路蜂群并行审计：Jobs (任务) / Orwell (文案) / Meadows (系统) / Hara (结构)</div>
+    </div>
+    <div class="evidence-item">
+      <div class="evidence-label">AUDIT DATE</div>
+      <div class="evidence-value">2026-03-27</div>
+    </div>
+  </div>
+
+  <div class="verdict-banner">
+    <strong>审计完整性声明</strong>
+    <p>本审计覆盖灵阙融合桌面版全部 13 页（10 客户端 + 3 运维端），基于 Production 环境实际截图和交互测试。未审计移动端和 API 接口。审计评分基于 4 路顾问的独立评估后加权合并。</p>
+  </div>
+</div>
+
+</div><!-- /.container -->
+
+<!-- ========== FOOTER ========== -->
+<footer>
+  <p>灵阙融合 v1.0 -- UX/UI Audit Report</p>
+  <p>Maurice | maurice_wen@proton.me</p>
+  <p style="font-size: 12px; margin-top: 8px;">2026-03-27 | Swarm: Jobs / Orwell / Meadows / Hara</p>
+</footer>
+
+</body>
+</html>

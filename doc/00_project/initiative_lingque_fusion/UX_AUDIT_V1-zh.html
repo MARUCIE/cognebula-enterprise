@@ -47,14 +47,12 @@
     position: relative;
     overflow: hidden;
   }
-  .hero > * {
+  .hero-inner {
     position: relative;
     z-index: 1;
     max-width: 1400px;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: 4vw;
-    padding-right: 4vw;
+    margin: 0 auto;
+    padding: 0 4vw;
   }
   .hero-tag {
     font-family: "Inter", "SF Pro", system-ui, sans-serif;
@@ -90,15 +88,14 @@
   }
   .hero-kpi {
     margin-top: 2.5rem;
-    display: flex;
-    gap: 2rem;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
   }
   .hero-kpi-item {
     background: rgba(255,255,255,0.08);
     border: 1px solid rgba(255,255,255,0.15);
-    padding: 1rem 1.5rem;
-    min-width: 160px;
+    padding: 1.25rem 1.5rem;
   }
   .hero-kpi-item .label {
     font-family: "Inter", system-ui, sans-serif;
@@ -546,7 +543,7 @@
     .delight-card:last-child { border-bottom: none; }
     .sidebar-compare { grid-template-columns: 1fr; }
     .evidence-grid { grid-template-columns: 1fr; }
-    .hero-kpi { flex-direction: column; }
+    .hero-kpi { grid-template-columns: 1fr 1fr; }
   }
   @media (max-width: 640px) {
     .hero { padding: 8vw 0 6vw; }
@@ -560,6 +557,7 @@
 
 <!-- ========== HERO ========== -->
 <div class="hero">
+  <div class="hero-inner">
   <div class="hero-tag">UX/UI AUDIT REPORT V1.0</div>
   <h1>灵阙融合 PC 工作台 -- UX/UI 审计报告</h1>
   <div class="hero-subtitle">4 路蜂群审计综合报告：Jobs（用户任务）/ Orwell（文案质量）/ Meadows（系统动力学）/ Hara（结构简化）</div>
@@ -590,6 +588,7 @@
       <div class="context">10 客户端 + 3 运维端</div>
     </div>
   </div>
+  </div><!-- /.hero-inner -->
 </div>
 
 <div class="container">

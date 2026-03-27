@@ -5,16 +5,7 @@
 "use client";
 
 import Link from "next/link";
-
-const AGENT_SLUG: Record<string, string> = {
-  "林税安": "lin-shui-an",
-  "赵合规": "zhao-he-gui",
-  "陈税策": "chen-shui-ce",
-  "王记账": "wang-ji-zhang",
-  "张审核": "zhang-shen-he",
-  "李客服": "li-ke-fu",
-  "周小秘": "zhou-xiao-mi",
-};
+import { AGENT_SLUG } from "../lib/agents";
 
 const agents = [
   {

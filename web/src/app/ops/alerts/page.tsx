@@ -6,6 +6,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { AGENT_SLUG, findAgentSlug } from "../../lib/agents";
 
 /* ================================================================
    Types
@@ -92,23 +93,6 @@ const SOURCE_COLOR: Record<Source, string> = {
   api: "var(--color-text-secondary)",
   compliance: "var(--color-dept-compliance)",
 };
-
-const AGENT_SLUG: Record<string, string> = {
-  "周小秘": "zhou-xiao-mi",
-  "张审核": "zhang-shen-he",
-  "赵合规": "zhao-he-gui",
-  "林税安": "lin-shui-an",
-  "王记账": "wang-ji-zhang",
-  "李客服": "li-ke-fu",
-  "陈税策": "chen-shui-ce",
-};
-
-function findAgentSlug(title: string): string | null {
-  for (const [name, slug] of Object.entries(AGENT_SLUG)) {
-    if (title.includes(name)) return slug;
-  }
-  return null;
-}
 
 const SEVERITY_BAR_COLOR: Record<Severity, string> = {
   critical: "var(--color-danger)",

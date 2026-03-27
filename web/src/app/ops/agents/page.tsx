@@ -257,6 +257,7 @@ function AgentCard({ agent: a }: { agent: Agent }) {
   return (
     <Link
       href={`/ai-team/${slug}`}
+      className="card-hover"
       style={{
         display: "block",
         padding: "var(--space-3)",
@@ -265,10 +266,7 @@ function AgentCard({ agent: a }: { agent: Agent }) {
         borderLeft: isError ? "3px solid var(--color-danger)" : "3px solid transparent",
         textDecoration: "none",
         color: "inherit",
-        transition: "box-shadow 0.15s ease",
       }}
-      onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "var(--shadow-sm)"; }}
-      onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "none"; }}
     >
       {/* Top row: avatar + name + status */}
       <div

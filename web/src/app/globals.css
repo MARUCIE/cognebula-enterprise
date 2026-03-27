@@ -270,6 +270,14 @@ hr {
   cursor: default;
 }
 
+/* --- Card hover (shadow lift) --- */
+.card-hover {
+  transition: box-shadow 0.15s ease;
+}
+.card-hover:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
 /* --- Selection color --- */
 ::selection {
   background: var(--color-primary-fixed);

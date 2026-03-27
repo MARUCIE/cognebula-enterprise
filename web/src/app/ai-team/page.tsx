@@ -2,8 +2,6 @@
    Layout reference: design/stitch-export/stitch/ai_ai_team/screen.png
    All data is static mock for initial build. */
 
-"use client";
-
 import Link from "next/link";
 import { AGENT_SLUG } from "../lib/agents";
 
@@ -618,6 +616,7 @@ function AgentCard({ agent }: { agent: Agent }) {
   return (
     <Link
       href={`/ai-team/${slug}`}
+      className="card-hover"
       style={{
         padding: "var(--space-6)",
         borderRadius: "var(--radius-md)",
@@ -628,10 +627,7 @@ function AgentCard({ agent }: { agent: Agent }) {
         gap: "var(--space-4)",
         textDecoration: "none",
         color: "inherit",
-        transition: "box-shadow 0.15s ease",
       }}
-      onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 2px 12px rgba(0,0,0,0.08)"; }}
-      onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "var(--shadow-sm)"; }}
     >
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
@@ -698,7 +694,7 @@ function CompactAgentCard({ agent }: { agent: Agent }) {
   return (
     <Link
       href={`/ai-team/${slug}`}
-      className="flex flex-col flex-1"
+      className="flex flex-col flex-1 card-hover"
       style={{
         padding: "var(--space-6)",
         borderRadius: "var(--radius-md)",
@@ -706,10 +702,7 @@ function CompactAgentCard({ agent }: { agent: Agent }) {
         boxShadow: "var(--shadow-sm)",
         textDecoration: "none",
         color: "inherit",
-        transition: "box-shadow 0.15s ease",
       }}
-      onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 2px 12px rgba(0,0,0,0.08)"; }}
-      onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "var(--shadow-sm)"; }}
     >
       <div className="flex justify-between items-start" style={{ marginBottom: "var(--space-4)" }}>
         <AgentAvatar initials={agent.icon} color={agent.deptColor} textColor="var(--color-on-primary)" size={48} />

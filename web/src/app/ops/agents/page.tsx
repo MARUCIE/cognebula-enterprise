@@ -4,6 +4,8 @@
 
 "use client";
 
+import Link from "next/link";
+
 /* ================================================================
    Types
    ================================================================ */
@@ -65,6 +67,16 @@ const SKILLS: SkillStat[] = [
   { name: "客户沟通记录",   invocations: 198,  avgMs: 900,  errors: 0 },
   { name: "月度结账",       invocations: 156,  avgMs: 12400, errors: 2 },
 ];
+
+const AGENT_SLUG: Record<string, string> = {
+  "林税安": "lin-shui-an",
+  "赵合规": "zhao-he-gui",
+  "陈税策": "chen-shui-ce",
+  "王记账": "wang-ji-zhang",
+  "张审核": "zhang-shen-he",
+  "李客服": "li-ke-fu",
+  "周小秘": "zhou-xiao-mi",
+};
 
 const ERRORS: ErrorRecord[] = [
   { time: "2024-11-15 14:23", agent: "周小秘", client: "云峰智源",   type: "timeout",         typeLabel: "超时",     message: "知识图谱查询超时（>30秒），建议检查数据量或分批处理",               borderColor: "var(--color-warning)" },
@@ -551,7 +563,13 @@ function ErrorTable({ errors }: { errors: ErrorRecord[] }) {
           >
             {e.time}
           </span>
-          <span className="font-bold">{e.agent}</span>
+          <Link
+            href={`/ai-team/${AGENT_SLUG[e.agent] ?? ""}`}
+            className="font-bold"
+            style={{ color: "var(--color-primary)", textDecoration: "none" }}
+          >
+            {e.agent}
+          </Link>
           <span
             style={{
               overflow: "hidden",

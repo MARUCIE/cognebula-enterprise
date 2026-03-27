@@ -5,6 +5,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 /* ================================================================
    Types
@@ -91,6 +92,23 @@ const SOURCE_COLOR: Record<Source, string> = {
   api: "var(--color-text-secondary)",
   compliance: "var(--color-dept-compliance)",
 };
+
+const AGENT_SLUG: Record<string, string> = {
+  "周小秘": "zhou-xiao-mi",
+  "张审核": "zhang-shen-he",
+  "赵合规": "zhao-he-gui",
+  "林税安": "lin-shui-an",
+  "王记账": "wang-ji-zhang",
+  "李客服": "li-ke-fu",
+  "陈税策": "chen-shui-ce",
+};
+
+function findAgentSlug(title: string): string | null {
+  for (const [name, slug] of Object.entries(AGENT_SLUG)) {
+    if (title.includes(name)) return slug;
+  }
+  return null;
+}
 
 const SEVERITY_BAR_COLOR: Record<Severity, string> = {
   critical: "var(--color-danger)",
@@ -439,21 +457,40 @@ function AlertCard({ alert: a, alt }: { alert: Alert; alt: boolean }) {
       {/* Status badge */}
       <StatusBadge status={a.status} />
 
-      {/* Action */}
-      <button
-        style={{
-          fontSize: 11,
-          fontWeight: 600,
-          color: "var(--color-primary)",
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          padding: "2px 4px",
-          whiteSpace: "nowrap" as const,
-        }}
-      >
-        {resolved ? "查看" : "处理"}
-      </button>
+      {/* Actions */}
+      <div className="flex items-center gap-3" style={{ flexShrink: 0 }}>
+        {(() => {
+          const slug = findAgentSlug(a.title);
+          return slug ? (
+            <Link
+              href={`/ai-team/${slug}`}
+              style={{
+                fontSize: 10,
+                fontWeight: 600,
+                color: "var(--color-secondary-dim)",
+                textDecoration: "none",
+                whiteSpace: "nowrap" as const,
+              }}
+            >
+              查看专员 &rarr;
+            </Link>
+          ) : null;
+        })()}
+        <button
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            color: "var(--color-primary)",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            padding: "2px 4px",
+            whiteSpace: "nowrap" as const,
+          }}
+        >
+          {resolved ? "查看" : "处理"}
+        </button>
+      </div>
     </div>
   );
 }

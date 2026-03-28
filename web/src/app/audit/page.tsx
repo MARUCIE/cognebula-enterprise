@@ -2,6 +2,9 @@
    Layout reference: design/stitch-export/stitch/audit_workbench/screen.png
    Audit findings list + AI agent analysis panel + flow progress */
 
+"use client";
+
+import { useState } from "react";
 import { ToastButton } from "../components/ToastButton";
 
 const AUDIT_FLOW = [
@@ -27,7 +30,6 @@ const FINDINGS = [
     severity: "warning" as const,
     company: "华瑞国际贸易有限公司",
     action: "核实合同与物流记录一致性",
-    selected: true,
   },
   {
     id: "FND-7721",
@@ -55,6 +57,59 @@ const FINDINGS = [
   },
 ];
 
+/* Detail data for the right panel, keyed by finding ID */
+const FINDING_DETAILS: Record<
+  string,
+  {
+    invoiceNumber: string;
+    amount: string;
+    buyer: string;
+    date: string;
+    diagnosisTitle: string;
+    diagnosisBody: string;
+    ocrStatus: string;
+    evidence: string[];
+    aiSubtitle: string;
+  }
+> = {
+  "FND-8104": {
+    invoiceNumber: "02391029",
+    amount: "¥ 45,200.00",
+    buyer: "华瑞国际贸易",
+    date: "2023-11-20",
+    diagnosisTitle: "发票日期滞后异常。",
+    diagnosisBody:
+      "通过语义分析对比采购合同（CONT-2023-011），合同明确交付日期为 2023-08-15。然而，该发票开具日期为 11-20，且在该时间段内企业未发生相关物流动作。",
+    ocrStatus: "100% 成功 | 校验指纹: 8829-AF21-9920-XX",
+    evidence: ["采购合同", "银行流水", "物流单据"],
+    aiSubtitle: "正在深度剖析凭证：VAT-2023-0992",
+  },
+  "FND-9022": {
+    invoiceNumber: "03892011",
+    amount: "¥ 82,500.00",
+    buyer: "华瑞实业集团",
+    date: "2023-11-15",
+    diagnosisTitle: "关联交易定价异常。",
+    diagnosisBody:
+      "供应商\"华瑞实业\"的原材料采购均价高于同类市场均价18.5%。通过交叉比对同期3家同类供应商报价，该价格偏离显著超出正常波动范围（±5%），存在利益输送嫌疑。",
+    ocrStatus: "100% 成功 | 校验指纹: 9022-BF44-1103-XX",
+    evidence: ["采购合同", "供应商报价单", "市场比价"],
+    aiSubtitle: "正在深度剖析凭证：PUR-2023-1115",
+  },
+  "FND-8992": {
+    invoiceNumber: "N/A (银行流水)",
+    amount: "¥ 500,000.00",
+    buyer: "华瑞实业集团",
+    date: "2023-11-18",
+    diagnosisTitle: "非办公时间大额转账异常。",
+    diagnosisBody:
+      "尾号8829账户在23:42发生50万元转账，无匹配合同或审批记录。该笔转账收款方为非常规供应商，且转账时间在非办公时段，需紧急核查资金流向及授权链。",
+    ocrStatus: "100% 成功 | 校验指纹: 8992-CA72-2240-XX",
+    evidence: ["银行流水", "审批记录", "转账凭证"],
+    aiSubtitle: "正在深度剖析银行流水：BANK-8829-1118",
+  },
+};
+
 const FOOTER_STATS = [
   { label: "当前审计效率", value: "提升 420%", color: "var(--color-primary)" },
   { label: "模型准确率", value: "99.8%", color: "var(--color-secondary-dim)" },
@@ -62,6 +117,11 @@ const FOOTER_STATS = [
 ];
 
 export default function AuditWorkbenchPage() {
+  const [selectedFindingId, setSelectedFindingId] = useState("FND-8104");
+
+  const selectedFinding = FINDINGS.find((f) => f.id === selectedFindingId);
+  const detail = FINDING_DETAILS[selectedFindingId];
+
   return (
     <div>
       {/* Breadcrumb-like context */}
@@ -123,7 +183,12 @@ export default function AuditWorkbenchPage() {
             style={{ maxHeight: 620, overflowY: "auto", paddingRight: "var(--space-2)" }}
           >
             {FINDINGS.map((f) => (
-              <FindingItem key={f.id} finding={f} />
+              <FindingItem
+                key={f.id}
+                finding={f}
+                isSelected={selectedFindingId === f.id}
+                onSelect={() => setSelectedFindingId(f.id)}
+              />
             ))}
           </div>
         </div>
@@ -154,7 +219,7 @@ export default function AuditWorkbenchPage() {
             </div>
             <div className="flex gap-2">
               <ToastButton
-                message="AI 已收到重分析请求，正在处理..."
+                message={`AI 已收到重分析请求「${selectedFinding?.title ?? ""}」，正在处理...`}
                 className="font-bold"
                 style={{
                   fontSize: 12,
@@ -167,7 +232,7 @@ export default function AuditWorkbenchPage() {
                 要求 AI 重分析
               </ToastButton>
               <ToastButton
-                message="审计发现已确认，已更新至审计报告"
+                message={`审计发现「${selectedFinding?.title ?? ""}」已确认，已更新至审计报告`}
                 className="font-bold"
                 style={{
                   fontSize: 12,
@@ -217,204 +282,218 @@ export default function AuditWorkbenchPage() {
                   灵阙审计 AI 助手
                 </h3>
                 <p style={{ fontSize: 11, color: "var(--color-text-tertiary)" }}>
-                  正在深度剖析凭证：VAT-2023-0992
+                  {detail?.aiSubtitle ?? `正在分析发现: ${selectedFindingId}`}
                 </p>
               </div>
             </div>
 
-            {/* Two-column: document scan + AI analysis */}
-            <div
-              className="grid gap-6"
-              style={{ gridTemplateColumns: "1fr 1fr" }}
-            >
-              {/* Left: document scan placeholder */}
-              <div>
-                <span
-                  style={{
-                    display: "block",
-                    fontSize: 10,
-                    fontWeight: 700,
-                    color: "var(--color-text-tertiary)",
-                    marginBottom: "var(--space-3)",
-                  }}
-                >
-                  扫描件原件
-                </span>
-                <div
-                  style={{
-                    background: "var(--color-surface-container-low)",
-                    borderRadius: "var(--radius-sm)",
-                    padding: "var(--space-3)",
-                    aspectRatio: "3/4",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    position: "relative",
-                  }}
-                >
-                  <DocPlaceholderIcon />
-                  {/* Highlight area */}
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: "25%",
-                      left: "20%",
-                      width: "60%",
-                      height: 36,
-                      background: "color-mix(in srgb, var(--color-secondary) 10%, transparent)",
-                      border: "1px dashed var(--color-secondary)",
-                      borderRadius: "var(--radius-sm)",
-                    }}
-                  />
-                </div>
-                <p
-                  className="tabular-nums"
-                  style={{
-                    fontSize: 10,
-                    color: "var(--color-text-tertiary)",
-                    marginTop: "var(--space-2)",
-                    fontFamily: "monospace",
-                    textAlign: "left",
-                  }}
-                >
-                  OCR 解析状态: 100% 成功 | 校验指纹: 8829-AF21-9920-XX
-                </p>
-              </div>
-
-              {/* Right: AI structured analysis */}
-              <div className="flex flex-col gap-4">
-                <span
-                  style={{
-                    display: "block",
-                    fontSize: 10,
-                    fontWeight: 700,
-                    color: "var(--color-text-tertiary)",
-                  }}
-                >
-                  AI 结构化解析及异常分析
-                </span>
-
-                {/* Key info extraction */}
-                <div
-                  style={{
-                    padding: "var(--space-4)",
-                    borderRadius: "var(--radius-sm)",
-                    background: "color-mix(in srgb, var(--color-primary) 4%, transparent)",
-                    borderLeft: "2px solid var(--color-primary)",
-                  }}
-                >
-                  <p
-                    className="font-bold"
-                    style={{
-                      fontSize: 11,
-                      color: "var(--color-primary)",
-                      marginBottom: "var(--space-2)",
-                    }}
-                  >
-                    关键信息提取
-                  </p>
-                  <div
-                    className="grid gap-y-2"
-                    style={{ gridTemplateColumns: "1fr 1fr" }}
-                  >
-                    <InfoPair label="发票号码" value="02391029" />
-                    <InfoPair label="开票金额" value="¥ 45,200.00" />
-                    <InfoPair label="购买方" value="华瑞国际贸易" />
-                    <InfoPair label="开票日期" value="2023-11-20" />
-                  </div>
-                </div>
-
-                {/* Anomaly diagnosis */}
-                <div
-                  style={{
-                    padding: "var(--space-4)",
-                    borderRadius: "var(--radius-sm)",
-                    background: "color-mix(in srgb, var(--color-secondary) 4%, transparent)",
-                    borderLeft: "2px solid var(--color-secondary)",
-                  }}
-                >
-                  <p
-                    className="font-bold"
-                    style={{
-                      fontSize: 11,
-                      color: "var(--color-secondary-dim)",
-                      marginBottom: "var(--space-2)",
-                    }}
-                  >
-                    异常诊断报告
-                  </p>
-                  <p style={{ fontSize: 13, color: "var(--color-text-primary)", lineHeight: 1.75 }}>
-                    <span className="font-bold">诊断结果：</span>发票日期滞后异常。
-                  </p>
-                  <p
-                    style={{
-                      fontSize: 12,
-                      color: "var(--color-text-secondary)",
-                      lineHeight: 1.75,
-                      marginTop: "var(--space-2)",
-                    }}
-                  >
-                    通过语义分析对比采购合同（CONT-2023-011），合同明确交付日期为
-                    2023-08-15。然而，该发票开具日期为 11-20，且在该时间段内企业未发生相关物流动作。
-                  </p>
-                </div>
-
-                {/* Evidence chain */}
+            {detail ? (
+              /* Two-column: document scan + AI analysis */
+              <div
+                className="grid gap-6"
+                style={{ gridTemplateColumns: "1fr 1fr" }}
+              >
+                {/* Left: document scan placeholder */}
                 <div>
-                  <p
-                    className="font-bold"
+                  <span
                     style={{
-                      fontSize: 12,
-                      color: "var(--color-text-primary)",
-                      marginBottom: "var(--space-2)",
+                      display: "block",
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: "var(--color-text-tertiary)",
+                      marginBottom: "var(--space-3)",
                     }}
                   >
-                    相关联证据链 (3)
-                  </p>
-                  <div className="flex gap-2">
-                    {["采购合同", "银行流水", "物流单据"].map((label) => (
-                      <ToastButton
-                        key={label}
-                        message={`已打开「${label}」原件预览`}
-                        className="flex items-center justify-center"
-                        style={{
-                          width: 48,
-                          height: 48,
-                          borderRadius: "var(--radius-sm)",
-                          background: "var(--color-surface-container)",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <EvidenceIcon />
-                      </ToastButton>
-                    ))}
+                    扫描件原件
+                  </span>
+                  <div
+                    style={{
+                      background: "var(--color-surface-container-low)",
+                      borderRadius: "var(--radius-sm)",
+                      padding: "var(--space-3)",
+                      aspectRatio: "3/4",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      position: "relative",
+                    }}
+                  >
+                    <DocPlaceholderIcon />
+                    {/* Highlight area */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "25%",
+                        left: "20%",
+                        width: "60%",
+                        height: 36,
+                        background: "color-mix(in srgb, var(--color-secondary) 10%, transparent)",
+                        border: "1px dashed var(--color-secondary)",
+                        borderRadius: "var(--radius-sm)",
+                      }}
+                    />
                   </div>
+                  <p
+                    className="tabular-nums"
+                    style={{
+                      fontSize: 10,
+                      color: "var(--color-text-tertiary)",
+                      marginTop: "var(--space-2)",
+                      fontFamily: "monospace",
+                      textAlign: "left",
+                    }}
+                  >
+                    OCR 解析状态: {detail.ocrStatus}
+                  </p>
                 </div>
 
-                {/* Auditor notes */}
-                <div style={{ marginTop: "var(--space-2)" }}>
-                  <p style={{ fontSize: 10, color: "var(--color-text-tertiary)", marginBottom: 4 }}>
-                    审计员备注
-                  </p>
-                  <textarea
-                    className="font-body"
-                    placeholder="输入您的复核意见..."
+                {/* Right: AI structured analysis */}
+                <div className="flex flex-col gap-4">
+                  <span
                     style={{
-                      width: "100%",
-                      height: 72,
-                      fontSize: 13,
-                      padding: "var(--space-3)",
-                      background: "var(--color-surface)",
-                      border: "none",
-                      borderRadius: "var(--radius-sm)",
-                      resize: "none",
-                      color: "var(--color-text-primary)",
-                      outline: "none",
+                      display: "block",
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: "var(--color-text-tertiary)",
                     }}
-                  />
+                  >
+                    AI 结构化解析及异常分析
+                  </span>
+
+                  {/* Key info extraction */}
+                  <div
+                    style={{
+                      padding: "var(--space-4)",
+                      borderRadius: "var(--radius-sm)",
+                      background: "color-mix(in srgb, var(--color-primary) 4%, transparent)",
+                      borderLeft: "2px solid var(--color-primary)",
+                    }}
+                  >
+                    <p
+                      className="font-bold"
+                      style={{
+                        fontSize: 11,
+                        color: "var(--color-primary)",
+                        marginBottom: "var(--space-2)",
+                      }}
+                    >
+                      关键信息提取
+                    </p>
+                    <div
+                      className="grid gap-y-2"
+                      style={{ gridTemplateColumns: "1fr 1fr" }}
+                    >
+                      <InfoPair label="发票号码" value={detail.invoiceNumber} />
+                      <InfoPair label="开票金额" value={detail.amount} />
+                      <InfoPair label="购买方" value={detail.buyer} />
+                      <InfoPair label="开票日期" value={detail.date} />
+                    </div>
+                  </div>
+
+                  {/* Anomaly diagnosis */}
+                  <div
+                    style={{
+                      padding: "var(--space-4)",
+                      borderRadius: "var(--radius-sm)",
+                      background: "color-mix(in srgb, var(--color-secondary) 4%, transparent)",
+                      borderLeft: "2px solid var(--color-secondary)",
+                    }}
+                  >
+                    <p
+                      className="font-bold"
+                      style={{
+                        fontSize: 11,
+                        color: "var(--color-secondary-dim)",
+                        marginBottom: "var(--space-2)",
+                      }}
+                    >
+                      异常诊断报告
+                    </p>
+                    <p style={{ fontSize: 13, color: "var(--color-text-primary)", lineHeight: 1.75 }}>
+                      <span className="font-bold">诊断结果：</span>{detail.diagnosisTitle}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: 12,
+                        color: "var(--color-text-secondary)",
+                        lineHeight: 1.75,
+                        marginTop: "var(--space-2)",
+                      }}
+                    >
+                      {detail.diagnosisBody}
+                    </p>
+                  </div>
+
+                  {/* Evidence chain */}
+                  <div>
+                    <p
+                      className="font-bold"
+                      style={{
+                        fontSize: 12,
+                        color: "var(--color-text-primary)",
+                        marginBottom: "var(--space-2)",
+                      }}
+                    >
+                      相关联证据链 ({detail.evidence.length})
+                    </p>
+                    <div className="flex gap-2">
+                      {detail.evidence.map((label) => (
+                        <ToastButton
+                          key={label}
+                          message={`已打开「${label}」原件预览`}
+                          className="flex items-center justify-center"
+                          style={{
+                            width: 48,
+                            height: 48,
+                            borderRadius: "var(--radius-sm)",
+                            background: "var(--color-surface-container)",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <EvidenceIcon />
+                        </ToastButton>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Auditor notes */}
+                  <div style={{ marginTop: "var(--space-2)" }}>
+                    <p style={{ fontSize: 10, color: "var(--color-text-tertiary)", marginBottom: 4 }}>
+                      审计员备注
+                    </p>
+                    <textarea
+                      className="font-body"
+                      placeholder="输入您的复核意见..."
+                      style={{
+                        width: "100%",
+                        height: 72,
+                        fontSize: 13,
+                        padding: "var(--space-3)",
+                        background: "var(--color-surface)",
+                        border: "none",
+                        borderRadius: "var(--radius-sm)",
+                        resize: "none",
+                        color: "var(--color-text-primary)",
+                        outline: "none",
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              /* Fallback when no detail data for selected finding */
+              <div
+                className="flex flex-col items-center justify-center"
+                style={{ minHeight: 400, color: "var(--color-text-tertiary)" }}
+              >
+                <DocPlaceholderIcon />
+                <p style={{ fontSize: 13, marginTop: "var(--space-4)" }}>
+                  {selectedFinding
+                    ? `「${selectedFinding.title}」的深度分析数据正在生成中...`
+                    : "请选择一项审计发现以查看深度分析"}
+                </p>
+              </div>
+            )}
 
             {/* Floating AI status */}
             <div
@@ -628,10 +707,13 @@ function FlowStep({
 
 function FindingItem({
   finding,
+  isSelected,
+  onSelect,
 }: {
   finding: (typeof FINDINGS)[number];
+  isSelected: boolean;
+  onSelect: () => void;
 }) {
-  const isSelected = finding.selected;
   const severityMap = {
     critical: {
       label: "高风险",
@@ -652,18 +734,20 @@ function FindingItem({
   const sev = severityMap[finding.severity];
 
   return (
-    <ToastButton
-      message={`已选中审计发现: ${finding.title}`}
+    <button
+      type="button"
+      onClick={onSelect}
       style={{
-        padding: "var(--space-4) var(--space-4) var(--space-4) var(--space-4)",
+        padding: "var(--space-4)",
         borderRadius: "var(--radius-sm)",
         background: isSelected ? "var(--color-primary)" : "var(--color-surface-container-lowest)",
         boxShadow: isSelected ? "none" : "var(--shadow-sm)",
-        borderLeft: `4px solid ${isSelected ? "var(--color-secondary)" : sev.borderColor}`,
         cursor: "pointer",
         display: "block",
-        textAlign: "left",
+        textAlign: "left" as const,
         width: "100%",
+        border: "none",
+        borderLeft: `4px solid ${isSelected ? "var(--color-secondary)" : sev.borderColor}`,
       }}
     >
       <div
@@ -742,7 +826,7 @@ function FindingItem({
       >
         {finding.desc}
       </p>
-    </ToastButton>
+    </button>
   );
 }
 

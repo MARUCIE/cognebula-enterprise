@@ -1,11 +1,16 @@
+"use client";
+
 /* Dashboard -- "今日概览"
    Layout reference: design/stitch-export/stitch/dashboard/screen.png
    All data is static mock for initial build. */
 
+import { useState } from "react";
 import Link from "next/link";
 import { ToastButton } from "./components/ToastButton";
 
 export default function DashboardPage() {
+  const [approvalTab, setApprovalTab] = useState<"pending" | "completed">("pending");
+
   return (
     <div>
       {/* ── Welcome header ── */}
@@ -97,12 +102,20 @@ export default function DashboardPage() {
             关键审批事项
           </h3>
           <div className="flex items-center gap-4" style={{ fontSize: 13 }}>
-            <ToastButton message="正在筛选待审批事项" className="font-medium" style={{ color: "var(--color-primary)" }}>
+            <button
+              className={approvalTab === "pending" ? "font-bold" : "font-medium"}
+              style={{ color: approvalTab === "pending" ? "var(--color-primary)" : "var(--color-text-tertiary)" }}
+              onClick={() => setApprovalTab("pending")}
+            >
               待筛审批 (12)
-            </ToastButton>
-            <ToastButton message="正在加载已完成审批记录" type="info" style={{ color: "var(--color-text-tertiary)" }}>
+            </button>
+            <button
+              className={approvalTab === "completed" ? "font-bold" : "font-medium"}
+              style={{ color: approvalTab === "completed" ? "var(--color-primary)" : "var(--color-text-tertiary)" }}
+              onClick={() => setApprovalTab("completed")}
+            >
               已完成
-            </ToastButton>
+            </button>
           </div>
         </div>
 
@@ -129,34 +142,69 @@ export default function DashboardPage() {
           </div>
 
           {/* Rows */}
-          <ApprovalRow
-            initials="LH"
-            initialsColor="var(--color-dept-tax)"
-            name="联合创新贸易有限公司"
-            type="高额认定费用核算"
-            suggestion="建议通过"
-            suggestionStatus="success"
-            time="2024-10-15 14:22"
-          />
-          <ApprovalRow
-            initials="YF"
-            initialsColor="var(--color-warning)"
-            name="云峰智源股份"
-            type="跨省税收协定确认"
-            suggestion="人工干预"
-            suggestionStatus="warning"
-            time="2024-10-15 11:05"
-            rowAlt
-          />
-          <ApprovalRow
-            initials="SC"
-            initialsColor="var(--color-dept-client)"
-            name="时代传媒有限公司"
-            type="月度进项税额抵扣"
-            suggestion="建议调整"
-            suggestionStatus="danger"
-            time="2024-10-15 09:48"
-          />
+          {approvalTab === "pending" ? (
+            <>
+              <ApprovalRow
+                initials="LH"
+                initialsColor="var(--color-dept-tax)"
+                name="联合创新贸易有限公司"
+                type="高额认定费用核算"
+                suggestion="建议通过"
+                suggestionStatus="success"
+                time="2024-10-15 14:22"
+              />
+              <ApprovalRow
+                initials="YF"
+                initialsColor="var(--color-warning)"
+                name="云峰智源股份"
+                type="跨省税收协定确认"
+                suggestion="人工干预"
+                suggestionStatus="warning"
+                time="2024-10-15 11:05"
+                rowAlt
+              />
+              <ApprovalRow
+                initials="SC"
+                initialsColor="var(--color-dept-client)"
+                name="时代传媒有限公司"
+                type="月度进项税额抵扣"
+                suggestion="建议调整"
+                suggestionStatus="danger"
+                time="2024-10-15 09:48"
+              />
+            </>
+          ) : (
+            <>
+              <ApprovalRow
+                initials="HS"
+                initialsColor="var(--color-success)"
+                name="恒升投资管理有限公司"
+                type="季度增值税申报"
+                suggestion="已批准"
+                suggestionStatus="success"
+                time="2024-10-14 16:30"
+              />
+              <ApprovalRow
+                initials="DT"
+                initialsColor="var(--color-primary)"
+                name="大唐信息技术有限公司"
+                type="研发费用加计扣除"
+                suggestion="已批准"
+                suggestionStatus="success"
+                time="2024-10-14 10:15"
+                rowAlt
+              />
+              <ApprovalRow
+                initials="XH"
+                initialsColor="var(--color-dept-bookkeeping)"
+                name="鑫海物流集团"
+                type="跨境服务免税备案"
+                suggestion="已批准"
+                suggestionStatus="success"
+                time="2024-10-13 14:50"
+              />
+            </>
+          )}
         </div>
       </section>
 

@@ -1,8 +1,12 @@
+"use client";
+
 /* System Settings -- "系统设置"
    Layout reference: design/stitch-export/stitch/system_settings/screen.png
    Firm profile + AI behavior + team RBAC + subscription */
 
+import { useState } from "react";
 import { ToastButton } from "../components/ToastButton";
+import { useToast } from "../components/Toast";
 
 const TEAM_MEMBERS = [
   {
@@ -39,7 +43,27 @@ const TEAM_MEMBERS = [
   },
 ];
 
+const INITIAL_TOGGLE_STATES: Record<string, boolean> = {
+  "ai-auto-compliance": true,
+};
+
 export default function SettingsPage() {
+  const [toggleStates, setToggleStates] = useState<Record<string, boolean>>(INITIAL_TOGGLE_STATES);
+  const toast = useToast();
+
+  const handleToggle = (id: string) => {
+    setToggleStates((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const handleSave = () => {
+    toast("所有设置已保存并生效", "success");
+  };
+
+  const handleCancel = () => {
+    setToggleStates(INITIAL_TOGGLE_STATES);
+    toast("已恢复为默认设置", "info");
+  };
+
   return (
     <div style={{ paddingBottom: "var(--space-8)" }}>
       {/* ── Section 1: Firm Profile ── */}
@@ -162,7 +186,7 @@ export default function SettingsPage() {
                   开启 AI 自动合规性纠错
                 </span>
               </div>
-              <ToggleSwitch on />
+              <ToggleSwitch id="ai-auto-compliance" on={!!toggleStates["ai-auto-compliance"]} onToggle={handleToggle} />
             </div>
           </div>
         </div>
@@ -384,9 +408,7 @@ export default function SettingsPage() {
         className="flex justify-end gap-4"
         style={{ paddingTop: "var(--space-8)" }}
       >
-        <ToastButton
-          message="已恢复为默认设置"
-          type="info"
+        <button
           className="font-bold"
           style={{
             fontSize: 13,
@@ -395,11 +417,11 @@ export default function SettingsPage() {
             color: "var(--color-text-secondary)",
             background: "transparent",
           }}
+          onClick={handleCancel}
         >
           取消更改
-        </ToastButton>
-        <ToastButton
-          message="所有设置已保存并生效"
+        </button>
+        <button
           className="font-bold"
           style={{
             fontSize: 13,
@@ -409,9 +431,10 @@ export default function SettingsPage() {
             color: "var(--color-on-primary)",
             boxShadow: "var(--shadow-sm)",
           }}
+          onClick={handleSave}
         >
           保存并应用所有设置
-        </ToastButton>
+        </button>
       </div>
 
       {/* Footer */}
@@ -597,11 +620,10 @@ function SliderControl({
   );
 }
 
-function ToggleSwitch({ on }: { on: boolean }) {
+function ToggleSwitch({ id, on, onToggle }: { id: string; on: boolean; onToggle: (id: string) => void }) {
   return (
-    <ToastButton
-      message={on ? "已关闭此设置" : "已开启此设置"}
-      type="info"
+    <button
+      onClick={() => onToggle(id)}
       style={{
         width: 44,
         height: 24,
@@ -610,6 +632,9 @@ function ToggleSwitch({ on }: { on: boolean }) {
         position: "relative",
         cursor: "pointer",
         flexShrink: 0,
+        border: "none",
+        padding: 0,
+        transition: "background 0.2s ease",
       }}
     >
       <div
@@ -624,7 +649,7 @@ function ToggleSwitch({ on }: { on: boolean }) {
           transition: "left 0.2s ease",
         }}
       />
-    </ToastButton>
+    </button>
   );
 }
 

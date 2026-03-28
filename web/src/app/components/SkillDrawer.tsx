@@ -23,9 +23,11 @@ const MOCK_LOGS = [
 export function SkillCardWrapper({
   skill,
   children,
+  onInstall,
 }: {
   skill: SkillData;
   children: React.ReactNode;
+  onInstall?: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const toast = useToast();
@@ -237,12 +239,16 @@ export function SkillCardWrapper({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              toast(
-                skill.installed
-                  ? `「${skill.name}」已安装并启用`
-                  : `「${skill.name}」安装成功，已分配给 ${skill.agents.join("、")}`,
-                skill.installed ? "info" : "success"
-              );
+              if (onInstall) {
+                onInstall();
+              } else {
+                toast(
+                  skill.installed
+                    ? `「${skill.name}」已安装并启用`
+                    : `「${skill.name}」安装成功，已分配给 ${skill.agents.join("、")}`,
+                  skill.installed ? "info" : "success"
+                );
+              }
               setOpen(false);
             }}
             style={{

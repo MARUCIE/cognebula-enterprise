@@ -1,7 +1,11 @@
+"use client";
+
 /* Skill Store -- "技能商店"
    Layout reference: design/stitch-export/stitch/skill_store_winner/screen.png
    Hero banner + category filters + skill card grid + installed sidebar */
 
+import { useState } from "react";
+import { useToast } from "../components/Toast";
 import { ToastButton } from "../components/ToastButton";
 import { SkillCardWrapper } from "../components/SkillDrawer";
 
@@ -102,6 +106,30 @@ const INSTALLED_GROUPS = [
 ];
 
 export default function SkillStorePage() {
+  const [activeCategory, setActiveCategory] = useState("全部");
+  const [installedSkills, setInstalledSkills] = useState<Set<string>>(
+    () => new Set(SKILLS.filter((s) => s.installed).map((s) => s.name))
+  );
+  const toast = useToast();
+
+  const filteredSkills =
+    activeCategory === "全部"
+      ? SKILLS
+      : SKILLS.filter((s) => s.category === activeCategory);
+
+  function handleInstall(skillName: string) {
+    if (installedSkills.has(skillName)) {
+      toast("此技能已安装", "info");
+      return;
+    }
+    setInstalledSkills((prev) => new Set(prev).add(skillName));
+    const skill = SKILLS.find((s) => s.name === skillName);
+    toast(
+      `「${skillName}」安装成功，已分配给${skill?.agents.join("、") ?? "相关专员"}`,
+      "success"
+    );
+  }
+
   return (
     <>
     <div style={{ display: "flex", gap: "var(--space-8)" }}>
@@ -157,24 +185,29 @@ export default function SkillStorePage() {
             paddingBottom: "var(--space-3)",
           }}
         >
-          {CATEGORIES.map((cat, i) => (
-            <ToastButton
-              key={cat.label}
-              message={`正在筛选「${cat.label}」类别技能`}
-              type="info"
-              className="font-medium"
-              style={{
-                fontSize: 13,
-                color: i === 1 ? "var(--color-primary)" : "var(--color-text-tertiary)",
-                paddingBottom: 8,
-                borderBottom: i === 1 ? "2px solid var(--color-primary)" : "2px solid transparent",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {cat.label}{" "}
-              <span style={{ opacity: 0.5, fontSize: 11 }}>({cat.count})</span>
-            </ToastButton>
-          ))}
+          {CATEGORIES.map((cat) => {
+            const isActive = cat.label === activeCategory;
+            return (
+              <button
+                key={cat.label}
+                onClick={() => setActiveCategory(cat.label)}
+                className="font-medium"
+                style={{
+                  fontSize: 13,
+                  color: isActive ? "var(--color-primary)" : "var(--color-text-tertiary)",
+                  paddingBottom: 8,
+                  whiteSpace: "nowrap" as const,
+                  background: "none",
+                  border: "none",
+                  borderBottom: isActive ? "2px solid var(--color-primary)" : "2px solid transparent",
+                  cursor: "pointer",
+                }}
+              >
+                {cat.label}{" "}
+                <span style={{ opacity: 0.5, fontSize: 11 }}>({cat.count})</span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Skill card grid */}
@@ -182,11 +215,22 @@ export default function SkillStorePage() {
           className="grid gap-5"
           style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}
         >
-          {SKILLS.map((skill) => (
-            <SkillCardWrapper key={skill.name} skill={skill}>
-              <SkillCard skill={skill} />
-            </SkillCardWrapper>
-          ))}
+          {filteredSkills.map((skill) => {
+            const isInstalled = installedSkills.has(skill.name);
+            const skillWithState = { ...skill, installed: isInstalled };
+            return (
+              <SkillCardWrapper
+                key={skill.name}
+                skill={skillWithState}
+                onInstall={() => handleInstall(skill.name)}
+              >
+                <SkillCard
+                  skill={skillWithState}
+                  onInstall={() => handleInstall(skill.name)}
+                />
+              </SkillCardWrapper>
+            );
+          })}
         </div>
       </div>
 
@@ -208,7 +252,7 @@ export default function SkillStorePage() {
           >
             已安装技能{" "}
             <span style={{ color: "var(--color-text-tertiary)", fontWeight: 400, fontSize: 13 }}>
-              (47)
+              ({installedSkills.size})
             </span>
           </h3>
         </div>
@@ -327,8 +371,10 @@ function ratingStyle(rating: Rating) {
 
 function SkillCard({
   skill,
+  onInstall,
 }: {
   skill: (typeof SKILLS)[number];
+  onInstall: () => void;
 }) {
   const badge = ratingStyle(skill.rating);
 
@@ -427,9 +473,8 @@ function SkillCard({
             </div>
           ))}
         </div>
-        <ToastButton
-          message={skill.installed ? "此技能已安装并启用" : `「${skill.name}」安装成功，已分配给相关专员`}
-          type={skill.installed ? "info" : "success"}
+        <button
+          onClick={(e) => { e.stopPropagation(); onInstall(); }}
           className="font-bold"
           style={{
             fontSize: 11,
@@ -437,10 +482,12 @@ function SkillCard({
             borderRadius: "var(--radius-sm)",
             background: skill.installed ? "var(--color-surface-container)" : "var(--color-primary)",
             color: skill.installed ? "var(--color-text-secondary)" : "var(--color-on-primary)",
+            border: "none",
+            cursor: "pointer",
           }}
         >
           {skill.installed ? "已安装" : "安装技能"}
-        </ToastButton>
+        </button>
       </div>
     </div>
   );

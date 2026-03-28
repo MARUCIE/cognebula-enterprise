@@ -1,11 +1,30 @@
+"use client";
+
 /* Client Center -- "客户中心"
    Layout reference: design/stitch-export/stitch/client_center/screen.png
    All data is static mock for initial build. */
 
+import { useState } from "react";
 import Link from "next/link";
+import { useToast } from "../components/Toast";
 import { ToastButton } from "../components/ToastButton";
 
+type StatusFilter = "all" | "done" | "progress" | "review";
+const STATUS_FILTERS: { key: StatusFilter; label: string }[] = [
+  { key: "all", label: "全部" },
+  { key: "done", label: "已完成" },
+  { key: "progress", label: "进行中" },
+  { key: "review", label: "待审核" },
+];
+
 export default function ClientCenterPage() {
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const toast = useToast();
+
+  const filtered = statusFilter === "all"
+    ? CLIENTS
+    : CLIENTS.filter((c) => c.status === statusFilter);
+
   return (
     <div>
       {/* ── Page header ── */}
@@ -35,22 +54,26 @@ export default function ClientCenterPage() {
           </p>
         </div>
         <div className="flex gap-3">
-          <ToastButton
-            message="筛选面板即将上线"
-            type="info"
-            className="flex items-center gap-2 font-semibold"
-            style={{
-              fontSize: 13,
-              padding: "8px 16px",
-              borderRadius: "var(--radius-md)",
-              background: "var(--color-surface-container-lowest)",
-              color: "var(--color-primary)",
-              boxShadow: "var(--shadow-sm)",
-            }}
-          >
-            <FilterIcon />
-            高级筛选
-          </ToastButton>
+          <div className="flex" style={{ borderRadius: "var(--radius-sm)", background: "var(--color-surface-container)", padding: 3 }}>
+            {STATUS_FILTERS.map((f) => (
+              <button
+                key={f.key}
+                onClick={() => setStatusFilter(f.key)}
+                className="font-medium"
+                style={{
+                  fontSize: 12,
+                  padding: "5px 14px",
+                  borderRadius: "var(--radius-sm)",
+                  background: statusFilter === f.key ? "var(--color-surface-container-lowest)" : "transparent",
+                  color: statusFilter === f.key ? "var(--color-primary)" : "var(--color-text-secondary)",
+                  fontWeight: statusFilter === f.key ? 700 : 400,
+                  boxShadow: statusFilter === f.key ? "var(--shadow-sm)" : undefined,
+                }}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
           <ToastButton
             message="新客户录入流程即将上线"
             type="info"
@@ -173,7 +196,7 @@ export default function ClientCenterPage() {
         </div>
 
         {/* Rows */}
-        {CLIENTS.map((c, i) => (
+        {filtered.map((c, i) => (
           <ClientRow key={c.name} {...c} alt={i % 2 === 1} />
         ))}
 
@@ -187,7 +210,7 @@ export default function ClientCenterPage() {
             color: "var(--color-text-tertiary)",
           }}
         >
-          <span>显示 1 到 8 条，共 128 条客户记录</span>
+          <span>显示 {filtered.length} 条{statusFilter !== "all" ? `（${STATUS_FILTERS.find((f) => f.key === statusFilter)?.label}）` : ""}，共 128 条客户记录</span>
           <div className="flex gap-1">
             <PaginationBtn label="<" />
             <PaginationBtn label="1" active />
@@ -677,9 +700,7 @@ function ClientRow({
 
 function PaginationBtn({ label, active }: { label: string; active?: boolean }) {
   return (
-    <ToastButton
-      message={label === "..." ? "更多页面即将上线" : `正在加载第 ${label} 页`}
-      type="info"
+    <button
       className="flex items-center justify-center"
       style={{
         width: 28,
@@ -690,10 +711,11 @@ function PaginationBtn({ label, active }: { label: string; active?: boolean }) {
         background: active ? "var(--color-primary)" : "var(--color-surface-container-lowest)",
         color: active ? "var(--color-on-primary)" : "var(--color-text-secondary)",
         boxShadow: active ? undefined : "var(--shadow-sm)",
+        cursor: active ? "default" : "pointer",
       }}
     >
       {label}
-    </ToastButton>
+    </button>
   );
 }
 

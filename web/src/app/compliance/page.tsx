@@ -1,16 +1,196 @@
 /* Compliance Dashboard -- "合规看板"
    Layout reference: design/stitch-export/stitch/compliance_dashboard/screen.png
    Brand: 灵阙财税 (NOT "智汇算 AI")
-   All data is static mock for initial build. */
+   Interactive client component with filter + selection state. */
 
+"use client";
+
+import { useState } from "react";
+import { useToast } from "../components/Toast";
 import { ToastButton } from "../components/ToastButton";
 
+/* ================================================================
+   Mock data
+   ================================================================ */
+
+type ComplianceItemData = {
+  name: string;
+  id: string;
+  status: "green" | "amber" | "red";
+};
+
+const COMPLIANCE_ITEMS: ComplianceItemData[] = [
+  { name: "杭州明达科技", id: "8829-CN", status: "green" },
+  { name: "上海恒远贸易", id: "9021-CN", status: "green" },
+  { name: "深圳创新电子", id: "7623-CN", status: "red" },
+  { name: "北京卓越咨询", id: "7712-CN", status: "amber" },
+  { name: "广东星联实业", id: "1001-CN", status: "green" },
+  { name: "江苏华茂物流", id: "1002-CN", status: "green" },
+  { name: "浙江正泰控股", id: "1003-CN", status: "amber" },
+  { name: "成都博众软件", id: "1004-CN", status: "green" },
+  { name: "武汉天喻信息", id: "1005-CN", status: "green" },
+  { name: "西安隆基股份", id: "1006-CN", status: "amber" },
+  { name: "南京泉峰汽车", id: "1007-CN", status: "green" },
+  { name: "长沙中联重科", id: "1008-CN", status: "green" },
+  { name: "中铁建设集团", id: "2001-CN", status: "green" },
+  { name: "阿里巴巴网络技术", id: "2002-CN", status: "amber" },
+  { name: "腾讯科技深圳", id: "2003-CN", status: "green" },
+  { name: "美团点评科技", id: "2004-CN", status: "green" },
+  { name: "华为技术有限", id: "2005-CN", status: "green" },
+  { name: "京东世纪贸易", id: "2006-CN", status: "amber" },
+  { name: "比亚迪股份", id: "2007-CN", status: "green" },
+  { name: "宁德时代新能源", id: "2008-CN", status: "green" },
+  { name: "小米通讯技术", id: "2009-CN", status: "red" },
+  { name: "字节跳动科技", id: "2010-CN", status: "green" },
+  { name: "网易杭州网络", id: "2011-CN", status: "amber" },
+  { name: "顺丰速运集团", id: "2012-CN", status: "green" },
+  { name: "格力电器珠海", id: "2013-CN", status: "green" },
+  { name: "海尔智家青岛", id: "2014-CN", status: "amber" },
+  { name: "蚂蚁科技集团", id: "2015-CN", status: "green" },
+  { name: "百度在线网络", id: "2016-CN", status: "red" },
+  { name: "拼多多上海", id: "2017-CN", status: "green" },
+  { name: "大疆创新科技", id: "2018-CN", status: "green" },
+];
+
+type FilterLabel = "全部" | "合规" | "需关注" | "风险";
+const FILTER_LABELS: FilterLabel[] = ["全部", "合规", "需关注", "风险"];
+
+const FILTER_TO_STATUS: Record<FilterLabel, "green" | "amber" | "red" | null> = {
+  "全部": null,
+  "合规": "green",
+  "需关注": "amber",
+  "风险": "red",
+};
+
+/* ================================================================
+   Risk detail data per company (mock)
+   ================================================================ */
+
+type RiskItemData = {
+  severity: "high" | "medium" | "low";
+  severityLabel: string;
+  title: string;
+  description: string;
+  citations: string[];
+  aiSuggestion?: string;
+};
+
+type CompanyRiskDetail = {
+  name: string;
+  lastScan: string;
+  risks: RiskItemData[];
+};
+
+const COMPANY_RISK_MAP: Record<string, CompanyRiskDetail> = {
+  "7623-CN": {
+    name: "深圳创新电子",
+    lastScan: "2024-11-24 14:30",
+    risks: [
+      {
+        severity: "high",
+        severityLabel: "高",
+        title: "税务申报异常",
+        description:
+          "在最近的增值税申报周期中，进项税额抵扣与进货单据总额存在 12.5% 的非正常偏差。",
+        citations: ["增值税暂行条例 第15条", "财税 [2016] 36号"],
+        aiSuggestion:
+          "请核查发票流水号 2024XJ-0012 至 2024XJ-0045 的申报状态。建议补充关联交易说明文件。",
+      },
+      {
+        severity: "medium",
+        severityLabel: "中",
+        title: "研发费用加计扣除证据链",
+        description: "研发工时记录表缺失部门负责人电子签名，可能导致合规性审计扣分。",
+        citations: ["研发费用税前加计扣除指引"],
+      },
+      {
+        severity: "low",
+        severityLabel: "低",
+        title: "股权转让个税申报提醒",
+        description: "检测到近期股东变更，请确保在协议签署后 30 日内完成税务备案。",
+        citations: ["个人所得税法 第8条"],
+      },
+    ],
+  },
+  "2009-CN": {
+    name: "小米通讯技术",
+    lastScan: "2024-11-24 11:15",
+    risks: [
+      {
+        severity: "high",
+        severityLabel: "高",
+        title: "跨境关联交易定价异常",
+        description:
+          "与境外子公司之间的技术服务费转让定价偏离独立交易原则，税务机关可能启动特别纳税调整。",
+        citations: ["企业所得税法 第41条", "特别纳税调整实施办法"],
+        aiSuggestion:
+          "建议立即准备同期资料和可比性分析报告，补充转让定价合理性说明文件。",
+      },
+      {
+        severity: "medium",
+        severityLabel: "中",
+        title: "出口退税单证不齐",
+        description: "3 笔出口退税申请的报关单和增值税发票存在品名不一致情况。",
+        citations: ["出口退(免)税管理办法 第9条"],
+      },
+    ],
+  },
+  "2016-CN": {
+    name: "百度在线网络",
+    lastScan: "2024-11-24 09:45",
+    risks: [
+      {
+        severity: "high",
+        severityLabel: "高",
+        title: "数据资产入账合规风险",
+        description:
+          "大量数据资产未按《企业数据资源相关会计处理暂行规定》进行确认和计量，存在财务报表错报风险。",
+        citations: ["企业数据资源相关会计处理暂行规定", "企业会计准则 第6号"],
+        aiSuggestion:
+          "建议对数据资产进行全面盘点，按无形资产或存货分类入账，并补充估值报告。",
+      },
+      {
+        severity: "low",
+        severityLabel: "低",
+        title: "印花税申报提醒",
+        description: "检测到新签订的技术合同尚未完成印花税申报，请在签约后 15 日内完成。",
+        citations: ["印花税法 第15条"],
+      },
+    ],
+  },
+};
+
+/* ================================================================
+   Main page component
+   ================================================================ */
+
 export default function ComplianceDashboardPage() {
+  const [activeFilter, setActiveFilter] = useState<FilterLabel>("全部");
+  const [selectedCompany, setSelectedCompany] = useState<string | null>("7623-CN");
+  const toast = useToast();
+
+  const filteredStatus = FILTER_TO_STATUS[activeFilter];
+  const filteredItems = filteredStatus
+    ? COMPLIANCE_ITEMS.filter((item) => item.status === filteredStatus)
+    : COMPLIANCE_ITEMS;
+
+  // Dynamic stats based on filtered items
+  const greenCount = filteredItems.filter((i) => i.status === "green").length;
+  const amberCount = filteredItems.filter((i) => i.status === "amber").length;
+  const redCount = filteredItems.filter((i) => i.status === "red").length;
+  const totalCount = filteredItems.length;
+
+  // Selected company risk detail
+  const selectedDetail = selectedCompany ? COMPANY_RISK_MAP[selectedCompany] : null;
+  const selectedItem = selectedCompany
+    ? COMPLIANCE_ITEMS.find((i) => i.id === selectedCompany)
+    : null;
+
   return (
     <div className="flex gap-0">
-      {/* ── Main content area ── */}
+      {/* -- Main content area -- */}
       <div className="flex-1 min-w-0">
-        {/* ── Page header ── */}
+        {/* -- Page header -- */}
         <section style={{ marginBottom: "var(--space-8)" }}>
           <h2
             className="font-display font-extrabold"
@@ -33,7 +213,7 @@ export default function ComplianceDashboardPage() {
           </p>
         </section>
 
-        {/* ── Stats bar ── */}
+        {/* -- Stats bar -- */}
         <section
           className="grid gap-6"
           style={{
@@ -44,27 +224,27 @@ export default function ComplianceDashboardPage() {
           <ComplianceStat
             dotColor="var(--color-success)"
             label="合规客户"
-            count={156}
-            total={200}
-            percent="78%"
+            count={greenCount}
+            total={totalCount}
+            percent={totalCount > 0 ? `${Math.round((greenCount / totalCount) * 100)}%` : "0%"}
           />
           <ComplianceStat
             dotColor="var(--color-warning)"
             label="需关注"
-            count={32}
-            total={200}
-            percent="16%"
+            count={amberCount}
+            total={totalCount}
+            percent={totalCount > 0 ? `${Math.round((amberCount / totalCount) * 100)}%` : "0%"}
           />
           <ComplianceStat
             dotColor="var(--color-danger)"
             label="风险客户"
-            count={12}
-            total={200}
-            percent="6%"
+            count={redCount}
+            total={totalCount}
+            percent={totalCount > 0 ? `${Math.round((redCount / totalCount) * 100)}%` : "0%"}
           />
         </section>
 
-        {/* ── Filter row ── */}
+        {/* -- Filter row -- */}
         <section
           className="flex items-center justify-between"
           style={{
@@ -82,10 +262,14 @@ export default function ComplianceDashboardPage() {
               padding: 3,
             }}
           >
-            <FilterTab label="全部" active />
-            <FilterTab label="合规" />
-            <FilterTab label="需关注" />
-            <FilterTab label="风险" />
+            {FILTER_LABELS.map((label) => (
+              <FilterTab
+                key={label}
+                label={label}
+                active={activeFilter === label}
+                onClick={() => setActiveFilter(label)}
+              />
+            ))}
           </div>
           <div className="flex items-center gap-3">
             <select
@@ -111,7 +295,7 @@ export default function ComplianceDashboardPage() {
           </div>
         </section>
 
-        {/* ── Traffic light grid ── */}
+        {/* -- Traffic light grid -- */}
         <section
           className="grid gap-3"
           style={{
@@ -119,18 +303,22 @@ export default function ComplianceDashboardPage() {
             marginBottom: "var(--space-8)",
           }}
         >
-          {COMPLIANCE_ITEMS.map((item) => (
+          {filteredItems.map((item) => (
             <ComplianceCard
               key={item.id}
               name={item.name}
               id={item.id}
               status={item.status}
-              selected={item.selected}
+              selected={selectedCompany === item.id}
+              onClick={() => {
+                setSelectedCompany(item.id);
+                toast(`已选中「${item.name}」，正在加载风险详情`, "info");
+              }}
             />
           ))}
         </section>
 
-        {/* ── Action buttons ── */}
+        {/* -- Action buttons -- */}
         <section
           className="flex gap-3"
           style={{ marginBottom: "var(--space-8)" }}
@@ -166,7 +354,7 @@ export default function ComplianceDashboardPage() {
           </ToastButton>
         </section>
 
-        {/* ── Footer ── */}
+        {/* -- Footer -- */}
         <footer
           className="text-center"
           style={{
@@ -180,7 +368,7 @@ export default function ComplianceDashboardPage() {
         </footer>
       </div>
 
-      {/* ── Right drawer panel ── */}
+      {/* -- Right drawer panel -- */}
       <aside
         className="shrink-0 flex flex-col"
         style={{
@@ -203,7 +391,11 @@ export default function ComplianceDashboardPage() {
             className="font-display font-extrabold"
             style={{ fontSize: 16, color: "var(--color-primary)" }}
           >
-            深圳创新电子 -- 风险详情
+            {selectedDetail
+              ? `${selectedDetail.name} -- 风险详情`
+              : selectedItem
+                ? `${selectedItem.name} -- 风险详情`
+                : "请选择客户查看风险详情"}
           </h3>
           <p
             style={{
@@ -212,7 +404,11 @@ export default function ComplianceDashboardPage() {
               marginTop: "var(--space-1)",
             }}
           >
-            最后扫描: 2024-11-24 14:30
+            {selectedDetail
+              ? `最后扫描: ${selectedDetail.lastScan}`
+              : selectedItem
+                ? "最后扫描: 2024-11-24"
+                : "\u00A0"}
           </p>
         </div>
 
@@ -221,33 +417,45 @@ export default function ComplianceDashboardPage() {
           className="flex-1 overflow-y-auto flex flex-col gap-4"
           style={{ padding: "var(--space-6)" }}
         >
-          {/* High risk */}
-          <RiskItem
-            severity="high"
-            severityLabel="高"
-            title="税务申报异常"
-            description="在最近的增值税申报周期中，进项税额抵扣与进货单据总额存在 12.5% 的非正常偏差。"
-            citations={["增值税暂行条例 第15条", "财税 [2016] 36号"]}
-            aiSuggestion="请核查发票流水号 2024XJ-0012 至 2024XJ-0045 的申报状态。建议补充关联交易说明文件。"
-          />
-
-          {/* Medium risk */}
-          <RiskItem
-            severity="medium"
-            severityLabel="中"
-            title="研发费用加计扣除证据链"
-            description="研发工时记录表缺失部门负责人电子签名，可能导致合规性审计扣分。"
-            citations={["研发费用税前加计扣除指引"]}
-          />
-
-          {/* Low risk */}
-          <RiskItem
-            severity="low"
-            severityLabel="低"
-            title="股权转让个税申报提醒"
-            description="检测到近期股东变更，请确保在协议签署后 30 日内完成税务备案。"
-            citations={["个人所得税法 第8条"]}
-          />
+          {selectedDetail ? (
+            selectedDetail.risks.map((risk) => (
+              <RiskItem
+                key={risk.title}
+                severity={risk.severity}
+                severityLabel={risk.severityLabel}
+                title={risk.title}
+                description={risk.description}
+                citations={risk.citations}
+                aiSuggestion={risk.aiSuggestion}
+              />
+            ))
+          ) : selectedItem ? (
+            <div
+              style={{
+                padding: "var(--space-6)",
+                textAlign: "center",
+                color: "var(--color-text-tertiary)",
+                fontSize: 13,
+              }}
+            >
+              <p>
+                {selectedItem.status === "green"
+                  ? "该客户合规状态良好，暂无风险项。"
+                  : "风险详情数据加载中..."}
+              </p>
+            </div>
+          ) : (
+            <div
+              style={{
+                padding: "var(--space-6)",
+                textAlign: "center",
+                color: "var(--color-text-tertiary)",
+                fontSize: 13,
+              }}
+            >
+              <p>点击左侧客户卡片查看风险详情</p>
+            </div>
+          )}
         </div>
 
         {/* Drawer actions */}
@@ -289,50 +497,6 @@ export default function ComplianceDashboardPage() {
     </div>
   );
 }
-
-/* ================================================================
-   Mock data
-   ================================================================ */
-
-type ComplianceItemData = {
-  name: string;
-  id: string;
-  status: "green" | "amber" | "red";
-  selected?: boolean;
-};
-
-const COMPLIANCE_ITEMS: ComplianceItemData[] = [
-  { name: "杭州明达科技", id: "8829-CN", status: "green" },
-  { name: "上海恒远贸易", id: "9021-CN", status: "green" },
-  { name: "深圳创新电子", id: "7623-CN", status: "red", selected: true },
-  { name: "北京卓越咨询", id: "7712-CN", status: "amber" },
-  { name: "广东星联实业", id: "1001-CN", status: "green" },
-  { name: "江苏华茂物流", id: "1002-CN", status: "green" },
-  { name: "浙江正泰控股", id: "1003-CN", status: "amber" },
-  { name: "成都博众软件", id: "1004-CN", status: "green" },
-  { name: "武汉天喻信息", id: "1005-CN", status: "green" },
-  { name: "西安隆基股份", id: "1006-CN", status: "amber" },
-  { name: "南京泉峰汽车", id: "1007-CN", status: "green" },
-  { name: "长沙中联重科", id: "1008-CN", status: "green" },
-  { name: "中铁建设集团", id: "2001-CN", status: "green" },
-  { name: "阿里巴巴网络技术", id: "2002-CN", status: "amber" },
-  { name: "腾讯科技深圳", id: "2003-CN", status: "green" },
-  { name: "美团点评科技", id: "2004-CN", status: "green" },
-  { name: "华为技术有限", id: "2005-CN", status: "green" },
-  { name: "京东世纪贸易", id: "2006-CN", status: "amber" },
-  { name: "比亚迪股份", id: "2007-CN", status: "green" },
-  { name: "宁德时代新能源", id: "2008-CN", status: "green" },
-  { name: "小米通讯技术", id: "2009-CN", status: "red" },
-  { name: "字节跳动科技", id: "2010-CN", status: "green" },
-  { name: "网易杭州网络", id: "2011-CN", status: "amber" },
-  { name: "顺丰速运集团", id: "2012-CN", status: "green" },
-  { name: "格力电器珠海", id: "2013-CN", status: "green" },
-  { name: "海尔智家青岛", id: "2014-CN", status: "amber" },
-  { name: "蚂蚁科技集团", id: "2015-CN", status: "green" },
-  { name: "百度在线网络", id: "2016-CN", status: "red" },
-  { name: "拼多多上海", id: "2017-CN", status: "green" },
-  { name: "大疆创新科技", id: "2018-CN", status: "green" },
-];
 
 /* ================================================================
    Sub-components (co-located, page-specific)
@@ -386,11 +550,18 @@ function ComplianceStat({
   );
 }
 
-function FilterTab({ label, active }: { label: string; active?: boolean }) {
+function FilterTab({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active?: boolean;
+  onClick: () => void;
+}) {
   return (
-    <ToastButton
-      message={`正在筛选「${label}」客户`}
-      type="info"
+    <button
+      onClick={onClick}
       className="font-medium"
       style={{
         fontSize: 13,
@@ -400,10 +571,12 @@ function FilterTab({ label, active }: { label: string; active?: boolean }) {
         color: active ? "var(--color-primary)" : "var(--color-text-secondary)",
         fontWeight: active ? 700 : 400,
         boxShadow: active ? "var(--shadow-sm)" : undefined,
+        border: "none",
+        cursor: "pointer",
       }}
     >
       {label}
-    </ToastButton>
+    </button>
   );
 }
 
@@ -412,7 +585,8 @@ function ComplianceCard({
   id,
   status,
   selected,
-}: ComplianceItemData) {
+  onClick,
+}: ComplianceItemData & { selected?: boolean; onClick: () => void }) {
   const dotColor =
     status === "green"
       ? "var(--color-success)"
@@ -421,8 +595,8 @@ function ComplianceCard({
         : "var(--color-danger)";
 
   return (
-    <ToastButton
-      message={`已选中「${name}」，正在加载风险详情`}
+    <button
+      onClick={onClick}
       style={{
         padding: "var(--space-4)",
         borderRadius: "var(--radius-md)",
@@ -435,6 +609,7 @@ function ComplianceCard({
         display: "block",
         textAlign: "left",
         width: "100%",
+        border: "none",
       }}
     >
       <div
@@ -462,7 +637,7 @@ function ComplianceCard({
       <p style={{ fontSize: 10, color: "var(--color-text-tertiary)", marginTop: 2, opacity: 0.7 }}>
         {selected ? "查看风险详情" : `ID: ${id}`}
       </p>
-    </ToastButton>
+    </button>
   );
 }
 
@@ -589,7 +764,7 @@ function RiskItem({
   );
 }
 
-/* ── Inline SVG icons ── */
+/* -- Inline SVG icons -- */
 
 function ReportIcon() {
   return (

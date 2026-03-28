@@ -2,10 +2,51 @@
    Layout reference: design/stitch-export/stitch/financial_reporting_center/screen.png
    All data is static mock for initial build. */
 
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { ToastButton } from "../components/ToastButton";
+import { useToast } from "../components/Toast";
 
 export default function ReportsCenterPage() {
+  const [reportStatuses, setReportStatuses] = useState<Record<string, "ai" | "reviewed" | "flagged">>(() => {
+    const init: Record<string, "ai" | "reviewed" | "flagged"> = {};
+    for (const r of REPORTS) {
+      init[r.id] = r.status;
+    }
+    return init;
+  });
+
+  const [activeFilter, setActiveFilter] = useState<"all" | "ai" | "reviewed" | "flagged">("all");
+  const toast = useToast();
+
+  const pendingReports = REPORTS.filter((r) => reportStatuses[r.id] !== "reviewed");
+  const filteredReports = activeFilter === "all"
+    ? REPORTS
+    : REPORTS.filter((r) => reportStatuses[r.id] === activeFilter);
+
+  function handleBatchApprove() {
+    const toApprove = REPORTS.filter(
+      (r) => reportStatuses[r.id] === "ai" || reportStatuses[r.id] === "flagged"
+    );
+    if (toApprove.length === 0) {
+      toast("所有报告已批准，无需操作", "info");
+      return;
+    }
+    setReportStatuses((prev) => {
+      const next = { ...prev };
+      for (const r of toApprove) {
+        next[r.id] = "reviewed";
+      }
+      return next;
+    });
+    toast(`已批量批准 ${toApprove.length} 份报告`, "success");
+  }
+
+  // Compute dynamic KPI for pending count
+  const pendingCount = pendingReports.length;
+
   return (
     <div>
       {/* ── KPI dashboard row ── */}
@@ -32,51 +73,55 @@ export default function ReportsCenterPage() {
         />
         <ReportKpi
           label="待复核任务"
-          value="42"
-          trend="包含 5 个紧急项目"
-          trendColor="var(--color-danger)"
+          value={String(pendingCount)}
+          trend={pendingCount > 0 ? `包含 ${pendingReports.filter((r) => reportStatuses[r.id] === "flagged").length} 个紧急项目` : "全部已复核"}
+          trendColor={pendingCount > 0 ? "var(--color-danger)" : "var(--color-success)"}
           bgIcon={<HourglassBgIcon />}
         />
       </section>
 
       {/* ── Action-first: Pending tasks ── */}
-      <section style={{ marginBottom: "var(--space-8)" }}>
-        <div className="flex items-center justify-between" style={{ marginBottom: "var(--space-4)" }}>
-          <div>
-            <h3
-              className="font-display font-bold"
-              style={{ fontSize: 18, color: "var(--color-text-primary)" }}
+      {pendingReports.length > 0 && (
+        <section style={{ marginBottom: "var(--space-8)" }}>
+          <div className="flex items-center justify-between" style={{ marginBottom: "var(--space-4)" }}>
+            <div>
+              <h3
+                className="font-display font-bold"
+                style={{ fontSize: 18, color: "var(--color-text-primary)" }}
+              >
+                待处理报告
+              </h3>
+              <p style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 2 }}>
+                以下报告需要您审核或确认
+              </p>
+            </div>
+            <button
+              onClick={handleBatchApprove}
+              className="flex items-center gap-2 font-bold"
+              style={{
+                fontSize: 12,
+                padding: "8px 20px",
+                borderRadius: "var(--radius-md)",
+                background: "linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-container) 100%)",
+                color: "var(--color-on-primary)",
+                border: "none",
+                cursor: "pointer",
+              }}
             >
-              待处理报告
-            </h3>
-            <p style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 2 }}>
-              以下报告需要您审核或确认
-            </p>
+              全部批准
+            </button>
           </div>
-          <ToastButton
-            message="已发起批量审批，AI 正在逐项核验..."
-            className="flex items-center gap-2 font-bold"
-            style={{
-              fontSize: 12,
-              padding: "8px 20px",
-              borderRadius: "var(--radius-md)",
-              background: "linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-container) 100%)",
-              color: "var(--color-on-primary)",
-            }}
-          >
-            全部批准
-          </ToastButton>
-        </div>
 
-        <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
-          {REPORTS.filter((r) => r.status === "flagged").map((r) => (
-            <PendingCard key={r.company} report={r} urgency="flagged" />
-          ))}
-          {REPORTS.filter((r) => r.status === "ai").map((r) => (
-            <PendingCard key={r.company} report={r} urgency="review" />
-          ))}
-        </div>
-      </section>
+          <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
+            {pendingReports.filter((r) => reportStatuses[r.id] === "flagged").map((r) => (
+              <PendingCard key={r.company} report={r} urgency="flagged" status={reportStatuses[r.id]} />
+            ))}
+            {pendingReports.filter((r) => reportStatuses[r.id] === "ai").map((r) => (
+              <PendingCard key={r.company} report={r} urgency="review" status={reportStatuses[r.id]} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ── Full report history ── */}
       <section style={{ marginBottom: "var(--space-8)" }}>
@@ -92,22 +137,38 @@ export default function ReportsCenterPage() {
             全部报告记录
           </h3>
           <div className="flex gap-3">
-            <ToastButton
-              message="筛选面板即将上线"
-              type="info"
-              className="flex items-center gap-2 font-semibold"
+            {/* Filter tabs */}
+            <div
+              className="flex"
               style={{
-                fontSize: 12,
-                padding: "6px 14px",
                 borderRadius: "var(--radius-md)",
-                background: "var(--color-surface-container-lowest)",
-                color: "var(--color-primary)",
+                overflow: "hidden",
                 boxShadow: "var(--shadow-sm)",
               }}
             >
-              <FilterIcon />
-              筛选
-            </ToastButton>
+              {FILTER_TABS.map((tab) => (
+                <button
+                  key={tab.value}
+                  onClick={() => setActiveFilter(tab.value)}
+                  style={{
+                    fontSize: 12,
+                    fontWeight: activeFilter === tab.value ? 700 : 500,
+                    padding: "6px 14px",
+                    border: "none",
+                    cursor: "pointer",
+                    background: activeFilter === tab.value
+                      ? "var(--color-primary)"
+                      : "var(--color-surface-container-lowest)",
+                    color: activeFilter === tab.value
+                      ? "var(--color-on-primary)"
+                      : "var(--color-text-secondary)",
+                    transition: "background 0.15s, color 0.15s",
+                  }}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
             <ToastButton
               message="已提交导出任务，完成后将推送通知"
               className="flex items-center gap-2 font-semibold"
@@ -154,9 +215,29 @@ export default function ReportsCenterPage() {
           </div>
 
           {/* Rows */}
-          {REPORTS.map((r, i) => (
-            <ReportRow key={r.company + r.reportType} {...r} alt={i % 2 === 1} />
+          {filteredReports.map((r, i) => (
+            <ReportRow
+              key={r.company + r.reportType}
+              {...r}
+              status={reportStatuses[r.id]}
+              statusLabel={STATUS_LABELS[reportStatuses[r.id]]}
+              alt={i % 2 === 1}
+            />
           ))}
+
+          {filteredReports.length === 0 && (
+            <div
+              style={{
+                padding: "32px 24px",
+                textAlign: "center",
+                fontSize: 13,
+                color: "var(--color-text-tertiary)",
+                background: "var(--color-surface-container-lowest)",
+              }}
+            >
+              没有匹配的报告
+            </div>
+          )}
         </div>
       </section>
 
@@ -323,10 +404,23 @@ export default function ReportsCenterPage() {
 }
 
 /* ================================================================
-   Mock data
+   Constants
    ================================================================ */
 
 const BARS = [96, 128, 64, 80, 112, 48, 100];
+
+const FILTER_TABS: { label: string; value: "all" | "ai" | "reviewed" | "flagged" }[] = [
+  { label: "全部", value: "all" },
+  { label: "AI生成", value: "ai" },
+  { label: "已复核", value: "reviewed" },
+  { label: "需关注", value: "flagged" },
+];
+
+const STATUS_LABELS: Record<"ai" | "reviewed" | "flagged", string> = {
+  ai: "AI 生成",
+  reviewed: "已人工复核",
+  flagged: "需关注",
+};
 
 type ReportRowData = {
   id: string;
@@ -651,9 +745,11 @@ function InsightCard({
 function PendingCard({
   report: r,
   urgency,
+  status,
 }: {
   report: ReportRowData;
   urgency: "flagged" | "review";
+  status: "ai" | "reviewed" | "flagged";
 }) {
   const isFlagged = urgency === "flagged";
   const borderColor = isFlagged ? "var(--color-danger)" : "var(--color-primary)";
@@ -679,7 +775,7 @@ function PendingCard({
             {r.reportType} | {r.date.split(" ")[0]}
           </p>
         </div>
-        <StatusBadge status={r.status} label={r.statusLabel} />
+        <StatusBadge status={status} label={STATUS_LABELS[status]} />
       </div>
       <p
         className="tabular-nums font-display font-bold"
@@ -722,14 +818,6 @@ function ExportItem({ icon, label }: { icon: React.ReactNode; label: string }) {
 }
 
 /* ── Inline SVG icons ── */
-
-function FilterIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-      <path d="M4 6h16M6 12h12M9 18h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-}
 
 function DownloadIcon() {
   return (

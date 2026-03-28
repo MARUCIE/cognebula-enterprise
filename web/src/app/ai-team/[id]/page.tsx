@@ -4,6 +4,7 @@
    All data is static mock for initial build. */
 
 import { ToastButton } from "../../components/ToastButton";
+import { ChatInput } from "../../components/ChatInput";
 
 export function generateStaticParams() {
   return [
@@ -320,52 +321,8 @@ export default function AgentWorkstationPage() {
             )}
           </div>
 
-          {/* Input */}
-          <div
-            style={{
-              padding: "var(--space-4) var(--space-6)",
-              background: "color-mix(in srgb, var(--color-surface-container-low) 50%, transparent)",
-            }}
-          >
-            <div className="flex items-center" style={{ position: "relative" }}>
-              <input
-                type="text"
-                placeholder="输入指令或补充客户信息..."
-                readOnly
-                style={{
-                  width: "100%",
-                  padding: "12px 80px 12px 16px",
-                  borderRadius: "var(--radius-md)",
-                  background: "var(--color-surface-container-lowest)",
-                  color: "var(--color-text-primary)",
-                  fontSize: 13,
-                  outline: "none",
-                  border: "none",
-                }}
-              />
-              <div className="flex items-center gap-2" style={{ position: "absolute", right: 12 }}>
-                <ToastButton message="附件上传即将上线" type="info" style={{ padding: 4, color: "var(--color-text-tertiary)" }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                  </svg>
-                </ToastButton>
-                <ToastButton
-                  message="消息已发送"
-                  className="flex items-center justify-center"
-                  style={{
-                    width: 34,
-                    height: 34,
-                    borderRadius: "var(--radius-sm)",
-                    background: "var(--color-primary)",
-                  }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="var(--color-on-primary)" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" />
-                  </svg>
-                </ToastButton>
-              </div>
-            </div>
-          </div>
+          {/* Interactive chat input */}
+          <ChatInput />
         </section>
 
         {/* Task history table */}

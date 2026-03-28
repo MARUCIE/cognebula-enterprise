@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Manrope, Inter } from "next/font/google";
 import "./globals.css";
-import { Sidebar } from "./components/Sidebar";
-import { TopBar } from "./components/TopBar";
+import { AppShell } from "./components/AppShell";
 import { ToastProvider } from "./components/Toast";
 
 const manrope = Manrope({
@@ -37,22 +36,7 @@ export default function RootLayout({
     >
       <body className="h-full flex" style={{ background: "var(--color-surface)" }}>
         <ToastProvider>
-          {/* Sidebar -- fixed 240px */}
-          <Sidebar />
-
-          {/* Main area */}
-          <div className="flex-1 flex flex-col min-h-screen" style={{ marginLeft: "var(--sidebar-width)" }}>
-            <TopBar />
-            <main
-              className="flex-1 overflow-y-auto"
-              style={{
-                padding: "var(--space-8) var(--space-8)",
-                paddingTop: "var(--space-6)",
-              }}
-            >
-              {children}
-            </main>
-          </div>
+          <AppShell>{children}</AppShell>
         </ToastProvider>
       </body>
     </html>

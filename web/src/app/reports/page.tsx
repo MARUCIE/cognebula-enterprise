@@ -2,6 +2,8 @@
    Layout reference: design/stitch-export/stitch/financial_reporting_center/screen.png
    All data is static mock for initial build. */
 
+import Link from "next/link";
+
 export default function ReportsCenterPage() {
   return (
     <div>
@@ -320,6 +322,7 @@ export default function ReportsCenterPage() {
 const BARS = [96, 128, 64, 80, 112, 48, 100];
 
 type ReportRowData = {
+  id: string;
   company: string;
   reportType: string;
   reportTypeEn: string;
@@ -331,6 +334,7 @@ type ReportRowData = {
 
 const REPORTS: ReportRowData[] = [
   {
+    id: "zhongtie-asset-q3",
     company: "中铁建设集团有限公司",
     reportType: "资产负债表",
     reportTypeEn: "Asset Balance Sheet",
@@ -340,6 +344,7 @@ const REPORTS: ReportRowData[] = [
     amount: "45,280,000.00",
   },
   {
+    id: "alibaba-pnl-q3",
     company: "阿里巴巴（中国）网络技术",
     reportType: "损益表",
     reportTypeEn: "Profit & Loss Statement",
@@ -349,6 +354,7 @@ const REPORTS: ReportRowData[] = [
     amount: "128,450,200.00",
   },
   {
+    id: "tengxun-cashflow-q3",
     company: "腾讯科技（深圳）有限公司",
     reportType: "现金流量表",
     reportTypeEn: "Cash Flow Statement",
@@ -358,6 +364,7 @@ const REPORTS: ReportRowData[] = [
     amount: "92,000,540.00",
   },
   {
+    id: "meituan-annual-summary",
     company: "美团点评（北京）科技有限公司",
     reportType: "年度财务摘要",
     reportTypeEn: "Annual Summary",
@@ -367,6 +374,7 @@ const REPORTS: ReportRowData[] = [
     amount: "34,120,000.00",
   },
   {
+    id: "huawei-monthly-tax",
     company: "华为技术有限公司",
     reportType: "月度税务报告",
     reportTypeEn: "Monthly Tax Report",
@@ -376,6 +384,7 @@ const REPORTS: ReportRowData[] = [
     amount: "215,800,000.00",
   },
   {
+    id: "jingdong-quarterly-audit",
     company: "京东世纪贸易有限公司",
     reportType: "季度审计报告",
     reportTypeEn: "Quarterly Audit Report",
@@ -385,6 +394,7 @@ const REPORTS: ReportRowData[] = [
     amount: "67,340,800.00",
   },
   {
+    id: "byd-annual-report",
     company: "比亚迪股份有限公司",
     reportType: "年度财务报告",
     reportTypeEn: "Annual Financial Report",
@@ -462,6 +472,7 @@ function ReportKpi({
 }
 
 function ReportRow({
+  id,
   company,
   reportType,
   reportTypeEn,
@@ -514,13 +525,14 @@ function ReportRow({
 
       {/* Action */}
       <span style={{ textAlign: "center" }}>
-        <button
+        <Link
+          href={`/reports/${id}`}
           className="font-bold flex items-center justify-center gap-1"
-          style={{ fontSize: 12, color: "var(--color-secondary)", margin: "0 auto" }}
+          style={{ fontSize: 12, color: "var(--color-secondary)", margin: "0 auto", textDecoration: "none" }}
         >
           查看详情
           <ChevronRightIcon />
-        </button>
+        </Link>
       </span>
     </div>
   );

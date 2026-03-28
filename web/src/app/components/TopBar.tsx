@@ -21,6 +21,10 @@ const pageTitles: Record<string, string> = {
   "/ops/customers": "客户健康矩阵",
   "/ops/agents": "AI 专员性能监控",
   "/ops/alerts": "系统告警中心",
+  "/expert/kg": "知识图谱探索",
+  "/expert/reasoning": "推理链检查器",
+  "/expert/rules": "合规规则调试",
+  "/expert/data-quality": "数据质量审计",
 };
 
 function getPageTitle(pathname: string): string {

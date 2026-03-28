@@ -22,6 +22,13 @@ const opsNavItems = [
   { href: "/ops/alerts", label: "系统告警", icon: OpsAlertsIcon },
 ];
 
+const expertNavItems = [
+  { href: "/expert/kg", label: "知识图谱", icon: KGIcon },
+  { href: "/expert/reasoning", label: "推理检查", icon: ReasoningIcon },
+  { href: "/expert/rules", label: "规则调试", icon: RulesIcon },
+  { href: "/expert/data-quality", label: "数据质量", icon: DataQualityIcon },
+];
+
 const bottomItems = [
   { href: "/settings", label: "设置", icon: SettingsIcon },
 ];
@@ -100,6 +107,14 @@ export function Sidebar() {
         <SectionLabel label="OPS" />
         <nav style={{ padding: "0 var(--space-3)" }}>
           {opsNavItems.map((item) => (
+            <NavLink key={item.href} item={item} pathname={pathname} size="sm" />
+          ))}
+        </nav>
+
+        {/* Expert section */}
+        <SectionLabel label="EXPERT" />
+        <nav style={{ padding: "0 var(--space-3)" }}>
+          {expertNavItems.map((item) => (
             <NavLink key={item.href} item={item} pathname={pathname} size="sm" />
           ))}
         </nav>
@@ -358,6 +373,54 @@ function OpsAlertsIcon({ active }: { active: boolean }) {
       <path d="M12 2L2 20h20L12 2z" stroke={c} strokeWidth="1.8" strokeLinejoin="round" />
       <path d="M12 9v5" stroke={c} strokeWidth="2" strokeLinecap="round" />
       <circle cx="12" cy="17" r="0.5" fill={c} stroke={c} strokeWidth="1" />
+    </svg>
+  );
+}
+
+/* ---- Expert Icons ---- */
+
+function KGIcon({ active }: { active: boolean }) {
+  const c = active ? "var(--color-on-primary)" : "var(--color-sidebar-text)";
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="5" r="2.5" stroke={c} strokeWidth="1.8" />
+      <circle cx="5" cy="18" r="2.5" stroke={c} strokeWidth="1.8" />
+      <circle cx="19" cy="18" r="2.5" stroke={c} strokeWidth="1.8" />
+      <path d="M10.5 7L6.5 16M13.5 7L17.5 16M7.5 18h9" stroke={c} strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+function ReasoningIcon({ active }: { active: boolean }) {
+  const c = active ? "var(--color-on-primary)" : "var(--color-sidebar-text)";
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <path d="M4 4v16" stroke={c} strokeWidth="1.8" strokeLinecap="round" />
+      <circle cx="4" cy="6" r="2" stroke={c} strokeWidth="1.5" />
+      <circle cx="4" cy="12" r="2" stroke={c} strokeWidth="1.5" />
+      <circle cx="4" cy="18" r="2" stroke={c} strokeWidth="1.5" />
+      <path d="M6 6h6l4 6-4 6H6" stroke={c} strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M16 12h5" stroke={c} strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function RulesIcon({ active }: { active: boolean }) {
+  const c = active ? "var(--color-on-primary)" : "var(--color-sidebar-text)";
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <rect x="3" y="3" width="18" height="18" rx="2" stroke={c} strokeWidth="1.8" />
+      <path d="M7 8h10M7 12h7M7 16h4" stroke={c} strokeWidth="1.8" strokeLinecap="round" />
+      <circle cx="17" cy="16" r="2" stroke={c} strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+function DataQualityIcon({ active }: { active: boolean }) {
+  const c = active ? "var(--color-on-primary)" : "var(--color-sidebar-text)";
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <path d="M4 20V10M9 20V6M14 20V13M19 20V4" stroke={c} strokeWidth="2.5" strokeLinecap="round" />
     </svg>
   );
 }

@@ -7,6 +7,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { AGENT_SLUG, findAgentSlug } from "../../lib/agents";
+import { useToast } from "../../components/Toast";
 
 /* ================================================================
    Types
@@ -354,6 +355,7 @@ function PillButton({
 }
 
 function AlertCard({ alert: a, alt }: { alert: Alert; alt: boolean }) {
+  const toast = useToast();
   const resolved = isResolved(a);
   const barColor = SEVERITY_BAR_COLOR[a.severity];
   const srcColor = SOURCE_COLOR[a.source];
@@ -461,6 +463,7 @@ function AlertCard({ alert: a, alt }: { alert: Alert; alt: boolean }) {
           ) : null;
         })()}
         <button
+          onClick={() => toast(resolved ? `已打开告警 ${a.id} 详情` : `告警 ${a.id} 已标记为处理中`)}
           style={{
             fontSize: 11,
             fontWeight: 600,

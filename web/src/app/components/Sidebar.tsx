@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useToast } from "./Toast";
 
 const dailyNavItems = [
   { href: "/", label: "工作台", icon: DashboardIcon },
@@ -27,6 +28,7 @@ const bottomItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const toast = useToast();
 
   return (
     <aside
@@ -107,6 +109,7 @@ export function Sidebar() {
       <div style={{ padding: "0 var(--space-3) var(--space-4)" }}>
         {/* New task button */}
         <button
+          onClick={() => toast("新任务创建面板即将上线")}
           className="w-full flex items-center justify-center gap-2 font-medium transition-opacity hover:opacity-90"
           style={{
             padding: "10px 0",

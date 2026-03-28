@@ -51,7 +51,7 @@ export default function DataQualityPage() {
     score >= 80 ? CN.green : score >= 60 ? CN.amber : CN.red;
 
   return (
-    <div style={{ padding: "20px 24px" }}>
+    <div style={{ padding: "24px 32px" }}>
       {error && (
         <div style={{ padding: "10px 16px", background: CN.redBg, color: CN.red, fontSize: 13, marginBottom: 16, border: `1px solid ${CN.border}` }}>
           {error}

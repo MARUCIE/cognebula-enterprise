@@ -164,7 +164,7 @@ export default function KGExplorerPage() {
     <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 49px)" }}>
       {/* Toolbar */}
       <div style={{
-        display: "flex", alignItems: "center", gap: 8, padding: "8px 16px", flexShrink: 0,
+        display: "flex", alignItems: "center", gap: 8, padding: "8px 32px", flexShrink: 0,
         background: CN.bgCard, borderBottom: `1px solid ${CN.border}`,
       }}>
         <button onClick={() => setLeftOpen(!leftOpen)} style={{ ...cnBtn, padding: "7px 10px", fontSize: 14 }}>

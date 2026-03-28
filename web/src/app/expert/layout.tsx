@@ -112,7 +112,7 @@ export default function ExpertLayout({ children }: { children: React.ReactNode }
       }}>
         {/* Top bar */}
         <div style={{
-          padding: "12px 24px",
+          padding: "12px 32px",
           borderBottom: "1px solid #30363D",
           display: "flex",
           justifyContent: "space-between",

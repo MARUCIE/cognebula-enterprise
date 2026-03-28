@@ -57,7 +57,7 @@ export default function CalendarPage() {
       </div>
 
       {/* ── Time Window Bars ── */}
-      <div style={{ padding: "var(--space-4) var(--space-8) 0" }}>
+      <div style={{ padding: "var(--space-6) var(--space-8) 0" }}>
         <div style={{ display: "flex", gap: 0, height: 36 }}>
           {WINDOW_RANGES.map(({ window: w, start, end }) => {
             const meta = TIME_WINDOWS[w];

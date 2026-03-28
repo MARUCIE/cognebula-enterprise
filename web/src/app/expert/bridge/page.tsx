@@ -17,7 +17,7 @@ export default function SystemBridgePage() {
   }, []);
 
   return (
-    <div style={{ padding: "20px 24px" }}>
+    <div style={{ padding: "24px 32px" }}>
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ fontSize: "1.5rem", fontWeight: 800, color: CN.text, marginBottom: 4 }}>
           System Bridge

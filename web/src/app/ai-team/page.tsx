@@ -127,10 +127,10 @@ export default function AITeamPage() {
     <div>
       {/* ── Stats bar ── */}
       <section
-        className="grid gap-5"
+        className="grid gap-4"
         style={{
           gridTemplateColumns: "1fr 1fr 1fr",
-          marginBottom: "var(--space-8)",
+          marginBottom: "var(--space-6)",
         }}
       >
         <StatCard label="团队活跃度" value="98.4%" note="所有系统运行正常" accent="primary" />
@@ -139,16 +139,16 @@ export default function AITeamPage() {
       </section>
 
       {/* ── Featured agent hero ── */}
-      <section style={{ marginBottom: "var(--space-8)" }}>
-        <div className="flex items-center justify-between" style={{ marginBottom: "var(--space-4)" }}>
+      <section style={{ marginBottom: "var(--space-6)" }}>
+        <div className="flex items-center justify-between" style={{ marginBottom: "var(--space-3)" }}>
           <div>
             <h3
               className="font-display font-bold"
-              style={{ fontSize: 22, color: "var(--color-text-primary)" }}
+              style={{ fontSize: 18, color: "var(--color-text-primary)" }}
             >
               专项 AI 专家目录
             </h3>
-            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: 0 }}>
+            <p style={{ fontSize: 12, color: "var(--color-text-secondary)", margin: 0 }}>
               管理并分配您的自动化财税团队
             </p>
           </div>
@@ -164,78 +164,79 @@ export default function AITeamPage() {
           </a>
         </div>
 
-        <div className="grid gap-6" style={{ gridTemplateColumns: "2fr 1fr", alignItems: "start" }}>
+        <div className="grid gap-4" style={{ gridTemplateColumns: "2fr 1fr", alignItems: "start" }}>
           {/* Hero card */}
           <div
             className="relative overflow-hidden flex flex-col"
             style={{
-              padding: "var(--space-6) var(--space-8)",
+              padding: "var(--space-5) var(--space-6)",
               borderRadius: "var(--radius-md)",
               background: "var(--color-primary)",
               color: "var(--color-on-primary)",
             }}
           >
             {/* Status badge */}
-            <div className="absolute" style={{ top: "var(--space-6)", right: "var(--space-6)" }}>
+            <div className="absolute" style={{ top: "var(--space-4)", right: "var(--space-4)" }}>
               <StatusBadge status={featured.status} />
             </div>
 
-            <div className="flex items-start gap-5">
-              <AgentAvatar initials={featured.icon} color="rgba(255,255,255,0.15)" textColor="var(--color-on-primary)" size={56} />
+            <div className="flex items-center gap-4">
+              <AgentAvatar initials={featured.icon} color="rgba(255,255,255,0.15)" textColor="var(--color-on-primary)" size={44} />
               <div>
                 <h4
                   className="font-display font-bold"
-                  style={{ fontSize: 24, marginBottom: 4, color: "var(--color-on-primary)" }}
+                  style={{ fontSize: 18, marginBottom: 2, color: "var(--color-on-primary)" }}
                 >
                   {featured.name}
                 </h4>
-                <p style={{ fontSize: 14, opacity: 0.8, margin: 0 }}>{featured.role}</p>
-                <p style={{ fontSize: 13, opacity: 0.65, margin: 0, marginTop: 8, maxWidth: 400, lineHeight: 1.75 }}>
-                  专注于增值税、企业所得税申报及税务筹划建议。具备全行业税务法规实时更新库。
-                </p>
+                <p style={{ fontSize: 12, opacity: 0.7, margin: 0 }}>{featured.role}</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-8" style={{ marginTop: "var(--space-6)" }}>
+            <p style={{ fontSize: 12, opacity: 0.6, margin: 0, marginTop: 8, lineHeight: 1.6 }}>
+              专注于增值税、企业所得税申报及税务筹划建议。具备全行业税务法规实时更新库。
+            </p>
+
+            <div className="grid grid-cols-3 gap-6" style={{ marginTop: 12 }}>
               <div>
-                <p style={{ fontSize: 10, textTransform: "uppercase", opacity: 0.6, fontWeight: 700, marginBottom: 4 }}>
+                <p style={{ fontSize: 10, textTransform: "uppercase", opacity: 0.5, fontWeight: 700, marginBottom: 2 }}>
                   本月申报
                 </p>
-                <p className="font-display font-bold" style={{ fontSize: 20, margin: 0 }}>
+                <p className="font-display font-bold" style={{ fontSize: 18, margin: 0 }}>
                   {featured.stats.filings}
                 </p>
               </div>
               <div>
-                <p style={{ fontSize: 10, textTransform: "uppercase", opacity: 0.6, fontWeight: 700, marginBottom: 4 }}>
+                <p style={{ fontSize: 10, textTransform: "uppercase", opacity: 0.5, fontWeight: 700, marginBottom: 2 }}>
                   合规评分
                 </p>
-                <p className="font-display font-bold" style={{ fontSize: 20, margin: 0, color: "var(--color-secondary)" }}>
+                <p className="font-display font-bold" style={{ fontSize: 18, margin: 0, color: "var(--color-secondary)" }}>
                   {featured.stats.score}
                 </p>
               </div>
               <div>
-                <p style={{ fontSize: 10, textTransform: "uppercase", opacity: 0.6, fontWeight: 700, marginBottom: 4 }}>
+                <p style={{ fontSize: 10, textTransform: "uppercase", opacity: 0.5, fontWeight: 700, marginBottom: 2 }}>
                   节省税款
                 </p>
-                <p className="font-display font-bold" style={{ fontSize: 20, margin: 0 }}>
+                <p className="font-display font-bold" style={{ fontSize: 18, margin: 0 }}>
                   {featured.stats.savings}
                 </p>
               </div>
             </div>
 
-            <div className="flex gap-3" style={{ marginTop: "var(--space-5)" }}>
+            <div className="flex gap-3" style={{ marginTop: 12 }}>
               <ToastButton
                 message="已打开任务分配面板"
                 className="font-medium flex items-center gap-2"
                 style={{
-                  fontSize: 13,
-                  padding: "10px 20px",
+                  fontSize: 12,
+                  padding: "7px 16px",
                   borderRadius: "var(--radius-sm)",
                   background: "var(--color-on-primary)",
                   color: "var(--color-primary)",
                 }}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
                   <path d="M9 11l3 3 8-8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   <path d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                 </svg>
@@ -246,8 +247,8 @@ export default function AITeamPage() {
                 type="info"
                 className="font-medium"
                 style={{
-                  fontSize: 13,
-                  padding: "10px 20px",
+                  fontSize: 12,
+                  padding: "7px 16px",
                   borderRadius: "var(--radius-sm)",
                   background: "rgba(255,255,255,0.12)",
                   color: "var(--color-on-primary)",
@@ -261,10 +262,10 @@ export default function AITeamPage() {
             <div
               className="absolute"
               style={{
-                bottom: -12,
-                right: -12,
-                opacity: 0.03,
-                fontSize: 120,
+                bottom: -8,
+                right: -8,
+                opacity: 0.025,
+                fontSize: 80,
                 lineHeight: 1,
                 fontWeight: 900,
                 color: "var(--color-on-primary)",
@@ -276,7 +277,7 @@ export default function AITeamPage() {
           </div>
 
           {/* Side column: training + idle agents */}
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4">
             {agents
               .filter((a) => a.status === "training" || a.status === "idle")
               .slice(0, 2)
@@ -288,15 +289,15 @@ export default function AITeamPage() {
       </section>
 
       {/* ── Agent grid ── */}
-      <section id="all-agents" style={{ marginBottom: "var(--space-8)" }}>
+      <section id="all-agents" style={{ marginBottom: "var(--space-6)" }}>
         <h3
           className="font-display font-bold"
-          style={{ fontSize: 18, color: "var(--color-text-primary)", marginBottom: "var(--space-4)" }}
+          style={{ fontSize: 16, color: "var(--color-text-primary)", marginBottom: "var(--space-3)" }}
         >
           全部 AI 专家 ({agents.length})
         </h3>
         <div
-          className="grid gap-5"
+          className="grid gap-4"
           style={{ gridTemplateColumns: "repeat(3, 1fr)" }}
         >
           {agents.map((agent) => (
@@ -306,10 +307,10 @@ export default function AITeamPage() {
       </section>
 
       {/* ── Task queue ── */}
-      <section style={{ marginBottom: "var(--space-8)" }}>
+      <section style={{ marginBottom: "var(--space-6)" }}>
         <h3
           className="font-display font-bold"
-          style={{ fontSize: 18, color: "var(--color-text-primary)", marginBottom: "var(--space-4)" }}
+          style={{ fontSize: 16, color: "var(--color-text-primary)", marginBottom: "var(--space-3)" }}
         >
           实时工作队列
         </h3>

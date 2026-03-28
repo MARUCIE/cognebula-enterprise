@@ -1,12 +1,9 @@
 "use client";
 
-/* System A Dashboard — CogNebula Platform Overview
-   Per OPTIMIZED_ARCHITECTURE_V2.md: Internal KG infrastructure dashboard.
-   Shows KG health, pipeline status, and quality metrics at a glance. */
-
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { getStats, getQuality, type KGStats, type KGQuality } from "../lib/kg-api";
+import { CN, cnCard, cnLabel, cnValue, cnBadge } from "../lib/cognebula-theme";
 
 export default function ExpertDashboardPage() {
   const [stats, setStats] = useState<KGStats | null>(null);
@@ -20,74 +17,85 @@ export default function ExpertDashboardPage() {
   }, []);
 
   return (
-    <div style={{ padding: 24 }}>
+    <div style={{ padding: "20px 24px" }}>
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: "1.5rem", fontWeight: 800, color: "#E6EDF3", marginBottom: 4 }}>
-          System A 总览
+        <h1 style={{ fontSize: "1.5rem", fontWeight: 800, color: CN.text, marginBottom: 4 }}>
+          System A Overview
         </h1>
-        <p style={{ fontSize: "13px", color: "#8B949E" }}>
-          CogNebula KG 基础设施健康状态 + 管线监控
+        <p style={{ fontSize: 13, color: CN.textSecondary }}>
+          CogNebula KG infrastructure health + pipeline monitoring
         </p>
       </div>
 
       {error && (
-        <div style={{ padding: "12px 16px", background: "#3D1F1F", border: "1px solid #F85149", color: "#F85149", fontSize: "13px", marginBottom: 20 }}>
-          KG API 连接失败: {error}
+        <div style={{ padding: "12px 16px", background: CN.redBg, border: `1px solid ${CN.red}`, color: CN.red, fontSize: 13, marginBottom: 20 }}>
+          KG API connection failed: {error}
         </div>
       )}
 
       {/* KPI Cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1px", background: "#30363D", marginBottom: 24 }}>
-        <KPICard label="节点总数" value={stats ? (stats.total_nodes || 0).toLocaleString() : "..."} sub="KuzuDB + LanceDB" color="#58A6FF" />
-        <KPICard label="边总数" value={stats ? (stats.total_edges || 0).toLocaleString() : "..."} sub="关系图谱" color="#58A6FF" />
-        <KPICard label="边密度" value={stats ? (stats.total_nodes > 0 ? (stats.total_edges / stats.total_nodes).toFixed(3) : "0") : "..."} sub="edges / nodes" color="#D2A8FF" />
-        <KPICard label="质量评分" value={quality ? `${(quality.quality_score || 0).toFixed(1)}%` : "..."} sub="综合质量" color={quality && quality.quality_score >= 80 ? "#3FB950" : "#D29922"} />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1px", background: CN.border, marginBottom: 24 }}>
+        <div style={cnCard}>
+          <div style={cnLabel}>Total Nodes</div>
+          <div style={cnValue(CN.blue)}>{stats ? (stats.total_nodes || 0).toLocaleString() : "..."}</div>
+          <div style={{ fontSize: 11, color: CN.textMuted, marginTop: 4 }}>KuzuDB + LanceDB</div>
+        </div>
+        <div style={cnCard}>
+          <div style={cnLabel}>Total Edges</div>
+          <div style={cnValue(CN.blue)}>{stats ? (stats.total_edges || 0).toLocaleString() : "..."}</div>
+          <div style={{ fontSize: 11, color: CN.textMuted, marginTop: 4 }}>Relationship graph</div>
+        </div>
+        <div style={cnCard}>
+          <div style={cnLabel}>Edge Density</div>
+          <div style={cnValue(CN.purple)}>{stats ? (stats.total_nodes > 0 ? (stats.total_edges / stats.total_nodes).toFixed(3) : "0") : "..."}</div>
+          <div style={{ fontSize: 11, color: CN.textMuted, marginTop: 4 }}>edges / nodes</div>
+        </div>
+        <div style={cnCard}>
+          <div style={cnLabel}>Quality Score</div>
+          <div style={cnValue(quality && quality.quality_score >= 80 ? CN.green : CN.amber)}>
+            {quality ? `${(quality.quality_score || 0).toFixed(1)}%` : "..."}
+          </div>
+          <div style={{ fontSize: 11, color: CN.textMuted, marginTop: 4 }}>Composite quality</div>
+        </div>
       </div>
 
       {/* Quick Access Grid */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16, marginBottom: 24 }}>
-        <QuickCard href="/expert/kg" title="知识图谱探索器" desc="交互式图谱可视化，Cytoscape.js fcose 布局。支持搜索、展开邻居、分层着色。" tag="CORE TOOL" tagColor="#58A6FF" />
-        <QuickCard href="/expert/data-quality" title="数据质量仪表盘" desc="实时监控标题覆盖率、内容覆盖率、节点类型分布。连接 KG API /quality 端点。" tag="MONITORING" tagColor="#3FB950" />
-        <QuickCard href="/expert/reasoning" title="推理链检查器" desc="Agent 推理过程可视化。显示 INPUT → RETRIEVAL → REASONING → VALIDATION → OUTPUT 各阶段置信度。" tag="DIAGNOSTIC" tagColor="#D2A8FF" />
-        <QuickCard href="/expert/rules" title="合规规则调试器" desc="8 条规则的状态监控（active/warning/critical/deprecated），命中次数、最近命中时间。" tag="DIAGNOSTIC" tagColor="#D2A8FF" />
+        <QuickCard href="/expert/kg" title="KG Explorer" desc="Interactive graph visualization with Cytoscape.js fcose layout. Search, expand neighbors, layered coloring." tag="CORE TOOL" tagColor={CN.blue} />
+        <QuickCard href="/expert/data-quality" title="Data Quality Dashboard" desc="Real-time monitoring of title coverage, content coverage, node type distribution. Connected to KG API /quality." tag="MONITORING" tagColor={CN.green} />
+        <QuickCard href="/expert/reasoning" title="Reasoning Inspector" desc="Agent reasoning process visualization. Shows INPUT > RETRIEVAL > REASONING > VALIDATION > OUTPUT confidence per stage." tag="DIAGNOSTIC" tagColor={CN.purple} />
+        <QuickCard href="/expert/rules" title="Rules Debugger" desc="8 compliance rules status monitoring (active/warning/critical/deprecated), hit counts, recent trigger log." tag="DIAGNOSTIC" tagColor={CN.purple} />
       </div>
 
       {/* System Status */}
       <div style={{ marginBottom: 24 }}>
-        <h2 style={{ fontSize: "11px", fontWeight: 700, color: "#58A6FF", letterSpacing: "2px", marginBottom: 12 }}>
+        <h2 style={{ fontSize: 11, fontWeight: 700, color: CN.blue, letterSpacing: "2px", marginBottom: 12 }}>
           SYSTEM STATUS
         </h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1px", background: "#30363D" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1px", background: CN.border }}>
           <StatusRow label="KG API (FastAPI :8400)" status="ok" detail="100.75.77.112 via Tailscale" />
-          <StatusRow label="KuzuDB" status="warn" detail="Archived status — evaluate migration by 2026-09" />
+          <StatusRow label="KuzuDB" status="warn" detail="Archived -- evaluate migration by 2026-09" />
           <StatusRow label="LanceDB (Vectors)" status="ok" detail="Semantic search operational" />
           <StatusRow label="Know-Arc Pipeline" status="ok" detail="Triple generation + expert review" />
           <StatusRow label="Edge Engine" status="ok" detail="SUPERSEDES edges, 107 last run" />
-          <StatusRow label="CF Worker Proxy" status="pending" detail="Not yet deployed — mixed content issue" />
+          <StatusRow label="CF Worker Proxy" status="pending" detail="Not yet deployed" />
         </div>
       </div>
 
-      {/* Architecture reminder */}
-      <div style={{ padding: "16px 20px", background: "#161B22", border: "1px solid #30363D", borderLeft: "3px solid #58A6FF" }}>
-        <div style={{ fontSize: "11px", fontWeight: 700, color: "#58A6FF", letterSpacing: "1.5px", marginBottom: 6 }}>
+      {/* Cross-System Link */}
+      <div style={{ ...cnCard, borderLeft: `3px solid ${CN.blue}` }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: CN.blue, letterSpacing: "1.5px", marginBottom: 6 }}>
           ARCHITECTURE NOTE
         </div>
-        <div style={{ fontSize: "13px", color: "#8B949E", lineHeight: 1.7 }}>
-          System A (CogNebula) 是纯内部基础设施，不面向客户。KG 通过 CF Worker 代理为 System B (灵阙) 的 Agent 提供不可见的知识查询。
-          客户看到的是「高准确率」，不是「知识图谱」。
+        <div style={{ fontSize: 13, color: CN.textSecondary, lineHeight: 1.7 }}>
+          System A (CogNebula) is internal infrastructure only. KG serves System B (Lingque) agents via CF Worker proxy as an invisible knowledge query layer.
+          Customers see &quot;high accuracy&quot;, not &quot;knowledge graph&quot;.
         </div>
+        <Link href="/expert/bridge" style={{ display: "inline-block", marginTop: 12, padding: "6px 16px", background: CN.blueBg, color: CN.blue, textDecoration: "none", fontSize: 12, fontWeight: 600, border: `1px solid ${CN.border}` }}>
+          View System Bridge &rarr;
+        </Link>
       </div>
-    </div>
-  );
-}
-
-function KPICard({ label, value, sub, color }: { label: string; value: string; sub: string; color: string }) {
-  return (
-    <div style={{ padding: "16px 20px", background: "#0D1117" }}>
-      <div style={{ fontSize: "10px", fontWeight: 600, color: "#8B949E", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 6 }}>{label}</div>
-      <div style={{ fontSize: "1.4rem", fontWeight: 800, color, lineHeight: 1.2 }}>{value}</div>
-      <div style={{ fontSize: "11px", color: "#484F58", marginTop: 4 }}>{sub}</div>
     </div>
   );
 }
@@ -96,34 +104,30 @@ function QuickCard({ href, title, desc, tag, tagColor }: { href: string; title: 
   return (
     <Link href={href} style={{ textDecoration: "none" }}>
       <div style={{
-        padding: "20px",
-        background: "#161B22",
-        border: "1px solid #30363D",
-        borderTop: `2px solid ${tagColor}`,
+        ...cnCard, borderTop: `2px solid ${tagColor}`,
         transition: "border-color 0.15s",
       }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-          <span style={{ fontSize: "14px", fontWeight: 700, color: "#E6EDF3" }}>{title}</span>
-          <span style={{ fontSize: "9px", fontWeight: 700, padding: "2px 8px", background: `${tagColor}20`, color: tagColor, letterSpacing: "1px" }}>{tag}</span>
+          <span style={{ fontSize: 14, fontWeight: 700, color: CN.text }}>{title}</span>
+          <span style={cnBadge(tagColor, `${tagColor}20`)}>{tag}</span>
         </div>
-        <div style={{ fontSize: "12px", color: "#8B949E", lineHeight: 1.6 }}>{desc}</div>
+        <div style={{ fontSize: 12, color: CN.textSecondary, lineHeight: 1.6 }}>{desc}</div>
       </div>
     </Link>
   );
 }
 
 function StatusRow({ label, status, detail }: { label: string; status: "ok" | "warn" | "pending" | "error"; detail: string }) {
-  const colors = { ok: "#3FB950", warn: "#D29922", pending: "#8B949E", error: "#F85149" };
+  const colors = { ok: CN.green, warn: CN.amber, pending: CN.textMuted, error: CN.red };
+  const bgs = { ok: CN.greenBg, warn: CN.amberBg, pending: CN.bgElevated, error: CN.redBg };
   const labels = { ok: "ONLINE", warn: "WARNING", pending: "PENDING", error: "ERROR" };
   return (
-    <div style={{ padding: "12px 16px", background: "#0D1117", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <div style={{ padding: "12px 16px", background: CN.bg, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
       <div>
-        <div style={{ fontSize: "13px", fontWeight: 600, color: "#E6EDF3" }}>{label}</div>
-        <div style={{ fontSize: "11px", color: "#484F58", marginTop: 2 }}>{detail}</div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: CN.text }}>{label}</div>
+        <div style={{ fontSize: 11, color: CN.textMuted, marginTop: 2 }}>{detail}</div>
       </div>
-      <span style={{ fontSize: "9px", fontWeight: 700, padding: "2px 8px", color: colors[status], background: `${colors[status]}15`, letterSpacing: "1px" }}>
-        {labels[status]}
-      </span>
+      <span style={cnBadge(colors[status], bgs[status])}>{labels[status]}</span>
     </div>
   );
 }

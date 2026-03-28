@@ -243,7 +243,6 @@ const CytoscapeGraph = forwardRef<CytoscapeGraphHandle, Props>(function Cytoscap
         width: "100%",
         height: "100%",
         background: "#0D1117",
-        borderRadius: 8,
       }}
     />
   );

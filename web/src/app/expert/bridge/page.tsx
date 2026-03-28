@@ -28,7 +28,7 @@ export default function SystemBridgePage() {
       </div>
 
       {/* Split View: System A | Data Flow | System B */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 200px 1fr", gap: 0, marginBottom: 24 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 240px 1fr", gap: 0, marginBottom: 24 }}>
         {/* System A Card */}
         <div style={{ ...cnCard, borderTop: `3px solid ${CN.blue}` }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>

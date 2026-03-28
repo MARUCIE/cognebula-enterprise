@@ -93,11 +93,9 @@ export default function ReasoningPage() {
             style={{
               display: "block", width: "100%", padding: "12px 16px", textAlign: "left",
               background: c.id === selected ? CN.blueBg : "transparent",
-              borderLeft: c.id === selected ? `2px solid ${CN.blue}` : "2px solid transparent",
-              borderBottom: `1px solid ${CN.border}`, border: "none",
-              borderLeftWidth: 2, borderLeftStyle: "solid",
-              borderLeftColor: c.id === selected ? CN.blue : "transparent",
-              borderBottomWidth: 1, borderBottomStyle: "solid", borderBottomColor: CN.border,
+              border: "none",
+              borderLeft: `2px solid ${c.id === selected ? CN.blue : "transparent"}`,
+              borderBottom: `1px solid ${CN.border}`,
               cursor: "pointer",
             }}
           >

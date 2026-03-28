@@ -10,6 +10,12 @@ import { AGENT_SLUG } from "../lib/agents";
 
 const pageTitles: Record<string, string> = {
   "/": "今日概览",
+  "/workbench": "月度工作台",
+  "/workbench/agents": "数字员工团队",
+  "/workbench/batch": "批量操作台",
+  "/workbench/calendar": "日历视图",
+  "/workbench/exceptions": "异常中心",
+  "/workbench/dependencies": "任务依赖图",
   "/ai-team": "AI 专家团队",
   "/clients": "客户中心",
   "/tax": "智能报税",
@@ -28,16 +34,18 @@ const pageTitles: Record<string, string> = {
 };
 
 function getPageTitle(pathname: string): string {
-  if (pathname.startsWith("/ai-team/") && pathname !== "/ai-team") {
+  // Normalize: strip trailing slash for consistent lookup
+  const p = pathname.endsWith("/") && pathname.length > 1 ? pathname.slice(0, -1) : pathname;
+  if (p.startsWith("/ai-team/") && p !== "/ai-team") {
     return "AI 专家工作站";
   }
-  if (pathname.startsWith("/clients/") && pathname !== "/clients") {
+  if (p.startsWith("/clients/") && p !== "/clients") {
     return "客户详情";
   }
-  if (pathname.startsWith("/reports/") && pathname !== "/reports") {
+  if (p.startsWith("/reports/") && p !== "/reports") {
     return "报告详情";
   }
-  return pageTitles[pathname] ?? "今日概览";
+  return pageTitles[p] ?? "今日概览";
 }
 
 interface Notification {

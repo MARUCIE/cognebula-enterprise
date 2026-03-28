@@ -63,9 +63,9 @@ export default function DataQualityPage() {
         <KPI label="Total Nodes" value={stats ? `${(stats.total_nodes / 1000).toFixed(1)}K` : "..."} sub={`${stats?.node_tables || 0} tables`} color={CN.blue} />
         <KPI label="Total Edges" value={stats ? `${(stats.total_edges / 1000).toFixed(1)}K` : "..."} sub={`${stats?.rel_tables || 0} relations`} color={CN.blue} />
         <KPI label="Edge Density" value={stats ? (stats.total_nodes > 0 ? (stats.total_edges / stats.total_nodes).toFixed(3) : "0") : "..."} sub="edges / nodes" color={CN.purple} />
-        <KPI label="Title Coverage" value={quality ? `${quality.title_coverage.toFixed(1)}%` : "..."} sub="target >= 95%" color={quality && quality.title_coverage >= 95 ? CN.green : CN.amber} />
-        <KPI label="Content Coverage" value={quality ? `${quality.content_coverage.toFixed(1)}%` : "..."} sub="target >= 80%" color={quality && quality.content_coverage >= 80 ? CN.green : CN.amber} />
-        <KPI label="Quality Score" value={quality ? `${quality.quality_score}` : "..."} sub={quality ? `Grade ${quality.grade}` : "--"} color={quality ? gradeColor(quality.quality_score) : CN.textMuted} />
+        <KPI label="Title Coverage" value={quality ? `${(quality.title_coverage || 0).toFixed(1)}%` : "..."} sub="target >= 95%" color={quality && (quality.title_coverage || 0) >= 95 ? CN.green : CN.amber} />
+        <KPI label="Content Coverage" value={quality ? `${(quality.content_coverage || 0).toFixed(1)}%` : "..."} sub="target >= 80%" color={quality && (quality.content_coverage || 0) >= 80 ? CN.green : CN.amber} />
+        <KPI label="Quality Score" value={quality ? `${quality.quality_score || 0}` : "..."} sub={quality ? `Grade ${quality.grade || "--"}` : "--"} color={quality ? gradeColor(quality.quality_score || 0) : CN.textMuted} />
       </div>
 
       {/* 2-Column: Bar Chart + Coverage */}
@@ -80,7 +80,7 @@ export default function DataQualityPage() {
             const pct = ((count as number) / (maxCount as number)) * 100;
             return (
               <div key={type} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-                <span style={{ fontSize: 11, color: CN.textSecondary, minWidth: 140, textAlign: "right", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{type}</span>
+                <span style={{ fontSize: 11, color: CN.textSecondary, minWidth: 180, textAlign: "right", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{type}</span>
                 <div style={{ flex: 1, height: 14, background: CN.bgElevated, overflow: "hidden" }}>
                   <div style={{ height: "100%", width: `${pct}%`, background: CN.blue, transition: "width 0.5s" }} />
                 </div>
@@ -99,8 +99,8 @@ export default function DataQualityPage() {
               <div style={{ fontSize: 13, fontWeight: 700, color: CN.text, marginBottom: 14 }}>
                 Coverage Metrics
               </div>
-              <CoverageBar label="Title Coverage" value={quality.title_coverage} target={95} />
-              <CoverageBar label="Content Coverage" value={quality.content_coverage} target={80} />
+              <CoverageBar label="Title Coverage" value={quality.title_coverage || 0} target={95} />
+              <CoverageBar label="Content Coverage" value={quality.content_coverage || 0} target={80} />
             </div>
           )}
 
@@ -119,11 +119,11 @@ export default function DataQualityPage() {
                 </thead>
                 <tbody>
                   {[
-                    { m: "Quality Score", v: `${quality.quality_score}`, ok: quality.quality_score >= 80 },
-                    { m: "Grade", v: quality.grade, ok: quality.grade === "A" || quality.grade === "B" },
-                    { m: "Edge Density", v: quality.edge_density.toFixed(3), ok: quality.edge_density >= 0.5 },
-                    { m: "Title Coverage", v: `${quality.title_coverage.toFixed(1)}%`, ok: quality.title_coverage >= 95 },
-                    { m: "Content Coverage", v: `${quality.content_coverage.toFixed(1)}%`, ok: quality.content_coverage >= 80 },
+                    { m: "Quality Score", v: `${quality.quality_score || 0}`, ok: (quality.quality_score || 0) >= 80 },
+                    { m: "Grade", v: quality.grade || "--", ok: quality.grade === "A" || quality.grade === "B" },
+                    { m: "Edge Density", v: (quality.edge_density || 0).toFixed(3), ok: (quality.edge_density || 0) >= 0.5 },
+                    { m: "Title Coverage", v: `${(quality.title_coverage || 0).toFixed(1)}%`, ok: (quality.title_coverage || 0) >= 95 },
+                    { m: "Content Coverage", v: `${(quality.content_coverage || 0).toFixed(1)}%`, ok: (quality.content_coverage || 0) >= 80 },
                   ].map((r) => (
                     <tr key={r.m} style={{ borderBottom: `1px solid ${CN.bgElevated}` }}>
                       <td style={{ padding: "6px 0", color: CN.textSecondary }}>{r.m}</td>

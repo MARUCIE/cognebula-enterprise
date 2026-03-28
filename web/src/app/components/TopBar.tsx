@@ -24,6 +24,12 @@ function getPageTitle(pathname: string): string {
   if (pathname.startsWith("/ai-team/") && pathname !== "/ai-team") {
     return "AI 专家工作站";
   }
+  if (pathname.startsWith("/clients/") && pathname !== "/clients") {
+    return "客户详情";
+  }
+  if (pathname.startsWith("/reports/") && pathname !== "/reports") {
+    return "报告详情";
+  }
   return pageTitles[pathname] ?? "今日概览";
 }
 

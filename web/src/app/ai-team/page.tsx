@@ -164,16 +164,15 @@ export default function AITeamPage() {
           </a>
         </div>
 
-        <div className="grid gap-6" style={{ gridTemplateColumns: "2fr 1fr" }}>
+        <div className="grid gap-6" style={{ gridTemplateColumns: "2fr 1fr", alignItems: "start" }}>
           {/* Hero card */}
           <div
-            className="relative overflow-hidden flex flex-col justify-between"
+            className="relative overflow-hidden flex flex-col"
             style={{
-              padding: "var(--space-8)",
+              padding: "var(--space-6) var(--space-8)",
               borderRadius: "var(--radius-md)",
               background: "var(--color-primary)",
               color: "var(--color-on-primary)",
-              minHeight: 300,
             }}
           >
             {/* Status badge */}
@@ -181,8 +180,8 @@ export default function AITeamPage() {
               <StatusBadge status={featured.status} />
             </div>
 
-            <div className="flex items-start gap-6">
-              <AgentAvatar initials={featured.icon} color="rgba(255,255,255,0.15)" textColor="var(--color-on-primary)" size={72} />
+            <div className="flex items-start gap-5">
+              <AgentAvatar initials={featured.icon} color="rgba(255,255,255,0.15)" textColor="var(--color-on-primary)" size={56} />
               <div>
                 <h4
                   className="font-display font-bold"
@@ -197,7 +196,7 @@ export default function AITeamPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-8" style={{ marginTop: "var(--space-8)" }}>
+            <div className="grid grid-cols-3 gap-8" style={{ marginTop: "var(--space-6)" }}>
               <div>
                 <p style={{ fontSize: 10, textTransform: "uppercase", opacity: 0.6, fontWeight: 700, marginBottom: 4 }}>
                   本月申报
@@ -224,7 +223,7 @@ export default function AITeamPage() {
               </div>
             </div>
 
-            <div className="flex gap-3" style={{ marginTop: "var(--space-6)" }}>
+            <div className="flex gap-3" style={{ marginTop: "var(--space-5)" }}>
               <ToastButton
                 message="已打开任务分配面板"
                 className="font-medium flex items-center gap-2"
@@ -262,10 +261,10 @@ export default function AITeamPage() {
             <div
               className="absolute"
               style={{
-                bottom: -20,
-                right: -20,
-                opacity: 0.04,
-                fontSize: 180,
+                bottom: -12,
+                right: -12,
+                opacity: 0.03,
+                fontSize: 120,
                 lineHeight: 1,
                 fontWeight: 900,
                 color: "var(--color-on-primary)",

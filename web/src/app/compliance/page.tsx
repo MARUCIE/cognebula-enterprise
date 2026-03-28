@@ -421,7 +421,8 @@ function ComplianceCard({
         : "var(--color-danger)";
 
   return (
-    <div
+    <ToastButton
+      message={`已选中「${name}」，正在加载风险详情`}
       style={{
         padding: "var(--space-4)",
         borderRadius: "var(--radius-md)",
@@ -431,6 +432,9 @@ function ComplianceCard({
         boxShadow: selected ? undefined : "var(--shadow-sm)",
         cursor: "pointer",
         outline: selected ? "2px solid color-mix(in srgb, var(--color-primary) 40%, transparent)" : undefined,
+        display: "block",
+        textAlign: "left",
+        width: "100%",
       }}
     >
       <div
@@ -458,7 +462,7 @@ function ComplianceCard({
       <p style={{ fontSize: 10, color: "var(--color-text-tertiary)", marginTop: 2, opacity: 0.7 }}>
         {selected ? "查看风险详情" : `ID: ${id}`}
       </p>
-    </div>
+    </ToastButton>
   );
 }
 

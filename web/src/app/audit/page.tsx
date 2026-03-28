@@ -373,8 +373,9 @@ export default function AuditWorkbenchPage() {
                   </p>
                   <div className="flex gap-2">
                     {["采购合同", "银行流水", "物流单据"].map((label) => (
-                      <div
+                      <ToastButton
                         key={label}
+                        message={`已打开「${label}」原件预览`}
                         className="flex items-center justify-center"
                         style={{
                           width: 48,
@@ -383,10 +384,9 @@ export default function AuditWorkbenchPage() {
                           background: "var(--color-surface-container)",
                           cursor: "pointer",
                         }}
-                        title={label}
                       >
                         <EvidenceIcon />
-                      </div>
+                      </ToastButton>
                     ))}
                   </div>
                 </div>
@@ -652,7 +652,8 @@ function FindingItem({
   const sev = severityMap[finding.severity];
 
   return (
-    <div
+    <ToastButton
+      message={`已选中审计发现: ${finding.title}`}
       style={{
         padding: "var(--space-4) var(--space-4) var(--space-4) var(--space-4)",
         borderRadius: "var(--radius-sm)",
@@ -660,6 +661,9 @@ function FindingItem({
         boxShadow: isSelected ? "none" : "var(--shadow-sm)",
         borderLeft: `4px solid ${isSelected ? "var(--color-secondary)" : sev.borderColor}`,
         cursor: "pointer",
+        display: "block",
+        textAlign: "left",
+        width: "100%",
       }}
     >
       <div
@@ -738,7 +742,7 @@ function FindingItem({
       >
         {finding.desc}
       </p>
-    </div>
+    </ToastButton>
   );
 }
 

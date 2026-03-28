@@ -599,7 +599,9 @@ function SliderControl({
 
 function ToggleSwitch({ on }: { on: boolean }) {
   return (
-    <div
+    <ToastButton
+      message={on ? "已关闭此设置" : "已开启此设置"}
+      type="info"
       style={{
         width: 44,
         height: 24,
@@ -622,7 +624,7 @@ function ToggleSwitch({ on }: { on: boolean }) {
           transition: "left 0.2s ease",
         }}
       />
-    </div>
+    </ToastButton>
   );
 }
 
@@ -665,11 +667,13 @@ function PersonAddIcon() {
 
 function MoreIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ cursor: "pointer" }}>
-      <circle cx="6" cy="12" r="1.5" fill="var(--color-text-tertiary)" />
-      <circle cx="12" cy="12" r="1.5" fill="var(--color-text-tertiary)" />
-      <circle cx="18" cy="12" r="1.5" fill="var(--color-text-tertiary)" />
-    </svg>
+    <ToastButton message="成员操作菜单即将上线" type="info" style={{ cursor: "pointer", padding: 0, lineHeight: 0 }}>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <circle cx="6" cy="12" r="1.5" fill="var(--color-text-tertiary)" />
+        <circle cx="12" cy="12" r="1.5" fill="var(--color-text-tertiary)" />
+        <circle cx="18" cy="12" r="1.5" fill="var(--color-text-tertiary)" />
+      </svg>
+    </ToastButton>
   );
 }
 

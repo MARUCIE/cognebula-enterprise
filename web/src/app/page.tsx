@@ -1,15 +1,21 @@
 "use client";
 
-/* Dashboard -- "今日概览"
-   Layout reference: design/stitch-export/stitch/dashboard/screen.png
-   All data is static mock for initial build. */
+/* Root page — redirects to /workbench/ (月度看板)
+   Per OPTIMIZED_ARCHITECTURE_V2.md: L1 代账工作台 is the product entry point.
+   Old dashboard preserved below for backward compat during transition. */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ToastButton } from "./components/ToastButton";
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [approvalTab, setApprovalTab] = useState<"pending" | "completed">("pending");
+
+  useEffect(() => {
+    router.replace("/workbench/");
+  }, [router]);
 
   return (
     <div>

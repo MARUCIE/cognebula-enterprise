@@ -1,41 +1,54 @@
 # HANDOFF.md -- CogNebula / Lingque Desktop
 
-> Last updated: 2026-03-28T18:30Z
+> Last updated: 2026-03-28T19:30Z
 
-## Session 17 Summary — Next-Gen Workbench Deep Design
+## Session 17 Summary — Deep Design + Stitch Pipeline + 6 Workbench Views + System Split
 
-### Deliverable: NEXT_GEN_WORKBENCH_DESIGN (MD + HTML McKinsey Blue)
+### Phase 1: Deep Design Document
+- `NEXT_GEN_WORKBENCH_DESIGN.md` (EN, agent-readable) + `-zh.html` (McKinsey Blue)
+- Core thesis: bookkeeping = factory production line. 41 tasks x 999 enterprises = 40,959 units/month
+- Calendar-driven state machine, 7 named agents, batch engine, dual dependency types, 79 Skills
 
-Based on 41-task real accounting workflow + OpenClaw proactive Agent + batch automation.
-Core thesis: bookkeeping company = factory production line, not knowledge workplace.
+### Phase 2: Stitch Design Pipeline
+- Project: `projects/7648290641270673368`, Design System: Heritage Monolith
+- 12 screens exported (HTML + PNG) to `design/stitch-export/stitch/`
 
-**Key Design Decisions:**
-1. Calendar-driven proactive activation (agents initiate by date, not human clicks)
-2. Per-enterprise pipeline parallelism (Enterprise A at Task 5 while B at Task 4)
-3. Two dependency types: per-enterprise (strict serial) + batch-level (all must complete)
-4. 7 named digital employees with persistent trust records (the moat)
-5. 79 OpenClaw Skills mapped to 41 tasks (41 primary + 38 supporting)
-6. KG invisible to customer but powers 95% → 99.5% accuracy improvement
+### Phase 3: 6 Workbench Views Implemented
+| Route | View | Key Features |
+|-------|------|-------------|
+| `/workbench` | 月度看板 | 4-column kanban (W1-W4), KPI strip, 41 task cards |
+| `/workbench/batch` | 批量操作台 | "一键处理 N 家" CTA, blocked enterprises table |
+| `/workbench/agents` | 数字员工 | 7 agents, SVG trust circles, skill inventory |
+| `/workbench/calendar` | 日历视图 | Monthly grid, W1-W4 bars, day-15 deadline marker |
+| `/workbench/exceptions` | 异常中心 | 12 exceptions, 4 filter tabs, detail panel |
+| `/workbench/dependencies` | 依赖图 | Cytoscape.js DAG, 41 nodes, 44 edges |
 
-**Agent Roster (7 digital employees):**
-- Starter (3): 小智(采集) + 小算(记账) + 小税(申报) = ¥999/月
-- Professional (5): + 小检(质检) + 总监(主管) = ¥2,999/月
-- Enterprise (7): + 小安(风控) + 小客(客服) = ¥8,999/月
+### Phase 4: Architecture v2 System Split
+- Removed Expert section (System A) from product sidebar
+- New sidebar: L1 代账工作台 / AI 引擎 / 业务 (3 groups, 9 items)
+- Root `/` redirects to `/workbench/`
+- Heritage Monolith CSS: zero-radius, zero-shadow, gradient CTA, ghost border
 
-**Batch Engine:** Each task operates on 23-999 enterprises. Chunk processing (100/50/20/1 by complexity). Readiness filter prevents premature execution.
+### Deployment
+- Method: `wrangler pages deploy web/out --project-name=lingque-desktop` (NOT git-connected)
+- URL: https://lingque-desktop.pages.dev/workbench/
+- Build: 47/47 pages, 0 errors
 
-**HITL:** Only 3 of 41 tasks require human intervention (Tasks 24/28/29 — client approval/confirmation/authorization).
-
-**Migration Plan:** 7 phases, 14 weeks. P1 starts immediately with task-definitions.yaml + dependency-engine + calendar-engine.
-
-### Files Created
-- `doc/00_project/initiative_lingque_fusion/NEXT_GEN_WORKBENCH_DESIGN.md` (agent-readable, English)
-- `doc/00_project/initiative_lingque_fusion/NEXT_GEN_WORKBENCH_DESIGN-zh.html` (human-readable, McKinsey Blue, Chinese)
+### Commits
+```
+4909364  feat: next-gen workbench deep design + Stitch prototypes + kanban page
+527b7ee  feat: agent team + calendar view workbench pages
+85a2a6d  feat: exception center + batch control workbench pages
+7e543e9  feat: dependency graph — 41-task DAG with Cytoscape.js
+0463380  fix: add trailingSlash for CF Pages route resolution
+6dabb4f  fix: split sidebar per architecture v2 — remove Expert (System A)
+```
 
 ### Next Steps (Priority Order)
-1. **P1 implementation**: task-definitions.yaml + dependency-engine.ts + calendar-engine.ts + unit tests
-2. **System split execution**: Phase 1 from architecture v2 (KG Explorer → internal, CF Worker proxy)
-3. **First customer**: Find 1 real accounting firm for pilot (3 scenarios)
+1. **P1 core engine**: task-definitions.yaml + dependency-engine.ts + calendar-engine.ts
+2. **Connect CF Pages to Git**: Auto-deploy (root: `web`, build: `npm run build`, output: `out`)
+3. **Remove old mock pages**: /tax, /ai-team, /compliance, /audit, /ops
+4. **First customer**: Find 1 real accounting firm for pilot (3 scenarios)
 
 ---
 

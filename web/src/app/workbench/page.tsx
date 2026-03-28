@@ -57,8 +57,14 @@ export default function WorkbenchPage() {
             </h1>
           </div>
           <div style={{ display: "flex", gap: "var(--space-3)" }}>
+            <Link href="/workbench/batch" style={{ padding: "8px 16px", background: "var(--color-surface-container)", color: "var(--color-text-primary)", fontSize: "13px", fontWeight: 600, textDecoration: "none" }}>
+              批量操作
+            </Link>
             <Link href="/workbench/agents" style={{ padding: "8px 16px", background: "var(--color-surface-container)", color: "var(--color-text-primary)", fontSize: "13px", fontWeight: 600, textDecoration: "none" }}>
               数字员工
+            </Link>
+            <Link href="/workbench/dependencies" style={{ padding: "8px 16px", background: "var(--color-surface-container)", color: "var(--color-text-primary)", fontSize: "13px", fontWeight: 600, textDecoration: "none" }}>
+              依赖图
             </Link>
             <Link href="/workbench/calendar" style={{ padding: "8px 16px", background: "var(--color-surface-container)", color: "var(--color-text-primary)", fontSize: "13px", fontWeight: 600, textDecoration: "none" }}>
               日历视图

@@ -14,8 +14,9 @@ export function generateStaticParams() {
    Page component
    ================================================================ */
 
-export default function ClientDetailPage({ params }: { params: { id: string } }) {
-  const client = getClientById(params.id);
+export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const client = getClientById(id);
   if (!client) return <div>客户不存在</div>;
 
   const c = client;

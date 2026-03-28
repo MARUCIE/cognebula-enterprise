@@ -1,8 +1,63 @@
-# HANDOFF.md -- CogNebula Session 12 (Audit Fixes + Polish)
+# HANDOFF.md -- CogNebula Session 13 (KG Data Sprint)
 
-> Last updated: 2026-03-27T22:00Z
+> Last updated: 2026-03-28T00:30Z
 
-## Session 12 Summary
+## Session 13 Summary — KG Data Sprint
+
+### LLM Backend Migration: Gemini → Poe API — DONE
+- Google AI Studio at $232/$300 limit. All 9 batch scripts + VPS kg-api-server migrated to Poe API
+- `scripts/llm_client.py`: unified adapter, old model names auto-mapped (gemini-2.5-flash-lite → gemini-3.1-flash-lite)
+- VPS: `.env.kg-api` with POE_API_KEY, `_gemini_generate()` Poe-first + Gemini fallback
+- Embedding stays on Google API (cheap, Poe doesn't support)
+
+### KG API Port Discovery
+- API was never down — runs on port **8400** (not 8766 from Docker Compose era)
+
+### Data Ingest Results
+
+| Task | Items | Status |
+|------|-------|--------|
+| flk content update (structure trees) | 310 / 318 | DONE |
+| flk clause nodes (KnowledgeUnit) | +17,134 | DONE |
+| HAS_CLAUSE edges (new rel type KU→KU) | +21,351 | DONE |
+| LR shard re-ingest | 15,781 | DONE (no net new — overwrites) |
+| LR content generation (Poe) | 22,042 / 22,044 | DONE |
+| flk law summary generation (Poe) | 2,192 / 2,248 | DONE |
+| LR + flk content ingest to DB | 24,234 | DONE (0 errors) |
+
+### KG Final State
+
+| Metric | Before | After | Delta |
+|--------|--------|-------|-------|
+| Quality nodes | 344,356 | 361,490 | +17,134 |
+| Total nodes | 528,942 | 546,076 | +17,134 |
+| Total edges | 1,120,436 | 1,141,787 | +21,351 |
+| HAS_CLAUSE | 0 | 21,351 | new |
+| KU with content | 10,721 | 66,199 | +55,478 (6.2x) |
+| Quality score | 100 | 100 | maintained |
+| Gate | PASS | PASS | maintained |
+
+### Key Gotchas Learned
+1. **KuzuDB DDL API silent failure**: MATCH+CREATE returns "ok" even when MATCH finds 0 rows. Always verify with count queries
+2. **Node ID format mismatch**: flk_npc nodes use `KU_flk_` + bbbs[:16], not raw bbbs. Check actual DB IDs before bulk operations
+3. **KuzuDB strong typing**: Each edge type (REL TABLE) only connects predefined node types. Created `HAS_CLAUSE (KU→KU)` for new edges
+4. **OFD reader renders as images**: flkofd.npc.gov.cn uses image rendering, not DOM text. Poe LLM summary is the pragmatic alternative
+
+### Scripts Created
+- `scripts/llm_client.py` — Poe API unified adapter (drop-in for all Gemini calls)
+- `scripts/flk_content_ingest.py` — structure tree content update + clause extraction
+- `scripts/flk_clauses_and_edges.py` — batch clause node + edge creation
+- `scripts/flk_docx_extract.py` — OFD reader text extraction (abandoned: image rendering)
+
+### Next Steps
+1. **M3 L1 Depth**: remaining ~16K lr_cleanup nodes still without content (content < 50 chars after ingest)
+2. **M3 L2 Breadth**: new sources (pbc.gov.cn, cctaa.cn, ASBE) per M3 strategy
+3. **M3 L3 Edge Engine**: Gemini cross-reference scan for SUPERSEDES/CONFLICTS_WITH edges
+4. **Embedding refresh**: re-embed 55K newly content-enriched nodes for vector search quality
+
+---
+
+## Session 12 Summary (Frontend — Audit Fixes + Polish)
 
 ### All Audit Fixes + 2 Rounds Polish — COMPLETE
 

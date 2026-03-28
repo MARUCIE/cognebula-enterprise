@@ -20,7 +20,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DOC_TAX_DIR = PROJECT_ROOT / "doc-tax"
 OUTPUT_DIR = PROJECT_ROOT / "data" / "extracted"
 KG_API = os.environ.get("KG_API", "http://100.75.77.112:8400")
-GEMINI_MODEL = "gemini-2.5-pro"
+GEMINI_MODEL = "gemini-3.1-pro"  # via Poe API
 BATCH_SIZE = 30
 DRY_RUN = "--dry-run" in sys.argv
 LIMIT = None
@@ -148,43 +148,25 @@ def _timeout_handler(signum, frame):
     raise TimeoutError("Gemini API call timed out")
 
 
-def gemini_call(prompt: str) -> list[dict]:
-    """Single Gemini API call with hard 60s timeout, returns parsed JSON list."""
-    import signal
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={API_KEY}"
-    payload = json.dumps({
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {
-            "temperature": 0.1,
-            "maxOutputTokens": 16384,
-            "responseMimeType": "application/json",
-        },
-    }).encode()
-    req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from llm_client import llm_generate_json
 
-    # Hard timeout via signal (catches DNS/SSL hangs that socket timeout misses)
+
+def gemini_call(prompt: str) -> list[dict]:
+    """Call LLM via Poe API, returns parsed JSON list."""
+    import signal
     old_handler = signal.signal(signal.SIGALRM, _timeout_handler)
-    signal.alarm(60)
+    signal.alarm(90)
     try:
-        with urllib.request.urlopen(req, timeout=45) as resp:
-            data = json.loads(resp.read())
-            text_out = data["candidates"][0]["content"]["parts"][0]["text"]
-            nodes = json.loads(text_out)
-            return nodes if isinstance(nodes, list) else []
-    except json.JSONDecodeError:
-        import re
-        match = re.search(r'\[.*\]', text_out, re.DOTALL)
-        if match:
-            try:
-                return json.loads(match.group())
-            except:
-                pass
+        result = llm_generate_json(prompt, model=GEMINI_MODEL, temperature=0.1, max_tokens=16384)
+        if isinstance(result, list):
+            return result
         return []
     except TimeoutError:
-        print(f"    Gemini TIMEOUT (60s)")
+        print("    LLM TIMEOUT (90s)")
         return []
     except Exception as e:
-        print(f"    Gemini error: {e}")
+        print(f"    LLM error: {e}")
         return []
     finally:
         signal.alarm(0)

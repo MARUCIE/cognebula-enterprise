@@ -24,7 +24,9 @@ import logging
 import os
 import time
 
-import google.generativeai as genai
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from llm_client import llm_generate
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 log = logging.getLogger("qa_gen")
@@ -34,20 +36,6 @@ OUTPUT_JSONL = "/home/kg/cognebula-enterprise/data/backfill/qa_answers.jsonl"
 BATCH_SIZE = 10
 MAX_CONTENT = 3000
 CHECKPOINT_EVERY = 50
-
-# Gemini setup
-api_key = os.environ.get("GEMINI_API_KEY", "")
-if not api_key:
-    # Try loading from .env
-    env_path = "/home/kg/.env.kg-api"
-    if os.path.exists(env_path):
-        with open(env_path) as f:
-            for line in f:
-                if line.startswith("GEMINI_API_KEY="):
-                    api_key = line.strip().split("=", 1)[1]
-
-genai.configure(api_key=api_key)
-model = genai.GenerativeModel("gemini-2.5-flash-lite")
 
 SYSTEM_PROMPT = """你是中国税务专家。对于以下税务问题，请逐一给出简明准确的回答。
 每个回答 100-200 字，引用相关法规名称。格式：
@@ -70,8 +58,10 @@ def generate_batch_answers(questions: list[tuple[str, str]]) -> dict[str, str]:
     prompt = "\n".join(prompt_parts)
 
     try:
-        response = model.generate_content(prompt)
-        text = response.text
+        text = llm_generate(prompt)
+        if text.startswith("[ERROR]"):
+            log.warning("  LLM error: %s", text[:100])
+            return {}
 
         # Parse answers
         answers = {}

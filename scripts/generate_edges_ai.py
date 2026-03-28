@@ -36,29 +36,12 @@ CSV_DIR = "/home/kg/cognebula-enterprise/data/edge_csv/m3_edges"
 os.makedirs(CSV_DIR, exist_ok=True)
 
 
-GEMINI_MODEL = "gemini-2.5-flash-lite"
-GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
+from llm_client import llm_generate
 
 
-def _call_gemini(prompt: str, api_key: str) -> str:
-    """Call Gemini API via HTTP and return response text."""
-    body = {
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {
-            "responseMimeType": "application/json",
-            "maxOutputTokens": 2000,
-            "temperature": 0.1,
-        },
-    }
-    req = Request(
-        f"{GEMINI_URL}?key={api_key}",
-        data=json.dumps(body).encode(),
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-    resp = urlopen(req, timeout=30)
-    result = json.loads(resp.read())
-    return result["candidates"][0]["content"]["parts"][0]["text"]
+def _call_gemini(prompt: str, api_key: str = "") -> str:
+    """Call LLM via Poe API and return response text."""
+    return llm_generate(prompt, temperature=0.1, max_tokens=2000)
 
 
 def discover_supersedes(conn, api_key: str, batch_size: int = 50, max_batches: int = 20) -> int:

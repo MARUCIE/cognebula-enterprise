@@ -61,12 +61,11 @@ def classify_edge(qa_text: str) -> str:
     return "INTERPRETS"
 
 
-GEMINI_MODEL = "gemini-2.5-flash-lite"
-GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
+from llm_client import llm_generate_json
 
 
-def generate_qa_batch(articles: list[dict], api_key: str) -> list[dict]:
-    """Call Gemini 2.5 Flash Lite via HTTP to generate QA pairs.
+def generate_qa_batch(articles: list[dict], api_key: str = "") -> list[dict]:
+    """Generate QA pairs via Poe API.
 
     Returns list of {article_id, question, answer, edge_type}.
     """
@@ -93,27 +92,10 @@ def generate_qa_batch(articles: list[dict], api_key: str) -> list[dict]:
             "只输出 JSON 数组，不要其他文字。"
         )
 
-        body = {
-            "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {
-                "responseMimeType": "application/json",
-                "maxOutputTokens": 2000,
-                "temperature": 0.3,
-            },
-        }
-
         try:
-            req = Request(
-                f"{GEMINI_URL}?key={api_key}",
-                data=json.dumps(body).encode(),
-                headers={"Content-Type": "application/json"},
-                method="POST",
-            )
-            resp = urlopen(req, timeout=30)
-            result = json.loads(resp.read())
-            raw = result["candidates"][0]["content"]["parts"][0]["text"]
-
-            qa_pairs = json.loads(raw)
+            qa_pairs = llm_generate_json(prompt, temperature=0.3, max_tokens=2000)
+            if qa_pairs is None:
+                continue
             if not isinstance(qa_pairs, list):
                 qa_pairs = [qa_pairs]
 

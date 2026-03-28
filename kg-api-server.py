@@ -3,6 +3,16 @@
 import os
 import json
 import hashlib
+
+# Load env vars from .env file (POE_API_KEY, GEMINI_API_KEY, etc.)
+for _env_path in ["/home/kg/.env.kg-api", os.path.join(os.path.dirname(__file__), ".env")]:
+    if os.path.exists(_env_path):
+        with open(_env_path) as _f:
+            for _line in _f:
+                _line = _line.strip()
+                if _line and not _line.startswith("#") and "=" in _line:
+                    _k, _v = _line.split("=", 1)
+                    os.environ.setdefault(_k.strip(), _v.strip())
 from typing import Optional
 from pathlib import Path as _Path
 from fastapi import FastAPI, Query, HTTPException
@@ -1157,12 +1167,43 @@ class ChatResponse(_BaseModel):
     tokens_used: int = 0
 
 
-def _gemini_generate(prompt: str, system: str = "", model: str = "gemini-3-flash-preview") -> str:
-    """Call Gemini API for text generation."""
+def _gemini_generate(prompt: str, system: str = "", model: str = "gemini-3.1-flash-lite") -> str:
+    """Call LLM via Poe API (OpenAI-compatible) for text generation.
+
+    Falls back to Google Gemini API if POE_API_KEY is not set.
+    """
     import urllib.request as _urlreq
+    import urllib.error as _urlerr
+
+    poe_key = os.environ.get("POE_API_KEY", "")
+    if poe_key:
+        # Poe API path (OpenAI-compatible)
+        messages = []
+        if system:
+            messages.append({"role": "system", "content": system})
+        messages.append({"role": "user", "content": prompt})
+        payload = json.dumps({
+            "model": model,
+            "messages": messages,
+            "temperature": 0.3,
+            "max_tokens": 4096,
+        }).encode()
+        req = _urlreq.Request(
+            "https://api.poe.com/v1/chat/completions",
+            data=payload,
+            headers={"Content-Type": "application/json", "Authorization": f"Bearer {poe_key}"},
+        )
+        try:
+            with _urlreq.urlopen(req, timeout=60) as resp:
+                data = json.loads(resp.read())
+                return data["choices"][0]["message"]["content"]
+        except Exception as e:
+            return f"[ERROR] Poe API failed: {str(e)[:200]}"
+
+    # Fallback: Google Gemini API
     api_key = os.environ.get("GEMINI_API_KEY", "")
     if not api_key:
-        return "[ERROR] GEMINI_API_KEY not set"
+        return "[ERROR] Neither POE_API_KEY nor GEMINI_API_KEY set"
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
     contents = []
     if system:

@@ -66,29 +66,19 @@ def _load_api_key():
     return key
 
 
-GEMINI_API_KEY = _load_api_key()
-GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={GEMINI_API_KEY}"
+GEMINI_API_KEY = _load_api_key()  # kept for legacy reference
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from llm_client import llm_generate
 
 
 def _call_gemini(prompt: str, max_tokens: int = 8000) -> str:
-    payload = {
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"maxOutputTokens": max_tokens, "temperature": 0.3},
-    }
-    data = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(GEMINI_URL, data=data,
-                                 headers={"Content-Type": "application/json"}, method="POST")
-    try:
-        with urllib.request.urlopen(req, timeout=60) as resp:
-            result = json.loads(resp.read())
-        candidates = result.get("candidates", [])
-        if candidates:
-            parts = candidates[0].get("content", {}).get("parts", [])
-            if parts:
-                return parts[0].get("text", "")
-    except Exception as e:
-        log.warning("Gemini call failed: %s", e)
-    return ""
+    """Call LLM via Poe API."""
+    result = llm_generate(prompt, max_tokens=max_tokens, temperature=0.3)
+    if result.startswith("[ERROR]"):
+        log.warning("LLM call failed: %s", result)
+        return ""
+    return result
 
 
 def _make_id(industry: str, tax: str, lifecycle: str, scenario: str) -> str:

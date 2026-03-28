@@ -19,12 +19,11 @@ from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 
 DB_PATH = "/home/kg/cognebula-enterprise/data/finance-tax-graph"
-GEMINI_MODEL = "gemini-2.5-flash-lite"
-GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
+from llm_client import llm_generate_json
 
 
-def call_gemini(titles_and_meta: list[dict], api_key: str) -> list[str]:
-    """Generate authoritative content for a batch of LR titles."""
+def call_gemini(titles_and_meta: list[dict], api_key: str = "") -> list[str]:
+    """Generate authoritative content for a batch of LR titles via Poe API."""
     items = "\n".join([
         f"{i+1}. {d['title']} (发文机关: {d['authority']}, 类型: {d['type']})"
         for i, d in enumerate(titles_and_meta)
@@ -36,31 +35,9 @@ def call_gemini(titles_and_meta: list[dict], api_key: str) -> list[str]:
         f"{items}"
     )
 
-    body = {
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {
-            "responseMimeType": "application/json",
-            "maxOutputTokens": 4096,
-            "temperature": 0.3,
-        },
-    }
-
-    req = Request(
-        f"{GEMINI_URL}?key={api_key}",
-        data=json.dumps(body).encode(),
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-    resp = urlopen(req, timeout=30)
-    result = json.loads(resp.read())
-    text = result["candidates"][0]["content"]["parts"][0]["text"]
-
-    try:
-        contents = json.loads(text)
-        if isinstance(contents, list):
-            return [str(c) for c in contents]
-    except json.JSONDecodeError:
-        pass
+    result = llm_generate_json(prompt, temperature=0.3, max_tokens=4096)
+    if isinstance(result, list):
+        return [str(c) for c in result]
     return []
 
 

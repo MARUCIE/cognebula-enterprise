@@ -44,8 +44,8 @@ def _load_api_key():
     return key
 
 
-GEMINI_API_KEY = _load_api_key()
-GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={GEMINI_API_KEY}"
+GEMINI_API_KEY = _load_api_key()  # kept for legacy reference
+from llm_client import llm_generate
 
 # Type-specific prompt templates
 TYPE_PROMPTS = {
@@ -77,24 +77,14 @@ def _call_gemini_batch(items: list[dict]) -> list[dict]:
 3. 用 [1] [2] [3] ... 编号分隔
 4. 直接输出，不加额外标题"""
 
-    payload = {
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"maxOutputTokens": 8000, "temperature": 0.3},
-    }
-    data = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(GEMINI_URL, data=data,
-                                 headers={"Content-Type": "application/json"}, method="POST")
     try:
-        with urllib.request.urlopen(req, timeout=60) as resp:
-            result = json.loads(resp.read())
-        candidates = result.get("candidates", [])
-        if candidates:
-            parts = candidates[0].get("content", {}).get("parts", [])
-            if parts:
-                raw = parts[0].get("text", "")
-                return _parse_batch(raw, items)
+        raw = llm_generate(prompt, max_tokens=8000, temperature=0.3)
+        if raw.startswith("[ERROR]"):
+            log.warning("LLM call failed: %s", raw)
+            return []
+        return _parse_batch(raw, items)
     except Exception as e:
-        log.warning("Gemini call failed: %s", e)
+        log.warning("LLM call failed: %s", e)
     return []
 
 

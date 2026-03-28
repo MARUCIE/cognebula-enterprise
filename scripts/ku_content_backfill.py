@@ -24,8 +24,7 @@ from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 
 DB_PATH = "/home/kg/cognebula-enterprise/data/finance-tax-graph"
-GEMINI_MODEL = "gemini-2.5-flash-lite"
-GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
+from llm_client import llm_generate, llm_generate_json
 
 TAX_KEYWORDS = {
     "增值税": "TT_VAT", "企业所得税": "TT_CIT", "个人所得税": "TT_PIT",
@@ -41,8 +40,8 @@ TAX_KEYWORDS = {
 }
 
 
-def call_gemini(titles: list[str], api_key: str) -> list[str]:
-    """Generate content for a batch of KU titles."""
+def call_gemini(titles: list[str], api_key: str = "") -> list[str]:
+    """Generate content for a batch of KU titles via Poe API."""
     prompt = (
         "You are a Chinese finance and tax knowledge expert. "
         "For each title below, write a concise Chinese explanation (50-150 chars). "
@@ -53,33 +52,9 @@ def call_gemini(titles: list[str], api_key: str) -> list[str]:
     for i, t in enumerate(titles):
         prompt += f"{i+1}. {t}\n"
 
-    body = {
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {
-            "responseMimeType": "application/json",
-            "maxOutputTokens": 4096,
-            "temperature": 0.3,
-        },
-    }
-
-    req = Request(
-        f"{GEMINI_URL}?key={api_key}",
-        data=json.dumps(body).encode(),
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-
-    resp = urlopen(req, timeout=30)
-    result = json.loads(resp.read())
-    text = result["candidates"][0]["content"]["parts"][0]["text"]
-
-    try:
-        contents = json.loads(text)
-        if isinstance(contents, list):
-            return contents
-    except json.JSONDecodeError:
-        pass
-
+    result = llm_generate_json(prompt, temperature=0.3, max_tokens=4096)
+    if isinstance(result, list):
+        return result
     return []
 
 

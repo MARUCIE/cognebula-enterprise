@@ -4,6 +4,7 @@
 
 import Link from "next/link";
 import { AGENT_SLUG } from "../lib/agents";
+import { ToastButton } from "../components/ToastButton";
 
 const agents = [
   {
@@ -151,15 +152,16 @@ export default function AITeamPage() {
               管理并分配您的自动化财税团队
             </p>
           </div>
-          <button
+          <a
+            href="#all-agents"
             className="font-medium flex items-center gap-1"
-            style={{ fontSize: 13, color: "var(--color-secondary-dim)" }}
+            style={{ fontSize: 13, color: "var(--color-secondary-dim)", textDecoration: "none" }}
           >
             查看全部团队成员
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
               <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-          </button>
+          </a>
         </div>
 
         <div className="grid gap-6" style={{ gridTemplateColumns: "2fr 1fr" }}>
@@ -223,7 +225,8 @@ export default function AITeamPage() {
             </div>
 
             <div className="flex gap-3" style={{ marginTop: "var(--space-6)" }}>
-              <button
+              <ToastButton
+                message="已打开任务分配面板"
                 className="font-medium flex items-center gap-2"
                 style={{
                   fontSize: 13,
@@ -238,8 +241,10 @@ export default function AITeamPage() {
                   <path d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                 </svg>
                 分配任务
-              </button>
-              <button
+              </ToastButton>
+              <ToastButton
+                message="参数配置面板即将上线"
+                type="info"
                 className="font-medium"
                 style={{
                   fontSize: 13,
@@ -250,7 +255,7 @@ export default function AITeamPage() {
                 }}
               >
                 配置参数
-              </button>
+              </ToastButton>
             </div>
 
             {/* Decorative background icon */}
@@ -284,7 +289,7 @@ export default function AITeamPage() {
       </section>
 
       {/* ── Agent grid ── */}
-      <section style={{ marginBottom: "var(--space-8)" }}>
+      <section id="all-agents" style={{ marginBottom: "var(--space-8)" }}>
         <h3
           className="font-display font-bold"
           style={{ fontSize: 18, color: "var(--color-text-primary)", marginBottom: "var(--space-4)" }}
@@ -385,12 +390,13 @@ export default function AITeamPage() {
                 <span style={{ fontSize: 13 }}>{task.status}</span>
               </div>
               <span style={{ textAlign: "right" }}>
-                <button
+                <Link
+                  href={`/ai-team/${AGENT_SLUG[task.agent] ?? ""}`}
                   className="font-medium"
-                  style={{ fontSize: 12, color: "var(--color-primary)" }}
+                  style={{ fontSize: 12, color: "var(--color-primary)", textDecoration: "none" }}
                 >
                   详情
-                </button>
+                </Link>
               </span>
             </div>
           ))}
@@ -449,7 +455,8 @@ export default function AITeamPage() {
           >
             "根据近期增值税进项数据分析，建议 '林税安' 在下周开启针对电子信息行业的专项核销策略，预计可为 3 家客户额外节省 ¥85,000 税款。"
           </p>
-          <button
+          <ToastButton
+            message="建议已应用，林税安将于下周启动专项核销策略"
             className="font-medium flex items-center gap-1"
             style={{
               marginTop: "var(--space-3)",
@@ -461,7 +468,7 @@ export default function AITeamPage() {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
               <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-          </button>
+          </ToastButton>
         </div>
       </section>
 

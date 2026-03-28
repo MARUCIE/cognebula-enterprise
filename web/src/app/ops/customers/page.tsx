@@ -5,6 +5,7 @@
 "use client";
 
 import { useState } from "react";
+import { useToast } from "../../components/Toast";
 
 /* ================================================================
    Types
@@ -371,21 +372,29 @@ function CustomerRow({
 
       {/* Action */}
       <span>
-        <button
-          style={{
-            fontSize: 11,
-            fontWeight: 600,
-            color: "var(--color-primary)",
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            padding: 0,
-          }}
-        >
-          详情
-        </button>
+        <DetailButton name={c.name} />
       </span>
     </div>
+  );
+}
+
+function DetailButton({ name }: { name: string }) {
+  const toast = useToast();
+  return (
+    <button
+      onClick={() => toast(`已打开「${name}」客户详情`)}
+      style={{
+        fontSize: 11,
+        fontWeight: 600,
+        color: "var(--color-primary)",
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        padding: 0,
+      }}
+    >
+      详情
+    </button>
   );
 }
 

@@ -3,6 +3,8 @@
    Brand: 灵阙财税 (NOT "智汇算 AI")
    All data is static mock for initial build. */
 
+import { ToastButton } from "../components/ToastButton";
+
 export default function ComplianceDashboardPage() {
   return (
     <div className="flex gap-0">
@@ -133,7 +135,8 @@ export default function ComplianceDashboardPage() {
           className="flex gap-3"
           style={{ marginBottom: "var(--space-8)" }}
         >
-          <button
+          <ToastButton
+            message="审计报告生成中，完成后将推送通知"
             className="flex items-center gap-2 font-bold"
             style={{
               fontSize: 13,
@@ -145,8 +148,9 @@ export default function ComplianceDashboardPage() {
           >
             <ReportIcon />
             生成审计报告
-          </button>
-          <button
+          </ToastButton>
+          <ToastButton
+            message="风险提醒已发送至相关客户"
             className="flex items-center gap-2 font-bold"
             style={{
               fontSize: 13,
@@ -159,7 +163,7 @@ export default function ComplianceDashboardPage() {
           >
             <MailIcon />
             发送风险提醒
-          </button>
+          </ToastButton>
         </section>
 
         {/* ── Footer ── */}
@@ -248,7 +252,8 @@ export default function ComplianceDashboardPage() {
 
         {/* Drawer actions */}
         <div style={{ padding: "var(--space-6)" }}>
-          <button
+          <ToastButton
+            message="详细审计报告生成中，完成后将推送通知"
             className="font-bold flex items-center justify-center gap-2"
             style={{
               width: "100%",
@@ -261,8 +266,9 @@ export default function ComplianceDashboardPage() {
           >
             <ReportIcon />
             生成详细审计报告
-          </button>
-          <button
+          </ToastButton>
+          <ToastButton
+            message="风险提醒已发送至客户邮箱"
             className="font-bold flex items-center justify-center gap-2"
             style={{
               width: "100%",
@@ -277,7 +283,7 @@ export default function ComplianceDashboardPage() {
           >
             <MailIcon />
             发送风险提醒给客户
-          </button>
+          </ToastButton>
         </div>
       </aside>
     </div>
@@ -382,7 +388,9 @@ function ComplianceStat({
 
 function FilterTab({ label, active }: { label: string; active?: boolean }) {
   return (
-    <button
+    <ToastButton
+      message={`正在筛选「${label}」客户`}
+      type="info"
       className="font-medium"
       style={{
         fontSize: 13,
@@ -395,7 +403,7 @@ function FilterTab({ label, active }: { label: string; active?: boolean }) {
       }}
     >
       {label}
-    </button>
+    </ToastButton>
   );
 }
 

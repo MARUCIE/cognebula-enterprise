@@ -3,6 +3,7 @@
    All data is static mock for initial build. */
 
 import Link from "next/link";
+import { ToastButton } from "../components/ToastButton";
 
 export default function ReportsCenterPage() {
   return (
@@ -52,7 +53,8 @@ export default function ReportsCenterPage() {
               以下报告需要您审核或确认
             </p>
           </div>
-          <button
+          <ToastButton
+            message="已发起批量审批，AI 正在逐项核验..."
             className="flex items-center gap-2 font-bold"
             style={{
               fontSize: 12,
@@ -63,7 +65,7 @@ export default function ReportsCenterPage() {
             }}
           >
             全部批准
-          </button>
+          </ToastButton>
         </div>
 
         <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
@@ -90,7 +92,9 @@ export default function ReportsCenterPage() {
             全部报告记录
           </h3>
           <div className="flex gap-3">
-            <button
+            <ToastButton
+              message="筛选面板即将上线"
+              type="info"
               className="flex items-center gap-2 font-semibold"
               style={{
                 fontSize: 12,
@@ -103,8 +107,9 @@ export default function ReportsCenterPage() {
             >
               <FilterIcon />
               筛选
-            </button>
-            <button
+            </ToastButton>
+            <ToastButton
+              message="已提交导出任务，完成后将推送通知"
               className="flex items-center gap-2 font-semibold"
               style={{
                 fontSize: 12,
@@ -117,7 +122,7 @@ export default function ReportsCenterPage() {
             >
               <DownloadIcon />
               批量导出
-            </button>
+            </ToastButton>
           </div>
         </div>
 
@@ -281,7 +286,9 @@ export default function ReportsCenterPage() {
               <ExportItem icon={<AiReportIcon />} label="AI 智能解读报告" />
             </ul>
           </div>
-          <button
+          <ToastButton
+            message="导出路径配置即将上线"
+            type="info"
             className="font-bold"
             style={{
               marginTop: "var(--space-8)",
@@ -295,7 +302,7 @@ export default function ReportsCenterPage() {
             }}
           >
             管理导出路径
-          </button>
+          </ToastButton>
         </div>
       </section>
 
@@ -680,30 +687,36 @@ function PendingCard({
       >
         &yen;{r.amount}
       </p>
-      <button
+      <Link
+        href={`/reports/${r.id}`}
         className="font-bold"
         style={{
+          display: "inline-block",
           fontSize: 11,
           padding: "6px 16px",
           borderRadius: "var(--radius-sm)",
           background: actionBg,
           color: "var(--color-on-primary)",
+          textDecoration: "none",
         }}
       >
         {actionLabel}
-      </button>
+      </Link>
     </div>
   );
 }
 
 function ExportItem({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
-    <li
-      className="flex items-center gap-3"
-      style={{ fontSize: 13, cursor: "pointer" }}
-    >
-      {icon}
-      <span>{label}</span>
+    <li className="flex items-center gap-3" style={{ fontSize: 13 }}>
+      <ToastButton
+        message={`${label}已开始生成，请在导出中心查看进度`}
+        className="flex items-center gap-3"
+        style={{ fontSize: 13, color: "inherit", cursor: "pointer" }}
+      >
+        {icon}
+        <span>{label}</span>
+      </ToastButton>
     </li>
   );
 }

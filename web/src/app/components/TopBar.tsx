@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
+import { useToast } from "./Toast";
 
 const pageTitles: Record<string, string> = {
   "/": "今日概览",
@@ -27,7 +28,7 @@ function getPageTitle(pathname: string): string {
 }
 
 const NOTIFICATIONS = [
-  { id: 1, type: "action" as const, text: "云峰智源: Q3 增值税申报异常，需人工确认", href: "/clients/yunfeng-zhiyuan", time: "14:30" },
+  { id: 1, type: "action" as const, text: "腾讯科技: Q3 现金流量表需关注，需人工确认", href: "/clients/tengxun-keji", time: "14:30" },
   { id: 2, type: "action" as const, text: "深圳极智: 2 份报告待审批", href: "/reports", time: "11:20" },
   { id: 3, type: "info" as const, text: "林税安完成 42 家 Q3 增值税批量申报", time: "10:00" },
   { id: 4, type: "info" as const, text: "赵合规更新合规规则库（+47 条法规节点）", time: "09:15" },
@@ -36,6 +37,8 @@ const NOTIFICATIONS = [
 
 export function TopBar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const toast = useToast();
   const title = getPageTitle(pathname);
   const [notifOpen, setNotifOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
@@ -171,6 +174,11 @@ export function TopBar() {
                     <span style={{ fontSize: 10, color: "var(--color-text-tertiary)" }}>{n.time}</span>
                   </div>
                   <button
+                    onClick={() => {
+                      setNotifOpen(false);
+                      if (n.href) router.push(n.href);
+                      toast("已跳转至处理页面");
+                    }}
                     style={{
                       fontSize: 11,
                       fontWeight: 700,
@@ -227,7 +235,8 @@ export function TopBar() {
         </div>
 
         {/* Settings gear */}
-        <button
+        <Link
+          href="/settings"
           className="flex items-center justify-center"
           style={{ width: 36, height: 36, borderRadius: "var(--radius-sm)" }}
         >
@@ -240,7 +249,7 @@ export function TopBar() {
               strokeLinecap="round"
             />
           </svg>
-        </button>
+        </Link>
 
         {/* User avatar */}
         <div

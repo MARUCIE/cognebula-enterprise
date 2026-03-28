@@ -2,6 +2,8 @@
    Layout reference: design/stitch-export/stitch/audit_workbench/screen.png
    Audit findings list + AI agent analysis panel + flow progress */
 
+import { ToastButton } from "../components/ToastButton";
+
 const AUDIT_FLOW = [
   { label: "证据采集", icon: "upload", status: "done" as const, detail: "共上传 124 份原始凭证" },
   { label: "AI 智能分析", icon: "brain", status: "done" as const, detail: "全量文本及结构化处理完毕" },
@@ -107,12 +109,14 @@ export default function AuditWorkbenchPage() {
             >
               审计发现 ({FINDINGS.length})
             </h2>
-            <button
+            <ToastButton
+              message="筛选面板即将上线"
+              type="info"
               className="font-bold flex items-center gap-1"
               style={{ fontSize: 12, color: "var(--color-secondary-dim)" }}
             >
               <FilterIcon /> 筛选
-            </button>
+            </ToastButton>
           </div>
           <div
             className="flex flex-col gap-3"
@@ -149,7 +153,8 @@ export default function AuditWorkbenchPage() {
               </h2>
             </div>
             <div className="flex gap-2">
-              <button
+              <ToastButton
+                message="AI 已收到重分析请求，正在处理..."
                 className="font-bold"
                 style={{
                   fontSize: 12,
@@ -160,8 +165,9 @@ export default function AuditWorkbenchPage() {
                 }}
               >
                 要求 AI 重分析
-              </button>
-              <button
+              </ToastButton>
+              <ToastButton
+                message="审计发现已确认，已更新至审计报告"
                 className="font-bold"
                 style={{
                   fontSize: 12,
@@ -172,7 +178,7 @@ export default function AuditWorkbenchPage() {
                 }}
               >
                 确认审计发现
-              </button>
+              </ToastButton>
             </div>
           </div>
 

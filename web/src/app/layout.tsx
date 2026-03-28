@@ -3,6 +3,7 @@ import { Manrope, Inter } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
+import { ToastProvider } from "./components/Toast";
 
 const manrope = Manrope({
   variable: "--font-display",
@@ -35,22 +36,24 @@ export default function RootLayout({
       className={`${manrope.variable} ${inter.variable} h-full`}
     >
       <body className="h-full flex" style={{ background: "var(--color-surface)" }}>
-        {/* Sidebar -- fixed 240px */}
-        <Sidebar />
+        <ToastProvider>
+          {/* Sidebar -- fixed 240px */}
+          <Sidebar />
 
-        {/* Main area */}
-        <div className="flex-1 flex flex-col min-h-screen" style={{ marginLeft: "var(--sidebar-width)" }}>
-          <TopBar />
-          <main
-            className="flex-1 overflow-y-auto"
-            style={{
-              padding: "var(--space-8) var(--space-8)",
-              paddingTop: "var(--space-6)",
-            }}
-          >
-            {children}
-          </main>
-        </div>
+          {/* Main area */}
+          <div className="flex-1 flex flex-col min-h-screen" style={{ marginLeft: "var(--sidebar-width)" }}>
+            <TopBar />
+            <main
+              className="flex-1 overflow-y-auto"
+              style={{
+                padding: "var(--space-8) var(--space-8)",
+                paddingTop: "var(--space-6)",
+              }}
+            >
+              {children}
+            </main>
+          </div>
+        </ToastProvider>
       </body>
     </html>
   );

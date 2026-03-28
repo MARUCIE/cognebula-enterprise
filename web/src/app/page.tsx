@@ -2,6 +2,9 @@
    Layout reference: design/stitch-export/stitch/dashboard/screen.png
    All data is static mock for initial build. */
 
+import Link from "next/link";
+import { ToastButton } from "./components/ToastButton";
+
 export default function DashboardPage() {
   return (
     <div>
@@ -94,10 +97,12 @@ export default function DashboardPage() {
             关键审批事项
           </h3>
           <div className="flex items-center gap-4" style={{ fontSize: 13 }}>
-            <button className="font-medium" style={{ color: "var(--color-primary)" }}>
+            <ToastButton message="正在筛选待审批事项" className="font-medium" style={{ color: "var(--color-primary)" }}>
               待筛审批 (12)
-            </button>
-            <button style={{ color: "var(--color-text-tertiary)" }}>已完成</button>
+            </ToastButton>
+            <ToastButton message="正在加载已完成审批记录" type="info" style={{ color: "var(--color-text-tertiary)" }}>
+              已完成
+            </ToastButton>
           </div>
         </div>
 
@@ -254,15 +259,17 @@ export default function DashboardPage() {
             >
               近期报告
             </h3>
-            <button
+            <Link
+              href="/reports"
               style={{
                 fontSize: 12,
                 color: "var(--color-primary)",
                 fontWeight: 500,
+                textDecoration: "none",
               }}
             >
               全部 &rarr;
-            </button>
+            </Link>
           </div>
           <div className="flex flex-col gap-4">
             <ReportItem
@@ -297,7 +304,8 @@ export default function DashboardPage() {
             <p style={{ fontSize: 12, color: "var(--color-text-secondary)", marginBottom: 12, lineHeight: 1.6 }}>
               AI 生成的报告含财税知识，您可以让智能财税顾问进行 1 对 1 深度咨询。
             </p>
-            <button
+            <ToastButton
+              message="已为您预约 AI 财税顾问，稍后将发送咨询链接"
               className="font-medium"
               style={{
                 fontSize: 12,
@@ -308,7 +316,7 @@ export default function DashboardPage() {
               }}
             >
               立即咨询
-            </button>
+            </ToastButton>
           </div>
         </div>
       </section>
@@ -592,7 +600,8 @@ function ApprovalRow({
         {time}
       </span>
       <span style={{ textAlign: "right" }}>
-        <button
+        <ToastButton
+          message="已打开审批工作台"
           className="font-medium"
           style={{
             fontSize: 12,
@@ -601,7 +610,7 @@ function ApprovalRow({
           }}
         >
           查看详情
-        </button>
+        </ToastButton>
       </span>
     </div>
   );

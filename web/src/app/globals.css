@@ -278,6 +278,19 @@ hr {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
+/* --- Toast animation --- */
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes toast-out {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(40px); }
+}
+.toast-enter {
+  animation: toast-in 0.25s ease-out;
+}
+
 /* --- Selection color --- */
 ::selection {
   background: var(--color-primary-fixed);

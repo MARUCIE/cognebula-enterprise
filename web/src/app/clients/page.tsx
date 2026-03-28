@@ -3,6 +3,7 @@
    All data is static mock for initial build. */
 
 import Link from "next/link";
+import { ToastButton } from "../components/ToastButton";
 
 export default function ClientCenterPage() {
   return (
@@ -34,7 +35,9 @@ export default function ClientCenterPage() {
           </p>
         </div>
         <div className="flex gap-3">
-          <button
+          <ToastButton
+            message="筛选面板即将上线"
+            type="info"
             className="flex items-center gap-2 font-semibold"
             style={{
               fontSize: 13,
@@ -47,8 +50,10 @@ export default function ClientCenterPage() {
           >
             <FilterIcon />
             高级筛选
-          </button>
-          <button
+          </ToastButton>
+          <ToastButton
+            message="新客户录入流程即将上线"
+            type="info"
             className="flex items-center gap-2 font-bold"
             style={{
               fontSize: 13,
@@ -60,7 +65,7 @@ export default function ClientCenterPage() {
           >
             <PersonAddIcon />
             新增客户账户
-          </button>
+          </ToastButton>
         </div>
       </section>
 
@@ -246,7 +251,8 @@ export default function ClientCenterPage() {
               基于 2024 年第四季度最新的研发费用加计扣除政策，我们已识别出"极智科技"等
               5 位客户存在申报优化的空间，预计可额外减免税额约 &yen;240,000。
             </p>
-            <button
+            <ToastButton
+              message="AI 正在生成优化建议书，预计 3 分钟完成"
               className="font-bold"
               style={{
                 marginTop: "var(--space-6)",
@@ -258,7 +264,7 @@ export default function ClientCenterPage() {
               }}
             >
               立即生成优化建议书
-            </button>
+            </ToastButton>
           </div>
           {/* Background decorative icon */}
           <div
@@ -347,19 +353,23 @@ export default function ClientCenterPage() {
             </div>
           </div>
 
-          <button
+          <Link
+            href="/compliance"
             className="font-bold"
             style={{
+              display: "block",
               width: "100%",
               fontSize: 12,
               padding: "8px 0",
               borderRadius: "var(--radius-sm)",
               background: "var(--color-surface-container-low)",
               color: "var(--color-primary)",
+              textDecoration: "none",
+              textAlign: "center",
             }}
           >
             查看完整诊断报告
-          </button>
+          </Link>
         </div>
       </section>
 
@@ -667,7 +677,9 @@ function ClientRow({
 
 function PaginationBtn({ label, active }: { label: string; active?: boolean }) {
   return (
-    <button
+    <ToastButton
+      message={label === "..." ? "更多页面即将上线" : `正在加载第 ${label} 页`}
+      type="info"
       className="flex items-center justify-center"
       style={{
         width: 28,
@@ -681,7 +693,7 @@ function PaginationBtn({ label, active }: { label: string; active?: boolean }) {
       }}
     >
       {label}
-    </button>
+    </ToastButton>
   );
 }
 

@@ -3,6 +3,8 @@
    Hardcoded agent: 林税安 (LQ-TX-001)
    All data is static mock for initial build. */
 
+import { ToastButton } from "../../components/ToastButton";
+
 export function generateStaticParams() {
   return [
     { id: "lin-shui-an" },
@@ -285,19 +287,19 @@ export default function AgentWorkstationPage() {
               </h3>
             </div>
             <div className="flex gap-2">
-              <button style={{ padding: 6, borderRadius: "var(--radius-sm)", color: "var(--color-text-tertiary)" }}>
+              <ToastButton message="历史记录即将上线" type="info" style={{ padding: 6, borderRadius: "var(--radius-sm)", color: "var(--color-text-tertiary)" }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                   <path d="M3 12a9 9 0 1018 0 9 9 0 00-18 0" stroke="currentColor" strokeWidth="1.8" />
                   <path d="M12 7v5l3 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
                 </svg>
-              </button>
-              <button style={{ padding: 6, borderRadius: "var(--radius-sm)", color: "var(--color-text-tertiary)" }}>
+              </ToastButton>
+              <ToastButton message="更多选项即将上线" type="info" style={{ padding: 6, borderRadius: "var(--radius-sm)", color: "var(--color-text-tertiary)" }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                   <circle cx="12" cy="6" r="1.5" fill="currentColor" />
                   <circle cx="12" cy="12" r="1.5" fill="currentColor" />
                   <circle cx="12" cy="18" r="1.5" fill="currentColor" />
                 </svg>
-              </button>
+              </ToastButton>
             </div>
           </div>
 
@@ -342,12 +344,13 @@ export default function AgentWorkstationPage() {
                 }}
               />
               <div className="flex items-center gap-2" style={{ position: "absolute", right: 12 }}>
-                <button style={{ padding: 4, color: "var(--color-text-tertiary)" }}>
+                <ToastButton message="附件上传即将上线" type="info" style={{ padding: 4, color: "var(--color-text-tertiary)" }}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                     <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
                   </svg>
-                </button>
-                <button
+                </ToastButton>
+                <ToastButton
+                  message="消息已发送"
                   className="flex items-center justify-center"
                   style={{
                     width: 34,
@@ -359,7 +362,7 @@ export default function AgentWorkstationPage() {
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="var(--color-on-primary)" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" />
                   </svg>
-                </button>
+                </ToastButton>
               </div>
             </div>
           </div>

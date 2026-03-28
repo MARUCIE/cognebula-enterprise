@@ -2,6 +2,8 @@
    Layout reference: design/stitch-export/stitch/system_settings/screen.png
    Firm profile + AI behavior + team RBAC + subscription */
 
+import { ToastButton } from "../components/ToastButton";
+
 const TEAM_MEMBERS = [
   {
     initials: "LZ",
@@ -171,7 +173,9 @@ export default function SettingsPage() {
         title="团队与权限"
         description="管理机构成员及其在平台内的操作权限。使用角色预设来快速分配职责。"
         action={
-          <button
+          <ToastButton
+            message="成员邀请功能即将上线"
+            type="info"
             className="flex items-center gap-2 font-bold"
             style={{
               marginTop: "var(--space-4)",
@@ -180,7 +184,7 @@ export default function SettingsPage() {
             }}
           >
             <PersonAddIcon /> 邀请新成员
-          </button>
+          </ToastButton>
         }
       >
         <div
@@ -342,7 +346,9 @@ export default function SettingsPage() {
 
           {/* Right: action buttons */}
           <div className="flex flex-col gap-3">
-            <button
+            <ToastButton
+              message="续费流程即将上线"
+              type="info"
               className="font-bold"
               style={{
                 fontSize: 13,
@@ -353,8 +359,10 @@ export default function SettingsPage() {
               }}
             >
               立即续费
-            </button>
-            <button
+            </ToastButton>
+            <ToastButton
+              message="账单历史即将上线"
+              type="info"
               className="font-medium"
               style={{
                 fontSize: 13,
@@ -366,7 +374,7 @@ export default function SettingsPage() {
               }}
             >
               账单历史
-            </button>
+            </ToastButton>
           </div>
         </div>
       </SettingsSection>
@@ -376,7 +384,9 @@ export default function SettingsPage() {
         className="flex justify-end gap-4"
         style={{ paddingTop: "var(--space-8)" }}
       >
-        <button
+        <ToastButton
+          message="已恢复为默认设置"
+          type="info"
           className="font-bold"
           style={{
             fontSize: 13,
@@ -387,8 +397,9 @@ export default function SettingsPage() {
           }}
         >
           取消更改
-        </button>
-        <button
+        </ToastButton>
+        <ToastButton
+          message="所有设置已保存并生效"
           className="font-bold"
           style={{
             fontSize: 13,
@@ -400,7 +411,7 @@ export default function SettingsPage() {
           }}
         >
           保存并应用所有设置
-        </button>
+        </ToastButton>
       </div>
 
       {/* Footer */}

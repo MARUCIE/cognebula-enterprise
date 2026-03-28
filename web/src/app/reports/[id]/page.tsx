@@ -4,6 +4,7 @@
 
 import Link from "next/link";
 import { REPORT_IDS, getReportById } from "../../lib/reports";
+import { ToastButton } from "../../components/ToastButton";
 
 export function generateStaticParams() {
   return REPORT_IDS.map((id) => ({ id }));
@@ -52,9 +53,49 @@ export default async function ReportDetailPage({ params }: { params: Promise<{ i
           </p>
         </div>
         <div className="flex gap-3">
-          <ActionButton label="导出 PDF" variant="secondary" />
-          <ActionButton label="发送给客户" variant="secondary" />
-          {(isAi || isFlagged) && <ActionButton label="✓ 批准" variant="primary" />}
+          <ToastButton
+            message="PDF 导出已提交，预计 30 秒完成"
+            className="font-bold"
+            style={{
+              fontSize: 12,
+              padding: "8px 20px",
+              borderRadius: "var(--radius-md)",
+              background: "var(--color-surface-container-lowest)",
+              color: "var(--color-primary)",
+              boxShadow: "var(--shadow-sm)",
+            }}
+          >
+            导出 PDF
+          </ToastButton>
+          <ToastButton
+            message="已发送至客户邮箱，请在通知中心查看状态"
+            className="font-bold"
+            style={{
+              fontSize: 12,
+              padding: "8px 20px",
+              borderRadius: "var(--radius-md)",
+              background: "var(--color-surface-container-lowest)",
+              color: "var(--color-primary)",
+              boxShadow: "var(--shadow-sm)",
+            }}
+          >
+            发送给客户
+          </ToastButton>
+          {(isAi || isFlagged) && (
+            <ToastButton
+              message="报告已批准，状态已更新为「已人工复核」"
+              className="font-bold"
+              style={{
+                fontSize: 12,
+                padding: "8px 20px",
+                borderRadius: "var(--radius-md)",
+                background: "linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-container) 100%)",
+                color: "var(--color-on-primary)",
+              }}
+            >
+              ✓ 批准
+            </ToastButton>
+          )}
         </div>
       </section>
 
@@ -192,27 +233,3 @@ export default async function ReportDetailPage({ params }: { params: Promise<{ i
   );
 }
 
-/* ================================================================
-   Sub-components
-   ================================================================ */
-
-function ActionButton({ label, variant }: { label: string; variant: "primary" | "secondary" }) {
-  const isPrimary = variant === "primary";
-  return (
-    <button
-      className="font-bold"
-      style={{
-        fontSize: 12,
-        padding: "8px 20px",
-        borderRadius: "var(--radius-md)",
-        background: isPrimary
-          ? "linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-container) 100%)"
-          : "var(--color-surface-container-lowest)",
-        color: isPrimary ? "var(--color-on-primary)" : "var(--color-primary)",
-        boxShadow: isPrimary ? undefined : "var(--shadow-sm)",
-      }}
-    >
-      {label}
-    </button>
-  );
-}

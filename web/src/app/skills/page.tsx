@@ -2,6 +2,8 @@
    Layout reference: design/stitch-export/stitch/skill_store_winner/screen.png
    Hero banner + category filters + skill card grid + installed sidebar */
 
+import { ToastButton } from "../components/ToastButton";
+
 const SKILLS = [
   {
     char: "增",
@@ -155,8 +157,10 @@ export default function SkillStorePage() {
           }}
         >
           {CATEGORIES.map((cat, i) => (
-            <button
+            <ToastButton
               key={cat.label}
+              message={`正在筛选「${cat.label}」类别技能`}
+              type="info"
               className="font-medium"
               style={{
                 fontSize: 13,
@@ -168,7 +172,7 @@ export default function SkillStorePage() {
             >
               {cat.label}{" "}
               <span style={{ opacity: 0.5, fontSize: 11 }}>({cat.count})</span>
-            </button>
+            </ToastButton>
           ))}
         </div>
 
@@ -255,7 +259,8 @@ export default function SkillStorePage() {
           >
             &ldquo;检测到您的出口业务量近期增加，建议为林税安安装&lsquo;海关退税自动核算&rsquo;技能。&rdquo;
           </p>
-          <button
+          <ToastButton
+            message="正在为您定位推荐技能..."
             className="font-bold"
             style={{
               marginTop: "var(--space-3)",
@@ -264,7 +269,7 @@ export default function SkillStorePage() {
             }}
           >
             立即查看
-          </button>
+          </ToastButton>
         </div>
       </aside>
     </div>
@@ -419,7 +424,9 @@ function SkillCard({
             </div>
           ))}
         </div>
-        <button
+        <ToastButton
+          message={skill.installed ? "此技能已安装并启用" : `「${skill.name}」安装成功，已分配给相关专员`}
+          type={skill.installed ? "info" : "success"}
           className="font-bold"
           style={{
             fontSize: 11,
@@ -430,7 +437,7 @@ function SkillCard({
           }}
         >
           {skill.installed ? "已安装" : "安装技能"}
-        </button>
+        </ToastButton>
       </div>
     </div>
   );

@@ -2,6 +2,8 @@
    Layout reference: design/stitch-export/stitch/intelligent_tax/screen.png
    All data is static mock for initial build. */
 
+import { ToastButton } from "../components/ToastButton";
+
 const pipelineSteps = [
   {
     name: "数据采集",
@@ -262,7 +264,8 @@ export default function IntelligentTaxPage() {
                 </div>
               </div>
 
-              <button
+              <ToastButton
+                message="报表已提交生成，预计 2 分钟完成"
                 className="w-full flex items-center justify-center gap-2 font-medium"
                 style={{
                   marginTop: "var(--space-6)",
@@ -277,7 +280,7 @@ export default function IntelligentTaxPage() {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                   <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-              </button>
+              </ToastButton>
             </div>
           </div>
 
@@ -387,7 +390,8 @@ export default function IntelligentTaxPage() {
           >
             本期进项发票明细 (待核验)
           </h3>
-          <button
+          <ToastButton
+            message="发票明细导出已提交"
             className="flex items-center gap-2 font-medium"
             style={{ fontSize: 13, color: "var(--color-primary)" }}
           >
@@ -395,7 +399,7 @@ export default function IntelligentTaxPage() {
               <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             导出明细
-          </button>
+          </ToastButton>
         </div>
 
         {/* Table header */}
@@ -477,12 +481,14 @@ export default function IntelligentTaxPage() {
             background: "var(--color-surface-container-low)",
           }}
         >
-          <button
+          <ToastButton
+            message="完整发票列表即将上线"
+            type="info"
             className="font-medium"
             style={{ fontSize: 12, color: "var(--color-text-tertiary)" }}
           >
             查看全部 142 张发票
-          </button>
+          </ToastButton>
         </div>
       </section>
 
@@ -709,7 +715,8 @@ function ReviewCard({
 
       {/* Action */}
       <div className="flex flex-col items-end gap-2 shrink-0">
-        <button
+        <ToastButton
+          message={`已处理「${item.title}」，AI 正在更新核验状态`}
           className="font-medium"
           style={{
             fontSize: 12,
@@ -720,7 +727,7 @@ function ReviewCard({
           }}
         >
           {item.action}
-        </button>
+        </ToastButton>
         <span style={{ fontSize: 10, color: "var(--color-text-tertiary)" }}>{item.updated}</span>
       </div>
     </div>

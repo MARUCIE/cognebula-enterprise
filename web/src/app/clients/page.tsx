@@ -2,6 +2,8 @@
    Layout reference: design/stitch-export/stitch/client_center/screen.png
    All data is static mock for initial build. */
 
+import Link from "next/link";
+
 export default function ClientCenterPage() {
   return (
     <div>
@@ -383,6 +385,7 @@ export default function ClientCenterPage() {
 
 const CLIENTS: ClientRowProps[] = [
   {
+    id: "zhongtie-jianshe",
     initial: "中",
     initialColor: "var(--color-dept-tax)",
     name: "中铁建设集团有限公司",
@@ -394,6 +397,7 @@ const CLIENTS: ClientRowProps[] = [
     statusLabel: "已完成",
   },
   {
+    id: "alibaba-wangluo",
     initial: "阿",
     initialColor: "var(--color-dept-bookkeeping)",
     name: "阿里巴巴（中国）网络技术",
@@ -405,6 +409,7 @@ const CLIENTS: ClientRowProps[] = [
     statusLabel: "待审核",
   },
   {
+    id: "tengxun-keji",
     initial: "腾",
     initialColor: "var(--color-dept-client)",
     name: "腾讯科技（深圳）有限公司",
@@ -416,6 +421,7 @@ const CLIENTS: ClientRowProps[] = [
     statusLabel: "进行中",
   },
   {
+    id: "meituan-dianping",
     initial: "美",
     initialColor: "var(--color-dept-compliance)",
     name: "美团点评（北京）科技有限公司",
@@ -427,6 +433,7 @@ const CLIENTS: ClientRowProps[] = [
     statusLabel: "已完成",
   },
   {
+    id: "shenzhen-jizhi",
     initial: "深",
     initialColor: "var(--color-dept-tax)",
     name: "深圳极智科技有限公司",
@@ -438,6 +445,7 @@ const CLIENTS: ClientRowProps[] = [
     statusLabel: "已完成",
   },
   {
+    id: "huaxia-maoyi",
     initial: "华",
     initialColor: "var(--color-secondary-dim)",
     name: "华夏贸易进出口有限公司",
@@ -449,6 +457,7 @@ const CLIENTS: ClientRowProps[] = [
     statusLabel: "待审核",
   },
   {
+    id: "guangying-chuanmei",
     initial: "光",
     initialColor: "var(--color-tertiary)",
     name: "光影传媒艺术工作室",
@@ -460,6 +469,7 @@ const CLIENTS: ClientRowProps[] = [
     statusLabel: "进行中",
   },
   {
+    id: "taihe-yanglao",
     initial: "泰",
     initialColor: "var(--color-dept-client)",
     name: "泰和养老服务集团",
@@ -548,6 +558,7 @@ function StatCard({
 }
 
 type ClientRowProps = {
+  id: string;
   initial: string;
   initialColor: string;
   name: string;
@@ -561,6 +572,7 @@ type ClientRowProps = {
 };
 
 function ClientRow({
+  id,
   initial,
   initialColor,
   name,
@@ -641,12 +653,13 @@ function ClientRow({
 
       {/* Action */}
       <span style={{ textAlign: "right" }}>
-        <button
+        <Link
+          href={`/clients/${id}`}
           className="font-bold"
-          style={{ fontSize: 12, color: "var(--color-primary)" }}
+          style={{ fontSize: 12, color: "var(--color-primary)", textDecoration: "none" }}
         >
-          查看详情
-        </button>
+          查看详情 &rarr;
+        </Link>
       </span>
     </div>
   );

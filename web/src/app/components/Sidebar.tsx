@@ -18,9 +18,9 @@ const proNavItems = [
 ];
 
 const opsNavItems = [
-  { href: "/ops/customers", label: "客户健康", icon: OpsCustomersIcon },
-  { href: "/ops/agents", label: "AI 专员监控", icon: OpsAgentsIcon },
-  { href: "/ops/alerts", label: "系统告警", icon: OpsAlertsIcon },
+  { href: "/workbench/batch", label: "批量操作台", icon: OpsCustomersIcon },
+  { href: "/workbench/exceptions", label: "异常中心", icon: OpsAlertsIcon },
+  { href: "/workbench/agents", label: "数字员工", icon: OpsAgentsIcon },
 ];
 
 const expertNavItems = [

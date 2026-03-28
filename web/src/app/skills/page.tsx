@@ -3,6 +3,7 @@
    Hero banner + category filters + skill card grid + installed sidebar */
 
 import { ToastButton } from "../components/ToastButton";
+import { SkillCardWrapper } from "../components/SkillDrawer";
 
 const SKILLS = [
   {
@@ -182,7 +183,9 @@ export default function SkillStorePage() {
           style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}
         >
           {SKILLS.map((skill) => (
-            <SkillCard key={skill.name} skill={skill} />
+            <SkillCardWrapper key={skill.name} skill={skill}>
+              <SkillCard skill={skill} />
+            </SkillCardWrapper>
           ))}
         </div>
       </div>

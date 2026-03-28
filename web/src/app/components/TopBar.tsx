@@ -16,17 +16,10 @@ const pageTitles: Record<string, string> = {
   "/workbench/calendar": "日历视图",
   "/workbench/exceptions": "异常中心",
   "/workbench/dependencies": "任务依赖图",
-  "/ai-team": "AI 专家团队",
   "/clients": "客户中心",
-  "/tax": "智能报税",
   "/reports": "报告中心",
   "/skills": "技能商店",
-  "/compliance": "合规管理看板",
-  "/audit": "智能审计工作台",
   "/settings": "系统设置",
-  "/ops/customers": "客户健康矩阵",
-  "/ops/agents": "AI 专员性能监控",
-  "/ops/alerts": "系统告警中心",
   "/expert/kg": "知识图谱探索",
   "/expert/reasoning": "推理链检查器",
   "/expert/rules": "合规规则调试",
@@ -36,9 +29,6 @@ const pageTitles: Record<string, string> = {
 function getPageTitle(pathname: string): string {
   // Normalize: strip trailing slash for consistent lookup
   const p = pathname.endsWith("/") && pathname.length > 1 ? pathname.slice(0, -1) : pathname;
-  if (p.startsWith("/ai-team/") && p !== "/ai-team") {
-    return "AI 专家工作站";
-  }
   if (p.startsWith("/clients/") && p !== "/clients") {
     return "客户详情";
   }
@@ -90,9 +80,9 @@ function searchAll(query: string): SearchResult[] {
     if (results.filter((r) => r.type === "报告").length >= 3) break;
   }
 
-  for (const [name, slug] of Object.entries(AGENT_SLUG)) {
+  for (const [name] of Object.entries(AGENT_SLUG)) {
     if (name.toLowerCase().includes(q)) {
-      results.push({ type: "AI 专员", label: name, sub: "AI 虚拟财税专员", href: `/ai-team/${slug}` });
+      results.push({ type: "AI 专员", label: name, sub: "数字员工", href: "/workbench/agents" });
     }
     if (results.filter((r) => r.type === "AI 专员").length >= 3) break;
   }
@@ -428,7 +418,7 @@ export function TopBar() {
 
               {/* Footer */}
               <Link
-                href="/ops/alerts"
+                href="/workbench/exceptions"
                 style={{
                   display: "block",
                   padding: "10px 16px",

@@ -39,9 +39,20 @@ os.makedirs(CSV_DIR, exist_ok=True)
 from llm_client import llm_generate
 
 
+def _strip_markdown(text: str) -> str:
+    """Strip markdown code block wrappers from LLM response."""
+    import re
+    # Remove ```json ... ``` or ``` ... ```
+    m = re.search(r'```(?:json)?\s*\n?(.*?)```', text, re.DOTALL)
+    if m:
+        return m.group(1).strip()
+    return text.strip()
+
+
 def _call_gemini(prompt: str, api_key: str = "") -> str:
-    """Call LLM via Poe API and return response text."""
-    return llm_generate(prompt, temperature=0.1, max_tokens=2000)
+    """Call LLM via Poe API and return response text (markdown stripped)."""
+    raw = llm_generate(prompt, temperature=0.1, max_tokens=2000)
+    return _strip_markdown(raw)
 
 
 def discover_supersedes(conn, api_key: str, batch_size: int = 50, max_batches: int = 20) -> int:
@@ -160,9 +171,10 @@ def main():
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
-    api_key = os.environ.get("GEMINI_API_KEY")
+    # LLM calls now go through llm_client.py (Poe API), no separate key needed
+    api_key = os.environ.get("POE_API_KEY", os.environ.get("GEMINI_API_KEY", ""))
     if not api_key and not args.dry_run:
-        print("ERROR: GEMINI_API_KEY not set")
+        print("ERROR: POE_API_KEY not set (check .env.kg-api)")
         sys.exit(1)
 
     print("=" * 60)
@@ -194,10 +206,26 @@ def main():
     if count > 0:
         try:
             conn.execute(f'COPY SUPERSEDES FROM "{csv_path}" (header=false)')
-            print(f"  SUPERSEDES: +{count:,} edges loaded")
+            print(f"  SUPERSEDES: +{count:,} edges loaded via COPY")
             total_new += count
         except Exception as e:
-            print(f"  SUPERSEDES COPY ERROR: {str(e)[:80]}")
+            # COPY failed (missing PKs) — fallback to row-by-row MATCH+CREATE
+            print(f"  SUPERSEDES COPY failed: {str(e)[:60]}, trying row-by-row...")
+            loaded = 0
+            with open(csv_path) as cf:
+                for row in csv.reader(cf):
+                    if len(row) >= 2:
+                        try:
+                            conn.execute(
+                                f"MATCH (a:LawOrRegulation {{id: '{row[0]}'}}), "
+                                f"(b:LawOrRegulation {{id: '{row[1]}'}}) "
+                                f"CREATE (a)-[:SUPERSEDES]->(b)"
+                            )
+                            loaded += 1
+                        except Exception:
+                            pass
+            print(f"  SUPERSEDES: +{loaded} edges (row-by-row)")
+            total_new += loaded
     else:
         print(f"  SUPERSEDES: 0 new (no confident pairs found)")
 
@@ -207,10 +235,26 @@ def main():
     if count > 0:
         try:
             conn.execute(f'COPY REFERENCES_CLAUSE FROM "{csv_path}" (header=false)')
-            print(f"  REFERENCES_CLAUSE: +{count:,} edges loaded")
+            print(f"  REFERENCES_CLAUSE: +{count:,} edges loaded via COPY")
             total_new += count
         except Exception as e:
-            print(f"  REFERENCES_CLAUSE COPY ERROR: {str(e)[:80]}")
+            # COPY failed — fallback to row-by-row
+            print(f"  REFERENCES_CLAUSE COPY failed: {str(e)[:60]}, trying row-by-row...")
+            loaded = 0
+            with open(csv_path) as cf:
+                for row in csv.reader(cf):
+                    if len(row) >= 2:
+                        try:
+                            conn.execute(
+                                f"MATCH (c:LegalClause {{id: '{row[0]}'}}), "
+                                f"(d:LawOrRegulation {{id: '{row[1]}'}}) "
+                                f"CREATE (c)-[:REFERENCES_CLAUSE]->(d)"
+                            )
+                            loaded += 1
+                        except Exception:
+                            pass
+            print(f"  REFERENCES_CLAUSE: +{loaded} edges (row-by-row)")
+            total_new += loaded
     else:
         print(f"  REFERENCES_CLAUSE: 0 new")
 

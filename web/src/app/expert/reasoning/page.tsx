@@ -30,82 +30,80 @@ const MOCK_CHAINS = [
   },
 ];
 
+function confidenceColor(v: number) {
+  if (v >= 90) return "var(--color-success, #16A34A)";
+  if (v >= 75) return "var(--color-secondary-dim, #B8860B)";
+  return "var(--color-danger, #DC2626)";
+}
+
 export default function ReasoningPage() {
   return (
-    <div style={{ height: "calc(100vh - var(--topbar-height))", background: "#0D1117", overflow: "auto" }}>
-      <div style={{ maxWidth: 960, margin: "0 auto", padding: "24px 32px" }}>
-        <h2 style={{ fontSize: 18, fontWeight: 700, color: "#C9D1D9", marginBottom: 4, fontFamily: "'SF Mono', monospace" }}>
-          推理链检查器
-        </h2>
-        <p style={{ fontSize: 13, color: "#8B949E", marginBottom: 24 }}>
-          审查 AI Agent 的推理过程，追溯每一步决策的依据和置信度
-        </p>
+    <div style={{ padding: "var(--space-6) var(--space-8)", maxWidth: 960, margin: "0 auto" }}>
+      <p style={{ fontSize: 13, color: "var(--color-text-tertiary)", marginBottom: 20 }}>
+        审查 AI Agent 的推理过程，追溯每一步决策的依据和置信度
+      </p>
 
-        {MOCK_CHAINS.map((chain) => (
-          <div
-            key={chain.id}
-            style={{
-              background: "#161B22",
-              borderRadius: 8,
-              border: "1px solid #30363D",
-              marginBottom: 16,
-              overflow: "hidden",
-            }}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between" style={{ padding: "12px 16px", borderBottom: "1px solid #30363D" }}>
-              <div>
-                <span style={{ fontSize: 14, fontWeight: 700, color: "#C9D1D9" }}>{chain.task}</span>
-                <span style={{ fontSize: 11, color: "#8B949E", marginLeft: 12 }}>{chain.agent} · {chain.time}</span>
-              </div>
-              <span
-                style={{
-                  fontSize: 12,
-                  fontWeight: 700,
-                  padding: "4px 10px",
-                  borderRadius: 4,
-                  background: chain.confidence >= 90 ? "#0D3321" : chain.confidence >= 75 ? "#3D2E00" : "#3D1F1F",
-                  color: chain.confidence >= 90 ? "#3FB950" : chain.confidence >= 75 ? "#D29922" : "#F85149",
-                }}
-              >
-                {chain.confidence}%
-              </span>
+      {MOCK_CHAINS.map((chain) => (
+        <div
+          key={chain.id}
+          style={{
+            background: "var(--color-surface-container-lowest)",
+            borderRadius: "var(--radius-md)",
+            border: "1px solid var(--color-surface-container)",
+            marginBottom: 16,
+            overflow: "hidden",
+          }}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between" style={{ padding: "12px 16px", borderBottom: "1px solid var(--color-surface-container)" }}>
+            <div>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "var(--color-text-primary)" }}>{chain.task}</span>
+              <span style={{ fontSize: 11, color: "var(--color-text-tertiary)", marginLeft: 12 }}>{chain.agent} · {chain.time}</span>
             </div>
-
-            {/* Steps */}
-            <div style={{ padding: "12px 16px" }}>
-              {chain.steps.map((step, i) => (
-                <div key={i} className="flex items-start gap-3" style={{ marginBottom: i < chain.steps.length - 1 ? 12 : 0 }}>
-                  {/* Timeline dot + line */}
-                  <div className="flex flex-col items-center" style={{ minWidth: 20 }}>
-                    <div style={{
-                      width: 10, height: 10, borderRadius: "50%",
-                      background: step.confidence >= 90 ? "#3FB950" : step.confidence >= 75 ? "#D29922" : "#F85149",
-                      marginTop: 4,
-                    }} />
-                    {i < chain.steps.length - 1 && <div style={{ width: 1, flex: 1, background: "#30363D", marginTop: 2 }} />}
-                  </div>
-
-                  <div style={{ flex: 1 }}>
-                    <div className="flex items-center gap-2">
-                      <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 6px", borderRadius: 3, background: "#21262D", color: "#8B949E", fontFamily: "'SF Mono', monospace" }}>
-                        {step.phase}
-                      </span>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: "#C9D1D9" }}>{step.label}</span>
-                      <span style={{ fontSize: 10, color: "#484F58", marginLeft: "auto" }}>{step.duration}</span>
-                    </div>
-                    <p style={{ fontSize: 12, color: "#8B949E", margin: "4px 0 0", lineHeight: 1.5 }}>{step.detail}</p>
-                  </div>
-
-                  <span style={{ fontSize: 11, fontWeight: 600, color: step.confidence >= 90 ? "#3FB950" : step.confidence >= 75 ? "#D29922" : "#F85149", minWidth: 36, textAlign: "right" }}>
-                    {step.confidence}%
-                  </span>
-                </div>
-              ))}
-            </div>
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 700,
+                padding: "4px 10px",
+                borderRadius: "var(--radius-sm)",
+                background: `color-mix(in srgb, ${confidenceColor(chain.confidence)} 10%, var(--color-surface))`,
+                color: confidenceColor(chain.confidence),
+              }}
+            >
+              {chain.confidence}%
+            </span>
           </div>
-        ))}
-      </div>
+
+          {/* Steps */}
+          <div style={{ padding: "12px 16px" }}>
+            {chain.steps.map((step, i) => (
+              <div key={i} className="flex items-start gap-3" style={{ marginBottom: i < chain.steps.length - 1 ? 12 : 0 }}>
+                <div className="flex flex-col items-center" style={{ minWidth: 20 }}>
+                  <div style={{
+                    width: 10, height: 10, borderRadius: "50%",
+                    background: confidenceColor(step.confidence),
+                    marginTop: 4,
+                  }} />
+                  {i < chain.steps.length - 1 && <div style={{ width: 1, flex: 1, background: "var(--color-surface-container)", marginTop: 2 }} />}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div className="flex items-center gap-2">
+                    <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 6px", borderRadius: 3, background: "var(--color-surface-container-low)", color: "var(--color-text-tertiary)" }}>
+                      {step.phase}
+                    </span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text-primary)" }}>{step.label}</span>
+                    <span style={{ fontSize: 10, color: "var(--color-text-tertiary)", marginLeft: "auto" }}>{step.duration}</span>
+                  </div>
+                  <p style={{ fontSize: 12, color: "var(--color-text-secondary)", margin: "4px 0 0", lineHeight: 1.5 }}>{step.detail}</p>
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 600, color: confidenceColor(step.confidence), minWidth: 36, textAlign: "right" }}>
+                  {step.confidence}%
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

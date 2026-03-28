@@ -230,8 +230,8 @@ export default function KGExplorerPage() {
         className="flex items-center gap-3 shrink-0"
         style={{
           padding: "8px 16px",
-          background: "#161B22",
-          borderBottom: "1px solid #30363D",
+          background: "var(--color-surface-container-lowest)",
+          borderBottom: "1px solid var(--color-surface-container)",
         }}
       >
         <input
@@ -244,12 +244,11 @@ export default function KGExplorerPage() {
             flex: 1,
             maxWidth: 420,
             padding: "7px 14px",
-            border: "1px solid #30363D",
-            borderRadius: 6,
-            background: "#0D1117",
-            color: "#C9D1D9",
+            border: "1px solid var(--color-surface-container)",
+            borderRadius: "var(--radius-sm)",
+            background: "var(--color-surface-container-low)",
+            color: "var(--color-text-primary)",
             fontSize: 13,
-            fontFamily: "'SF Mono', monospace",
             outline: "none",
           }}
         />
@@ -258,9 +257,9 @@ export default function KGExplorerPage() {
           disabled={loading}
           style={{
             padding: "7px 18px",
-            borderRadius: 6,
-            background: loading ? "#21262D" : "#238636",
-            color: "#FFFFFF",
+            borderRadius: "var(--radius-sm)",
+            background: loading ? "var(--color-surface-container)" : "var(--color-primary)",
+            color: "var(--color-on-primary)",
             fontSize: 13,
             fontWeight: 600,
             border: "none",
@@ -269,10 +268,7 @@ export default function KGExplorerPage() {
         >
           {loading ? "加载中..." : "搜索"}
         </button>
-        <button
-          onClick={() => graphRef.current?.fit()}
-          style={toolbarBtnStyle}
-        >
+        <button onClick={() => graphRef.current?.fit()} style={toolbarBtnStyle}>
           重置视图
         </button>
         <button onClick={toggleLayout} style={toolbarBtnStyle}>
@@ -280,17 +276,17 @@ export default function KGExplorerPage() {
         </button>
 
         {/* Live stats */}
-        <div className="flex items-center gap-4 ml-auto" style={{ fontSize: 12, fontFamily: "'SF Mono', monospace", color: "#8B949E" }}>
-          <span>图内节点: <strong style={{ color: "#58A6FF" }}>{graphData.nodes.length}</strong></span>
-          <span>图内边: <strong style={{ color: "#58A6FF" }}>{graphData.edges.length}</strong></span>
+        <div className="flex items-center gap-4 ml-auto" style={{ fontSize: 12, color: "var(--color-text-tertiary)" }}>
+          <span>图内节点: <strong style={{ color: "var(--color-primary)" }}>{graphData.nodes.length}</strong></span>
+          <span>图内边: <strong style={{ color: "var(--color-primary)" }}>{graphData.edges.length}</strong></span>
           {stats && (
-            <span>KG 总量: <strong style={{ color: "#3FB950" }}>{(stats.total_nodes / 1000).toFixed(0)}K</strong> / <strong style={{ color: "#3FB950" }}>{(stats.total_edges / 1000).toFixed(0)}K</strong></span>
+            <span>KG 总量: <strong style={{ color: "var(--color-secondary-dim)" }}>{(stats.total_nodes / 1000).toFixed(0)}K</strong> / <strong style={{ color: "var(--color-secondary-dim)" }}>{(stats.total_edges / 1000).toFixed(0)}K</strong></span>
           )}
         </div>
       </div>
 
       {error && (
-        <div style={{ padding: "8px 16px", background: "#3D1F1F", color: "#F85149", fontSize: 13, borderBottom: "1px solid #30363D" }}>
+        <div style={{ padding: "8px 16px", background: "color-mix(in srgb, var(--color-danger) 8%, var(--color-surface))", color: "var(--color-danger)", fontSize: 13, borderBottom: "1px solid var(--color-surface-container)" }}>
           {error}
         </div>
       )}
@@ -302,12 +298,12 @@ export default function KGExplorerPage() {
           className="shrink-0 overflow-y-auto"
           style={{
             width: 200,
-            background: "#161B22",
-            borderRight: "1px solid #30363D",
+            background: "var(--color-surface-container-lowest)",
+            borderRight: "1px solid var(--color-surface-container)",
             padding: "12px 0",
           }}
         >
-          <div style={{ padding: "0 12px 8px", fontSize: 10, fontWeight: 700, color: "#8B949E", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+          <div style={{ padding: "0 12px 8px", fontSize: 10, fontWeight: 700, color: "var(--color-text-tertiary)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
             节点类型 TOP-12
           </div>
           {topTypes.map(([type, count]) => (
@@ -321,44 +317,39 @@ export default function KGExplorerPage() {
               style={{
                 padding: "6px 12px",
                 fontSize: 11,
-                color: "#C9D1D9",
+                color: "var(--color-text-primary)",
                 background: "transparent",
                 border: "none",
                 cursor: "pointer",
-                fontFamily: "'SF Mono', monospace",
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "#21262D")}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-surface-container-low)")}
               onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
             >
               <span className="flex items-center gap-2">
                 <span style={{ width: 8, height: 8, borderRadius: "50%", background: NODE_COLORS[type] || "#94A3B8", flexShrink: 0 }} />
                 <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 110 }}>{type}</span>
               </span>
-              <span style={{ color: "#8B949E", fontSize: 10 }}>{count > 999 ? `${(count / 1000).toFixed(1)}K` : count}</span>
+              <span style={{ color: "var(--color-text-tertiary)", fontSize: 10 }}>{count > 999 ? `${(count / 1000).toFixed(1)}K` : count}</span>
             </button>
           ))}
 
           {/* Layer legend */}
-          <div style={{ padding: "16px 12px 8px", fontSize: 10, fontWeight: 700, color: "#8B949E", textTransform: "uppercase", letterSpacing: "0.1em", borderTop: "1px solid #30363D", marginTop: 8 }}>
+          <div style={{ padding: "16px 12px 8px", fontSize: 10, fontWeight: 700, color: "var(--color-text-tertiary)", textTransform: "uppercase", letterSpacing: "0.1em", borderTop: "1px solid var(--color-surface-container)", marginTop: 8 }}>
             层级分组
           </div>
           {Object.entries(LAYER_GROUPS).map(([name, info]) => (
-            <div
-              key={name}
-              className="flex items-center gap-2"
-              style={{ padding: "4px 12px", fontSize: 11, color: "#8B949E" }}
-            >
-              <span style={{ width: 10, height: 10, borderRadius: 2, background: info.darkColor, border: `1px solid ${info.color}`, flexShrink: 0 }} />
+            <div key={name} className="flex items-center gap-2" style={{ padding: "4px 12px", fontSize: 11, color: "var(--color-text-secondary)" }}>
+              <span style={{ width: 10, height: 10, borderRadius: 2, background: info.color, flexShrink: 0 }} />
               <span>{name}</span>
-              <span style={{ fontSize: 9, color: "#484F58" }}>({info.nodes.length})</span>
+              <span style={{ fontSize: 9, color: "var(--color-text-tertiary)" }}>({info.nodes.length})</span>
             </div>
           ))}
         </div>
 
-        {/* Center: Cytoscape graph */}
+        {/* Center: Cytoscape graph — DARK CANVAS (intentional) */}
         <div className="flex-1 relative min-w-0">
           {graphData.nodes.length === 0 && !loading && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ color: "#484F58" }}>
+            <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ color: "#6B7280", zIndex: 2 }}>
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" style={{ marginBottom: 12, opacity: 0.4 }}>
                 <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5" />
                 <circle cx="5" cy="5" r="2" stroke="currentColor" strokeWidth="1.5" />
@@ -367,7 +358,7 @@ export default function KGExplorerPage() {
                 <circle cx="19" cy="19" r="2" stroke="currentColor" strokeWidth="1.5" />
                 <path d="M7 6.5L9.5 10M14.5 10L17 6.5M9.5 14L7 17.5M14.5 14L17 17.5" stroke="currentColor" strokeWidth="1" />
               </svg>
-              <span style={{ fontSize: 14, fontFamily: "'SF Mono', monospace" }}>搜索实体开始探索知识图谱</span>
+              <span style={{ fontSize: 14 }}>搜索实体开始探索知识图谱</span>
               <span style={{ fontSize: 12, marginTop: 4 }}>双击节点可展开关联</span>
             </div>
           )}
@@ -385,84 +376,68 @@ export default function KGExplorerPage() {
             className="shrink-0 overflow-y-auto"
             style={{
               width: 300,
-              background: "#161B22",
-              borderLeft: "1px solid #30363D",
+              background: "var(--color-surface-container-lowest)",
+              borderLeft: "1px solid var(--color-surface-container)",
               padding: 16,
             }}
           >
             <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
-              <h3 style={{ fontSize: 15, fontWeight: 700, color: "#C9D1D9", margin: 0 }}>
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: "var(--color-text-primary)", margin: 0 }}>
                 {selectedNode.label}
               </h3>
               <button
                 onClick={() => setSelectedNode(null)}
-                style={{ background: "none", border: "none", color: "#8B949E", cursor: "pointer", fontSize: 16 }}
+                style={{ background: "none", border: "none", color: "var(--color-text-tertiary)", cursor: "pointer", fontSize: 16 }}
               >
                 ×
               </button>
             </div>
 
             <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 10, color: "#8B949E", textTransform: "uppercase", letterSpacing: "0.05em" }}>类型</div>
+              <div style={{ fontSize: 10, color: "var(--color-text-tertiary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>类型</div>
               <div className="flex items-center gap-2" style={{ marginTop: 4 }}>
                 <span style={{ width: 8, height: 8, borderRadius: "50%", background: NODE_COLORS[selectedNode.type] || "#94A3B8" }} />
-                <span style={{ fontSize: 13, color: "#C9D1D9", fontFamily: "'SF Mono', monospace" }}>{selectedNode.type}</span>
+                <span style={{ fontSize: 13, color: "var(--color-text-primary)" }}>{selectedNode.type}</span>
               </div>
             </div>
 
             <div style={{ marginBottom: 8 }}>
-              <div style={{ fontSize: 10, color: "#8B949E", textTransform: "uppercase", letterSpacing: "0.05em" }}>ID</div>
-              <div style={{ fontSize: 11, color: "#8B949E", fontFamily: "'SF Mono', monospace", marginTop: 2, wordBreak: "break-all" }}>
+              <div style={{ fontSize: 10, color: "var(--color-text-tertiary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>ID</div>
+              <div style={{ fontSize: 11, color: "var(--color-text-tertiary)", marginTop: 2, wordBreak: "break-all" }}>
                 {selectedNode.id}
               </div>
             </div>
 
-            <div style={{ marginTop: 16, borderTop: "1px solid #30363D", paddingTop: 12 }}>
-              <div style={{ fontSize: 10, color: "#8B949E", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>
+            <div style={{ marginTop: 16, borderTop: "1px solid var(--color-surface-container)", paddingTop: 12 }}>
+              <div style={{ fontSize: 10, color: "var(--color-text-tertiary)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>
                 关联 ({selectedNode.neighbors.length})
               </div>
               {selectedNode.neighbors.map((nb, i) => (
                 <div
                   key={i}
                   className="flex items-center justify-between"
-                  style={{
-                    padding: "6px 0",
-                    borderBottom: "1px solid #21262D",
-                    fontSize: 12,
-                  }}
+                  style={{ padding: "6px 0", borderBottom: "1px solid var(--color-surface-container-low)", fontSize: 12 }}
                 >
-                  <span style={{ color: "#C9D1D9", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {nb.direction === "incoming" ? "← " : "→ "}
-                    {nb.target_label}
+                  <span style={{ color: "var(--color-text-primary)", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {nb.direction === "incoming" ? "← " : "→ "}{nb.target_label}
                   </span>
-                  <span
-                    style={{
-                      fontSize: 9,
-                      fontWeight: 600,
-                      padding: "2px 6px",
-                      borderRadius: 3,
-                      background: "#21262D",
-                      color: EDGE_COLORS[nb.edge_type] || "#8B949E",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
+                  <span style={{ fontSize: 9, fontWeight: 600, padding: "2px 6px", borderRadius: 3, background: "var(--color-surface-container-low)", color: EDGE_COLORS[nb.edge_type] || "var(--color-text-tertiary)", whiteSpace: "nowrap" }}>
                     {EDGE_LABELS_ZH[nb.edge_type] || nb.edge_type}
                   </span>
                 </div>
               ))}
             </div>
 
-            {/* Expand button */}
             <button
               onClick={() => handleNodeDblClick(selectedNode.id, selectedNode.type)}
               style={{
                 width: "100%",
                 marginTop: 16,
                 padding: "8px 0",
-                borderRadius: 6,
-                background: "#21262D",
-                border: "1px solid #30363D",
-                color: "#58A6FF",
+                borderRadius: "var(--radius-sm)",
+                background: "var(--color-surface-container-low)",
+                border: "1px solid var(--color-surface-container)",
+                color: "var(--color-primary)",
                 fontSize: 13,
                 fontWeight: 600,
                 cursor: "pointer",
@@ -479,11 +454,11 @@ export default function KGExplorerPage() {
 
 const toolbarBtnStyle: React.CSSProperties = {
   padding: "7px 14px",
-  borderRadius: 6,
-  background: "#21262D",
-  color: "#C9D1D9",
+  borderRadius: "var(--radius-sm)",
+  background: "var(--color-surface-container-low)",
+  color: "var(--color-text-secondary)",
   fontSize: 12,
   fontWeight: 500,
-  border: "1px solid #30363D",
+  border: "1px solid var(--color-surface-container)",
   cursor: "pointer",
 };

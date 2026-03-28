@@ -1,128 +1,109 @@
-# HANDOFF.md -- CogNebula Session 13 (KG Data Sprint)
+# HANDOFF.md -- CogNebula / Lingque Desktop
 
-> Last updated: 2026-03-28T00:30Z
+> Last updated: 2026-03-28T12:40Z
 
-## Session 13 Summary — KG Data Sprint
+## Session 15 Summary — KG Queue 1-2-3 (flk + 12366 + Edge Engine)
 
-### LLM Backend Migration: Gemini → Poe API — DONE
-- Google AI Studio at $232/$300 limit. All 9 batch scripts + VPS kg-api-server migrated to Poe API
-- `scripts/llm_client.py`: unified adapter, old model names auto-mapped (gemini-2.5-flash-lite → gemini-3.1-flash-lite)
-- VPS: `.env.kg-api` with POE_API_KEY, `_gemini_generate()` Poe-first + Gemini fallback
-- Embedding stays on Google API (cheap, Poe doesn't support)
+### Task 1: flk 补全 — DONE
+- **flk.npc.gov.cn API reverse-engineered**: `POST /law-search/search/list`, Ruoyi framework pagination (`pageNum`/`pageSize`)
+- **28 flfgCodeId values discovered** (100-350), total 29,196 items across all categories
+- **API 500-page hard limit**: max 10,000 items per query, `sortTr` ignored
+- **Strategy**: category-based collection (per flfgCodeId), bypasses limit for codes < 10K items
+- **Result**: 2,568 → **11,234 unique law IDs** (4.4x increase), 10,099 new IDs pending detail scan
+- **Gotcha**: code 230 (地方法规) has 22,137 items but only 10,000 accessible — no workaround via sort/date filters
+- **Browser crash recovery**: Chromium leaks after ~450 pages; added auto-restart every 250 API calls + crash recovery
 
-### KG API Port Discovery
-- API was never down — runs on port **8400** (not 8766 from Docker Compose era)
+### Task 2: 12366 补全 — DONE (was already complete)
+- 5,297 raw items, 4,859 with content >= 100 chars
+- All 4,859 ingestible items already in KG (previous session). 438 items below quality threshold.
+- KU coverage: 36.0%
 
-### Data Ingest Results
+### Task 3: Edge Engine — DONE (+107 SUPERSEDES)
+- **Markdown stripping fix**: Poe API wraps JSON in ` ```json...``` `, causing `json.loads()` failure. Added `_strip_markdown()` regex
+- **SUPERSEDES**: +107 edges discovered (LLM-powered, 14 tax keywords x top-100 docs)
+- **REFERENCES_CLAUSE**: COPY failed (missing PKs), row-by-row fallback found 0 valid edges (LegalClause→LawOrRegulation type mismatch)
+- **KG State**: 546,076 nodes / 1,141,894 edges / density 2.091
 
-| Task | Items | Status |
-|------|-------|--------|
-| flk content update (structure trees) | 310 / 318 | DONE |
-| flk clause nodes (KnowledgeUnit) | +17,134 | DONE |
-| HAS_CLAUSE edges (new rel type KU→KU) | +21,351 | DONE |
-| LR shard re-ingest | 15,781 | DONE (no net new — overwrites) |
-| LR content generation (Poe) | 22,042 / 22,044 | DONE |
-| flk law summary generation (Poe) | 2,192 / 2,248 | DONE |
-| LR + flk content ingest to DB | 24,234 | DONE (0 errors) |
+### Scripts Modified
+- `scripts/flk_collect_ids.py` — complete rewrite: DOM parsing → search list API with category-based pagination
+- `scripts/generate_edges_ai.py` — added `_strip_markdown()`, GEMINI_API_KEY → POE_API_KEY, COPY fallback to row-by-row
 
-### KG Final State
-
-| Metric | Before | After | Delta |
-|--------|--------|-------|-------|
-| Quality nodes | 344,356 | 361,490 | +17,134 |
-| Total nodes | 528,942 | 546,076 | +17,134 |
-| Total edges | 1,120,436 | 1,141,787 | +21,351 |
-| HAS_CLAUSE | 0 | 21,351 | new |
-| KU with content | 10,721 | 66,199 | +55,478 (6.2x) |
-| Quality score | 100 | 100 | maintained |
-| Gate | PASS | PASS | maintained |
-
-### Key Gotchas Learned
-1. **KuzuDB DDL API silent failure**: MATCH+CREATE returns "ok" even when MATCH finds 0 rows. Always verify with count queries
-2. **Node ID format mismatch**: flk_npc nodes use `KU_flk_` + bbbs[:16], not raw bbbs. Check actual DB IDs before bulk operations
-3. **KuzuDB strong typing**: Each edge type (REL TABLE) only connects predefined node types. Created `HAS_CLAUSE (KU→KU)` for new edges
-4. **OFD reader renders as images**: flkofd.npc.gov.cn uses image rendering, not DOM text. Poe LLM summary is the pragmatic alternative
-
-### Scripts Created
-- `scripts/llm_client.py` — Poe API unified adapter (drop-in for all Gemini calls)
-- `scripts/flk_content_ingest.py` — structure tree content update + clause extraction
-- `scripts/flk_clauses_and_edges.py` — batch clause node + edge creation
-- `scripts/flk_docx_extract.py` — OFD reader text extraction (abandoned: image rendering)
+### Key API Gotchas Learned
+1. **Ruoyi pagination params**: `pageNum`/`pageSize` (NOT `page`/`size`). Wrong names silently return page 1 data
+2. **500-page hard limit**: Server returns empty beyond page 500 regardless of filters or sort
+3. **WAF cookie requirement**: All `/law-search/` endpoints need browser context (direct HTTP returns HTML shell)
+4. **Poe API markdown wrapping**: Gemini via Poe wraps JSON in code fences; must strip before parsing
 
 ### Next Steps
-1. **M3 L1 Depth**: remaining ~16K lr_cleanup nodes still without content (content < 50 chars after ingest)
-2. **M3 L2 Breadth**: new sources (pbc.gov.cn, cctaa.cn, ASBE) per M3 strategy
-3. **M3 L3 Edge Engine**: Gemini cross-reference scan for SUPERSEDES/CONFLICTS_WITH edges
-4. **Embedding refresh**: re-embed 55K newly content-enriched nodes for vector search quality
+1. **flk detail scan**: Run `flk_fast_scan.py` on 10,099 new IDs → `flk_details.jsonl`
+2. **flk content generation**: Run Poe LLM summary for items without content
+3. **flk KG ingest**: Push new nodes + edges to VPS KG
+4. **Embedding refresh**: Re-embed all newly content-enriched nodes
+5. **Edge Engine v2**: Fix REFERENCES_CLAUSE node type mismatch; expand to KU→KU edges
 
 ---
 
-## Session 12 Summary (Frontend — Audit Fixes + Polish)
+## Session 14 Summary — Lingque Desktop Interactive Upgrade
 
-### All Audit Fixes + 2 Rounds Polish — COMPLETE
+### What was done
 
-| Milestone | Status | Commit |
-|-----------|--------|--------|
-| 10 customer pages (Stitch → Next.js) | DONE | e5d3875 |
-| 3-round UI polish (CJK + fluid layout) | DONE | e5d3875 |
-| Multi-surface architecture ADR (4→2 apps) | DONE | e5d3875 |
-| 3 ops pages (Bloomberg density) | DONE | 86b7c22 |
-| CF Pages deploy (lingque-desktop.pages.dev) | DONE | 33cb6ad |
-| UX audit (4-advisor swarm) | DONE | df7d006 → ae911c8 |
-| McKinsey Skill gotchas #12 #13 | DONE | ae911c8 |
-| Audit TOP 10 fixes (10/10) | DONE | 7e08b4d + 7876e5a |
-| Round 2+3 polish | DONE | 505d1d0 |
+**1. Dead Button Elimination (68+ buttons)**
+- Created ToastProvider + ToastButton system (2 client components)
+- Converted all dead `<button>` to either `<Link>` (navigation) or `ToastButton` (action feedback)
+- Fixed all `cursor:pointer` elements without handlers (evidence tiles, compliance cards, toggles)
+- Swarm review (4-advisor: Jobs/Drucker/Hara/Hickey): PASS after 6 P0 fixes
 
-### Audit-Driven TOP 10 Fixes
+**2. Skills Sheet Side Drawer (P2)**
+- SkillCardWrapper client component: click skill card -> 380px drawer slides in
+- Shows: name, rating, agents, 3 recent executions, stats, install button
 
-| # | Fix | Status | Commit |
-|---|-----|--------|--------|
-| 1 | Dashboard approval table → above activity feed | DONE | 7876e5a |
-| 2 | Unify AI role name → "AI 专员" (7 files) | DONE | 7876e5a |
-| 3 | Reports status labels Chinese (AI生成/已人工复核/需关注) | DONE | 7876e5a |
-| 4 | Ops customers English KPI labels → Chinese | DONE | 7e08b4d |
-| 5 | Error messages dev-speak → actionable Chinese | DONE | 7876e5a |
-| 6 | Alerts default view → "待处理" tab | DONE | 7e08b4d |
-| 7 | Alert/agent error messages localized | DONE | 7876e5a |
-| 8 | "置信度" → "准确率" (4 files) | DONE | 7e08b4d |
-| 9 | Remove "WELCOME BACK, MANAGER" | DONE | 7e08b4d |
-| 10 | Sidebar 3-section grouping (日常/专业工具/OPS) | DONE | 7876e5a |
+**3. Full Mock API Layer (10 pages converted to interactive)**
+- Skills: category filter + install state toggle
+- Compliance: traffic light filter + company selection -> risk detail panel (3 companies)
+- Reports: status filter tabs + batch approve (PendingCards disappear, KPI updates 42->0)
+- Report Detail: approve button changes status + disables (ReportDetailClient boundary)
+- Dashboard: approval tab toggle (pending <-> completed datasets)
+- Settings: toggle switches + save/reset
+- Audit: finding selection -> right panel updates (3 findings with detail data)
+- Clients: status filter tabs (all/done/progress/review)
+- AI Team Workstation: live chat input with mock AI responses (ChatInput component)
 
-### Round 2+3 Polish (505d1d0)
+**4. Visual Review Pipeline**
+- 11 pages screenshotted via Chrome DevTools MCP
+- Fixed: TopBar title for dynamic routes (/clients/[id] -> "客户详情", /reports/[id] -> "报告详情")
+- Fixed: notification href pointed to non-existent client -> changed to real client ID
 
-| Item | Detail |
-|------|--------|
-| Welcome font | 2.5rem → 1.75rem (B2B-appropriate) |
-| Typo fix | "财税理顾问" → "财税顾问" |
-| Activity count | "4 位" → "3 位" (match shown items) |
-| letterSpacing cleanup | Removed from 5 Chinese text instances |
-| Table header unify | 11px/700/uppercase across all pages |
-| KPI cards equal-width | "1fr 1fr 1fr auto" → "repeat(4, 1fr)" |
-| Table row hover | .table-row-hover CSS class, applied to 3 tables |
+### Commits (this session)
+```
+4c4453e  fix: eliminate all 68+ dead buttons with Toast system + navigation Links
+ccc8c5d  fix: close remaining dead buttons from swarm P0 review
+4270728  fix: close cursor:pointer dead spots (evidence tiles, cards, toggles)
+9fb37fc  feat: add Skills Sheet side drawer (P2 from L2 design decision)
+3ab0a82  fix: TopBar shows contextual titles for detail pages
+0243337  feat: full mock API layer -- all interactions are real client-side state
+e541f86  chore: trigger CF Pages rebuild
+```
 
 ### Production
 - URL: https://lingque-desktop.pages.dev
-- Preview: https://7518164a.lingque-desktop.pages.dev
-- Build: 22 pages, 0 TypeScript errors, static export
-- GitHub: MARUCIE/cognebula-enterprise@505d1d0 (master)
+- GitHub: MARUCIE/cognebula-enterprise@e541f86 (master)
+- Pages: 37/37, 0 build errors
+- New components: Toast.tsx, ToastButton.tsx, SkillDrawer.tsx, ChatInput.tsx, ReportDetailClient.tsx
 
-### Files Modified This Session (Session 12)
-- web/src/app/page.tsx (Dashboard restructure + polish)
-- web/src/app/components/Sidebar.tsx (3-section grouping + NavLink component)
-- web/src/app/components/TopBar.tsx ("AI 专员" rename)
-- web/src/app/ops/agents/page.tsx ("AI 专员" + error messages)
-- web/src/app/ops/alerts/page.tsx ("AI 专员" + error messages)
-- web/src/app/ops/customers/page.tsx ("AI 专员" + hover)
-- web/src/app/reports/page.tsx (labels + letterSpacing + hover)
-- web/src/app/globals.css (table-row-hover class)
-- web/src/app/compliance/page.tsx (letterSpacing cleanup)
-- web/src/app/settings/page.tsx (letterSpacing cleanup)
-- web/src/app/audit/page.tsx (letterSpacing cleanup)
-- web/src/app/tax/page.tsx (table header unify)
+### Architecture
+- All state is client-side (useState per page) -- compatible with output: "export" to CF Pages
+- Server Components preserved for SSG pages (reports/[id] uses ReportDetailClient boundary)
+- ToastProvider wraps entire app in layout.tsx
+- No global store -- page-level isolation, gradual API upgrade path
 
-### Next Steps (if continuing)
-- Reports page: could benefit from task-driven redesign (current: feature directory)
-- Cross-page navigation: alerts → agent detail deep links
-- Mobile responsive pass (current: desktop-only)
-- API integration planning (current: all mock data)
-- PDCA 4-doc sync with latest architecture changes
+### Verified interactions (local dev server)
+- Reports "全部批准": PendingCards disappear, KPI 42->0, all badges turn green
+- Skills category filter: "合规" shows 1 card, "全部" shows 6
+- Skills install: button toggles, sidebar count (3)->(4)
+- Dashboard tab switch: pending <-> completed rows
+- Audit finding click: right panel updates with different detail data
+
+### What's next
+- Verify CF Pages production deployment reflects all interactive features
+- TopBar search functionality (full-text search across mock data)
+- Notification popover "处理" -> mark as handled + remove from list

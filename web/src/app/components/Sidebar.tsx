@@ -4,30 +4,26 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useToast } from "./Toast";
 
-const dailyNavItems = [
-  { href: "/", label: "工作台", icon: DashboardIcon },
+/* System B: 灵阙财税 (Product) — per OPTIMIZED_ARCHITECTURE_V2.md
+   System A (Expert/KG) pages removed from product sidebar.
+   L1 代账工作台 | L2 数字员工 | L3 技能商店 | L4 知识引擎(不可见) */
+
+const coreNavItems = [
   { href: "/workbench", label: "月度看板", icon: WorkbenchIcon },
-  { href: "/clients", label: "客户中心", icon: ClientIcon },
-  { href: "/reports", label: "报告中心", icon: ReportIcon },
-];
-
-const proNavItems = [
-  { href: "/tax", label: "智能报税", icon: TaxIcon },
-  { href: "/ai-team", label: "AI 团队", icon: TeamIcon },
-  { href: "/skills", label: "技能商店", icon: SkillIcon },
-];
-
-const opsNavItems = [
-  { href: "/workbench/batch", label: "批量操作台", icon: OpsCustomersIcon },
+  { href: "/workbench/batch", label: "批量操作台", icon: DashboardIcon },
   { href: "/workbench/exceptions", label: "异常中心", icon: OpsAlertsIcon },
-  { href: "/workbench/agents", label: "数字员工", icon: OpsAgentsIcon },
+  { href: "/workbench/calendar", label: "日历视图", icon: ClientIcon },
 ];
 
-const expertNavItems = [
-  { href: "/expert/kg", label: "知识图谱", icon: KGIcon },
-  { href: "/expert/reasoning", label: "推理检查", icon: ReasoningIcon },
-  { href: "/expert/rules", label: "规则调试", icon: RulesIcon },
-  { href: "/expert/data-quality", label: "数据质量", icon: DataQualityIcon },
+const agentNavItems = [
+  { href: "/workbench/agents", label: "数字员工", icon: TeamIcon },
+  { href: "/skills", label: "技能商店", icon: SkillIcon },
+  { href: "/workbench/dependencies", label: "依赖图", icon: OpsAgentsIcon },
+];
+
+const businessNavItems = [
+  { href: "/clients", label: "客户中心", icon: OpsCustomersIcon },
+  { href: "/reports", label: "报告中心", icon: ReportIcon },
 ];
 
 const bottomItems = [
@@ -89,34 +85,26 @@ export function Sidebar() {
           </div>
         </div>
 
-        {/* Daily operations */}
+        {/* L1: 代账工作台 */}
         <nav className="mt-2" style={{ padding: "0 var(--space-3)" }}>
-          {dailyNavItems.map((item) => (
+          {coreNavItems.map((item) => (
             <NavLink key={item.href} item={item} pathname={pathname} />
           ))}
         </nav>
 
-        {/* Professional tools section */}
-        <SectionLabel label="专业工具" />
+        {/* L2+L3: 数字员工 + 技能商店 */}
+        <SectionLabel label="AI 引擎" />
         <nav style={{ padding: "0 var(--space-3)" }}>
-          {proNavItems.map((item) => (
+          {agentNavItems.map((item) => (
             <NavLink key={item.href} item={item} pathname={pathname} />
           ))}
         </nav>
 
-        {/* Ops section */}
-        <SectionLabel label="OPS" />
+        {/* 业务管理 */}
+        <SectionLabel label="业务" />
         <nav style={{ padding: "0 var(--space-3)" }}>
-          {opsNavItems.map((item) => (
-            <NavLink key={item.href} item={item} pathname={pathname} size="sm" />
-          ))}
-        </nav>
-
-        {/* Expert section */}
-        <SectionLabel label="EXPERT" />
-        <nav style={{ padding: "0 var(--space-3)" }}>
-          {expertNavItems.map((item) => (
-            <NavLink key={item.href} item={item} pathname={pathname} size="sm" />
+          {businessNavItems.map((item) => (
+            <NavLink key={item.href} item={item} pathname={pathname} />
           ))}
         </nav>
       </div>

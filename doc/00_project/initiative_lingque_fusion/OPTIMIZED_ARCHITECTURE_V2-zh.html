@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>灵阙财税 优化架构 v2.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue-900: #002855;
+  --blue-700: #003A70;
+  --blue-500: #0066B3;
+  --blue-100: #E8F0FE;
+  --blue-50: #F4F7FB;
+  --green: #1B7F4B;
+  --green-light: #E6F4EC;
+  --amber: #D4850D;
+  --amber-light: #FEF3E0;
+  --red: #C4281C;
+  --red-light: #FDECEB;
+  --ink: #1A1A2E;
+  --body: #2D2D3F;
+  --secondary: #5A5A72;
+  --muted: #8E8EA0;
+  --rule: #D4D4DC;
+  --bg: #FFFFFF;
+  --bg-gray: #F5F5F8;
+  --bg-dark: #002855;
+  --font-headline: 'Inter', 'Noto Sans SC', 'PingFang SC', sans-serif;
+  --font-body: 'Inter', 'Noto Sans SC', 'PingFang SC', sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { overflow-x: hidden; }
+body {
+  font-family: var(--font-body);
+  color: var(--body);
+  background: var(--bg);
+  line-height: 1.7;
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: antialiased;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+.hero {
+  background: linear-gradient(135deg, var(--bg-dark) 0%, #001A3A 100%);
+  color: #fff;
+  padding: 56px 0;
+}
+.hero-inner {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0 4vw;
+}
+.hero-tag {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 16px;
+}
+.hero h1 {
+  font-family: var(--font-headline);
+  font-weight: 900;
+  font-size: 2.4rem;
+  line-height: 1.15;
+  color: #fff;
+  margin-bottom: 16px;
+  max-width: 800px;
+}
+.hero .subtitle {
+  color: rgba(255,255,255,0.7);
+  font-size: 1.05rem;
+  max-width: 700px;
+  line-height: 1.6;
+}
+.container { max-width: 1040px; margin: 0 auto; padding: 0 4vw; }
+section { padding: 48px 0; border-bottom: 1px solid var(--rule); }
+section:last-of-type { border-bottom: none; }
+section.alt { background: var(--bg-gray); }
+.section-num {
+  font-family: var(--font-headline);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--blue-700);
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+}
+h2 {
+  font-family: var(--font-headline);
+  font-weight: 800;
+  font-size: 1.5rem;
+  color: var(--ink);
+  margin-bottom: 20px;
+  line-height: 1.3;
+}
+h3 {
+  font-family: var(--font-headline);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--ink);
+  margin-bottom: 12px;
+}
+p { margin-bottom: 14px; font-size: 15px; }
+.key-message {
+  background: var(--blue-700);
+  color: #fff;
+  padding: 16px 24px;
+  font-weight: 600;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  margin: 20px 0;
+}
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  margin: 20px 0;
+}
+.kpi {
+  padding: 20px 24px;
+  background: var(--bg);
+}
+.kpi .label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--secondary);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
+}
+.kpi .value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--blue-700);
+  line-height: 1.2;
+}
+.kpi .context {
+  font-size: 13px;
+  color: var(--secondary);
+  margin-top: 4px;
+}
+.pillar-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border: 1px solid var(--rule);
+  margin: 20px 0;
+}
+.pillar {
+  padding: 24px;
+  border-right: 1px solid var(--rule);
+}
+.pillar:last-child { border-right: none; }
+.pillar-num {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--blue-700);
+  margin-bottom: 8px;
+}
+.pillar h3 {
+  border-bottom: 2px solid var(--blue-700);
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+.card {
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-top: 3px solid var(--blue-700);
+  padding: 24px;
+  margin-bottom: 16px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  table-layout: fixed;
+}
+th {
+  background: var(--blue-900);
+  color: #fff;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 12px 16px;
+  text-align: left;
+  white-space: normal;
+  word-break: break-word;
+}
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--rule);
+  font-size: 14px;
+  vertical-align: top;
+}
+tr:nth-child(even) td { background: var(--blue-50); }
+.callout {
+  background: var(--blue-100);
+  border-left: 4px solid var(--blue-700);
+  padding: 20px 24px;
+  font-size: 0.95rem;
+  margin: 20px 0;
+}
+.callout-risk {
+  background: var(--red-light);
+  border-left: 4px solid var(--red);
+  padding: 20px 24px;
+  margin: 20px 0;
+}
+.implication {
+  background: var(--bg-gray);
+  border: 1px solid var(--rule);
+  border-left: 4px solid var(--blue-700);
+  padding: 20px 24px;
+  margin-top: 24px;
+}
+.implication-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--blue-700);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+.status-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.status-tag.green { background: var(--green-light); color: var(--green); }
+.status-tag.amber { background: var(--amber-light); color: var(--amber); }
+.status-tag.red { background: var(--red-light); color: var(--red); }
+.phase-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  border: 1px solid var(--rule);
+  margin: 20px 0;
+}
+.phase {
+  padding: 24px;
+  border-right: 1px solid var(--rule);
+}
+.phase:last-child { border-right: none; }
+.phase-header {
+  background: var(--blue-700);
+  color: #fff;
+  padding: 10px 16px;
+  font-weight: 700;
+  font-size: 14px;
+  margin: -24px -24px 20px;
+}
+.phase-header.p2 { background: var(--blue-500); }
+.phase-header.p3 { background: #0088CC; }
+.phase-header.p4 { background: #00A3CC; }
+.arch-box {
+  background: var(--bg-gray);
+  border: 1px solid var(--rule);
+  padding: 24px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.8;
+  overflow-x: hidden;
+  white-space: pre-wrap;
+  margin: 16px 0;
+}
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin: 16px 0; }
+.moat-bar {
+  display: flex;
+  margin: 16px 0;
+  border: 1px solid var(--rule);
+  overflow: hidden;
+}
+.moat-bar > div {
+  padding: 16px 20px;
+  flex: 1;
+  border-right: 1px solid var(--rule);
+}
+.moat-bar > div:last-child { border-right: none; }
+.moat-bar .moat-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+.site-footer {
+  border-top: 3px solid var(--blue-900);
+  text-align: center;
+  padding: 60px 20px 40px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 2.2;
+}
+@media (max-width: 960px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .pillar-grid, .phase-grid { grid-template-columns: 1fr; }
+  .pillar, .phase { border-right: none; border-bottom: 1px solid var(--rule); }
+  .grid-2 { grid-template-columns: 1fr; }
+  .moat-bar { flex-direction: column; }
+  .moat-bar > div { border-right: none; border-bottom: 1px solid var(--rule); }
+}
+@media (max-width: 640px) {
+  .hero { padding: 32px 0; }
+  .hero h1 { font-size: 1.8rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag">ARCHITECTURE DECISION RECORD</div>
+    <h1>灵阙财税 优化架构 v2.0</h1>
+    <div class="subtitle">蜂群三轮审查后的架构重设计：分拆两个独立系统，以数字员工和技能商店为护城河，构建 AI 代账产品。</div>
+  </div>
+</div>
+
+<!-- EXECUTIVE SUMMARY -->
+<section>
+  <div class="container">
+    <div class="section-num">00</div>
+    <h2>决策摘要</h2>
+
+    <div class="key-message">
+      三位顾问（Drucker/Hickey/Meadows）一致判定 RETHINK：当前 41 页单应用架构将内部工具与产品 Demo 混为一体，系统目标漂移为"构建完整系统"而非"服务客户"。用户决策：分拆为两个独立系统，但数字员工 + 技能商店 = 护城河，不可砍掉。
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="label">系统分拆</div>
+        <div class="value">1 &rarr; 2</div>
+        <div class="context">内部平台 + 产品</div>
+      </div>
+      <div class="kpi">
+        <div class="label">产品页面</div>
+        <div class="value">~12</div>
+        <div class="context">从 41 页精简（含 80% mock）</div>
+      </div>
+      <div class="kpi">
+        <div class="label">收入模型</div>
+        <div class="value">3 层</div>
+        <div class="context">SaaS 基础 + Agent 席位 + Skill 插件</div>
+      </div>
+      <div class="kpi">
+        <div class="label">护城河</div>
+        <div class="value">3 道</div>
+        <div class="context">信任记录 + 技能生态 + 知识图谱</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 01: TWO SYSTEMS -->
+<section class="alt">
+  <div class="container">
+    <div class="section-num">01</div>
+    <h2>两个独立系统</h2>
+
+    <div class="key-message">
+      核心分拆原则：System&nbsp;A 是知识基础设施（内部使用），System&nbsp;B 是面向代账公司的产品。KG 的价值通过 Agent 准确率体现，而非让客户看图谱。
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>System&nbsp;A: CogNebula&nbsp;Platform</h3>
+        <p style="color:var(--secondary); font-size:13px; margin-bottom:16px;">内部基础设施 &mdash; 不面向客户</p>
+        <table>
+          <tr><td style="font-weight:600; width:35%;">KG&nbsp;Store</td><td>KuzuDB + LanceDB, 514K 节点, 1.1M 边</td></tr>
+          <tr><td style="font-weight:600;">KG&nbsp;API</td><td>FastAPI :8400, graph/search/stats/chat</td></tr>
+          <tr><td style="font-weight:600;">KG&nbsp;Explorer</td><td>React + Cytoscape.js, 内部质量审计</td></tr>
+          <tr><td style="font-weight:600;">Know-Arc</td><td>三元组生成管线, 专家审核</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h3>System&nbsp;B: 灵阙财税</h3>
+        <p style="color:var(--secondary); font-size:13px; margin-bottom:16px;">面向代账公司的 AI 代账产品</p>
+        <table>
+          <tr><td style="font-weight:600; width:35%;">L1 代账工作台</td><td>任务队列 + 风险矩阵 + 人工确认</td></tr>
+          <tr><td style="font-weight:600;">L2 数字员工</td><td>7 位 Agent, 信任锚点, 准确率追踪 <span class="status-tag green">MOAT</span></td></tr>
+          <tr><td style="font-weight:600;">L3 技能商店</td><td>按插件收费, OpenClaw 生态 <span class="status-tag green">$$</span></td></tr>
+          <tr><td style="font-weight:600;">L4 知识引擎</td><td>KG 语义层, 客户不可见, CF&nbsp;Worker 代理</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="implication">
+      <div class="implication-label">行动含义</div>
+      Expert 页面（KG 可视化）从产品中移除，降级为内部工具。产品中的每一个数字都来自真实 API，零 mock 数据。
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 02: CORE WORKFLOW -->
+<section>
+  <div class="container">
+    <div class="section-num">02</div>
+    <h2>L1 &mdash; 代账工作台（核心工作流）</h2>
+
+    <div class="key-message">
+      客户打开产品看到的第一个东西是任务队列，不是 KPI 仪表盘，不是 KG 可视化。核心问题：今天要处理哪些企业、有没有风险、需要我确认什么。
+    </div>
+
+    <div class="card">
+      <h3>工作台主界面</h3>
+      <div class="arch-box">今日任务                              5 待处理
+────────────────────────────────────────────────
+  OK  中铁建设 - 月度凭证录入              王记账
+  WARN 腾讯科技 - Q3 现金流异常            张审核
+  ERROR 华夏贸易 - 转让定价审查            赵合规
+  OK  明达科技 - 增值税申报                林税安
+  OK  泰和养老 - 社保核算                  王记账
+────────────────────────────────────────────────
+  需要您确认 (2)
+  - 腾讯科技: 现金流偏离 15%, 建议人工核实
+  - 华夏贸易: 关联交易占比超 30%</div>
+    </div>
+
+    <p>产品页面从 41 页精简至 ~12 页，每页对应一个真实业务场景：</p>
+    <table>
+      <thead>
+        <tr><th style="width:25%;">页面</th><th style="width:35%;">用途</th><th>数据源</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>/ (仪表盘)</td><td>今日任务队列 + 风险概览</td><td>Real&nbsp;API</td></tr>
+        <tr><td>/clients</td><td>客户列表 + 健康状态</td><td>Real&nbsp;API</td></tr>
+        <tr><td>/clients/[id]</td><td>客户详情 + 活动时间线</td><td>Real&nbsp;API</td></tr>
+        <tr><td>/reports</td><td>报告 + 审批队列</td><td>Real&nbsp;API</td></tr>
+        <tr><td>/agents</td><td>数字员工团队概览</td><td>Real&nbsp;API</td></tr>
+        <tr><td>/agents/[id]</td><td>Agent 工作站 + 对话</td><td>Real&nbsp;API</td></tr>
+        <tr><td>/skills</td><td>技能商店（安装/卸载）</td><td>Real&nbsp;API</td></tr>
+        <tr><td>/tax</td><td>税务申报助手</td><td>Real&nbsp;API</td></tr>
+        <tr><td>/compliance</td><td>合规风险看板（红绿灯）</td><td>Real&nbsp;API</td></tr>
+        <tr><td>/settings</td><td>系统设置 + 账单</td><td>Real&nbsp;API</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- SECTION 03: AGENT MOAT -->
+<section class="alt">
+  <div class="container">
+    <div class="section-num">03</div>
+    <h2>L2 &mdash; 数字员工（Agent Runtime）&mdash; 护城河</h2>
+
+    <div class="key-message">
+      蜂群说"Agent 身份是仪式"。用户否决。在中国 B2B 代账市场，信任是个人化的 &mdash; 客户信任的是"林税安做了 6 个月零事故"，不是"Pipeline&nbsp;V3 执行成功"。信任记录不可迁移，这就是锁定。
+    </div>
+
+    <div class="pillar-grid">
+      <div class="pillar">
+        <div class="pillar-num">01</div>
+        <h3>信任锚点</h3>
+        <p>每位 Agent 积累准确率、任务量、合规事故数、服务时长。客户切换竞品 = 丢失 6 个月的信任记录。</p>
+        <p style="font-size:13px; color:var(--secondary);">不可迁移 = 锁定</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-num">02</div>
+        <h3>Hickey 简化</h3>
+        <p>Agent 身份是纯配置（JSON），不是 700 行 TSX。能力映射到 Skill ID，与身份解耦。指标是不可变值，不是 React&nbsp;state。</p>
+        <p style="font-size:13px; color:var(--secondary);">Agent 是信任界面，不是 Skill 容器</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-num">03</div>
+        <h3>席位定价</h3>
+        <p>Starter: 3 位 Agent（免费/999元）。Professional: 5 位（2,999元）。Enterprise: 7 位全团队（8,999元）。更多 Agent = 更高产能。</p>
+        <p style="font-size:13px; color:var(--secondary);">自然升级路径</p>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>关键洞察：</strong>Agent 不是 Skill 的容器。Agent 是一个信任界面（Trust Interface），接收客户请求，选择合适的 Skill 执行，结果归因于 Agent。客户信任 Agent，Agent 调用 Skill，Skill 查询 KG。三层解耦。
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 04: SKILL MARKETPLACE -->
+<section>
+  <div class="container">
+    <div class="section-num">04</div>
+    <h2>L3 &mdash; 技能商店（Skill Marketplace）&mdash; 收入引擎</h2>
+
+    <div class="key-message">
+      Skill 是原子化、可组合的能力插件。免费基础技能吸引用户，高级技能按使用量或订阅收费。OpenClaw 生态提供技能供应链，灵阙提供信任运行时。
+    </div>
+
+    <table>
+      <thead>
+        <tr><th style="width:20%;">类别</th><th style="width:30%;">免费层</th><th style="width:25%;">高级版</th><th style="width:25%;">企业版</th></tr>
+      </thead>
+      <tbody>
+        <tr><td style="font-weight:600;">基础记账</td><td>凭证录入, 银行对账</td><td>多币种, 合并报表</td><td>自定义科目体系</td></tr>
+        <tr><td style="font-weight:600;">税务申报</td><td>增值税, 企业所得税</td><td>加计扣除, 跨境税务</td><td>转让定价, 税收协定</td></tr>
+        <tr><td style="font-weight:600;">合规检查</td><td>基础合规扫描</td><td>行业专项, 风险预警</td><td>自定义规则引擎</td></tr>
+        <tr><td style="font-weight:600;">审计辅助</td><td>异常检测</td><td>抽样策略, 审计底稿</td><td>持续审计</td></tr>
+      </tbody>
+    </table>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>锁定机制</h3>
+        <p><strong>安装配置：</strong>每个 Skill 安装后需要针对客户业务做校准，切换意味着重新配置。</p>
+        <p><strong>准确率积累：</strong>Skill 通过使用反馈持续改进，新竞品从零开始。</p>
+        <p><strong>技能组合：</strong>复杂工作流串联多个 Skill，安装越多集成越深。</p>
+      </div>
+      <div class="card">
+        <h3>收入分成</h3>
+        <p><strong>自研 Skill：</strong>100% 归平台。</p>
+        <p><strong>第三方 Skill（OpenClaw 生态）：</strong>平台 70% / 开发者 30%。</p>
+        <p><strong>定价模型：</strong>按次使用 / 月订阅 / 一次性购买，三种灵活选择。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 05: MOAT -->
+<section class="alt">
+  <div class="container">
+    <div class="section-num">05</div>
+    <h2>护城河分析</h2>
+
+    <div class="key-message">
+      三道护城河，按复制难度递增排列。最强护城河不是技术（KG），而是时间积累的信任记录 &mdash; 竞品无法复制客户 6 个月的使用历史。
+    </div>
+
+    <div class="moat-bar">
+      <div>
+        <div class="moat-label">容易复制</div>
+        <p style="font-size:13px; margin:0;">UI 设计、页面布局、配色方案、基础 Skill（增值税申报）</p>
+      </div>
+      <div style="background:var(--blue-50);">
+        <div class="moat-label">难以复制</div>
+        <p style="font-size:13px; margin:0;"><strong>KG（514K 节点）</strong>：6-12 个月复制周期。<strong>Skill 生态</strong>：网络效应飞轮。但这是<em>贬值资产</em>，需持续注入新法规。</p>
+      </div>
+      <div style="background:var(--blue-100);">
+        <div class="moat-label">不可复制</div>
+        <p style="font-size:13px; margin:0;"><strong>信任记录</strong>：林税安服务腾讯 6 个月，准确率 98.2%，零事故。<strong>工作流锁定</strong>：10+ Skill 串联成定制流程。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 06: MIGRATION ROADMAP -->
+<section>
+  <div class="container">
+    <div class="section-num">06</div>
+    <h2>迁移路线图</h2>
+
+    <div class="phase-grid">
+      <div class="phase">
+        <div class="phase-header">Phase 1: 分拆 (2 周)</div>
+        <p><strong>KG Explorer</strong> 从产品分离为独立内部工具</p>
+        <p><strong>KG API 代理</strong> 从 Tailscale 直连改为 CF&nbsp;Worker 代理</p>
+        <p><strong>Agent 数据</strong> 从 TSX 硬编码改为 agents.json 配置</p>
+        <p><strong>Skill 数据</strong> 从页面硬编码改为 skills.json + API</p>
+      </div>
+      <div class="phase">
+        <div class="phase-header p2">Phase 2: 真实后端 (4 周)</div>
+        <p><strong>Agent Runtime API</strong> CRUD agents, 任务分配, 指标追踪</p>
+        <p><strong>Skill Registry API</strong> 目录, 安装/卸载, 使用量追踪</p>
+        <p><strong>Task Queue</strong> 真实任务 CRUD, 状态流转</p>
+        <p><strong>Auth</strong> JWT + role claim</p>
+      </div>
+      <div class="phase">
+        <div class="phase-header p3">Phase 3: 首个客户 (4 周)</div>
+        <p><strong>范围</strong> 3 个场景：增值税申报 + 凭证录入 + 基础合规</p>
+        <p><strong>KG 验证</strong> Top 1000 知识单元人工验证</p>
+        <p><strong>Agent 校准</strong> 1 位 Agent 服务 1 家真实客户</p>
+        <p><strong>反馈回路</strong> 客户接受/拒绝 → 准确率追踪</p>
+      </div>
+      <div class="phase">
+        <div class="phase-header p4">Phase 4: 商店上线 (8 周)</div>
+        <p><strong>Skill 打包</strong> 定义 manifest 格式</p>
+        <p><strong>安装/卸载</strong> Agent 级别 Skill 管理</p>
+        <p><strong>用量计量</strong> Premium Skill 按次追踪</p>
+        <p><strong>支付集成</strong> Stripe / 微信支付</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 07: RISKS -->
+<section class="alt">
+  <div class="container">
+    <div class="section-num">07</div>
+    <h2>风险与缓解</h2>
+
+    <table>
+      <thead>
+        <tr><th style="width:25%;">风险</th><th style="width:12%;">等级</th><th style="width:30%;">影响</th><th>缓解措施</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>KuzuDB 存档状态</td>
+          <td><span class="status-tag red">HIGH</span></td>
+          <td>KG 基础设施无维护，安全漏洞</td>
+          <td>6 个月内评估 Neo4j&nbsp;CE / Apache&nbsp;AGE 迁移</td>
+        </tr>
+        <tr>
+          <td>HTTPS/HTTP 混合内容</td>
+          <td><span class="status-tag amber">MED</span></td>
+          <td>浏览器阻止 KG API 调用</td>
+          <td>Phase 1 实施 CF&nbsp;Worker 代理</td>
+        </tr>
+        <tr>
+          <td>1 人团队 vs 系统复杂度</td>
+          <td><span class="status-tag red">HIGH</span></td>
+          <td>B2 复杂度制动环主导，迭代减速</td>
+          <td>分拆后产品侧 ~12 页，显著降低认知负荷</td>
+        </tr>
+        <tr>
+          <td>OpenClaw 外部依赖</td>
+          <td><span class="status-tag amber">MED</span></td>
+          <td>平台政策变化导致 Skill 供应中断</td>
+          <td>核心 Skill 自研，OpenClaw 仅作补充来源</td>
+        </tr>
+        <tr>
+          <td>Agent 合规错误（B1 环）</td>
+          <td><span class="status-tag red">HIGH</span></td>
+          <td>客户被税务局处罚 → 口碑崩溃</td>
+          <td>Phase 3 人工监督 + 置信度阈值 + 强制人工确认</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout-risk">
+      <strong>系统终结者风险：</strong>B1 合规制动环一旦激活，具有不对称破坏性。财税领域的错误不是"体验差"，是法律责任。Phase 3 必须设置置信度阈值（低于 80% 强制人工审核）和完整的审计日志。
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 08: ADR -->
+<section>
+  <div class="container">
+    <div class="section-num">08</div>
+    <h2>架构决策记录 (ADR)</h2>
+
+    <table>
+      <thead>
+        <tr><th style="width:15%;">ADR</th><th style="width:35%;">决策</th><th>理由</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>V2-01</td><td>分拆为 2 个独立系统</td><td>消除内部工具与产品的 complection</td></tr>
+        <tr><td>V2-02</td><td>Agent 身份 = 产品特性</td><td>中国 B2B 市场信任是个人化的，信任锚点不可砍</td></tr>
+        <tr><td>V2-03</td><td>Skill 商店 = 收入引擎</td><td>插件模式创造锁定 + 经常性收入</td></tr>
+        <tr><td>V2-04</td><td>KG 对客户不可见</td><td>价值通过 Agent 准确率体现，不是图谱可视化</td></tr>
+        <tr><td>V2-05</td><td>CF Worker 代理 KG API</td><td>解决 HTTPS/HTTP 混合内容 + 添加认证层</td></tr>
+        <tr><td>V2-06</td><td>产品中零 mock 数据</td><td>每个数字来自 API 或显示 loading 状态</td></tr>
+        <tr><td>V2-07</td><td>SSR 替代静态导出</td><td>需要服务端 Auth + API 代理</td></tr>
+        <tr><td>V2-08</td><td>Agent 席位作为定价层级</td><td>更多 Agent = 更高产能 = 自然升级路径</td></tr>
+        <tr><td>V2-09</td><td>70/30 商店收入分成</td><td>标准 SaaS 市场分成比例</td></tr>
+        <tr><td>V2-10</td><td>6 个月内迁移 KuzuDB</td><td>存档依赖是定时炸弹</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <p>灵阙财税 v2.0 &mdash; Optimized Architecture</p>
+  <p>Maurice | maurice_wen@proton.me</p>
+  <p class="attr">2026-03-28 | Source: Swarm Review (Drucker/Hickey/Meadows 3-Round)</p>
+</footer>
+
+</body>
+</html>

@@ -1,6 +1,78 @@
 # HANDOFF.md -- CogNebula / Lingque Desktop
 
-> Last updated: 2026-03-28T12:40Z
+> Last updated: 2026-03-28T17:30Z
+
+## Session 16 Summary — Architecture Redesign + Expert Workbench + 41-Task Model
+
+### Architecture Redesign (Swarm 3-Round Review)
+
+**Swarm verdict: RETHINK** (Drucker/Hickey/Meadows unanimous)
+- 41-page single app mixes mock demo + real KG tool = complection
+- System goal drifted to "build complete system" instead of "serve customer"
+- User decision: Split into 2 independent systems, but Agent + Skill = moat (not expendable)
+
+**Result**: OPTIMIZED_ARCHITECTURE_V2.md + .html (McKinsey Blue)
+- System A: CogNebula Platform (internal KG infrastructure)
+- System B: Lingque Product (4 layers: Workbench / Agent / Skill Store / KG Engine invisible)
+- Revenue: SaaS base + Agent slots (3/5/7) + Skill marketplace (70/30 split)
+
+### Expert Workbench (migrated from VPS)
+
+4 pages migrated from VPS single-file HTML (Cytoscape.js) to React:
+- `/expert/kg` — KG Explorer with real API (514K nodes, 1.1M edges)
+- `/expert/reasoning` — Agent reasoning chain inspector
+- `/expert/rules` — Compliance rule debugger
+- `/expert/data-quality` — Real-time KG quality metrics
+
+Architecture decision: Expert pages will be separated from product (internal tool only).
+Unified to Office light theme (only Cytoscape canvas stays dark).
+
+### TopBar Features
+
+- Global search: cross-entity (clients/reports/agents) with grouped dropdown
+- Notification dismiss: "处理" removes + navigates, "已读" removes, badge updates reactively
+
+### 41-Task Accounting Workflow Discovery
+
+Source: Competitor workbench HTML (16,709 lines), real accounting firm monthly workflow.
+
+**4 Time Windows**:
+- W1 采集期 (1-5): 11 tasks — data collection + initial bookkeeping
+- W2 征期 (6-15): 14 tasks — tax filing (LEGAL DEADLINE, 15th)
+- W3 质检期 (16-24): 10 tasks — quality check + risk reports
+- W4 准备期 (25-31): 7 tasks — next month prep + client notifications
+
+**Key insight**: Each task has `enterprises` field (batch size: 23-999). This is the batch automation foundation. Tasks have strict dependency chains (bookkeeping → quality check → adjustment → close → file → feedback).
+
+### Commits (this session)
+```
+717aeb5  feat: TopBar global search + notification dismiss
+9b8f5af  feat: Expert Workbench — KG Explorer + 3 diagnostic pages
+8322b12  fix: unify Expert pages to Office light theme
+```
+
+### Production
+- URL: https://lingque-desktop.pages.dev
+- Pages: 41/41, 0 build errors
+- KG API: 100.75.77.112:8400 (Tailscale, mixed content issue pending CF Worker proxy)
+
+### Next Steps (Priority Order)
+
+1. **Deep design**: Next-gen accounting workbench based on 41-task model + OpenClaw proactive Agent + batch automation
+   - Task queue organized by 4 time windows
+   - Agent assignment per task type (mapping to L2 digital employees)
+   - Batch operation: "一键处理 999 家企业的银行采集" pattern
+   - Dependency graph: auto-trigger next task when upstream completes
+   - OpenClaw Skills: each of 41 tasks maps to 1+ Skills
+
+2. **System split execution**: Phase 1 from architecture v2
+   - KG Explorer → internal tool
+   - Agent data → agents.json config
+   - CF Worker proxy for KG API
+
+3. **First customer**: Find 1 real accounting firm for pilot (3 scenarios)
+
+---
 
 ## Session 15 Summary — KG Queue 1-2-3 (flk + 12366 + Edge Engine)
 

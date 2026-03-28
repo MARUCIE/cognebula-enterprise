@@ -1,6 +1,53 @@
 # HANDOFF.md -- CogNebula / Lingque Desktop
 
-> Last updated: 2026-03-28T19:30Z
+> Last updated: 2026-03-29T00:40Z
+
+## Session 18 Summary — System A PC Redesign + 3-Round Visual Audit + Cleanup
+
+### Phase 1: System A (CogNebula) PC Desktop Redesign
+- Created `cognebula-theme.ts` — shared dark theme tokens (CN.* constants)
+- Rewrote KG Explorer: full-width 3-panel layout, collapsible sidebar, graph canvas takes all remaining width
+- Rewrote Data Quality: 6-KPI strip + 2-column (bar chart + quality breakdown table)
+- Rewrote Reasoning Inspector: left panel chain list + right vertical pipeline flowchart with confidence bars
+- Rewrote Rules Debugger: filter toggles + expandable row detail with rule logic code block
+- Created System Bridge page: split-view A|DataFlow|B with SVG arrows, unified status bar
+- Updated expert layout: +Bridge nav, width:100% fix, English nav labels
+
+### Phase 2: 3-Round Visual Audit (12 pages)
+- Round 1: Screenshotted all 12 pages, found 8 issues (1 P0, 3 P1, 4 P2)
+- Round 2: Fixed P0 (quality.toFixed crash), P1 (TopBar trailing slash, node type truncation), P2 (bridge width, reasoning border, layout leak)
+- Round 3: Verified all fixes, deployed clean build
+
+### Phase 3: Legacy Page Cleanup
+- Removed 8 legacy pages: /tax, /ai-team/*, /compliance, /audit, /ops/* (-5,559 lines)
+- Updated TopBar: removed old pageTitles, /ops/alerts → /workbench/exceptions, search → /workbench/agents
+- Build: 49 → 27 pages, 0 errors
+
+### Phase 4: CI/CD
+- Created `.github/workflows/deploy.yml` — auto-deploy on push to main
+- CLOUDFLARE_ACCOUNT_ID secret set
+- CLOUDFLARE_API_TOKEN pending (user must create at CF dashboard)
+
+### Commits
+```
+3f67901  feat: System A (CogNebula) PC desktop redesign + System Bridge
+a65112f  fix: 3-round visual audit — crash fix + TopBar titles + layout polish
+912bb35  chore: remove 8 legacy pages + clean TopBar references
+ac5665c  ci: add GitHub Actions auto-deploy to CF Pages
+```
+
+### Deployment
+- URL: https://lingque-desktop.pages.dev/
+- System A: /expert/ (6 pages, dark CogNebula theme)
+- System B: /workbench/ (6 pages, Heritage Monolith light theme)
+- Build: 27 pages, 0 errors
+
+### Next Steps (Priority Order)
+1. **CLOUDFLARE_API_TOKEN**: Create at dash.cloudflare.com/profile/api-tokens (Pages:Edit), set via `gh secret set`
+2. **P1 core engine**: task-definitions.yaml + dependency-engine.ts + calendar-engine.ts
+3. **First customer**: Find 1 real accounting firm for pilot (3 scenarios)
+
+---
 
 ## Session 17 Summary — Deep Design + Stitch Pipeline + 6 Workbench Views + System Split
 
@@ -156,12 +203,27 @@ Source: Competitor workbench HTML (16,709 lines), real accounting firm monthly w
 3. **WAF cookie requirement**: All `/law-search/` endpoints need browser context (direct HTTP returns HTML shell)
 4. **Poe API markdown wrapping**: Gemini via Poe wraps JSON in code fences; must strip before parsing
 
-### Next Steps
-1. **flk detail scan**: Run `flk_fast_scan.py` on 10,099 new IDs → `flk_details.jsonl`
-2. **flk content generation**: Run Poe LLM summary for items without content
-3. **flk KG ingest**: Push new nodes + edges to VPS KG
-4. **Embedding refresh**: Re-embed all newly content-enriched nodes
-5. **Edge Engine v2**: Fix REFERENCES_CLAUSE node type mismatch; expand to KU→KU edges
+### Pipeline Continuation (same session, extended)
+1. ~~**flk detail scan**~~: DONE — 10,334 scanned, 8,981 fetched, 11,549 lines in flk_details.jsonl
+2. ~~**flk content generation**~~: DONE — 4,107 items via Poe LLM (gemini-3.1-pro, 837/hr, 5h)
+3. ~~**flk KG ingest**~~: DONE — Phase 1: +674 nodes, Phase 3: 6,299 items ingested (0 skip)
+4. **Embedding build**: IN PROGRESS — 107,755 nodes (39K LR + 67K KU + 1K FAQ), Mac-local build with checkpoint resume
+   - VPS Gemini key rate-limited (403), using Mac openclaw key instead
+   - Script: `src/build_kg_nodes_local.py`, checkpoint: `data/embed_checkpoint.json`
+   - Fixed 3 mismatches: 768D (not 3072), table `kg_nodes` (not `finance_tax_embeddings`), includes KU nodes
+   - After completion: `bash scripts/sync_lancedb_to_vps.sh` to deploy
+5. **Edge Engine v2**: DONE — REFERENCES_CLAUSE: 0/494 (target IDs don't exist, stale data), KU_ABOUT_TAX: +29 edges
+   - Total edges: 1,141,923
+
+### KG Final State (Session 15)
+| Metric | Before | After | Delta |
+|--------|--------|-------|-------|
+| Total nodes | 546,076 | 547,579 | +1,503 |
+| Total edges | 1,141,787 | 1,141,894 | +107 |
+| KU total | 183,952 | 185,455 | +1,503 |
+| KU with content | 66,199 | 67,024 | +825 |
+| flk IDs collected | 2,568 | 11,234 | +8,666 |
+| Poe content generated | 2,192 | 6,299 | +4,107 |
 
 ---
 

@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>灵阙下一代智能代账工作台 — 深度设计</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue-900: #002855;
+  --blue-700: #003A70;
+  --blue-500: #0066B3;
+  --blue-100: #E8F0FE;
+  --blue-50: #F4F7FB;
+  --green: #1B7F4B;
+  --green-light: #E6F4EC;
+  --amber: #D4850D;
+  --amber-light: #FEF3E0;
+  --red: #C4281C;
+  --red-light: #FDECEB;
+  --ink: #1A1A2E;
+  --body: #2D2D3F;
+  --secondary: #5A5A72;
+  --muted: #8E8EA0;
+  --rule: #D4D4DC;
+  --rule-strong: #1A1A2E;
+  --bg: #FFFFFF;
+  --bg-gray: #F5F5F8;
+  --bg-dark: #002855;
+  --font-headline: 'Inter', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-body: 'Inter', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { overflow-x: hidden; }
+
+body {
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.7;
+  letter-spacing: 0.01em;
+  color: var(--body);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+.hero {
+  background: linear-gradient(135deg, var(--bg-dark) 0%, #001a3d 100%);
+  color: #fff;
+  padding: 56px 0;
+}
+
+.hero-inner {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0 4vw;
+}
+
+.hero-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 16px;
+}
+
+.hero h1 {
+  font-family: var(--font-headline);
+  font-weight: 900;
+  font-size: 2.5rem;
+  line-height: 1.15;
+  color: #fff;
+  margin-bottom: 16px;
+  max-width: 900px;
+}
+
+.hero .subtitle {
+  color: rgba(255,255,255,0.75);
+  font-size: 1.1rem;
+  font-weight: 400;
+  max-width: 720px;
+  line-height: 1.8;
+}
+
+.container {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+section {
+  padding: 48px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+section:last-of-type { border-bottom: none; }
+
+section.gray { background: var(--bg-gray); }
+
+.section-num {
+  font-family: var(--font-headline);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--blue-700);
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+}
+
+h2 {
+  font-family: var(--font-headline);
+  font-weight: 800;
+  font-size: 1.5rem;
+  color: var(--ink);
+  margin-bottom: 20px;
+  line-height: 1.3;
+}
+
+h3 {
+  font-family: var(--font-headline);
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--ink);
+  margin: 24px 0 12px;
+}
+
+p { margin-bottom: 16px; }
+
+.key-message {
+  background: var(--blue-700);
+  color: #fff;
+  padding: 16px 24px;
+  font-weight: 600;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  margin: 20px 0;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  margin: 24px 0;
+}
+
+.kpi {
+  padding: 20px 24px;
+  background: var(--bg);
+}
+
+.kpi .label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--secondary);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
+}
+
+.kpi .value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--blue-700);
+  line-height: 1.2;
+}
+
+.kpi .context {
+  font-size: 13px;
+  color: var(--secondary);
+  margin-top: 4px;
+}
+
+.pillar-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border: 1px solid var(--rule);
+  margin: 24px 0;
+}
+
+.pillar {
+  padding: 24px;
+  border-right: 1px solid var(--rule);
+}
+
+.pillar:last-child { border-right: none; }
+
+.pillar-num {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--blue-700);
+  margin-bottom: 8px;
+}
+
+.pillar h3 {
+  border-bottom: 2px solid var(--blue-700);
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  margin-top: 0;
+}
+
+.pillar ul {
+  padding-left: 18px;
+  font-size: 14px;
+  color: var(--body);
+}
+
+.pillar li { margin-bottom: 6px; }
+
+.card {
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-top: 3px solid var(--blue-700);
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.card h4 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin: 24px 0; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin: 24px 0; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 24px 0; }
+
+.table-wrapper { overflow-x: hidden; margin: 20px 0; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 14px;
+}
+
+th {
+  background: var(--blue-900);
+  color: #fff;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 12px 16px;
+  text-align: left;
+  white-space: normal;
+  word-break: break-word;
+}
+
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+  word-break: break-word;
+}
+
+tr:nth-child(even) td { background: var(--blue-50); }
+
+.status-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.status-tag.green { background: var(--green-light); color: var(--green); }
+.status-tag.amber { background: var(--amber-light); color: var(--amber); }
+.status-tag.red { background: var(--red-light); color: var(--red); }
+.status-tag.blue { background: var(--blue-100); color: var(--blue-700); }
+
+.callout {
+  background: var(--blue-100);
+  border-left: 4px solid var(--blue-700);
+  padding: 20px 24px;
+  font-size: 0.95rem;
+  margin: 20px 0;
+}
+
+.callout-risk {
+  background: var(--red-light);
+  border-left: 4px solid var(--red);
+  padding: 20px 24px;
+  margin: 20px 0;
+}
+
+.callout-action {
+  background: var(--amber-light);
+  border-left: 4px solid var(--amber);
+  padding: 20px 24px;
+  margin: 20px 0;
+}
+
+.implication {
+  background: var(--bg-gray);
+  border: 1px solid var(--rule);
+  border-left: 4px solid var(--blue-700);
+  padding: 20px 24px;
+  margin-top: 24px;
+}
+
+.implication-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--blue-700);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+
+.phase-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border: 1px solid var(--rule);
+  margin: 24px 0;
+}
+
+.phase {
+  padding: 24px;
+  border-right: 1px solid var(--rule);
+}
+
+.phase:last-child { border-right: none; }
+
+.phase-header {
+  background: var(--blue-700);
+  color: #fff;
+  padding: 10px 16px;
+  font-weight: 700;
+  font-size: 14px;
+  margin: -24px -24px 20px;
+}
+
+.phase-header.p2 { background: var(--blue-500); }
+.phase-header.p3 { background: #0088CC; }
+
+/* Timeline */
+.timeline {
+  display: flex;
+  align-items: stretch;
+  margin: 32px 0;
+  border: 1px solid var(--rule);
+}
+
+.timeline-window {
+  flex: 1;
+  padding: 16px;
+  text-align: center;
+  position: relative;
+}
+
+.timeline-window:not(:last-child) {
+  border-right: 1px solid var(--rule);
+}
+
+.timeline-window .window-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--blue-700);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.timeline-window .window-name {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+.timeline-window .window-days {
+  font-size: 13px;
+  color: var(--secondary);
+  margin-bottom: 8px;
+}
+
+.timeline-window .window-tasks {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--blue-700);
+}
+
+.timeline-window .window-tasks-label {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.timeline-window.critical {
+  background: var(--red-light);
+}
+
+.timeline-window.critical .window-label {
+  color: var(--red);
+}
+
+.timeline-window.critical .window-tasks {
+  color: var(--red);
+}
+
+/* Agent card */
+.agent-card {
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-top: 3px solid var(--blue-700);
+  padding: 20px;
+}
+
+.agent-card .agent-name {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+
+.agent-card .agent-role {
+  font-size: 13px;
+  color: var(--secondary);
+  margin-bottom: 12px;
+}
+
+.agent-card .agent-tasks {
+  font-size: 13px;
+  color: var(--body);
+  margin-bottom: 8px;
+}
+
+.agent-card .agent-tier {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  letter-spacing: 1px;
+}
+
+.tier-starter { background: var(--blue-100); color: var(--blue-700); }
+.tier-pro { background: var(--amber-light); color: var(--amber); }
+.tier-enterprise { background: var(--green-light); color: var(--green); }
+
+/* Dependency flow */
+.dep-flow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  flex-wrap: wrap;
+}
+
+.dep-node {
+  background: var(--blue-100);
+  border: 1px solid var(--blue-500);
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--blue-700);
+  white-space: nowrap;
+}
+
+.dep-arrow {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.dep-node.critical {
+  background: var(--red-light);
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.dep-node.hitl {
+  background: var(--amber-light);
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+/* Batch demo */
+.batch-demo {
+  background: var(--bg-gray);
+  border: 1px solid var(--rule);
+  padding: 24px;
+  margin: 20px 0;
+}
+
+.batch-bar {
+  height: 24px;
+  background: var(--rule);
+  margin: 12px 0;
+  position: relative;
+}
+
+.batch-bar-fill {
+  height: 100%;
+  background: var(--blue-500);
+  transition: width 0.3s;
+}
+
+.batch-stats {
+  display: flex;
+  gap: 24px;
+  margin-top: 12px;
+}
+
+.batch-stat {
+  text-align: center;
+}
+
+.batch-stat .num {
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.batch-stat .lbl {
+  font-size: 11px;
+  color: var(--secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.batch-stat .num.ready { color: var(--green); }
+.batch-stat .num.processing { color: var(--blue-500); }
+.batch-stat .num.blocked { color: var(--red); }
+.batch-stat .num.done { color: var(--muted); }
+
+/* Wireframe mockup */
+.wireframe {
+  background: #1a1a2e;
+  border: 1px solid #333;
+  padding: 20px;
+  margin: 20px 0;
+  color: #e0e0e0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+/* Pricing table */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border: 1px solid var(--rule);
+  margin: 24px 0;
+}
+
+.pricing-card {
+  padding: 32px 24px;
+  text-align: center;
+  border-right: 1px solid var(--rule);
+}
+
+.pricing-card:last-child { border-right: none; }
+
+.pricing-card.featured {
+  background: var(--blue-50);
+  border-top: 4px solid var(--blue-700);
+}
+
+.pricing-card .tier-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--secondary);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+
+.pricing-card .price {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+.pricing-card .price-unit {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+
+.pricing-card .agents {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--blue-700);
+  margin-bottom: 16px;
+}
+
+.pricing-card ul {
+  list-style: none;
+  padding: 0;
+  text-align: left;
+  font-size: 14px;
+}
+
+.pricing-card li {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--rule);
+  color: var(--body);
+}
+
+.pricing-card li::before {
+  content: "-- ";
+  color: var(--blue-500);
+  font-weight: 700;
+}
+
+footer {
+  text-align: center;
+  padding: 60px 20px 40px;
+  color: #9B9B9D;
+  font-size: 13px;
+  line-height: 2.2;
+  border-top: 3px solid var(--blue-900);
+}
+
+footer .attr { font-size: 12px; margin-top: 8px; }
+
+@media (max-width: 960px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .pillar-grid, .phase-grid, .pricing-grid { grid-template-columns: 1fr; }
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .timeline { flex-direction: column; }
+  .timeline-window:not(:last-child) { border-right: none; border-bottom: 1px solid var(--rule); }
+}
+
+@media (max-width: 640px) {
+  .hero { padding: 32px 0; }
+  .hero h1 { font-size: 1.8rem; }
+  .container { padding: 0 20px; }
+  .kpi-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag">LINGQUE SYSTEM B / L1 WORKBENCH</div>
+    <h1>下一代智能代账工作台<br>深度设计方案</h1>
+    <div class="subtitle">基于 41 任务真实代账工作流 + OpenClaw&nbsp;主动&nbsp;Agent + 批量自动化引擎，将代账公司从手工作坊升级为日历驱动的智能生产线。</div>
+  </div>
+</div>
+
+<!-- EXEC SUMMARY -->
+<section>
+  <div class="container">
+    <div class="section-num">01</div>
+    <h2>核心命题：代账公司是工厂，不是办公室</h2>
+
+    <div class="key-message">代账公司每月对 999 家企业执行相同的 41 道工序。挑战不是「做什么」（规则已知且确定性），而是「如何在零差错、零逾期的前提下批量执行」。这是工厂调度问题，不是知识工作问题。</div>
+
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="label">月度任务-企业单元</div>
+        <div class="value">40,959</div>
+        <div class="context">41 任务 x 999 企业</div>
+      </div>
+      <div class="kpi">
+        <div class="label">竞品人工处理时间</div>
+        <div class="value">45 分钟</div>
+        <div class="context">每企业/每月</div>
+      </div>
+      <div class="kpi">
+        <div class="label">灵阙目标</div>
+        <div class="value">&lt; 5 分钟</div>
+        <div class="context">每企业/每月 (9x)</div>
+      </div>
+      <div class="kpi">
+        <div class="label">人工介入率</div>
+        <div class="value">&lt; 15%</div>
+        <div class="context">仅异常需人工</div>
+      </div>
+    </div>
+
+    <h3>五大设计决策</h3>
+    <div class="pillar-grid">
+      <div class="pillar">
+        <div class="pillar-num">01</div>
+        <h3>日历驱动</h3>
+        <ul>
+          <li>Agent 按日历日期自动激活，不等人类点击</li>
+          <li>4 个时间窗口 = 4 个生产班次</li>
+          <li>征期 15 号法定截止日 = 红色警报</li>
+        </ul>
+      </div>
+      <div class="pillar">
+        <div class="pillar-num">02</div>
+        <h3>管线并行</h3>
+        <ul>
+          <li>企业&nbsp;A 可在任务 5，企业&nbsp;B 仍在任务 4</li>
+          <li>逐企业流水线 + 批级同步点</li>
+          <li>3-5x 吞吐量提升</li>
+        </ul>
+      </div>
+      <div class="pillar">
+        <div class="pillar-num">03</div>
+        <h3>信任车间主任</h3>
+        <ul>
+          <li>Agent = 具名数字员工，积累信任记录</li>
+          <li>12 个月零差错 = 不可替代的护城河</li>
+          <li>79 个 OpenClaw&nbsp;Skill 可独立升级</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="implication">
+      <div class="implication-label">IMPLICATION</div>
+      <p>灵阙工作台的竞争壁垒不是 AI 技术本身（可复制），而是「7 个数字员工在你的 999 家客户数据上零差错运行 12 个月」后积累的信任记录（不可复制）。</p>
+    </div>
+  </div>
+</section>
+
+<!-- TIME WINDOWS -->
+<section class="gray">
+  <div class="container">
+    <div class="section-num">02</div>
+    <h2>月度节奏：4 个时间窗口 x 41 原子任务</h2>
+
+    <div class="key-message">代账公司的月度节奏是刚性的——征期 15 号是法定截止日，迟交有滞纳金。产品必须适配这个节奏，不能自创流程。</div>
+
+    <div class="timeline">
+      <div class="timeline-window">
+        <div class="window-label">W1</div>
+        <div class="window-name">采集期</div>
+        <div class="window-days">1 - 5 号</div>
+        <div class="window-tasks">11</div>
+        <div class="window-tasks-label">任务</div>
+        <p style="font-size:12px;color:var(--secondary);margin-top:8px;">资料归集 + 初始记账<br>数据进入工厂</p>
+      </div>
+      <div class="timeline-window critical">
+        <div class="window-label">W2</div>
+        <div class="window-name">征期</div>
+        <div class="window-days">6 - 15 号</div>
+        <div class="window-tasks">14</div>
+        <div class="window-tasks-label">任务</div>
+        <p style="font-size:12px;color:var(--red);margin-top:8px;font-weight:600;">法定截止日 15 号<br>逾期 = 滞纳金</p>
+      </div>
+      <div class="timeline-window">
+        <div class="window-label">W3</div>
+        <div class="window-name">质检期</div>
+        <div class="window-days">16 - 24 号</div>
+        <div class="window-tasks">10</div>
+        <div class="window-tasks-label">任务</div>
+        <p style="font-size:12px;color:var(--secondary);margin-top:8px;">全盘账务审计<br>风险报告生成</p>
+      </div>
+      <div class="timeline-window">
+        <div class="window-label">W4</div>
+        <div class="window-name">准备期</div>
+        <div class="window-days">25 - 31 号</div>
+        <div class="window-tasks">7</div>
+        <div class="window-tasks-label">任务</div>
+        <p style="font-size:12px;color:var(--secondary);margin-top:8px;">下月数据预采集<br>电子账本归档</p>
+      </div>
+    </div>
+
+    <h3>41 任务完整清单</h3>
+
+    <div class="table-wrapper">
+      <table>
+        <colgroup>
+          <col style="width:40px;">
+          <col>
+          <col style="width:60px;">
+          <col style="width:60px;">
+          <col style="width:70px;">
+          <col style="width:56px;">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>任务名称</th>
+            <th>窗口</th>
+            <th>企业数</th>
+            <th>Agent</th>
+            <th>HITL</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>上月银行流水采集</td><td>W1</td><td>999</td><td>小智</td><td>--</td></tr>
+          <tr><td>2</td><td>上月工资表采集</td><td>W1</td><td>856</td><td>小智</td><td>--</td></tr>
+          <tr><td>3</td><td>上月报销单采集</td><td>W1</td><td>734</td><td>小智</td><td>--</td></tr>
+          <tr><td>4</td><td>上月票据记账</td><td>W1</td><td>999</td><td>小算</td><td>--</td></tr>
+          <tr><td>5</td><td>票据记账质检</td><td>W1</td><td>999</td><td>小检</td><td>--</td></tr>
+          <tr><td>6</td><td>票据记账调整</td><td>W1</td><td>234</td><td>小算</td><td>--</td></tr>
+          <tr><td>7</td><td>无税金账结账</td><td>W1</td><td>567</td><td>小算</td><td>--</td></tr>
+          <tr><td>8</td><td>发票完整采集</td><td>W1</td><td>999</td><td>小智</td><td>--</td></tr>
+          <tr><td>9</td><td>税项清册</td><td>W1</td><td>999</td><td>小税</td><td>--</td></tr>
+          <tr><td>10</td><td>税盘抄报</td><td>W1</td><td>456</td><td>小税</td><td>--</td></tr>
+          <tr><td>11</td><td>一般纳税人进项勾选抵扣</td><td>W1</td><td>234</td><td>小税</td><td>--</td></tr>
+          <tr style="border-top:2px solid var(--red);">
+            <td>12</td><td>上月工资表补采集</td><td>W2</td><td>143</td><td>小智</td><td>--</td></tr>
+          <tr><td>13</td><td>税金记账</td><td>W2</td><td>789</td><td>小算</td><td>--</td></tr>
+          <tr><td>14</td><td>税金账结账</td><td>W2</td><td>432</td><td>小算</td><td>--</td></tr>
+          <tr><td>15</td><td>工资薪金/个税申报</td><td>W2</td><td>856</td><td>小税</td><td>--</td></tr>
+          <tr><td>16</td><td>经营所得申报</td><td>W2</td><td>67</td><td>小税</td><td>--</td></tr>
+          <tr><td>17</td><td>财务报表申报</td><td>W2</td><td>999</td><td>小税</td><td>--</td></tr>
+          <tr><td>18</td><td>增值税及附加税申报</td><td>W2</td><td>999</td><td>小税</td><td>--</td></tr>
+          <tr><td>19</td><td>企业所得税申报</td><td>W2</td><td>999</td><td>小税</td><td>--</td></tr>
+          <tr><td>20</td><td>定期定额核定及申报</td><td>W2</td><td>89</td><td>小税</td><td>--</td></tr>
+          <tr><td>21</td><td>财产和行为税申报</td><td>W2</td><td>345</td><td>小税</td><td>--</td></tr>
+          <tr><td>22</td><td>非税收入申报</td><td>W2</td><td>123</td><td>小税</td><td>--</td></tr>
+          <tr><td>23</td><td>漏报检查</td><td>W2</td><td>999</td><td>总监</td><td>--</td></tr>
+          <tr><td>24</td><td>税种申报反馈</td><td>W2</td><td>789</td><td>小客</td><td style="color:var(--amber);font-weight:700;">客户同意</td></tr>
+          <tr><td>25</td><td>税金统计及划扣记录</td><td>W2</td><td>789</td><td>小税</td><td>--</td></tr>
+          <tr style="border-top:2px solid var(--green);">
+            <td>26</td><td>全盘账务质检</td><td>W3</td><td>999</td><td>小检</td><td>--</td></tr>
+          <tr><td>27</td><td>全盘账务调整</td><td>W3</td><td>234</td><td>小算</td><td>--</td></tr>
+          <tr><td>28</td><td>全盘账务反馈</td><td>W3</td><td>999</td><td>总监</td><td style="color:var(--amber);font-weight:700;">客户确认</td></tr>
+          <tr><td>29</td><td>全盘异常调账</td><td>W3</td><td>89</td><td>小安</td><td style="color:var(--red);font-weight:700;">客户授意</td></tr>
+          <tr><td>30</td><td>全盘漏账检查</td><td>W3</td><td>999</td><td>小检</td><td>--</td></tr>
+          <tr><td>31</td><td>生成税务风险报告</td><td>W3</td><td>999</td><td>小安</td><td>--</td></tr>
+          <tr><td>32</td><td>风险提醒</td><td>W3</td><td>152</td><td>小安</td><td>--</td></tr>
+          <tr><td>33</td><td>线索转化商机推送</td><td>W3</td><td>67</td><td>小安</td><td>--</td></tr>
+          <tr><td>34</td><td>社保/公积金扣费提醒</td><td>W3</td><td>456</td><td>小安</td><td>--</td></tr>
+          <tr style="border-top:2px solid var(--muted);">
+            <td>35</td><td>当月无票收入信息采集</td><td>W4</td><td>234</td><td>小智</td><td>--</td></tr>
+          <tr><td>36</td><td>当月报销单采集</td><td>W4</td><td>567</td><td>小智</td><td>--</td></tr>
+          <tr><td>37</td><td>当月资料采集预提醒</td><td>W4</td><td>999</td><td>小客</td><td>--</td></tr>
+          <tr><td>38</td><td>生成电子账本</td><td>W4</td><td>999</td><td>小算</td><td>--</td></tr>
+          <tr><td>39</td><td>当月发票数据采集</td><td>W4</td><td>999</td><td>小智</td><td>--</td></tr>
+          <tr><td>40</td><td>当月税费预提醒</td><td>W4</td><td>789</td><td>小安</td><td>--</td></tr>
+          <tr><td>41</td><td>新增企业确认</td><td>W4</td><td>23</td><td>小客</td><td>--</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="implication">
+      <div class="implication-label">IMPLICATION</div>
+      <p>41 个任务中只有 3 个需要客户人工介入（任务 24/28/29）。其余 38 个任务理论上可以 100% 自动化。即使只自动化其中 30 个（73%），对代账公司的效率提升也是颠覆性的。</p>
+    </div>
+  </div>
+</section>
+
+<!-- AGENT ARCHITECTURE -->
+<section>
+  <div class="container">
+    <div class="section-num">03</div>
+    <h2>数字员工：7 名专岗 Agent</h2>
+
+    <div class="key-message">每个 Agent 是一个具名数字员工，有持久身份、专业分工和信任记录。Agent 不是聊天机器人，是车间主任——零差错运行数月后积累的信任记录不可复制。</div>
+
+    <div class="grid-4">
+      <div class="agent-card">
+        <div class="agent-name">小智</div>
+        <div class="agent-role">采集专员</div>
+        <div class="agent-tasks">任务 1,2,3,8,12,35,36,39</div>
+        <div class="agent-tasks" style="font-size:12px;color:var(--muted);">银行流水、发票、工资表、报销单</div>
+        <div class="agent-tier tier-starter">STARTER</div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-name">小算</div>
+        <div class="agent-role">记账专员</div>
+        <div class="agent-tasks">任务 4,6,7,13,14,27,38</div>
+        <div class="agent-tasks" style="font-size:12px;color:var(--muted);">凭证生成、结账、调整、电子账本</div>
+        <div class="agent-tier tier-starter">STARTER</div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-name">小税</div>
+        <div class="agent-role">申报专员</div>
+        <div class="agent-tasks">任务 9-11,15-22,25</div>
+        <div class="agent-tasks" style="font-size:12px;color:var(--muted);">税金计算、电子申报、税项清册</div>
+        <div class="agent-tier tier-starter">STARTER</div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-name">小检</div>
+        <div class="agent-role">质检专员</div>
+        <div class="agent-tasks">任务 5,26,30</div>
+        <div class="agent-tasks" style="font-size:12px;color:var(--muted);">凭证质检、全盘审计、漏账检查</div>
+        <div class="agent-tier tier-pro">PROFESSIONAL</div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-name">总监</div>
+        <div class="agent-role">主管</div>
+        <div class="agent-tasks">任务 23,28</div>
+        <div class="agent-tasks" style="font-size:12px;color:var(--muted);">漏报检查、账务反馈、异常协调</div>
+        <div class="agent-tier tier-pro">PROFESSIONAL</div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-name">小安</div>
+        <div class="agent-role">风控专员</div>
+        <div class="agent-tasks">任务 29,31-34,40</div>
+        <div class="agent-tasks" style="font-size:12px;color:var(--muted);">风险报告、合规提醒、异常调账</div>
+        <div class="agent-tier tier-enterprise">ENTERPRISE</div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-name">小客</div>
+        <div class="agent-role">客服专员</div>
+        <div class="agent-tasks">任务 24,37,41</div>
+        <div class="agent-tasks" style="font-size:12px;color:var(--muted);">客户通知、审批收集、新客确认</div>
+        <div class="agent-tier tier-enterprise">ENTERPRISE</div>
+      </div>
+    </div>
+
+    <h3>定价与降级策略</h3>
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <div class="tier-name">Starter</div>
+        <div class="price">999</div>
+        <div class="price-unit">元/月</div>
+        <div class="agents">3 位数字员工</div>
+        <ul>
+          <li>小智 (采集) + 小算 (记账) + 小税 (申报)</li>
+          <li>核心流程: 采集 - 记账 - 申报</li>
+          <li>质检/风控 需人工处理</li>
+          <li>批量处理: 最多 200 企业</li>
+        </ul>
+      </div>
+      <div class="pricing-card featured">
+        <div class="tier-name">Professional</div>
+        <div class="price">2,999</div>
+        <div class="price-unit">元/月</div>
+        <div class="agents">5 位数字员工</div>
+        <ul>
+          <li>Starter 全部 + 小检 (质检) + 总监</li>
+          <li>全自动质检 + 异常协调</li>
+          <li>客户沟通仍需人工</li>
+          <li>批量处理: 最多 500 企业</li>
+        </ul>
+      </div>
+      <div class="pricing-card">
+        <div class="tier-name">Enterprise</div>
+        <div class="price">8,999</div>
+        <div class="price-unit">元/月</div>
+        <div class="agents">7 位数字员工</div>
+        <ul>
+          <li>Professional 全部 + 小安 (风控) + 小客 (客服)</li>
+          <li>全链路自动化 (仅 3 个 HITL 点)</li>
+          <li>风险报告 + 线索转化 + 智能提醒</li>
+          <li>批量处理: 不限企业数</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>降级策略：</strong>低版本客户缺少的 Agent 对应的任务仍然显示在工作台中，但标记为「手动处理」。客户看到 Agent 自动完成的任务和需要手动完成的任务形成鲜明对比——这是最强的升级驱动力。
+    </div>
+  </div>
+</section>
+
+<!-- BATCH ENGINE -->
+<section class="gray">
+  <div class="container">
+    <div class="section-num">04</div>
+    <h2>批量自动化引擎</h2>
+
+    <div class="key-message">一键处理 999 家企业是产品的标志性体验。每个任务的「企业数」字段就是批量自动化的规模因子。</div>
+
+    <h3>批量处理规模分层</h3>
+    <div class="table-wrapper">
+      <table>
+        <colgroup>
+          <col style="width:100px;">
+          <col>
+          <col>
+          <col style="width:120px;">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>批量规模</th>
+            <th>含义</th>
+            <th>典型任务</th>
+            <th>分块大小</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td style="font-weight:800;color:var(--blue-700);">999</td><td>全部企业</td><td>银行采集、增值税申报、全盘质检</td><td>50-100</td></tr>
+          <tr><td style="font-weight:800;color:var(--blue-700);">789-856</td><td>大部分企业</td><td>工资表、个税、税金记账</td><td>50</td></tr>
+          <tr><td style="font-weight:800;">345-567</td><td>条件子集</td><td>财产税、社保、有税控盘的</td><td>20-50</td></tr>
+          <tr><td>89-234</td><td>异常处理</td><td>调整、核定征收、异常调账</td><td>10-20</td></tr>
+          <tr><td>23-67</td><td>低频事件</td><td>新增企业、经营所得、线索转化</td><td>1-10</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>批量操作台 (核心交互)</h3>
+
+    <div class="batch-demo">
+      <h4 style="font-weight:700;color:var(--ink);margin-bottom:4px;">任务 18: 增值税及附加税申报</h4>
+      <p style="font-size:13px;color:var(--secondary);margin-bottom:16px;">Agent: 小税 (申报专员) | Skill: vat-filing | 分块: 50 企业/批</p>
+
+      <div class="batch-stats">
+        <div class="batch-stat">
+          <div class="num ready">834</div>
+          <div class="lbl">就绪</div>
+        </div>
+        <div class="batch-stat">
+          <div class="num processing">102</div>
+          <div class="lbl">处理中</div>
+        </div>
+        <div class="batch-stat">
+          <div class="num blocked">51</div>
+          <div class="lbl">阻塞</div>
+        </div>
+        <div class="batch-stat">
+          <div class="num done">12</div>
+          <div class="lbl">已完成</div>
+        </div>
+      </div>
+
+      <div class="batch-bar">
+        <div class="batch-bar-fill" style="width:11.4%;"></div>
+      </div>
+      <p style="font-size:12px;color:var(--secondary);margin:4px 0 0;">进度 11.4% | 速度 8.2 企业/分钟 | 预计剩余 1 小时 42 分钟</p>
+    </div>
+
+    <div class="implication">
+      <div class="implication-label">IMPLICATION</div>
+      <p>批量引擎的核心不是「同时处理」，而是「就绪过滤 + 分块执行 + 依赖触发」三步循环。只有就绪的企业进入处理队列，阻塞的企业自动排队等待上游完成。</p>
+    </div>
+  </div>
+</section>
+
+<!-- DEPENDENCY ENGINE -->
+<section>
+  <div class="container">
+    <div class="section-num">05</div>
+    <h2>依赖图引擎：两种依赖类型</h2>
+
+    <div class="key-message">关键洞察：依赖存在于「逐企业」和「批级」两个层面。混淆这两种类型会导致不必要的阻塞或过早执行。</div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h4>逐企业依赖 (Per-Enterprise)</h4>
+        <p style="font-size:14px;">企业&nbsp;X 的任务&nbsp;B 依赖于企业&nbsp;X 的任务&nbsp;A 完成。</p>
+        <div class="dep-flow">
+          <span class="dep-node">企业 001: 任务4 记账</span>
+          <span class="dep-arrow">--></span>
+          <span class="dep-node">任务5 质检</span>
+          <span class="dep-arrow">--></span>
+          <span class="dep-node">任务6 调整</span>
+        </div>
+        <div class="dep-flow">
+          <span class="dep-node">企业 002: 任务4 记账</span>
+          <span class="dep-arrow">--></span>
+          <span class="dep-node">任务5 质检</span>
+        </div>
+        <p style="font-size:13px;color:var(--secondary);margin-top:8px;">企业 001 可在任务 5 时，企业 002 仍在任务 4。这是<strong>管线并行</strong>——关键效率增益。</p>
+      </div>
+      <div class="card">
+        <h4>批级依赖 (Batch-Level)</h4>
+        <p style="font-size:14px;">任务&nbsp;B 依赖于任务&nbsp;A 对<strong>所有</strong>企业完成。</p>
+        <div class="dep-flow">
+          <span class="dep-node critical">全部 999 企业完成 T15-T22</span>
+          <span class="dep-arrow">--></span>
+          <span class="dep-node">T23 漏报检查</span>
+        </div>
+        <p style="font-size:13px;color:var(--secondary);margin-top:8px;">批级依赖较少但关键，用于聚合操作（审计、报告、完整性检查）。整个系统中仅 2 处批级依赖点。</p>
+      </div>
+    </div>
+
+    <h3>W1-W2 核心依赖链</h3>
+
+    <div class="dep-flow" style="flex-wrap:wrap;gap:6px;">
+      <span class="dep-node">T1 银行流水</span>
+      <span class="dep-node">T2 工资表</span>
+      <span class="dep-node">T3 报销单</span>
+      <span class="dep-arrow">--></span>
+      <span class="dep-node">T4 票据记账</span>
+      <span class="dep-arrow">--></span>
+      <span class="dep-node">T5 质检</span>
+      <span class="dep-arrow">--></span>
+      <span class="dep-node">T6 调整</span>
+      <span class="dep-arrow">--></span>
+      <span class="dep-node">T7 结账</span>
+      <span class="dep-arrow">--></span>
+      <span class="dep-node">T9 税项清册</span>
+    </div>
+
+    <div class="dep-flow" style="flex-wrap:wrap;gap:6px;margin-top:12px;">
+      <span class="dep-node">T13 税金记账</span>
+      <span class="dep-arrow">--></span>
+      <span class="dep-node">T14 税金结账</span>
+      <span class="dep-arrow">--></span>
+      <span class="dep-node critical">T15-T22 8类申报(并行)</span>
+      <span class="dep-arrow">--></span>
+      <span class="dep-node">T23 漏报检查(批级)</span>
+      <span class="dep-arrow">--></span>
+      <span class="dep-node hitl">T24 申报反馈(HITL)</span>
+      <span class="dep-arrow">--></span>
+      <span class="dep-node">T25 税金统计</span>
+    </div>
+
+    <div class="callout-risk" style="margin-top:20px;">
+      <strong>征期红线：</strong>任务 15-22（8 类税种申报）必须在 15 号前全部完成。系统在 13 号触发预警，14 号触发红色警报。任何未完成的申报自动升级为最高优先级。
+    </div>
+  </div>
+</section>
+
+<!-- SKILL ECOSYSTEM -->
+<section class="gray">
+  <div class="container">
+    <div class="section-num">06</div>
+    <h2>技能生态：41 任务 -- 79 个 OpenClaw Skill</h2>
+
+    <div class="key-message">每个任务背后是 1 个主技能 + N 个辅助技能。技能可独立升级、定价、分发——这是 Skill 商店的收入基础。</div>
+
+    <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);">
+      <div class="kpi">
+        <div class="label">主技能</div>
+        <div class="value">41</div>
+        <div class="context">每任务 1 个核心操作</div>
+      </div>
+      <div class="kpi">
+        <div class="label">辅助技能 (去重)</div>
+        <div class="value">38</div>
+        <div class="context">跨任务共享的辅助能力</div>
+      </div>
+      <div class="kpi">
+        <div class="label">合计独立技能</div>
+        <div class="value">79</div>
+        <div class="context">代账领域完整技能库</div>
+      </div>
+    </div>
+
+    <h3>技能商店 3 档定价</h3>
+    <div class="pillar-grid">
+      <div class="pillar">
+        <div class="pillar-num" style="color:var(--green);">Free</div>
+        <h3>免费技能</h3>
+        <ul>
+          <li>bank-statement-collector</li>
+          <li>voucher-template</li>
+          <li>trial-balance</li>
+          <li>calendar-scheduler</li>
+          <li>基础操作，Agent 自带</li>
+        </ul>
+      </div>
+      <div class="pillar">
+        <div class="pillar-num" style="color:var(--amber);">Premium</div>
+        <h3>高级技能 99-499 元/月</h3>
+        <ul>
+          <li>deduction-optimizer (进项抵扣优化)</li>
+          <li>risk-model (税务风险模型)</li>
+          <li>kg-query-engine (知识图谱查询)</li>
+          <li>lead-conversion (线索转化)</li>
+          <li>AI 驱动的高级分析能力</li>
+        </ul>
+      </div>
+      <div class="pillar">
+        <div class="pillar-num" style="color:var(--blue-700);">Enterprise</div>
+        <h3>企业技能 (定制)</h3>
+        <ul>
+          <li>e-tax-api (直连税务局 API)</li>
+          <li>audit-trail (审计追踪)</li>
+          <li>custom-report-gen (定制报表)</li>
+          <li>multi-region-filing (跨区域申报)</li>
+          <li>需 API 接入 + 合规认证</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>收入分成：</strong>技能创建者 70% / 平台 30%。来自 OpenClaw 供应链的技能经过额外质量审核后上架。
+    </div>
+  </div>
+</section>
+
+<!-- HITL PROTOCOL -->
+<section>
+  <div class="container">
+    <div class="section-num">07</div>
+    <h2>人机协作协议：3 个刚性介入点</h2>
+
+    <div class="key-message">41 个任务中只有 3 个需要客户人工授权。其余 38 个任务可以完全自动化。</div>
+
+    <div class="grid-3">
+      <div class="card">
+        <h4 style="color:var(--amber);">任务 24: 税种申报反馈</h4>
+        <p style="font-size:13px;"><strong>类型：</strong>客户同意扣款</p>
+        <p style="font-size:13px;"><strong>流程：</strong>Agent 发送申报汇总 --> 客户回复「同意扣款」 --> Agent 执行划扣</p>
+        <p style="font-size:13px;"><strong>超时：</strong>24h 提醒 / 48h 二次提醒 / 72h 升级总监</p>
+      </div>
+      <div class="card">
+        <h4 style="color:var(--amber);">任务 28: 全盘账务反馈</h4>
+        <p style="font-size:13px;"><strong>类型：</strong>客户确认准确</p>
+        <p style="font-size:13px;"><strong>流程：</strong>Agent 发送账务报告 --> 客户回复「确认无误」 --> 进入质检闭环</p>
+        <p style="font-size:13px;"><strong>超时：</strong>同上</p>
+      </div>
+      <div class="card">
+        <h4 style="color:var(--red);">任务 29: 全盘异常调账</h4>
+        <p style="font-size:13px;"><strong>类型：</strong>客户书面授意 (法律要求)</p>
+        <p style="font-size:13px;"><strong>流程：</strong>Agent 标记异常 --> 提供调账方案 --> 客户选择并签字 --> Agent 执行</p>
+        <p style="font-size:13px;"><strong>超时：</strong>不自动跳过，标记「待客户决策」</p>
+      </div>
+    </div>
+
+    <div class="callout-action">
+      <strong>通知通道优先级：</strong>微信服务号(主) --> 短信(备) --> 电话(总监升级)。客户 96h 无响应的非关键任务自动标记「客户未确认」并继续后续流程。
+    </div>
+  </div>
+</section>
+
+<!-- KG INVISIBLE -->
+<section class="gray">
+  <div class="container">
+    <div class="section-num">08</div>
+    <h2>知识引擎：不可见但不可或缺</h2>
+
+    <div class="key-message">知识图谱（514K 节点 / 1.1M 边）是 Agent 准确率从 95% 提升到 99.5% 的核心——但客户永远不知道它存在。</div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h4>没有 KG 的 Agent</h4>
+        <p style="font-size:14px;color:var(--red);font-weight:700;">准确率 ~95%</p>
+        <p style="font-size:13px;">999 企业 x 5% 错误率 = <strong>50 个错误/月</strong></p>
+        <p style="font-size:13px;color:var(--secondary);">每个错误 = 客户投诉 + 潜在罚款 + 信任损失</p>
+      </div>
+      <div class="card">
+        <h4>有 KG 的 Agent</h4>
+        <p style="font-size:14px;color:var(--green);font-weight:700;">准确率 ~99.5%</p>
+        <p style="font-size:13px;">999 企业 x 0.5% 错误率 = <strong>5 个错误/月</strong></p>
+        <p style="font-size:13px;color:var(--secondary);">可管理的异常量，每个都有 KG 辅助的根因分析</p>
+      </div>
+    </div>
+
+    <h3>KG 查询热点 (按任务)</h3>
+    <div class="table-wrapper">
+      <table>
+        <colgroup>
+          <col style="width:120px;">
+          <col>
+          <col>
+        </colgroup>
+        <thead>
+          <tr><th>任务</th><th>KG 查询</th><th>用途</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>T5 质检</td><td>LawOrRegulation --> TaxType</td><td>验证凭证是否符合最新法规</td></tr>
+          <tr><td>T9 税项清册</td><td>TaxType --> TaxRate</td><td>获取当前企业类型的税率</td></tr>
+          <tr><td>T18 增值税</td><td>TaxPolicy --> Industry</td><td>行业特定增值税规则</td></tr>
+          <tr><td>T26 全盘质检</td><td>ComplianceRule --> AccountType</td><td>全面审计规则集</td></tr>
+          <tr><td>T31 风险报告</td><td>Enterprise --> RiskFactor</td><td>含历史数据的风险模型</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="implication">
+      <div class="implication-label">IMPLICATION</div>
+      <p>竞品可以复制 UI 和 Agent 交互模式，但无法复制 514K 节点的专业知识图谱。这是 System A (CogNebula) 对 System B (灵阙) 的隐性战略价值——客户买的是「高准确率」，不是「知识图谱」。</p>
+    </div>
+  </div>
+</section>
+
+<!-- WORKBENCH UX -->
+<section>
+  <div class="container">
+    <div class="section-num">09</div>
+    <h2>工作台 UX：6 个核心视图</h2>
+
+    <div class="key-message">工作台不是仪表盘，是生产控制室。每个视图服务不同的决策场景。</div>
+
+    <div class="grid-3">
+      <div class="card">
+        <h4>月度看板 (默认视图)</h4>
+        <p style="font-size:13px;">4 列 = W1-W4，任务从左到右流动。每列显示完成/总数进度。日常使用频率最高。</p>
+        <span class="status-tag blue">DEFAULT</span>
+      </div>
+      <div class="card">
+        <h4>批量操作台</h4>
+        <p style="font-size:13px;">点击任务展开批量控制面板。就绪/处理中/阻塞/完成 4 状态 + 一键处理按钮 + 实时进度条。</p>
+        <span class="status-tag green">POWER</span>
+      </div>
+      <div class="card">
+        <h4>Agent 工位</h4>
+        <p style="font-size:13px;">按 Agent 分组查看。显示每个数字员工当前负载、活跃任务、信任评分、技能列表。</p>
+        <span class="status-tag blue">MONITOR</span>
+      </div>
+      <div class="card">
+        <h4>依赖图</h4>
+        <p style="font-size:13px;">交互式 DAG 可视化（复用 Cytoscape.js）。节点=任务，边=依赖，颜色=状态。实线=逐企业，虚线=批级。</p>
+        <span class="status-tag blue">ANALYSIS</span>
+      </div>
+      <div class="card">
+        <h4>日历视图</h4>
+        <p style="font-size:13px;">月历 + 任务横条覆盖。征期红色高亮，当前日期标记，任务截止日可视。</p>
+        <span class="status-tag blue">PLANNING</span>
+      </div>
+      <div class="card">
+        <h4>异常中心</h4>
+        <p style="font-size:13px;">过滤视图: HITL 待审批 + 处理失败 + 逾期任务 + 风险告警。只显示需要人工关注的内容。</p>
+        <span class="status-tag red">ALERT</span>
+      </div>
+    </div>
+
+    <h3>Dashboard KPI 顶栏</h3>
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="label">本月进度</div>
+        <div class="value">23/41</div>
+        <div class="context">56.1% 任务完成</div>
+      </div>
+      <div class="kpi">
+        <div class="label">已处理企业</div>
+        <div class="value">28,471</div>
+        <div class="context">/ 40,959 单元 (69.5%)</div>
+      </div>
+      <div class="kpi">
+        <div class="label">征期倒计时</div>
+        <div class="value" style="color:var(--red);">3 天</div>
+        <div class="context">15 号法定截止</div>
+      </div>
+      <div class="kpi">
+        <div class="label">异常待处理</div>
+        <div class="value" style="color:var(--amber);">12</div>
+        <div class="context">需人工介入</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MIGRATION PLAN -->
+<section class="gray">
+  <div class="container">
+    <div class="section-num">10</div>
+    <h2>实施路线图：7 个阶段</h2>
+
+    <div class="key-message">从设计文档到真实客户试用需要 14 周。P1-P3 是基础引擎，P4-P6 是产品面，P7 是真实验证。</div>
+
+    <div class="phase-grid">
+      <div class="phase">
+        <div class="phase-header">P1-P2 基础引擎 (4 周)</div>
+        <ul style="font-size:14px;">
+          <li><strong>P1 (Week 1-2):</strong> 任务定义配置 (41 tasks YAML) + 依赖图引擎</li>
+          <li><strong>P2 (Week 3-4):</strong> 批量引擎核心 (分块处理 + 就绪过滤)</li>
+          <li>交付: task-definitions.yaml + dependency-engine.ts + batch-engine.ts</li>
+          <li>验证: 单元测试覆盖全部依赖解析边界情况</li>
+        </ul>
+      </div>
+      <div class="phase">
+        <div class="phase-header p2">P3-P4 Agent + Skill (4 周)</div>
+        <ul style="font-size:14px;">
+          <li><strong>P3 (Week 5-6):</strong> Agent 运行时 (7 agents, 信任记录, 主动激活)</li>
+          <li><strong>P4 (Week 7-8):</strong> Skill 集成 (Top 10 skills mock --> real)</li>
+          <li>交付: agent-runtime.ts + skill-executor.ts + trust-record.ts</li>
+          <li>验证: Agent 自动激活 + 批量 Skill 执行</li>
+        </ul>
+      </div>
+      <div class="phase">
+        <div class="phase-header p3">P5-P7 产品面 + 验证 (6 周)</div>
+        <ul style="font-size:14px;">
+          <li><strong>P5 (Week 9-10):</strong> 工作台 UI (6 视图 + Dashboard KPI)</li>
+          <li><strong>P6 (Week 11-12):</strong> KG 集成 (CF Worker 代理 + 查询层)</li>
+          <li><strong>P7 (Week 13-14):</strong> 真实代账公司试点 (3 场景)</li>
+          <li>验证: 1 家真实代账公司完整月度周期</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout-action">
+      <strong>P1 立即启动：</strong>task-definitions.yaml (41 任务完整配置) + dependency-engine.ts (依赖解析) + calendar-engine.ts (时间窗口激活) + 单元测试。这是整个系统的地基。
+    </div>
+  </div>
+</section>
+
+<!-- ADR -->
+<section>
+  <div class="container">
+    <div class="section-num">11</div>
+    <h2>架构决策记录 (ADR)</h2>
+
+    <div class="table-wrapper">
+      <table>
+        <colgroup>
+          <col style="width:80px;">
+          <col>
+          <col>
+          <col>
+        </colgroup>
+        <thead>
+          <tr><th>ADR</th><th>决策</th><th>理由</th><th>代价</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>W01</td><td>逐企业管线并行</td><td>3-5x 吞吐量提升，企业&nbsp;A 不需等企业&nbsp;B</td><td>状态追踪更复杂</td></tr>
+          <tr><td>W02</td><td>低版本 Agent 降级为手动</td><td>自然升级压力，不做硬功能门控</td><td>需维护手动/自动双路径</td></tr>
+          <tr><td>W03</td><td>按任务复杂度动态分块</td><td>防止复杂任务耗尽资源</td><td>需调优分块参数</td></tr>
+          <tr><td>W04</td><td>日历激活 + 事件触发双机制</td><td>防止过早激活 + 窗口内快速推进</td><td>两套触发逻辑</td></tr>
+          <tr><td>W05</td><td>KG 对客户不可见</td><td>防竞品抄袭 + 避免混淆非技术用户</td><td>客户不知道为什么准确率高</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Lingque / CogNebula -- Next-Gen Workbench Deep Design v1.0</p>
+  <p>Maurice | maurice_wen@proton.me</p>
+  <p class="attr">CONFIDENTIAL -- For internal use only | Generated 2026-03-28 | Data source: Competitor workbench HTML (16,709 lines, 2025-05) + OPTIMIZED_ARCHITECTURE_V2</p>
+</footer>
+
+</body>
+</html>

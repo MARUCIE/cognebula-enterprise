@@ -6,6 +6,7 @@ import { useToast } from "./Toast";
 
 const dailyNavItems = [
   { href: "/", label: "工作台", icon: DashboardIcon },
+  { href: "/workbench", label: "月度看板", icon: WorkbenchIcon },
   { href: "/clients", label: "客户中心", icon: ClientIcon },
   { href: "/reports", label: "报告中心", icon: ReportIcon },
 ];
@@ -249,6 +250,18 @@ function NavLink({
 }
 
 /* ---- Inline SVG Icons ---- */
+
+function WorkbenchIcon({ active }: { active: boolean }) {
+  const c = active ? "var(--color-on-primary)" : "var(--color-sidebar-text)";
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <rect x="3" y="3" width="4" height="18" stroke={c} strokeWidth="1.8" />
+      <rect x="9" y="3" width="4" height="18" stroke={c} strokeWidth="1.8" />
+      <rect x="15" y="3" width="4" height="18" stroke={c} strokeWidth="1.8" />
+      <line x1="3" y1="9" x2="21" y2="9" stroke={c} strokeWidth="1" opacity="0.5" />
+    </svg>
+  );
+}
 
 function DashboardIcon({ active }: { active: boolean }) {
   const c = active ? "var(--color-on-primary)" : "var(--color-sidebar-text)";

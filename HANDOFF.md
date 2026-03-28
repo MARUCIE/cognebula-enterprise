@@ -1,6 +1,43 @@
 # HANDOFF.md -- CogNebula / Lingque Desktop
 
-> Last updated: 2026-03-28T17:30Z
+> Last updated: 2026-03-28T18:30Z
+
+## Session 17 Summary — Next-Gen Workbench Deep Design
+
+### Deliverable: NEXT_GEN_WORKBENCH_DESIGN (MD + HTML McKinsey Blue)
+
+Based on 41-task real accounting workflow + OpenClaw proactive Agent + batch automation.
+Core thesis: bookkeeping company = factory production line, not knowledge workplace.
+
+**Key Design Decisions:**
+1. Calendar-driven proactive activation (agents initiate by date, not human clicks)
+2. Per-enterprise pipeline parallelism (Enterprise A at Task 5 while B at Task 4)
+3. Two dependency types: per-enterprise (strict serial) + batch-level (all must complete)
+4. 7 named digital employees with persistent trust records (the moat)
+5. 79 OpenClaw Skills mapped to 41 tasks (41 primary + 38 supporting)
+6. KG invisible to customer but powers 95% → 99.5% accuracy improvement
+
+**Agent Roster (7 digital employees):**
+- Starter (3): 小智(采集) + 小算(记账) + 小税(申报) = ¥999/月
+- Professional (5): + 小检(质检) + 总监(主管) = ¥2,999/月
+- Enterprise (7): + 小安(风控) + 小客(客服) = ¥8,999/月
+
+**Batch Engine:** Each task operates on 23-999 enterprises. Chunk processing (100/50/20/1 by complexity). Readiness filter prevents premature execution.
+
+**HITL:** Only 3 of 41 tasks require human intervention (Tasks 24/28/29 — client approval/confirmation/authorization).
+
+**Migration Plan:** 7 phases, 14 weeks. P1 starts immediately with task-definitions.yaml + dependency-engine + calendar-engine.
+
+### Files Created
+- `doc/00_project/initiative_lingque_fusion/NEXT_GEN_WORKBENCH_DESIGN.md` (agent-readable, English)
+- `doc/00_project/initiative_lingque_fusion/NEXT_GEN_WORKBENCH_DESIGN-zh.html` (human-readable, McKinsey Blue, Chinese)
+
+### Next Steps (Priority Order)
+1. **P1 implementation**: task-definitions.yaml + dependency-engine.ts + calendar-engine.ts + unit tests
+2. **System split execution**: Phase 1 from architecture v2 (KG Explorer → internal, CF Worker proxy)
+3. **First customer**: Find 1 real accounting firm for pilot (3 scenarios)
+
+---
 
 ## Session 16 Summary — Architecture Redesign + Expert Workbench + 41-Task Model
 

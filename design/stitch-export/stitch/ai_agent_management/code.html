@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&amp;family=Noto+Sans+SC:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary": "#ffffff",
+              "on-background": "#1a1c1b",
+              "tertiary-container": "#38384e",
+              "on-primary-container": "#7ea5e2",
+              "inverse-surface": "#2f3130",
+              "tertiary": "#222338",
+              "primary": "#00244a",
+              "on-secondary-container": "#785000",
+              "primary-fixed": "#d5e3ff",
+              "primary-container": "#003a70",
+              "surface-bright": "#f9f9f7",
+              "on-primary": "#ffffff",
+              "surface": "#f9f9f7",
+              "on-secondary-fixed": "#291800",
+              "primary-fixed-dim": "#a6c8ff",
+              "on-tertiary-container": "#a2a1bc",
+              "secondary": "#815600",
+              "on-tertiary-fixed": "#191a2e",
+              "on-secondary": "#ffffff",
+              "on-surface-variant": "#434750",
+              "surface-tint": "#355f97",
+              "surface-container": "#eeeeec",
+              "tertiary-fixed": "#e1e0fd",
+              "secondary-fixed": "#ffddb1",
+              "outline": "#737781",
+              "on-error-container": "#93000a",
+              "surface-container-low": "#f4f4f2",
+              "surface-container-highest": "#e2e3e1",
+              "outline-variant": "#c3c6d1",
+              "on-surface": "#1a1c1b",
+              "on-tertiary-fixed-variant": "#44455c",
+              "inverse-on-surface": "#f1f1ef",
+              "on-error": "#ffffff",
+              "error": "#ba1a1a",
+              "surface-variant": "#e2e3e1",
+              "background": "#f9f9f7",
+              "surface-container-lowest": "#ffffff",
+              "tertiary-fixed-dim": "#c5c4e0",
+              "secondary-fixed-dim": "#f6bc65",
+              "surface-container-high": "#e8e8e6",
+              "inverse-primary": "#a6c8ff",
+              "error-container": "#ffdad6",
+              "on-primary-fixed": "#001c3b",
+              "on-secondary-fixed-variant": "#614000",
+              "on-primary-fixed-variant": "#18477e",
+              "surface-dim": "#dadad8",
+              "secondary-container": "#ffc56d"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', 'Noto Sans SC', sans-serif; background-color: #f9f9f7; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="flex min-h-screen">
+<!-- SideNavBar Anchor -->
+<aside class="hidden md:flex flex-col h-screen sticky top-0 left-0 w-64 bg-[#f4f4f2] dark:bg-[#1d1d1b] border-r-0 py-8 z-40">
+<div class="px-6 mb-10">
+<h1 class="text-lg font-black text-[#1D1B19] tracking-tight">Lingque AI</h1>
+<p class="font-['Inter'] text-[0.6875rem] uppercase tracking-widest font-bold text-[#434750]">Intelligent Bookkeeping</p>
+</div>
+<button class="mx-6 mb-8 bg-gradient-to-br from-[#00244a] to-[#003a70] text-white py-3 font-bold text-sm tracking-wide active:opacity-90">
+            New Task
+        </button>
+<nav class="flex-grow space-y-1">
+<div class="flex items-center px-6 py-3 text-[#434750] dark:text-[#a0a0a0] font-['Inter'] text-[0.6875rem] uppercase tracking-widest font-bold hover:bg-[#e8e8e6] cursor-pointer transition-all duration-150">
+<span class="material-symbols-outlined mr-4" data-icon="dashboard">dashboard</span>
+                Overview
+            </div>
+<!-- Active State: AI Employees -->
+<div class="flex items-center px-6 py-3 bg-[#eeeeec] dark:bg-[#2a2a28] text-[#003A70] dark:text-[#f9f9f7] font-['Inter'] text-[0.6875rem] uppercase tracking-widest font-bold cursor-pointer transition-all duration-150">
+<span class="material-symbols-outlined mr-4" data-icon="smart_toy">smart_toy</span>
+                AI Employees
+            </div>
+<div class="flex items-center px-6 py-3 text-[#434750] dark:text-[#a0a0a0] font-['Inter'] text-[0.6875rem] uppercase tracking-widest font-bold hover:bg-[#e8e8e6] cursor-pointer transition-all duration-150">
+<span class="material-symbols-outlined mr-4" data-icon="account_balance_wallet">account_balance_wallet</span>
+                Transactions
+            </div>
+<div class="flex items-center px-6 py-3 text-[#434750] dark:text-[#a0a0a0] font-['Inter'] text-[0.6875rem] uppercase tracking-widest font-bold hover:bg-[#e8e8e6] cursor-pointer transition-all duration-150">
+<span class="material-symbols-outlined mr-4" data-icon="menu_book">menu_book</span>
+                Ledger
+            </div>
+<div class="flex items-center px-6 py-3 text-[#434750] dark:text-[#a0a0a0] font-['Inter'] text-[0.6875rem] uppercase tracking-widest font-bold hover:bg-[#e8e8e6] cursor-pointer transition-all duration-150">
+<span class="material-symbols-outlined mr-4" data-icon="verified_user">verified_user</span>
+                Audit
+            </div>
+</nav>
+<div class="mt-auto border-t border-transparent pt-4">
+<div class="flex items-center px-6 py-3 text-[#434750] dark:text-[#a0a0a0] font-['Inter'] text-[0.6875rem] uppercase tracking-widest font-bold hover:bg-[#e8e8e6] cursor-pointer transition-all">
+<span class="material-symbols-outlined mr-4" data-icon="help">help</span>
+                Help
+            </div>
+<div class="flex items-center px-6 py-3 text-[#434750] dark:text-[#a0a0a0] font-['Inter'] text-[0.6875rem] uppercase tracking-widest font-bold hover:bg-[#e8e8e6] cursor-pointer transition-all">
+<span class="material-symbols-outlined mr-4" data-icon="logout">logout</span>
+                Logout
+            </div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-grow flex flex-col">
+<!-- TopAppBar Anchor -->
+<header class="flex justify-between items-center px-6 h-16 w-full sticky top-0 z-50 bg-[#f9f9f7] border-b-0">
+<div class="flex items-center space-x-8">
+<span class="text-xl font-bold text-[#1D1B19] tracking-[0.05rem]">Lingque Office</span>
+<nav class="hidden lg:flex space-x-6 font-['Inter'] font-medium text-sm tracking-tight">
+<span class="text-[#434750] hover:text-[#00244a] cursor-pointer transition-colors duration-200">Dashboard</span>
+<span class="text-[#003A70] border-b-2 border-[#815600] pb-1 cursor-pointer">Reports</span>
+<span class="text-[#434750] hover:text-[#00244a] cursor-pointer transition-colors duration-200">Settings</span>
+</nav>
+</div>
+<div class="flex items-center space-x-4">
+<div class="relative hidden sm:block">
+<input class="bg-[#eeeeec] border-none text-xs px-4 py-2 w-64 focus:ring-1 focus:ring-[#003A70] font-medium placeholder:text-[#434750]" placeholder="Search ledger..." type="text"/>
+</div>
+<div class="flex items-center space-x-2 text-[#434750]">
+<span class="material-symbols-outlined p-2 cursor-pointer hover:bg-surface-container transition-all" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined p-2 cursor-pointer hover:bg-surface-container transition-all" data-icon="account_circle">account_circle</span>
+</div>
+</div>
+</header>
+<!-- Canvas Container -->
+<section class="p-8 max-w-7xl mx-auto w-full">
+<!-- Breadcrumbs & Header -->
+<div class="mb-10">
+<div class="flex items-center text-[0.6875rem] uppercase tracking-[0.1em] font-bold text-[#434750] mb-2">
+<span>Admin</span>
+<span class="mx-2">/</span>
+<span class="text-[#815600]">Digital Workforce</span>
+</div>
+<h2 class="text-3xl font-black text-[#1D1B19] tracking-tight">AI Agent Management</h2>
+<div class="mt-4 flex space-x-4">
+<div class="bg-white border-l-4 border-[#815600] px-4 py-3 flex flex-col">
+<span class="text-[0.6rem] uppercase tracking-widest font-bold text-[#434750]">Active Nodes</span>
+<span class="text-xl font-black text-[#1D1B19]">07 / 10</span>
+</div>
+<div class="bg-white border-l-4 border-primary px-4 py-3 flex flex-col">
+<span class="text-[0.6rem] uppercase tracking-widest font-bold text-[#434750]">Avg Response</span>
+<span class="text-xl font-black text-[#1D1B19]">0.84s</span>
+</div>
+</div>
+</div>
+<!-- Agent Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Agent Card 1 -->
+<div class="bg-white border-none p-6 flex flex-col justify-between group hover:bg-[#eeeeec] transition-colors duration-200">
+<div>
+<div class="flex justify-between items-start mb-4">
+<span class="text-[0.6875rem] font-bold tracking-widest text-[#434750] uppercase">Agent-001</span>
+<div class="flex items-center bg-[#eeeeec] px-2 py-0.5">
+<span class="w-1.5 h-1.5 bg-green-600 mr-2"></span>
+<span class="text-[0.6rem] font-bold uppercase tracking-tight text-[#1D1B19]">Active</span>
+</div>
+</div>
+<h3 class="text-lg font-black text-[#003A70] mb-1">OCR Extraction</h3>
+<p class="text-xs text-[#434750] mb-6">Automated invoice data entry and verification from legacy scans.</p>
+</div>
+<div>
+<div class="flex justify-between items-end mb-4">
+<div>
+<span class="text-[0.6rem] uppercase font-bold text-[#434750] block mb-1">Performance</span>
+<span class="text-xl font-black text-[#815600]">99.8% <span class="text-xs font-normal text-[#434750] tracking-normal uppercase">Accuracy</span></span>
+</div>
+<div class="h-8 flex items-end space-x-1">
+<div class="w-1 bg-[#c3c6d1] h-3"></div>
+<div class="w-1 bg-[#c3c6d1] h-5"></div>
+<div class="w-1 bg-[#003A70] h-8"></div>
+<div class="w-1 bg-[#003A70] h-6"></div>
+<div class="w-1 bg-[#003A70] h-7"></div>
+</div>
+</div>
+<button class="w-full text-left py-2 border-t border-[#eeeeec] text-[#434750] text-[0.6875rem] font-bold uppercase tracking-widest hover:text-[#003A70] transition-colors">Configure Node</button>
+</div>
+</div>
+<!-- Agent Card 2 -->
+<div class="bg-white border-none p-6 flex flex-col justify-between group hover:bg-[#eeeeec] transition-colors duration-200">
+<div>
+<div class="flex justify-between items-start mb-4">
+<span class="text-[0.6875rem] font-bold tracking-widest text-[#434750] uppercase">Agent-002</span>
+<div class="flex items-center bg-secondary-fixed px-2 py-0.5">
+<span class="w-1.5 h-1.5 bg-secondary mr-2"></span>
+<span class="text-[0.6rem] font-bold uppercase tracking-tight text-on-secondary-container">Processing</span>
+</div>
+</div>
+<h3 class="text-lg font-black text-[#003A70] mb-1">Tax Compliance</h3>
+<p class="text-xs text-[#434750] mb-6">Quarterly auditing against local jurisdiction regulations.</p>
+</div>
+<div>
+<div class="flex justify-between items-end mb-4">
+<div>
+<span class="text-[0.6rem] uppercase font-bold text-[#434750] block mb-1">Performance</span>
+<span class="text-xl font-black text-[#815600]">1.2s <span class="text-xs font-normal text-[#434750] tracking-normal uppercase">Avg Process</span></span>
+</div>
+<div class="h-8 flex items-end space-x-1">
+<div class="w-1 bg-[#003A70] h-4"></div>
+<div class="w-1 bg-[#003A70] h-6"></div>
+<div class="w-1 bg-[#c3c6d1] h-3"></div>
+<div class="w-1 bg-[#003A70] h-5"></div>
+<div class="w-1 bg-[#003A70] h-7"></div>
+</div>
+</div>
+<button class="w-full text-left py-2 border-t border-[#eeeeec] text-[#434750] text-[0.6875rem] font-bold uppercase tracking-widest hover:text-[#003A70] transition-colors">Configure Node</button>
+</div>
+</div>
+<!-- Agent Card 3 -->
+<div class="bg-white border-none p-6 flex flex-col justify-between group hover:bg-[#eeeeec] transition-colors duration-200">
+<div>
+<div class="flex justify-between items-start mb-4">
+<span class="text-[0.6875rem] font-bold tracking-widest text-[#434750] uppercase">Agent-003</span>
+<div class="flex items-center bg-[#eeeeec] px-2 py-0.5">
+<span class="w-1.5 h-1.5 bg-gray-400 mr-2"></span>
+<span class="text-[0.6rem] font-bold uppercase tracking-tight text-[#1D1B19]">Idle</span>
+</div>
+</div>
+<h3 class="text-lg font-black text-[#003A70] mb-1">Ledger Balancing</h3>
+<p class="text-xs text-[#434750] mb-6">Real-time reconciliation of multi-currency general ledger entries.</p>
+</div>
+<div>
+<div class="flex justify-between items-end mb-4">
+<div>
+<span class="text-[0.6rem] uppercase font-bold text-[#434750] block mb-1">Performance</span>
+<span class="text-xl font-black text-[#815600]">100% <span class="text-xs font-normal text-[#434750] tracking-normal uppercase">Uptime</span></span>
+</div>
+<div class="h-8 flex items-end space-x-1">
+<div class="w-1 bg-[#c3c6d1] h-2"></div>
+<div class="w-1 bg-[#c3c6d1] h-2"></div>
+<div class="w-1 bg-[#c3c6d1] h-2"></div>
+<div class="w-1 bg-[#c3c6d1] h-2"></div>
+<div class="w-1 bg-[#c3c6d1] h-2"></div>
+</div>
+</div>
+<button class="w-full text-left py-2 border-t border-[#eeeeec] text-[#434750] text-[0.6875rem] font-bold uppercase tracking-widest hover:text-[#003A70] transition-colors">Configure Node</button>
+</div>
+</div>
+<!-- Agent Card 4 -->
+<div class="bg-white border-none p-6 flex flex-col justify-between group hover:bg-[#eeeeec] transition-colors duration-200">
+<div>
+<div class="flex justify-between items-start mb-4">
+<span class="text-[0.6875rem] font-bold tracking-widest text-[#434750] uppercase">Agent-004</span>
+<div class="flex items-center bg-[#eeeeec] px-2 py-0.5">
+<span class="w-1.5 h-1.5 bg-green-600 mr-2"></span>
+<span class="text-[0.6rem] font-bold uppercase tracking-tight text-[#1D1B19]">Active</span>
+</div>
+</div>
+<h3 class="text-lg font-black text-[#003A70] mb-1">Anomaly Detection</h3>
+<p class="text-xs text-[#434750] mb-6">Fraud prevention layer identifying irregular transaction patterns.</p>
+</div>
+<div>
+<div class="flex justify-between items-end mb-4">
+<div>
+<span class="text-[0.6rem] uppercase font-bold text-[#434750] block mb-1">Performance</span>
+<span class="text-xl font-black text-[#815600]">0.4s <span class="text-xs font-normal text-[#434750] tracking-normal uppercase">Latency</span></span>
+</div>
+<div class="h-8 flex items-end space-x-1">
+<div class="w-1 bg-[#003A70] h-6"></div>
+<div class="w-1 bg-[#003A70] h-8"></div>
+<div class="w-1 bg-[#003A70] h-5"></div>
+<div class="w-1 bg-[#003A70] h-7"></div>
+<div class="w-1 bg-[#003A70] h-4"></div>
+</div>
+</div>
+<button class="w-full text-left py-2 border-t border-[#eeeeec] text-[#434750] text-[0.6875rem] font-bold uppercase tracking-widest hover:text-[#003A70] transition-colors">Configure Node</button>
+</div>
+</div>
+<!-- Agent Card 5 -->
+<div class="bg-white border-none p-6 flex flex-col justify-between group hover:bg-[#eeeeec] transition-colors duration-200">
+<div>
+<div class="flex justify-between items-start mb-4">
+<span class="text-[0.6875rem] font-bold tracking-widest text-[#434750] uppercase">Agent-005</span>
+<div class="flex items-center bg-[#eeeeec] px-2 py-0.5">
+<span class="w-1.5 h-1.5 bg-green-600 mr-2"></span>
+<span class="text-[0.6rem] font-bold uppercase tracking-tight text-[#1D1B19]">Active</span>
+</div>
+</div>
+<h3 class="text-lg font-black text-[#003A70] mb-1">Forecasting engine</h3>
+<p class="text-xs text-[#434750] mb-6">Predictive cash flow analysis for upcoming fiscal quarters.</p>
+</div>
+<div>
+<div class="flex justify-between items-end mb-4">
+<div>
+<span class="text-[0.6rem] uppercase font-bold text-[#434750] block mb-1">Performance</span>
+<span class="text-xl font-black text-[#815600]">94.2% <span class="text-xs font-normal text-[#434750] tracking-normal uppercase">Reliability</span></span>
+</div>
+<div class="h-8 flex items-end space-x-1">
+<div class="w-1 bg-[#003A70] h-3"></div>
+<div class="w-1 bg-[#003A70] h-4"></div>
+<div class="w-1 bg-[#003A70] h-6"></div>
+<div class="w-1 bg-[#003A70] h-5"></div>
+<div class="w-1 bg-[#003A70] h-6"></div>
+</div>
+</div>
+<button class="w-full text-left py-2 border-t border-[#eeeeec] text-[#434750] text-[0.6875rem] font-bold uppercase tracking-widest hover:text-[#003A70] transition-colors">Configure Node</button>
+</div>
+</div>
+<!-- Agent Card 6 -->
+<div class="bg-white border-none p-6 flex flex-col justify-between group hover:bg-[#eeeeec] transition-colors duration-200">
+<div>
+<div class="flex justify-between items-start mb-4">
+<span class="text-[0.6875rem] font-bold tracking-widest text-[#434750] uppercase">Agent-006</span>
+<div class="flex items-center bg-error-container px-2 py-0.5">
+<span class="w-1.5 h-1.5 bg-error mr-2"></span>
+<span class="text-[0.6rem] font-bold uppercase tracking-tight text-on-error-container">Maintenance</span>
+</div>
+</div>
+<h3 class="text-lg font-black text-[#003A70] mb-1">Payroll Sync</h3>
+<p class="text-xs text-[#434750] mb-6">Synchronization module between HR systems and corporate ledger.</p>
+</div>
+<div>
+<div class="flex justify-between items-end mb-4">
+<div>
+<span class="text-[0.6rem] uppercase font-bold text-[#434750] block mb-1">Performance</span>
+<span class="text-xl font-black text-[#815600]">OFFLINE <span class="text-xs font-normal text-[#434750] tracking-normal uppercase">Status</span></span>
+</div>
+<div class="h-8 flex items-end space-x-1 opacity-20">
+<div class="w-1 bg-[#c3c6d1] h-1"></div>
+<div class="w-1 bg-[#c3c6d1] h-1"></div>
+<div class="w-1 bg-[#c3c6d1] h-1"></div>
+<div class="w-1 bg-[#c3c6d1] h-1"></div>
+<div class="w-1 bg-[#c3c6d1] h-1"></div>
+</div>
+</div>
+<button class="w-full text-left py-2 border-t border-[#eeeeec] text-[#434750] text-[0.6875rem] font-bold uppercase tracking-widest hover:text-[#003A70] transition-colors">System Log</button>
+</div>
+</div>
+<!-- Agent Card 7 (Sole item on Row 3) -->
+<div class="bg-white border-none p-6 flex flex-col justify-between group hover:bg-[#eeeeec] transition-colors duration-200">
+<div>
+<div class="flex justify-between items-start mb-4">
+<span class="text-[0.6875rem] font-bold tracking-widest text-[#434750] uppercase">Agent-007</span>
+<div class="flex items-center bg-secondary-fixed px-2 py-0.5">
+<span class="w-1.5 h-1.5 bg-secondary mr-2"></span>
+<span class="text-[0.6rem] font-bold uppercase tracking-tight text-on-secondary-container">Processing</span>
+</div>
+</div>
+<h3 class="text-lg font-black text-[#003A70] mb-1">Entity Mapping</h3>
+<p class="text-xs text-[#434750] mb-6">Global corporate structure mapping for consolidated reports.</p>
+</div>
+<div>
+<div class="flex justify-between items-end mb-4">
+<div>
+<span class="text-[0.6rem] uppercase font-bold text-[#434750] block mb-1">Performance</span>
+<span class="text-xl font-black text-[#815600]">91.5% <span class="text-xs font-normal text-[#434750] tracking-normal uppercase">Match Rate</span></span>
+</div>
+<div class="h-8 flex items-end space-x-1">
+<div class="w-1 bg-[#003A70] h-5"></div>
+<div class="w-1 bg-[#003A70] h-4"></div>
+<div class="w-1 bg-[#003A70] h-7"></div>
+<div class="w-1 bg-[#c3c6d1] h-3"></div>
+<div class="w-1 bg-[#003A70] h-6"></div>
+</div>
+</div>
+<button class="w-full text-left py-2 border-t border-[#eeeeec] text-[#434750] text-[0.6875rem] font-bold uppercase tracking-widest hover:text-[#003A70] transition-colors">Configure Node</button>
+</div>
+</div>
+</div>
+<!-- Dashboard Visual Element -->
+<div class="mt-12 bg-surface-container p-8 grid grid-cols-1 lg:grid-cols-4 gap-8">
+<div class="lg:col-span-3">
+<h4 class="text-[0.6875rem] uppercase font-bold tracking-widest text-[#434750] mb-4">Global Neural Load Distribution</h4>
+<div class="h-48 w-full bg-white relative flex items-end p-4">
+<div class="absolute inset-0 flex flex-col justify-between py-4 px-2">
+<div class="border-b border-[#eeeeec] w-full"></div>
+<div class="border-b border-[#eeeeec] w-full"></div>
+<div class="border-b border-[#eeeeec] w-full"></div>
+<div class="border-b border-[#eeeeec] w-full"></div>
+</div>
+<div class="relative w-full h-full flex items-end justify-between px-8">
+<div class="w-8 bg-[#003A70]" style="height: 60%;"></div>
+<div class="w-8 bg-[#003A70]" style="height: 85%;"></div>
+<div class="w-8 bg-[#815600]" style="height: 45%;"></div>
+<div class="w-8 bg-[#003A70]" style="height: 70%;"></div>
+<div class="w-8 bg-[#003A70]" style="height: 95%;"></div>
+<div class="w-8 bg-[#003A70]" style="height: 40%;"></div>
+<div class="w-8 bg-[#c3c6d1]" style="height: 20%;"></div>
+</div>
+</div>
+</div>
+<div class="bg-[#00244a] p-6 text-white flex flex-col justify-center">
+<span class="text-[0.6rem] uppercase font-bold tracking-widest opacity-60 mb-2">Total Compute</span>
+<span class="text-4xl font-black mb-4">12.4 TFLOPs</span>
+<p class="text-[0.6875rem] text-primary-fixed-dim leading-relaxed">System operating at 78% of rated architectural capacity. All modules healthy.</p>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar for Mobile Shell Logic -->
+<nav class="md:hidden fixed bottom-0 w-full h-16 bg-[#f4f4f2] flex items-center justify-around z-50 border-t-0">
+<div class="flex flex-col items-center text-[#434750]">
+<span class="material-symbols-outlined text-xl" data-icon="dashboard">dashboard</span>
+<span class="text-[0.6rem] font-bold uppercase tracking-tight">Overview</span>
+</div>
+<div class="flex flex-col items-center text-[#003A70]">
+<span class="material-symbols-outlined text-xl" data-icon="smart_toy">smart_toy</span>
+<span class="text-[0.6rem] font-bold uppercase tracking-tight">AI Agents</span>
+</div>
+<div class="flex flex-col items-center text-[#434750]">
+<span class="material-symbols-outlined text-xl" data-icon="account_balance_wallet">account_balance_wallet</span>
+<span class="text-[0.6rem] font-bold uppercase tracking-tight">Ledger</span>
+</div>
+<div class="flex flex-col items-center text-[#434750]">
+<span class="material-symbols-outlined text-xl" data-icon="account_circle">account_circle</span>
+<span class="text-[0.6rem] font-bold uppercase tracking-tight">Profile</span>
+</div>
+</nav>
+</body></html>

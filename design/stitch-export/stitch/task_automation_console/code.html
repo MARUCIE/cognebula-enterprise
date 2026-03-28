@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>灵阙智能代账 - 任务自动化控制台</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=Noto+Sans+SC:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-dim": "#dadad8",
+                        "surface-container-highest": "#e2e3e1",
+                        "on-background": "#1a1c1b",
+                        "surface-container-low": "#f4f4f2",
+                        "primary-fixed-dim": "#a6c8ff",
+                        "on-tertiary-container": "#a2a1bc",
+                        "surface-container": "#eeeeec",
+                        "surface-tint": "#355f97",
+                        "surface": "#f9f9f7",
+                        "tertiary-fixed-dim": "#c5c4e0",
+                        "on-primary-fixed-variant": "#18477e",
+                        "on-tertiary-fixed": "#191a2e",
+                        "outline-variant": "#c3c6d1",
+                        "tertiary-fixed": "#e1e0fd",
+                        "on-surface-variant": "#434750",
+                        "surface-bright": "#f9f9f7",
+                        "on-primary-fixed": "#001c3b",
+                        "outline": "#737781",
+                        "surface-container-lowest": "#ffffff",
+                        "primary": "#00244a",
+                        "background": "#f9f9f7",
+                        "primary-fixed": "#d5e3ff",
+                        "secondary": "#815600",
+                        "on-secondary": "#ffffff",
+                        "inverse-on-surface": "#f1f1ef",
+                        "primary-container": "#003a70",
+                        "error-container": "#ffdad6",
+                        "tertiary-container": "#38384e",
+                        "on-secondary-fixed-variant": "#614000",
+                        "tertiary": "#222338",
+                        "secondary-fixed": "#ffddb1",
+                        "secondary-container": "#ffc56d",
+                        "on-error-container": "#93000a",
+                        "inverse-primary": "#a6c8ff",
+                        "secondary-fixed-dim": "#f6bc65",
+                        "surface-variant": "#e2e3e1",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-container": "#7ea5e2",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#e8e8e6",
+                        "on-tertiary-fixed-variant": "#44455c",
+                        "error": "#ba1a1a",
+                        "on-surface": "#1a1c1b",
+                        "on-error": "#ffffff",
+                        "on-secondary-container": "#785000",
+                        "on-secondary-fixed": "#291800",
+                        "inverse-surface": "#2f3130"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter", "Noto Sans SC"],
+                        "body": ["Inter", "Noto Sans SC"],
+                        "label": ["Inter", "Noto Sans SC"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body {
+            background-color: #f9f9f7;
+            color: #1a1c1b;
+            font-family: 'Inter', 'Noto Sans SC', sans-serif;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .gradient-button {
+            background: linear-gradient(135deg, #00244a 0%, #003a70 100%);
+        }
+    </style>
+</head>
+<body class="flex min-h-screen">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full z-40 flex flex-col py-4 bg-[#f4f4f2] w-64 border-r border-[#eeeeec]">
+<div class="px-6 mb-8">
+<h1 class="text-[#003A70] font-black tracking-widest uppercase text-lg">LINGQUE AI</h1>
+<p class="text-[0.6875rem] text-on-surface-variant tracking-[0.1em] uppercase font-bold">智能代账系统</p>
+</div>
+<nav class="flex-1 space-y-1">
+<div class="px-3">
+<a class="flex items-center px-3 py-3 text-[#434750] hover:bg-[#eeeeec] transition-colors duration-150" href="#">
+<span class="material-symbols-outlined mr-3">psychology</span>
+<span class="font-medium text-[0.875rem]">AI 智能作业</span>
+</a>
+<a class="flex items-center px-3 py-3 text-[#434750] hover:bg-[#eeeeec]" href="#">
+<span class="material-symbols-outlined mr-3">business_center</span>
+<span class="font-medium text-[0.875rem]">企业管理</span>
+</a>
+<a class="flex items-center px-3 py-3 bg-[#f9f9f7] text-[#003A70] border-l-4 border-[#C5913E]" href="#">
+<span class="material-symbols-outlined mr-3" style="font-variation-settings: 'FILL' 1;">sync_alt</span>
+<span class="font-medium text-[0.875rem]">任务自动化</span>
+</a>
+<a class="flex items-center px-3 py-3 text-[#434750] hover:bg-[#eeeeec]" href="#">
+<span class="material-symbols-outlined mr-3">verified_user</span>
+<span class="font-medium text-[0.875rem]">财务复核</span>
+</a>
+</div>
+</nav>
+<div class="px-4 mt-auto space-y-2">
+<button class="w-full gradient-button text-white py-3 font-bold text-sm tracking-tight flex items-center justify-center gap-2 active:opacity-90">
+<span class="material-symbols-outlined text-sm">add</span>
+                新建账套
+            </button>
+<div class="pt-4 border-t border-[#e2e3e1] space-y-1">
+<a class="flex items-center px-3 py-2 text-[#434750] hover:bg-[#eeeeec] text-xs" href="#">
+<span class="material-symbols-outlined mr-3 text-sm">help_outline</span>
+                    帮助中心
+                </a>
+<a class="flex items-center px-3 py-2 text-[#434750] hover:bg-[#eeeeec] text-xs" href="#">
+<span class="material-symbols-outlined mr-3 text-sm">history_edu</span>
+                    系统日志
+                </a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 flex-1 flex flex-col min-h-screen relative bg-[#f9f9f7]">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center w-full px-8 h-16 border-b-2 border-[#003A70] bg-[#f9f9f7] sticky top-0 z-30">
+<div class="flex items-center gap-8">
+<div class="text-xl font-bold text-[#003A70] tracking-tighter">灵阙智能代账</div>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-[#434750] hover:text-[#003A70] transition-colors text-sm font-['Inter','Noto_Sans_SC'] tracking-tight" href="#">工作台</a>
+<a class="text-[#434750] hover:text-[#003A70] transition-colors text-sm font-['Inter','Noto_Sans_SC'] tracking-tight" href="#">客户看板</a>
+<a class="text-[#003A70] border-b-2 border-[#003A70] font-bold text-sm font-['Inter','Noto_Sans_SC'] tracking-tight" href="#">自动化中心</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-low border border-outline-variant/20">
+<span class="material-symbols-outlined text-primary text-lg">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-48 font-body" placeholder="搜索任务或流水..." type="text"/>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:bg-[#eeeeec] p-2">smart_toy</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:bg-[#eeeeec] p-2 relative">
+                    notifications
+                    <span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:bg-[#eeeeec] p-2">settings</span>
+<img alt="用户头像" class="w-8 h-8 object-cover border border-outline-variant/30" data-alt="professional male accountant portrait in corporate attire with neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3hqRqwaOP_MCvQFHD5ns-OgR2PDGZmIJy1AMrPcX92lfv9sgprb4dz-eAqWcEuQySxCGHCLzwBrEEf82ZnE5K3eiI1Z3Z9NKWd48MWoG7U71yWrEHOVldaLPN4flPRlc7MWAHDks2NL_gyRoqD7kgZqj7D4cg1GlUhypBya_ZUzls3oAZhW0BQks6UuA4JL3--shlWOAqOg3j55bMoDB8_uN7JwOHHqYeHk192lHiS-_TN-Inz82FnHrzGwPpoFQ0JBYrf5qd-Aw"/>
+</div>
+</header>
+<!-- Dashboard Body -->
+<div class="p-8 space-y-8">
+<!-- Hero Stats / Bento Grid -->
+<div class="grid grid-cols-12 gap-6">
+<!-- Live AI Activity -->
+<div class="col-span-12 lg:col-span-8 bg-surface-container-lowest p-6 border-b-4 border-[#C5913E]">
+<div class="flex justify-between items-end mb-6">
+<div>
+<h2 class="text-2xl font-black tracking-tighter text-primary">TASK AUTOMATION CONSOLE</h2>
+<p class="text-on-surface-variant text-sm font-medium">任务自动化控制台 — 实时运行状态</p>
+</div>
+<div class="flex gap-2">
+<span class="px-3 py-1 bg-secondary-fixed text-on-secondary-container text-[0.6875rem] font-bold tracking-widest uppercase">41 Active Threads</span>
+<span class="px-3 py-1 bg-[#1B7F4B]/10 text-[#1B7F4B] text-[0.6875rem] font-bold tracking-widest uppercase">System Stable</span>
+</div>
+</div>
+<!-- Digital Employee Feed -->
+<div class="grid grid-cols-4 gap-4">
+<div class="bg-surface p-4 border-l-4 border-primary">
+<div class="flex justify-between items-start mb-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">precision_manufacturing</span>
+<span class="text-[0.6rem] bg-surface-container-highest px-1 text-on-surface-variant font-bold">NODE_01</span>
+</div>
+<div class="text-xs font-bold text-on-surface truncate">Bank Statement Fetcher</div>
+<div class="mt-3 h-1 bg-surface-container">
+<div class="bg-primary h-full w-[85%]"></div>
+</div>
+<div class="mt-2 text-[0.6rem] text-on-surface-variant flex justify-between">
+<span>Running</span>
+<span class="font-mono">85%</span>
+</div>
+</div>
+<div class="bg-surface p-4 border-l-4 border-primary">
+<div class="flex justify-between items-start mb-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<span class="text-[0.6rem] bg-surface-container-highest px-1 text-on-surface-variant font-bold">NODE_02</span>
+</div>
+<div class="text-xs font-bold text-on-surface truncate">AI Auto-Classification</div>
+<div class="mt-3 h-1 bg-surface-container">
+<div class="bg-primary h-full w-[42%]"></div>
+</div>
+<div class="mt-2 text-[0.6rem] text-on-surface-variant flex justify-between">
+<span>Processing Vouchers</span>
+<span class="font-mono">42%</span>
+</div>
+</div>
+<div class="bg-surface p-4 border-l-4 border-[#C5913E]">
+<div class="flex justify-between items-start mb-2">
+<span class="material-symbols-outlined text-[#C5913E]" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+<span class="text-[0.6rem] bg-surface-container-highest px-1 text-on-surface-variant font-bold">NODE_03</span>
+</div>
+<div class="text-xs font-bold text-on-surface truncate">Tax Calculation Engine</div>
+<div class="mt-3 h-1 bg-surface-container">
+<div class="bg-[#C5913E] h-full w-full"></div>
+</div>
+<div class="mt-2 text-[0.6rem] text-on-surface-variant flex justify-between">
+<span>Awaiting Approval</span>
+<span class="font-mono text-[#C5913E]">READY</span>
+</div>
+</div>
+<div class="bg-surface p-4 border-l-4 border-error">
+<div class="flex justify-between items-start mb-2">
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">warning</span>
+<span class="text-[0.6rem] bg-error-container px-1 text-on-error-container font-bold">NODE_04</span>
+</div>
+<div class="text-xs font-bold text-on-surface truncate">Balance Sheet Gen</div>
+<div class="mt-3 h-1 bg-surface-container">
+<div class="bg-error h-full w-[12%]"></div>
+</div>
+<div class="mt-2 text-[0.6rem] text-on-surface-variant flex justify-between">
+<span class="text-error">Exception Flag</span>
+<span class="font-mono text-error">ERR</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Control Center -->
+<div class="col-span-12 lg:col-span-4 bg-surface-container-high p-6 flex flex-col justify-between">
+<div>
+<h3 class="text-sm font-bold tracking-widest uppercase text-primary mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">settings_remote</span>
+                            Control Center
+                        </h3>
+<div class="space-y-3">
+<div class="flex justify-between items-center bg-surface-container-lowest p-3">
+<span class="text-xs font-bold">Global Automation</span>
+<div class="w-10 h-5 bg-primary relative cursor-pointer">
+<div class="absolute right-0.5 top-0.5 w-4 h-4 bg-white"></div>
+</div>
+</div>
+<div class="flex justify-between items-center bg-surface-container-lowest p-3 opacity-50">
+<span class="text-xs font-bold">Nightly Batch Sync</span>
+<div class="w-10 h-5 bg-surface-dim relative cursor-pointer">
+<div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white"></div>
+</div>
+</div>
+<div class="flex justify-between items-center bg-surface-container-lowest p-3">
+<span class="text-xs font-bold">Invoice OCR API</span>
+<div class="w-10 h-5 bg-primary relative cursor-pointer">
+<div class="absolute right-0.5 top-0.5 w-4 h-4 bg-white"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-6 pt-6 border-t border-outline-variant/30">
+<button class="w-full bg-error text-white font-bold text-[0.6875rem] py-2 uppercase tracking-[0.2em]">Emergency Stop</button>
+</div>
+</div>
+</div>
+<!-- Content Row: Logs and Detail View -->
+<div class="grid grid-cols-12 gap-6 items-start">
+<!-- Real-time Logs -->
+<div class="col-span-12 xl:col-span-7 space-y-4">
+<div class="flex items-center justify-between">
+<h3 class="text-xs font-black tracking-widest uppercase text-on-surface-variant">Live Execution Log — 实时任务流水</h3>
+<div class="flex gap-4">
+<button class="text-[0.6rem] font-bold text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">download</span> EXPORT LOGS
+                            </button>
+<button class="text-[0.6rem] font-bold text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">filter_list</span> FILTER
+                            </button>
+</div>
+</div>
+<div class="bg-surface-container-lowest border-t-2 border-primary">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container text-[0.6rem] font-black uppercase tracking-widest text-on-surface-variant border-b border-outline-variant/30">
+<th class="px-4 py-3">Timestamp</th>
+<th class="px-4 py-3">Task Thread</th>
+<th class="px-4 py-3">Action</th>
+<th class="px-4 py-3 text-center">Confidence</th>
+<th class="px-4 py-3">Status</th>
+</tr>
+</thead>
+<tbody class="text-[0.75rem] font-medium">
+<tr class="border-b border-surface-container hover:bg-surface-container-low transition-colors">
+<td class="px-4 py-4 font-mono text-on-surface-variant">14:22:01</td>
+<td class="px-4 py-4 font-bold text-primary">BANK_FETCH</td>
+<td class="px-4 py-4">Fetching Bank Statements: ICBC_2931</td>
+<td class="px-4 py-4 text-center">
+<span class="text-[#1B7F4B]">99.8%</span>
+</td>
+<td class="px-4 py-4">
+<span class="px-2 py-0.5 bg-secondary-fixed text-on-secondary-container text-[0.6rem] font-bold uppercase">COMPLETED</span>
+</td>
+</tr>
+<tr class="border-b border-surface-container hover:bg-surface-container-low bg-surface">
+<td class="px-4 py-4 font-mono text-on-surface-variant">14:22:05</td>
+<td class="px-4 py-4 font-bold text-primary">AI_CLASS</td>
+<td class="px-4 py-4">AI Auto-Classification: Voucher #VE-903</td>
+<td class="px-4 py-4 text-center">
+<span class="text-[#C5913E]">91.2%</span>
+</td>
+<td class="px-4 py-4">
+<span class="px-2 py-0.5 bg-primary-container text-on-primary-container text-[0.6rem] font-bold uppercase">PROCESSING</span>
+</td>
+</tr>
+<tr class="border-b border-surface-container hover:bg-surface-container-low">
+<td class="px-4 py-4 font-mono text-on-surface-variant">14:23:12</td>
+<td class="px-4 py-4 font-bold text-primary">TAX_COMP</td>
+<td class="px-4 py-4">Generating Quarterly VAT Report</td>
+<td class="px-4 py-4 text-center">
+<span class="text-on-surface-variant">--</span>
+</td>
+<td class="px-4 py-4">
+<span class="px-2 py-0.5 bg-surface-container-highest text-on-surface-variant text-[0.6rem] font-bold uppercase">QUEUED</span>
+</td>
+</tr>
+<tr class="border-b border-surface-container hover:bg-surface-container-low bg-surface">
+<td class="px-4 py-4 font-mono text-on-surface-variant">14:24:45</td>
+<td class="px-4 py-4 font-bold text-primary">BS_GEN</td>
+<td class="px-4 py-4">Balance Sheet Validation: Assets vs Liabilities</td>
+<td class="px-4 py-4 text-center">
+<span class="text-error font-bold">42.0%</span>
+</td>
+<td class="px-4 py-4">
+<span class="px-2 py-0.5 bg-error-container text-on-error-container text-[0.6rem] font-bold uppercase">EXCEPTION</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Task Specific Detail View -->
+<div class="col-span-12 xl:col-span-5 space-y-4">
+<h3 class="text-xs font-black tracking-widest uppercase text-on-surface-variant">Task Detail Insight — 任务深度解析</h3>
+<div class="bg-surface-container-lowest p-6 border-l-8 border-[#C5913E]">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h4 class="text-lg font-black text-primary leading-tight">AI Auto-Classification</h4>
+<p class="text-[0.6875rem] font-bold text-on-surface-variant uppercase tracking-wider">Voucher: VE-903 / Task ID: T-88219</p>
+</div>
+<span class="material-symbols-outlined text-secondary text-3xl">psychology</span>
+</div>
+<div class="space-y-6">
+<!-- Input Section -->
+<div>
+<label class="text-[0.6rem] font-black uppercase text-secondary tracking-widest block mb-2">Source Input Data</label>
+<div class="bg-surface p-4 text-[0.7rem] font-mono text-on-surface-variant leading-relaxed">
+                                    { "desc": "Server Hosting Fees - AWS Q3", "amt": 12450.00, "curr": "CNY", "vendor": "Amazon Web Services" }
+                                </div>
+</div>
+<!-- AI Reasoning -->
+<div>
+<label class="text-[0.6rem] font-black uppercase text-secondary tracking-widest block mb-2">AI Logic &amp; Prediction</label>
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface p-3 border-b-2 border-primary">
+<div class="text-[0.6rem] text-on-surface-variant uppercase font-bold mb-1">Account Category</div>
+<div class="text-sm font-bold text-primary">管理费用 - 办公费</div>
+</div>
+<div class="bg-surface p-3 border-b-2 border-primary">
+<div class="text-[0.6rem] text-on-surface-variant uppercase font-bold mb-1">Probability</div>
+<div class="text-sm font-bold text-primary">91.24%</div>
+</div>
+</div>
+</div>
+<!-- Confidence Chart / Visual Indicator -->
+<div>
+<label class="text-[0.6rem] font-black uppercase text-secondary tracking-widest block mb-2">Confidence Spectrum</label>
+<div class="h-8 bg-surface-container relative">
+<div class="absolute inset-y-0 left-0 bg-[#C5913E] w-[91%] flex items-center justify-end px-2">
+<span class="text-[0.6rem] font-black text-white">91%</span>
+</div>
+<div class="absolute inset-y-0 left-[85%] border-l-2 border-dashed border-primary"></div>
+</div>
+<p class="text-[0.6rem] text-on-surface-variant mt-2 italic">* Above threshold of 85.0% - Auto-approval active.</p>
+</div>
+<div class="pt-4 flex gap-3">
+<button class="flex-1 gradient-button text-white font-bold py-3 text-[0.7rem] uppercase tracking-widest">Approve Entry</button>
+<button class="flex-1 bg-surface-container-highest text-primary font-bold py-3 text-[0.7rem] uppercase tracking-widest">Manual Edit</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Exception Board -->
+<section class="space-y-4">
+<h3 class="text-xs font-black tracking-widest uppercase text-on-surface-variant">Exception Flags — 待处理异常</h3>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-[#ba1a1a]/5 p-4 border-l-4 border-error flex gap-4">
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">error</span>
+<div>
+<p class="text-xs font-bold text-error uppercase tracking-tight">Validation Error</p>
+<p class="text-[0.7rem] text-on-surface-variant mt-1">Balance Sheet mismatch in "Assets" column (-¥2,304.00)</p>
+<button class="mt-2 text-[0.6rem] font-bold text-error border-b border-error/30 hover:border-error">RE-VALIDATE</button>
+</div>
+</div>
+<div class="bg-[#815600]/5 p-4 border-l-4 border-[#C5913E] flex gap-4">
+<span class="material-symbols-outlined text-[#C5913E]" style="font-variation-settings: 'FILL' 1;">pending_actions</span>
+<div>
+<p class="text-xs font-bold text-[#C5913E] uppercase tracking-tight">Unrecognized Vendor</p>
+<p class="text-[0.7rem] text-on-surface-variant mt-1">Found new vendor "STRIPE_TECH" in statement fetch.</p>
+<button class="mt-2 text-[0.6rem] font-bold text-[#C5913E] border-b border-[#C5913E]/30 hover:border-[#C5913E]">ASSIGN CATEGORY</button>
+</div>
+</div>
+<div class="bg-primary/5 p-4 border-l-4 border-primary flex gap-4">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">contact_mail</span>
+<div>
+<p class="text-xs font-bold text-primary uppercase tracking-tight">Missing Attachment</p>
+<p class="text-[0.7rem] text-on-surface-variant mt-1">Voucher #VE-882 requires physical invoice scan.</p>
+<button class="mt-2 text-[0.6rem] font-bold text-primary border-b border-primary/30 hover:border-primary">REQUEST SCAN</button>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- System Status Footer -->
+<footer class="mt-auto border-t border-outline-variant/30 bg-surface-container-lowest px-8 py-3 flex justify-between items-center">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-[#1B7F4B]"></div>
+<span class="text-[0.6rem] font-bold text-on-surface-variant uppercase tracking-widest">Mainframe Link Active</span>
+</div>
+<div class="text-[0.6rem] font-mono text-on-surface-variant">UPTIME: 982:14:22</div>
+</div>
+<div class="flex items-center gap-4 text-[0.6rem] font-black text-on-surface-variant tracking-widest">
+<span>API STATUS: 200 OK</span>
+<span class="text-primary">CORE ENGINE v4.2.1-AI</span>
+</div>
+</footer>
+</main>
+</body></html>

@@ -1,8 +1,10 @@
 @import "tailwindcss";
 
 /* ================================================================
-   Lingque Office -- "Precision & Prestige" Design System
-   Source: design/stitch-export/stitch/lingque_office/DESIGN.md
+   Heritage Monolith -- "The Architectural Ledger" Design System
+   Source: design/stitch-export/stitch/heritage_monolith/DESIGN.md
+   Zero-Radius, Zero-Shadow framework. No 1px borders for sectioning.
+   Depth via Tonal Layering, not elevation.
    ================================================================ */
 
 /* --- Core Design Tokens (CSS Custom Properties) --- */
@@ -55,28 +57,29 @@
   --color-sidebar-text-active: #FFFFFF;
   --color-sidebar-hover: rgba(255, 255, 255, 0.06);
 
-  /* Elevation -- blue-tinted ambient shadows, never pure grey */
-  --shadow-ambient: 0 2px 40px rgba(0, 36, 74, 0.06);
-  --shadow-sm: 0 1px 12px rgba(0, 36, 74, 0.04);
+  /* Elevation -- Heritage Monolith: depth via tonal layering, not shadows */
+  /* Ghost Border fallback: outline-variant at 15% opacity when needed */
+  --shadow-ambient: none;
+  --shadow-sm: none;
+  --ghost-border: rgba(195, 198, 209, 0.15);
 
-  /* Glassmorphism for AI modals */
-  --glass-bg: rgba(255, 255, 255, 0.85);
-  --glass-blur: 20px;
+  /* CTA gradient -- "die-cast metallic" feel for primary buttons */
+  --gradient-cta: linear-gradient(135deg, #00244A, #003A70);
 
-  /* Spacing scale (rem) */
+  /* Spacing scale (rem) -- baseline 0.9rem per Heritage Monolith */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
-  --space-4: 1rem;
+  --space-4: 0.9rem;
   --space-6: 1.5rem;
   --space-8: 2rem;
   --space-12: 3rem;
   --space-16: 4rem;
 
-  /* Border radius -- sharp, professional. Never > 8px */
-  --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-DEFAULT: 0.25rem;
+  /* Border radius -- Zero-Radius: every corner is 90 degrees */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-DEFAULT: 0px;
 
   /* Sidebar geometry */
   --sidebar-width: 240px;

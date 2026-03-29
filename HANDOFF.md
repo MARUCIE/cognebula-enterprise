@@ -1,6 +1,6 @@
 # HANDOFF.md -- CogNebula / Lingque Desktop
 
-> Last updated: 2026-03-29T23:00Z
+> Last updated: 2026-03-30T00:15Z
 
 ## Session 20 — KG v4.1 Migration Phase 1-3
 
@@ -31,9 +31,21 @@ Phase 4b: DROP legacy DEFERRED (39 tables, 184K nodes — keep until full verifi
 Phase 4c: CF deploy  DONE (v4.1 frontend deployed, CF Worker proxy deployed but 1003 on bare IP)
 ```
 
-### Blockers
-1. **CF Worker 1003**: Worker outbound to bare IP `http://167.86.74.172:8400` gets Cloudflare error 1003. Fix: assign a domain to VPS (e.g., `kg.cloudcc.io` via Cloudflare DNS) and update worker origin URL.
-2. **7 empty edge tables**: need data enrichment (clauseLevel parsing, customs rebate rate table, AI semantic extraction).
+### Phase 3c Edge Enrichment DONE (+2,547 edges)
+- 15/17 edge tables populated via keyword matching + domain rule inference
+- Remaining 2: PARENT_CLAUSE (flat clauseNumbers), RELATED_PARTY (needs enterprise data)
+
+### Production Deployment DONE
+- CF Tunnel: `cloudflared tunnel --url http://localhost:8400` on VPS (quick tunnel, temporary URL)
+- Current URL: `https://opportunity-pentium-blessed-notes.trycloudflare.com`
+- Frontend deployed to CF Pages with tunnel URL
+- 4 commits: fa8dc3d, 3246b25, d0e2ea2
+
+### Blockers / TODOs
+1. **Permanent tunnel**: Quick tunnel URL changes on restart. Fix: `cloudflared tunnel login` (interactive OAuth, user must run on VPS), then create named tunnel → `kg-api.cloudcc.io`
+2. **cloudflared systemd**: Install as service so it auto-restarts on VPS reboot: `cloudflared service install`
+3. **2 empty edge tables**: PARENT_CLAUSE (need clauseLevel data enrichment), RELATED_PARTY (need real enterprise data)
+4. **Frontend visual audit**: 3-round polish not yet done on v4.1 sidebar + 3D graph
 
 ### API Fixes Applied to VPS
 1. kg-api-server.py line 707: `str(val)[:500]` → `str(val)` (no truncation)

@@ -32,10 +32,15 @@ export default {
 
     try {
       const targetUrl = `${KG_API_ORIGIN}${url.pathname}${url.search}`;
-      const response = await fetch(targetUrl, {
+      const fetchInit: RequestInit = {
         method: request.method,
         headers: { "Content-Type": "application/json" },
-      });
+      };
+      // Forward POST/PUT body
+      if (request.method === "POST" || request.method === "PUT") {
+        fetchInit.body = await request.text();
+      }
+      const response = await fetch(targetUrl, fetchInit);
 
       const body = await response.text();
       return new Response(body, {

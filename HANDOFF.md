@@ -1,6 +1,6 @@
 # HANDOFF.md -- CogNebula / Lingque Desktop
 
-> Last updated: 2026-03-29T22:25Z
+> Last updated: 2026-03-29T23:00Z
 
 ## Session 20 — KG v4.1 Migration Phase 1-3
 
@@ -28,7 +28,12 @@ Phase 3b: Seed edges DONE (+213: 123 Insurance + 40 Invoice + 50 Gap)
 Phase 3c: AI edges   PENDING (PARENT_CLAUSE, STACKS_WITH, HAS_RATE, etc. — need semantic extraction)
 Phase 4a: Frontend   DONE (21 v4.1 types only in LAYER_GROUPS, NODE_COLORS, NODE_ZH)
 Phase 4b: DROP legacy DEFERRED (39 tables, 184K nodes — keep until full verification)
+Phase 4c: CF deploy  DONE (v4.1 frontend deployed, CF Worker proxy deployed but 1003 on bare IP)
 ```
+
+### Blockers
+1. **CF Worker 1003**: Worker outbound to bare IP `http://167.86.74.172:8400` gets Cloudflare error 1003. Fix: assign a domain to VPS (e.g., `kg.cloudcc.io` via Cloudflare DNS) and update worker origin URL.
+2. **7 empty edge tables**: need data enrichment (clauseLevel parsing, customs rebate rate table, AI semantic extraction).
 
 ### API Fixes Applied to VPS
 1. kg-api-server.py line 707: `str(val)[:500]` → `str(val)` (no truncation)

@@ -25,7 +25,7 @@ function CoverageBar({ label, value, target }: { label: string; value: number; t
           {value.toFixed(1)}% / {target}%
         </span>
       </div>
-      <div style={{ height: 6, background: CN.bgElevated, overflow: "hidden" }}>
+      <div style={{ height: 6, background: CN.border, borderRadius: 3, overflow: "hidden" }}>
         <div style={{ height: "100%", width: `${Math.min(value, 100)}%`, background: color, transition: "width 0.5s" }} />
       </div>
     </div>
@@ -81,7 +81,7 @@ export default function DataQualityPage() {
             return (
               <div key={type} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
                 <span style={{ fontSize: 11, color: CN.textSecondary, minWidth: 180, textAlign: "right", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{type}</span>
-                <div style={{ flex: 1, height: 14, background: CN.bgElevated, overflow: "hidden" }}>
+                <div style={{ flex: 1, height: 14, background: CN.border, borderRadius: 3, overflow: "hidden" }}>
                   <div style={{ height: "100%", width: `${pct}%`, background: CN.blue, transition: "width 0.5s" }} />
                 </div>
                 <span style={{ fontSize: 11, color: CN.text, minWidth: 60, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
@@ -125,7 +125,7 @@ export default function DataQualityPage() {
                     { m: "Title Coverage", v: `${(quality.title_coverage || 0).toFixed(1)}%`, ok: (quality.title_coverage || 0) >= 95 },
                     { m: "Content Coverage", v: `${(quality.content_coverage || 0).toFixed(1)}%`, ok: (quality.content_coverage || 0) >= 80 },
                   ].map((r) => (
-                    <tr key={r.m} style={{ borderBottom: `1px solid ${CN.bgElevated}` }}>
+                    <tr key={r.m} style={{ borderBottom: `1px solid ${CN.border}` }}>
                       <td style={{ padding: "6px 0", color: CN.textSecondary }}>{r.m}</td>
                       <td style={{ padding: "6px 0", textAlign: "right", color: CN.text, fontVariantNumeric: "tabular-nums" }}>{r.v}</td>
                       <td style={{ padding: "6px 0", textAlign: "right" }}>

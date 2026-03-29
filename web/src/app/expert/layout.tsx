@@ -1,12 +1,12 @@
 "use client";
 
 /* System A: CogNebula Platform — Internal KG Infrastructure
-   Per OPTIMIZED_ARCHITECTURE_V2.md: NOT customer-facing.
-   Users: Internal team only (Maurice + future ops).
-   Separate branding from System B (灵阙). */
+   LIGHT theme with slate-blue sidebar.
+   Visual distinction from System B (Heritage Monolith warm-cream + navy). */
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { CN } from "../lib/cognebula-theme";
 
 const navItems = [
   { href: "/expert", label: "Overview", icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4" },
@@ -21,12 +21,11 @@ export default function ExpertLayout({ children }: { children: React.ReactNode }
   const pathname = usePathname();
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", width: "100%", background: "#0D1117" }}>
-      {/* System A Sidebar */}
+    <div style={{ display: "flex", minHeight: "100vh", width: "100%", background: CN.bg }}>
+      {/* Slate-blue sidebar — distinguishes from Heritage Monolith navy */}
       <aside style={{
         width: 220,
-        background: "#161B22",
-        borderRight: "1px solid #30363D",
+        background: CN.bgSidebar,
         display: "flex",
         flexDirection: "column",
         position: "fixed",
@@ -36,17 +35,17 @@ export default function ExpertLayout({ children }: { children: React.ReactNode }
         zIndex: 40,
       }}>
         {/* Brand */}
-        <div style={{ padding: "20px 16px", borderBottom: "1px solid #30363D" }}>
-          <div style={{ fontSize: "15px", fontWeight: 800, color: "#58A6FF", letterSpacing: "0.5px" }}>
+        <div style={{ padding: "20px 16px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+          <div style={{ fontSize: 15, fontWeight: 800, color: "#60A5FA", letterSpacing: "0.5px" }}>
             CogNebula
           </div>
-          <div style={{ fontSize: "10px", color: "#8B949E", marginTop: 2, letterSpacing: "1.5px", textTransform: "uppercase" }}>
+          <div style={{ fontSize: 10, color: CN.textOnDarkMuted, marginTop: 2, letterSpacing: "1.5px", textTransform: "uppercase" }}>
             KG Infrastructure
           </div>
         </div>
 
         {/* Nav */}
-        <nav style={{ padding: "8px", flex: 1 }}>
+        <nav style={{ padding: 8, flex: 1 }}>
           {navItems.map((item) => {
             const active = pathname === item.href || (item.href !== "/expert" && pathname.startsWith(item.href));
             return (
@@ -59,12 +58,13 @@ export default function ExpertLayout({ children }: { children: React.ReactNode }
                   gap: 10,
                   padding: "8px 12px",
                   marginBottom: 2,
-                  color: active ? "#58A6FF" : "#C9D1D9",
-                  background: active ? "rgba(88,166,255,0.1)" : "transparent",
-                  borderLeft: active ? "2px solid #58A6FF" : "2px solid transparent",
+                  color: active ? "#60A5FA" : CN.textOnDark,
+                  background: active ? "rgba(96,165,250,0.12)" : "transparent",
+                  borderLeft: active ? "2px solid #60A5FA" : "2px solid transparent",
                   textDecoration: "none",
-                  fontSize: "13px",
+                  fontSize: 13,
                   fontWeight: active ? 600 : 400,
+                  borderRadius: "0 4px 4px 0",
                   transition: "all 0.15s",
                 }}
               >
@@ -78,26 +78,27 @@ export default function ExpertLayout({ children }: { children: React.ReactNode }
         </nav>
 
         {/* System info */}
-        <div style={{ padding: "12px 16px", borderTop: "1px solid #30363D", fontSize: "10px", color: "#484F58" }}>
-          <div>System A — Internal Only</div>
+        <div style={{ padding: "12px 16px", borderTop: "1px solid rgba(255,255,255,0.08)", fontSize: 10, color: CN.textOnDarkMuted }}>
+          <div>System A -- Internal Only</div>
           <div style={{ marginTop: 2 }}>KG API: 100.75.77.112:8400</div>
         </div>
 
         {/* Back to System B */}
-        <div style={{ padding: "8px" }}>
+        <div style={{ padding: 8 }}>
           <Link
             href="/workbench/"
             style={{
               display: "block",
               padding: "8px 12px",
-              color: "#8B949E",
+              color: CN.textOnDarkMuted,
               textDecoration: "none",
-              fontSize: "11px",
+              fontSize: 11,
               textAlign: "center",
-              border: "1px solid #30363D",
+              border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: 4,
             }}
           >
-            ← 返回灵阙产品端
+            &larr; Back to Lingque Product
           </Link>
         </div>
       </aside>
@@ -106,28 +107,28 @@ export default function ExpertLayout({ children }: { children: React.ReactNode }
       <main style={{
         marginLeft: 220,
         flex: 1,
-        background: "#0D1117",
-        color: "#C9D1D9",
+        background: CN.bg,
+        color: CN.text,
         minHeight: "100vh",
       }}>
-        {/* Top bar */}
+        {/* Top bar — white with subtle bottom border */}
         <div style={{
           padding: "12px 32px",
-          borderBottom: "1px solid #30363D",
+          borderBottom: `1px solid ${CN.border}`,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          background: "#161B22",
+          background: CN.bgTopbar,
         }}>
-          <div style={{ fontSize: "11px", color: "#8B949E", letterSpacing: "1px" }}>
-            COGNEBULA PLATFORM — INTERNAL INFRASTRUCTURE
+          <div style={{ fontSize: 11, color: CN.textMuted, letterSpacing: "1px", fontWeight: 500 }}>
+            COGNEBULA PLATFORM
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: "11px", color: "#484F58" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 11, color: CN.textMuted }}>
             <span>514K nodes</span>
-            <span>·</span>
+            <span style={{ color: CN.border }}>|</span>
             <span>1.1M edges</span>
-            <span>·</span>
-            <span style={{ color: "#3FB950" }}>API OK</span>
+            <span style={{ color: CN.border }}>|</span>
+            <span style={{ color: CN.green, fontWeight: 600 }}>API OK</span>
           </div>
         </div>
 

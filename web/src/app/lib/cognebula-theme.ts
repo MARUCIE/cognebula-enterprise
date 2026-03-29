@@ -1,39 +1,48 @@
-/* CogNebula Dark — GitHub-Inspired Dark Theme Tokens
-   Used exclusively by System A (Expert/CogNebula) pages.
-   System B (Lingque) uses Heritage Monolith tokens from globals.css. */
+/* CogNebula Light — Developer Tool Aesthetic
+   System A uses cool-white + slate-blue to distinguish from
+   System B's warm-cream Heritage Monolith theme.
+   Graph canvas stays dark (#0D1117) — standard for network visualization. */
 
 export const CN = {
   // Backgrounds
-  bg: "#0D1117",
-  bgCard: "#161B22",
-  bgElevated: "#21262D",
+  bg: "#FFFFFF",
+  bgCard: "#F8FAFC",
+  bgElevated: "#F1F5F9",
+  bgSidebar: "#1E293B",
+  bgTopbar: "#FFFFFF",
+  bgCanvas: "#0D1117", // graph canvas stays dark
 
   // Borders
-  border: "#30363D",
-  borderFocus: "#58A6FF",
+  border: "#E2E8F0",
+  borderStrong: "#CBD5E1",
+  borderFocus: "#2563EB",
 
   // Text
-  text: "#E6EDF3",
-  textSecondary: "#8B949E",
-  textMuted: "#484F58",
+  text: "#0F172A",
+  textSecondary: "#475569",
+  textMuted: "#94A3B8",
+  textOnDark: "#E2E8F0",    // for sidebar/canvas text
+  textOnDarkMuted: "#94A3B8",
 
-  // Accent
-  blue: "#58A6FF",
-  blueBg: "rgba(88,166,255,0.1)",
-  green: "#3FB950",
-  greenBg: "rgba(63,185,80,0.1)",
-  amber: "#D29922",
-  amberBg: "rgba(210,153,34,0.1)",
-  red: "#F85149",
-  redBg: "rgba(248,81,73,0.1)",
-  purple: "#D2A8FF",
-  purpleBg: "rgba(210,168,255,0.1)",
+  // Accent (technical blue — distinguishes from Heritage navy #003A70)
+  blue: "#2563EB",
+  blueBg: "rgba(37,99,235,0.08)",
+  blueLight: "#DBEAFE",
+  green: "#16A34A",
+  greenBg: "rgba(22,163,74,0.08)",
+  amber: "#D97706",
+  amberBg: "rgba(217,119,6,0.08)",
+  red: "#DC2626",
+  redBg: "rgba(220,38,38,0.08)",
+  purple: "#7C3AED",
+  purpleBg: "rgba(124,58,237,0.08)",
 } as const;
 
 /* Shared inline style helpers */
 export const cnCard: React.CSSProperties = {
   background: CN.bgCard,
   border: `1px solid ${CN.border}`,
+  borderRadius: 6,
   padding: "16px 20px",
 };
 
@@ -57,6 +66,7 @@ export const cnBadge = (color: string, bg: string): React.CSSProperties => ({
   fontSize: 10,
   fontWeight: 700,
   padding: "2px 8px",
+  borderRadius: 4,
   color,
   background: bg,
   letterSpacing: "0.5px",
@@ -65,7 +75,8 @@ export const cnBadge = (color: string, bg: string): React.CSSProperties => ({
 export const cnInput: React.CSSProperties = {
   padding: "7px 14px",
   border: `1px solid ${CN.border}`,
-  background: CN.bgElevated,
+  borderRadius: 6,
+  background: CN.bg,
   color: CN.text,
   fontSize: 13,
   outline: "none",
@@ -78,6 +89,7 @@ export const cnBtn: React.CSSProperties = {
   fontSize: 12,
   fontWeight: 500,
   border: `1px solid ${CN.border}`,
+  borderRadius: 6,
   cursor: "pointer",
 };
 
@@ -88,5 +100,6 @@ export const cnBtnPrimary: React.CSSProperties = {
   fontSize: 13,
   fontWeight: 600,
   border: "none",
+  borderRadius: 6,
   cursor: "pointer",
 };

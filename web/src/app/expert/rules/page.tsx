@@ -188,8 +188,8 @@ export default function RulesPage() {
               <div style={{ marginBottom: 16 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1px", marginBottom: 6 }}>RULE LOGIC</div>
                 <pre style={{
-                  padding: "12px 16px", background: CN.bg, border: `1px solid ${CN.border}`,
-                  color: CN.green, fontSize: 12, fontFamily: "'SF Mono', monospace",
+                  padding: "12px 16px", background: CN.bgElevated, border: `1px solid ${CN.border}`,
+                  borderRadius: 6, color: CN.text, fontSize: 12, fontFamily: "'SF Mono', monospace",
                   overflow: "auto", whiteSpace: "pre-wrap",
                 }}>
                   {rule.logic}

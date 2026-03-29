@@ -29,13 +29,13 @@ export default function ExpertDashboardPage() {
       </div>
 
       {error && (
-        <div style={{ padding: "12px 16px", background: CN.redBg, border: `1px solid ${CN.red}`, color: CN.red, fontSize: 13, marginBottom: 20 }}>
+        <div style={{ padding: "12px 16px", background: CN.redBg, border: `1px solid ${CN.red}`, borderRadius: 6, color: CN.red, fontSize: 13, marginBottom: 20 }}>
           KG API connection failed: {error}
         </div>
       )}
 
       {/* KPI Cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1px", background: CN.border, marginBottom: 24 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
         <div style={cnCard}>
           <div style={cnLabel}>Total Nodes</div>
           <div style={cnValue(CN.blue)}>{stats ? (stats.total_nodes || 0).toLocaleString() : "..."}</div>
@@ -53,7 +53,7 @@ export default function ExpertDashboardPage() {
         </div>
         <div style={cnCard}>
           <div style={cnLabel}>Quality Score</div>
-          <div style={cnValue(quality && quality.quality_score >= 80 ? CN.green : CN.amber)}>
+          <div style={cnValue(quality && (quality.quality_score || 0) >= 80 ? CN.green : CN.amber)}>
             {quality ? `${(quality.quality_score || 0).toFixed(1)}%` : "..."}
           </div>
           <div style={{ fontSize: 11, color: CN.textMuted, marginTop: 4 }}>Composite quality</div>
@@ -73,7 +73,7 @@ export default function ExpertDashboardPage() {
         <h2 style={{ fontSize: 11, fontWeight: 700, color: CN.blue, letterSpacing: "2px", marginBottom: 12 }}>
           SYSTEM STATUS
         </h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1px", background: CN.border }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
           <StatusRow label="KG API (FastAPI :8400)" status="ok" detail="100.75.77.112 via Tailscale" />
           <StatusRow label="KuzuDB" status="warn" detail="Archived -- evaluate migration by 2026-09" />
           <StatusRow label="LanceDB (Vectors)" status="ok" detail="Semantic search operational" />
@@ -92,7 +92,7 @@ export default function ExpertDashboardPage() {
           System A (CogNebula) is internal infrastructure only. KG serves System B (Lingque) agents via CF Worker proxy as an invisible knowledge query layer.
           Customers see &quot;high accuracy&quot;, not &quot;knowledge graph&quot;.
         </div>
-        <Link href="/expert/bridge" style={{ display: "inline-block", marginTop: 12, padding: "6px 16px", background: CN.blueBg, color: CN.blue, textDecoration: "none", fontSize: 12, fontWeight: 600, border: `1px solid ${CN.border}` }}>
+        <Link href="/expert/bridge" style={{ display: "inline-block", marginTop: 12, padding: "6px 16px", background: CN.blueBg, color: CN.blue, textDecoration: "none", fontSize: 12, fontWeight: 600, borderRadius: 6, border: `1px solid ${CN.border}` }}>
           View System Bridge &rarr;
         </Link>
       </div>
@@ -109,7 +109,7 @@ function QuickCard({ href, title, desc, tag, tagColor }: { href: string; title: 
       }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
           <span style={{ fontSize: 14, fontWeight: 700, color: CN.text }}>{title}</span>
-          <span style={cnBadge(tagColor, `${tagColor}20`)}>{tag}</span>
+          <span style={cnBadge(tagColor, `${tagColor}15`)}>{tag}</span>
         </div>
         <div style={{ fontSize: 12, color: CN.textSecondary, lineHeight: 1.6 }}>{desc}</div>
       </div>
@@ -122,7 +122,7 @@ function StatusRow({ label, status, detail }: { label: string; status: "ok" | "w
   const bgs = { ok: CN.greenBg, warn: CN.amberBg, pending: CN.bgElevated, error: CN.redBg };
   const labels = { ok: "ONLINE", warn: "WARNING", pending: "PENDING", error: "ERROR" };
   return (
-    <div style={{ padding: "12px 16px", background: CN.bg, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <div style={{ ...cnCard, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
       <div>
         <div style={{ fontSize: 13, fontWeight: 600, color: CN.text }}>{label}</div>
         <div style={{ fontSize: 11, color: CN.textMuted, marginTop: 2 }}>{detail}</div>

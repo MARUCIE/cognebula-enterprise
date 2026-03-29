@@ -114,7 +114,7 @@ export default function ReasoningPage() {
       </div>
 
       {/* Right: Chain Detail */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "24px 32px" }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: "24px 32px", background: CN.bg }}>
         <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24 }}>
           <h2 style={{ fontSize: 16, fontWeight: 700, color: CN.text, margin: 0 }}>{chain.task}</h2>
           <span style={cnBadge(confColor(chain.confidence), chain.confidence >= 90 ? CN.greenBg : chain.confidence >= 75 ? CN.amberBg : CN.redBg)}>
@@ -159,8 +159,8 @@ export default function ReasoningPage() {
                   </div>
                   {/* Confidence bar */}
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <div style={{ flex: 1, height: 4, background: CN.bgElevated, overflow: "hidden" }}>
-                      <div style={{ height: "100%", width: `${step.confidence}%`, background: confColor(step.confidence), transition: "width 0.3s" }} />
+                    <div style={{ flex: 1, height: 4, background: CN.bgElevated, borderRadius: 2, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${step.confidence}%`, background: confColor(step.confidence), borderRadius: 2, transition: "width 0.3s" }} />
                     </div>
                     <span style={{ fontSize: 11, fontWeight: 700, color: confColor(step.confidence), fontVariantNumeric: "tabular-nums", minWidth: 36, textAlign: "right" }}>
                       {step.confidence}%

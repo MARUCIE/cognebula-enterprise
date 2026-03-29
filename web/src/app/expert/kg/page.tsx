@@ -162,17 +162,17 @@ export default function KGExplorerPage() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 49px)" }}>
-      {/* Toolbar */}
+      {/* Toolbar — light background */}
       <div style={{
         display: "flex", alignItems: "center", gap: 8, padding: "8px 32px", flexShrink: 0,
-        background: CN.bgCard, borderBottom: `1px solid ${CN.border}`,
+        background: CN.bg, borderBottom: `1px solid ${CN.border}`,
       }}>
         <button onClick={() => setLeftOpen(!leftOpen)} style={{ ...cnBtn, padding: "7px 10px", fontSize: 14 }}>
           {leftOpen ? "\u25C0" : "\u25B6"}
         </button>
         <input
           type="text"
-          placeholder="Search entities (e.g. 增值税, TT_VAT, 企业所得税法)..."
+          placeholder="Search entities (e.g. VAT, TT_VAT, Corporate Income Tax Law)..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -195,14 +195,14 @@ export default function KGExplorerPage() {
       </div>
 
       {error && (
-        <div style={{ padding: "8px 16px", background: CN.redBg, color: CN.red, fontSize: 13, borderBottom: `1px solid ${CN.border}` }}>
+        <div style={{ padding: "8px 32px", background: CN.redBg, color: CN.red, fontSize: 13, borderBottom: `1px solid ${CN.border}` }}>
           {error}
         </div>
       )}
 
       {/* 3-Panel Layout */}
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
-        {/* Left Sidebar: Node Types */}
+        {/* Left Sidebar: Node Types — light panel */}
         {leftOpen && (
           <div style={{
             width: 200, flexShrink: 0, overflowY: "auto",
@@ -218,6 +218,7 @@ export default function KGExplorerPage() {
                   display: "flex", alignItems: "center", justifyContent: "space-between",
                   width: "100%", padding: "5px 12px", fontSize: 11, color: CN.text,
                   background: "transparent", border: "none", cursor: "pointer", textAlign: "left",
+                  borderRadius: 0,
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.background = CN.bgElevated)}
                 onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
@@ -237,7 +238,7 @@ export default function KGExplorerPage() {
             </div>
             {Object.entries(LAYER_GROUPS).map(([name, info]) => (
               <div key={name} style={{ display: "flex", alignItems: "center", gap: 8, padding: "3px 12px", fontSize: 11, color: CN.textSecondary }}>
-                <span style={{ width: 10, height: 10, background: info.color, flexShrink: 0 }} />
+                <span style={{ width: 10, height: 10, background: info.color, borderRadius: 2, flexShrink: 0 }} />
                 <span>{name}</span>
                 <span style={{ fontSize: 9, color: CN.textMuted }}>({info.nodes.length})</span>
               </div>
@@ -245,12 +246,12 @@ export default function KGExplorerPage() {
           </div>
         )}
 
-        {/* Center: Graph Canvas — takes ALL remaining width */}
-        <div style={{ flex: 1, position: "relative", minWidth: 0 }}>
+        {/* Center: Graph Canvas — STAYS DARK (graph viz standard) */}
+        <div style={{ flex: 1, position: "relative", minWidth: 0, background: CN.bgCanvas }}>
           {graphData.nodes.length === 0 && !loading && (
             <div style={{
               position: "absolute", inset: 0, display: "flex", flexDirection: "column",
-              alignItems: "center", justifyContent: "center", color: CN.textMuted, zIndex: 2,
+              alignItems: "center", justifyContent: "center", color: "#8B949E", zIndex: 2,
             }}>
               <svg width="56" height="56" viewBox="0 0 24 24" fill="none" style={{ marginBottom: 16, opacity: 0.3 }}>
                 <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5" />
@@ -260,14 +261,14 @@ export default function KGExplorerPage() {
                 <circle cx="19" cy="19" r="2" stroke="currentColor" strokeWidth="1.5" />
                 <path d="M7 6.5L9.5 10M14.5 10L17 6.5M9.5 14L7 17.5M14.5 14L17 17.5" stroke="currentColor" strokeWidth="1" />
               </svg>
-              <span style={{ fontSize: 15, color: CN.textSecondary }}>Search to explore the Knowledge Graph</span>
-              <span style={{ fontSize: 12, marginTop: 6, color: CN.textMuted }}>Double-click nodes to expand connections</span>
+              <span style={{ fontSize: 15, color: "#E6EDF3" }}>Search to explore the Knowledge Graph</span>
+              <span style={{ fontSize: 12, marginTop: 6, color: "#8B949E" }}>Double-click nodes to expand connections</span>
             </div>
           )}
           <CytoscapeGraph ref={graphRef} data={graphData} onNodeSelect={setSelectedNode} onNodeDblClick={handleNodeDblClick} />
         </div>
 
-        {/* Right Panel: Node Detail */}
+        {/* Right Panel: Node Detail — light panel */}
         {selectedNode && (
           <div style={{
             width: 300, flexShrink: 0, overflowY: "auto",
@@ -323,6 +324,7 @@ export default function KGExplorerPage() {
                 width: "100%", marginTop: 16, padding: "8px 0",
                 background: CN.blueBg, border: `1px solid ${CN.border}`,
                 color: CN.blue, fontSize: 13, fontWeight: 600, cursor: "pointer",
+                borderRadius: 6,
               }}
             >
               Expand from this node

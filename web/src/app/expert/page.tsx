@@ -21,79 +21,79 @@ export default function ExpertDashboardPage() {
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ fontSize: "1.5rem", fontWeight: 800, color: CN.text, marginBottom: 4 }}>
-          System A Overview
+          System A 总览
         </h1>
         <p style={{ fontSize: 13, color: CN.textSecondary }}>
-          CogNebula KG infrastructure health + pipeline monitoring
+          CogNebula KG 基础设施健康状态 + 管线监控
         </p>
       </div>
 
       {error && (
         <div style={{ padding: "12px 16px", background: CN.redBg, border: `1px solid ${CN.red}`, borderRadius: 6, color: CN.red, fontSize: 13, marginBottom: 20 }}>
-          KG API connection failed: {error}
+          KG API 连接失败: {error}
         </div>
       )}
 
       {/* KPI Cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
         <div style={cnCard}>
-          <div style={cnLabel}>Total Nodes</div>
+          <div style={cnLabel}>节点总数</div>
           <div style={cnValue(CN.blue)}>{stats ? (stats.total_nodes || 0).toLocaleString() : "..."}</div>
           <div style={{ fontSize: 11, color: CN.textMuted, marginTop: 4 }}>KuzuDB + LanceDB</div>
         </div>
         <div style={cnCard}>
-          <div style={cnLabel}>Total Edges</div>
+          <div style={cnLabel}>边总数</div>
           <div style={cnValue(CN.blue)}>{stats ? (stats.total_edges || 0).toLocaleString() : "..."}</div>
-          <div style={{ fontSize: 11, color: CN.textMuted, marginTop: 4 }}>Relationship graph</div>
+          <div style={{ fontSize: 11, color: CN.textMuted, marginTop: 4 }}>关系图谱</div>
         </div>
         <div style={cnCard}>
-          <div style={cnLabel}>Edge Density</div>
+          <div style={cnLabel}>边密度</div>
           <div style={cnValue(CN.purple)}>{stats ? (stats.total_nodes > 0 ? (stats.total_edges / stats.total_nodes).toFixed(3) : "0") : "..."}</div>
-          <div style={{ fontSize: 11, color: CN.textMuted, marginTop: 4 }}>edges / nodes</div>
+          <div style={{ fontSize: 11, color: CN.textMuted, marginTop: 4 }}>边数 / 节点数</div>
         </div>
         <div style={cnCard}>
-          <div style={cnLabel}>Quality Score</div>
+          <div style={cnLabel}>质量评分</div>
           <div style={cnValue(quality && (quality.quality_score || 0) >= 80 ? CN.green : CN.amber)}>
             {quality ? `${(quality.quality_score || 0).toFixed(1)}%` : "..."}
           </div>
-          <div style={{ fontSize: 11, color: CN.textMuted, marginTop: 4 }}>Composite quality</div>
+          <div style={{ fontSize: 11, color: CN.textMuted, marginTop: 4 }}>综合质量</div>
         </div>
       </div>
 
       {/* Quick Access Grid */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16, marginBottom: 24 }}>
-        <QuickCard href="/expert/kg" title="KG Explorer" desc="Interactive graph visualization with Cytoscape.js fcose layout. Search, expand neighbors, layered coloring." tag="CORE TOOL" tagColor={CN.blue} />
-        <QuickCard href="/expert/data-quality" title="Data Quality Dashboard" desc="Real-time monitoring of title coverage, content coverage, node type distribution. Connected to KG API /quality." tag="MONITORING" tagColor={CN.green} />
-        <QuickCard href="/expert/reasoning" title="Reasoning Inspector" desc="Agent reasoning process visualization. Shows INPUT > RETRIEVAL > REASONING > VALIDATION > OUTPUT confidence per stage." tag="DIAGNOSTIC" tagColor={CN.purple} />
-        <QuickCard href="/expert/rules" title="Rules Debugger" desc="8 compliance rules status monitoring (active/warning/critical/deprecated), hit counts, recent trigger log." tag="DIAGNOSTIC" tagColor={CN.purple} />
+        <QuickCard href="/expert/kg" title="知识图谱探索器" desc="基于 Cytoscape.js fcose 布局的交互式图谱可视化。支持搜索、展开邻居节点、分层着色。" tag="核心工具" tagColor={CN.blue} />
+        <QuickCard href="/expert/data-quality" title="数据质量仪表盘" desc="实时监控标题覆盖率、内容覆盖率、节点类型分布。已对接 KG API /quality 接口。" tag="监控" tagColor={CN.green} />
+        <QuickCard href="/expert/reasoning" title="推理链检查器" desc="Agent 推理过程可视化。展示 INPUT > RETRIEVAL > REASONING > VALIDATION > OUTPUT 各阶段置信度。" tag="诊断" tagColor={CN.purple} />
+        <QuickCard href="/expert/rules" title="合规规则调试器" desc="8 条合规规则状态监控 (生效/预警/严重/废弃)、命中次数、最近触发日志。" tag="诊断" tagColor={CN.purple} />
       </div>
 
       {/* System Status */}
       <div style={{ marginBottom: 24 }}>
         <h2 style={{ fontSize: 11, fontWeight: 700, color: CN.blue, letterSpacing: "2px", marginBottom: 12 }}>
-          SYSTEM STATUS
+          系统状态
         </h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
-          <StatusRow label="KG API (FastAPI :8400)" status="ok" detail="100.75.77.112 via Tailscale" />
-          <StatusRow label="KuzuDB" status="warn" detail="Archived -- evaluate migration by 2026-09" />
-          <StatusRow label="LanceDB (Vectors)" status="ok" detail="Semantic search operational" />
-          <StatusRow label="Know-Arc Pipeline" status="ok" detail="Triple generation + expert review" />
-          <StatusRow label="Edge Engine" status="ok" detail="SUPERSEDES edges, 107 last run" />
-          <StatusRow label="CF Worker Proxy" status="pending" detail="Not yet deployed" />
+          <StatusRow label="KG API (FastAPI :8400)" status="ok" detail="100.75.77.112 经 Tailscale 连接" />
+          <StatusRow label="KuzuDB" status="warn" detail="已归档 -- 计划 2026-09 前评估迁移" />
+          <StatusRow label="LanceDB (向量库)" status="ok" detail="语义搜索运行中" />
+          <StatusRow label="Know-Arc 管线" status="ok" detail="三元组生成 + 专家审核" />
+          <StatusRow label="Edge Engine" status="ok" detail="SUPERSEDES 边关系，上次运行 107 条" />
+          <StatusRow label="CF Worker 代理" status="pending" detail="尚未部署" />
         </div>
       </div>
 
       {/* Cross-System Link */}
       <div style={{ ...cnCard, borderLeft: `3px solid ${CN.blue}` }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: CN.blue, letterSpacing: "1.5px", marginBottom: 6 }}>
-          ARCHITECTURE NOTE
+          架构说明
         </div>
         <div style={{ fontSize: 13, color: CN.textSecondary, lineHeight: 1.7 }}>
-          System A (CogNebula) is internal infrastructure only. KG serves System B (Lingque) agents via CF Worker proxy as an invisible knowledge query layer.
-          Customers see &quot;high accuracy&quot;, not &quot;knowledge graph&quot;.
+          System A (CogNebula) 仅作为内部基础设施。KG 通过 CF Worker 代理为 System B (灵阙) 的 Agent 提供不可见的知识查询层。
+          客户看到的是&quot;高准确率&quot;，而非&quot;知识图谱&quot;。
         </div>
         <Link href="/expert/bridge" style={{ display: "inline-block", marginTop: 12, padding: "6px 16px", background: CN.blueBg, color: CN.blue, textDecoration: "none", fontSize: 12, fontWeight: 600, borderRadius: 6, border: `1px solid ${CN.border}` }}>
-          View System Bridge &rarr;
+          查看系统桥接 &rarr;
         </Link>
       </div>
     </div>
@@ -120,7 +120,7 @@ function QuickCard({ href, title, desc, tag, tagColor }: { href: string; title: 
 function StatusRow({ label, status, detail }: { label: string; status: "ok" | "warn" | "pending" | "error"; detail: string }) {
   const colors = { ok: CN.green, warn: CN.amber, pending: CN.textMuted, error: CN.red };
   const bgs = { ok: CN.greenBg, warn: CN.amberBg, pending: CN.bgElevated, error: CN.redBg };
-  const labels = { ok: "ONLINE", warn: "WARNING", pending: "PENDING", error: "ERROR" };
+  const labels = { ok: "在线", warn: "警告", pending: "待部署", error: "错误" };
   return (
     <div style={{ ...cnCard, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
       <div>

@@ -24,6 +24,8 @@ const pageTitles: Record<string, string> = {
   "/expert/reasoning": "推理链检查器",
   "/expert/rules": "合规规则调试",
   "/expert/data-quality": "数据质量审计",
+  "/expert/bridge": "系统桥接",
+  "/expert": "System A 总览",
 };
 
 function getPageTitle(pathname: string): string {

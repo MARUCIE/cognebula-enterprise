@@ -40,7 +40,7 @@ export default function DataQualityPage() {
   useEffect(() => {
     Promise.all([getStats(), getQuality()])
       .then(([s, q]) => { setStats(s); setQuality(q); })
-      .catch(() => setError("KG API unreachable (check Tailscale)"));
+      .catch(() => setError("KG API 无法连接 (请检查 Tailscale)"));
   }, []);
 
   const topTypes = stats
@@ -60,12 +60,12 @@ export default function DataQualityPage() {
 
       {/* KPI Strip — 6 metrics full width */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "1px", background: CN.border, marginBottom: 24 }}>
-        <KPI label="Total Nodes" value={stats ? `${(stats.total_nodes / 1000).toFixed(1)}K` : "..."} sub={`${stats?.node_tables || 0} tables`} color={CN.blue} />
-        <KPI label="Total Edges" value={stats ? `${(stats.total_edges / 1000).toFixed(1)}K` : "..."} sub={`${stats?.rel_tables || 0} relations`} color={CN.blue} />
-        <KPI label="Edge Density" value={stats ? (stats.total_nodes > 0 ? (stats.total_edges / stats.total_nodes).toFixed(3) : "0") : "..."} sub="edges / nodes" color={CN.purple} />
-        <KPI label="Title Coverage" value={quality ? `${(quality.title_coverage || 0).toFixed(1)}%` : "..."} sub="target >= 95%" color={quality && (quality.title_coverage || 0) >= 95 ? CN.green : CN.amber} />
-        <KPI label="Content Coverage" value={quality ? `${(quality.content_coverage || 0).toFixed(1)}%` : "..."} sub="target >= 80%" color={quality && (quality.content_coverage || 0) >= 80 ? CN.green : CN.amber} />
-        <KPI label="Quality Score" value={quality ? `${quality.quality_score || 0}` : "..."} sub={quality ? `Grade ${quality.grade || "--"}` : "--"} color={quality ? gradeColor(quality.quality_score || 0) : CN.textMuted} />
+        <KPI label="节点总数" value={stats ? `${(stats.total_nodes / 1000).toFixed(1)}K` : "..."} sub={`${stats?.node_tables || 0} 张表`} color={CN.blue} />
+        <KPI label="边总数" value={stats ? `${(stats.total_edges / 1000).toFixed(1)}K` : "..."} sub={`${stats?.rel_tables || 0} 种关系`} color={CN.blue} />
+        <KPI label="边密度" value={stats ? (stats.total_nodes > 0 ? (stats.total_edges / stats.total_nodes).toFixed(3) : "0") : "..."} sub="边数 / 节点数" color={CN.purple} />
+        <KPI label="标题覆盖率" value={quality ? `${(quality.title_coverage || 0).toFixed(1)}%` : "..."} sub="目标 >= 95%" color={quality && (quality.title_coverage || 0) >= 95 ? CN.green : CN.amber} />
+        <KPI label="内容覆盖率" value={quality ? `${(quality.content_coverage || 0).toFixed(1)}%` : "..."} sub="目标 >= 80%" color={quality && (quality.content_coverage || 0) >= 80 ? CN.green : CN.amber} />
+        <KPI label="质量评分" value={quality ? `${quality.quality_score || 0}` : "..."} sub={quality ? `等级 ${quality.grade || "--"}` : "--"} color={quality ? gradeColor(quality.quality_score || 0) : CN.textMuted} />
       </div>
 
       {/* 2-Column: Bar Chart + Coverage */}
@@ -73,7 +73,7 @@ export default function DataQualityPage() {
         {/* Left: Node Type Distribution */}
         <div style={{ ...cnCard }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: CN.text, marginBottom: 14 }}>
-            Node Type Distribution (TOP-15)
+            节点类型分布 (TOP-15)
           </div>
           {topTypes.map(([type, count]) => {
             const maxCount = topTypes[0]?.[1] || 1;
@@ -97,33 +97,33 @@ export default function DataQualityPage() {
           {quality && (
             <div style={cnCard}>
               <div style={{ fontSize: 13, fontWeight: 700, color: CN.text, marginBottom: 14 }}>
-                Coverage Metrics
+                覆盖率指标
               </div>
-              <CoverageBar label="Title Coverage" value={quality.title_coverage || 0} target={95} />
-              <CoverageBar label="Content Coverage" value={quality.content_coverage || 0} target={80} />
+              <CoverageBar label="标题覆盖率" value={quality.title_coverage || 0} target={95} />
+              <CoverageBar label="内容覆盖率" value={quality.content_coverage || 0} target={80} />
             </div>
           )}
 
           {quality && (
             <div style={cnCard}>
               <div style={{ fontSize: 13, fontWeight: 700, color: CN.text, marginBottom: 14 }}>
-                Quality Breakdown
+                质量分解
               </div>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                 <thead>
                   <tr style={{ borderBottom: `1px solid ${CN.border}` }}>
-                    <th style={{ padding: "6px 0", textAlign: "left", fontSize: 10, fontWeight: 700, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1px" }}>Metric</th>
-                    <th style={{ padding: "6px 0", textAlign: "right", fontSize: 10, fontWeight: 700, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1px" }}>Value</th>
-                    <th style={{ padding: "6px 0", textAlign: "right", fontSize: 10, fontWeight: 700, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1px" }}>Status</th>
+                    <th style={{ padding: "6px 0", textAlign: "left", fontSize: 10, fontWeight: 700, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1px" }}>指标</th>
+                    <th style={{ padding: "6px 0", textAlign: "right", fontSize: 10, fontWeight: 700, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1px" }}>数值</th>
+                    <th style={{ padding: "6px 0", textAlign: "right", fontSize: 10, fontWeight: 700, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1px" }}>状态</th>
                   </tr>
                 </thead>
                 <tbody>
                   {[
-                    { m: "Quality Score", v: `${quality.quality_score || 0}`, ok: (quality.quality_score || 0) >= 80 },
-                    { m: "Grade", v: quality.grade || "--", ok: quality.grade === "A" || quality.grade === "B" },
-                    { m: "Edge Density", v: (quality.edge_density || 0).toFixed(3), ok: (quality.edge_density || 0) >= 0.5 },
-                    { m: "Title Coverage", v: `${(quality.title_coverage || 0).toFixed(1)}%`, ok: (quality.title_coverage || 0) >= 95 },
-                    { m: "Content Coverage", v: `${(quality.content_coverage || 0).toFixed(1)}%`, ok: (quality.content_coverage || 0) >= 80 },
+                    { m: "质量评分", v: `${quality.quality_score || 0}`, ok: (quality.quality_score || 0) >= 80 },
+                    { m: "等级", v: quality.grade || "--", ok: quality.grade === "A" || quality.grade === "B" },
+                    { m: "边密度", v: (quality.edge_density || 0).toFixed(3), ok: (quality.edge_density || 0) >= 0.5 },
+                    { m: "标题覆盖率", v: `${(quality.title_coverage || 0).toFixed(1)}%`, ok: (quality.title_coverage || 0) >= 95 },
+                    { m: "内容覆盖率", v: `${(quality.content_coverage || 0).toFixed(1)}%`, ok: (quality.content_coverage || 0) >= 80 },
                   ].map((r) => (
                     <tr key={r.m} style={{ borderBottom: `1px solid ${CN.border}` }}>
                       <td style={{ padding: "6px 0", color: CN.textSecondary }}>{r.m}</td>

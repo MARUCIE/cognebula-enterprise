@@ -23,37 +23,37 @@ interface Chain {
 const CHAINS: Chain[] = [
   {
     id: "RC-001", agent: "林税安",
-    task: "Monthly VAT Filing -- Hangzhou Mingda Tech",
+    task: "月度增值税申报 -- 杭州明达科技",
     time: "2024-11-24 10:42", confidence: 98,
     steps: [
-      { phase: "INPUT", label: "Receive task", detail: "Query VAT filing status for Hangzhou Mingda Tech", confidence: 100, duration: "0.1s" },
-      { phase: "RETRIEVAL", label: "KG entity search", detail: "Matched 12 KnowledgeUnit + LawOrRegulation records", confidence: 96, duration: "0.8s" },
-      { phase: "REASONING", label: "Rule inference", detail: "General taxpayer 13% rate, high-tech enterprise additional deduction", confidence: 94, duration: "0.3s" },
-      { phase: "VALIDATION", label: "Compliance check", detail: "Cross-verified 3 regulations, no conflict", confidence: 98, duration: "0.2s" },
-      { phase: "OUTPUT", label: "Generate response", detail: "Filing status + tax amount + deduction explanation", confidence: 98, duration: "1.2s" },
+      { phase: "INPUT", label: "接收任务", detail: "查询杭州明达科技增值税申报状态", confidence: 100, duration: "0.1s" },
+      { phase: "RETRIEVAL", label: "KG 实体检索", detail: "匹配到 12 条 KnowledgeUnit + LawOrRegulation 记录", confidence: 96, duration: "0.8s" },
+      { phase: "REASONING", label: "规则推理", detail: "一般纳税人 13% 税率，高新技术企业加计扣除", confidence: 94, duration: "0.3s" },
+      { phase: "VALIDATION", label: "合规校验", detail: "交叉验证 3 部法规，无冲突", confidence: 98, duration: "0.2s" },
+      { phase: "OUTPUT", label: "生成回复", detail: "申报状态 + 税额计算 + 扣除说明", confidence: 98, duration: "1.2s" },
     ],
   },
   {
     id: "RC-002", agent: "赵合规",
-    task: "Transfer Pricing Document Review -- Huaxia Trade",
+    task: "转让定价文档审核 -- 华夏贸易",
     time: "2024-11-23 14:20", confidence: 72,
     steps: [
-      { phase: "INPUT", label: "Receive review task", detail: "Review import/export transfer pricing docs for Huaxia Trade", confidence: 100, duration: "0.1s" },
-      { phase: "RETRIEVAL", label: "Regulation search", detail: "Matched OECD TP Guidelines + Circular 42", confidence: 88, duration: "1.2s" },
-      { phase: "REASONING", label: "Compliance analysis", detail: "CUT method parameters deviate 15% from industry mean", confidence: 65, duration: "2.1s" },
-      { phase: "ESCALATION", label: "HITL triggered", detail: "Confidence below 80% threshold, flagged for review", confidence: 72, duration: "0.1s" },
+      { phase: "INPUT", label: "接收审核任务", detail: "审核华夏贸易进出口转让定价文档", confidence: 100, duration: "0.1s" },
+      { phase: "RETRIEVAL", label: "法规检索", detail: "匹配 OECD 转让定价指南 + 42 号公告", confidence: 88, duration: "1.2s" },
+      { phase: "REASONING", label: "合规分析", detail: "CUT 方法参数偏离行业均值 15%", confidence: 65, duration: "2.1s" },
+      { phase: "ESCALATION", label: "触发人工审核", detail: "置信度低于 80% 阈值，标记待审核", confidence: 72, duration: "0.1s" },
     ],
   },
   {
     id: "RC-003", agent: "周风控",
-    task: "Cash Flow Anomaly Detection -- Zhongke Electronics",
+    task: "现金流异常检测 -- 中科电子",
     time: "2024-11-22 09:15", confidence: 91,
     steps: [
-      { phase: "INPUT", label: "Scheduled scan", detail: "Q3 cash flow anomaly detection for Zhongke Electronics", confidence: 100, duration: "0.1s" },
-      { phase: "RETRIEVAL", label: "Financial data pull", detail: "Operating CF/Net Income ratio for 4 consecutive quarters", confidence: 95, duration: "0.5s" },
-      { phase: "REASONING", label: "Pattern match", detail: "CR-005 triggered: Operating CF < Net Income x 0.5 for 2 quarters", confidence: 88, duration: "0.4s" },
-      { phase: "VALIDATION", label: "Cross-check", detail: "Verified against industry benchmarks, confirmed anomaly", confidence: 91, duration: "0.3s" },
-      { phase: "OUTPUT", label: "Alert generated", detail: "Risk alert issued to audit team, severity: WARNING", confidence: 91, duration: "0.2s" },
+      { phase: "INPUT", label: "定时扫描", detail: "中科电子 Q3 现金流异常检测", confidence: 100, duration: "0.1s" },
+      { phase: "RETRIEVAL", label: "财务数据提取", detail: "连续 4 个季度经营性现金流/净利润比率", confidence: 95, duration: "0.5s" },
+      { phase: "REASONING", label: "模式匹配", detail: "触发 CR-005: 经营性现金流 < 净利润 x 0.5 连续 2 个季度", confidence: 88, duration: "0.4s" },
+      { phase: "VALIDATION", label: "交叉验证", detail: "对比行业基准，确认异常", confidence: 91, duration: "0.3s" },
+      { phase: "OUTPUT", label: "生成告警", detail: "向审计团队发送风险告警，严重级别: 警告", confidence: 91, duration: "0.2s" },
     ],
   },
 ];
@@ -85,7 +85,7 @@ export default function ReasoningPage() {
         background: CN.bgCard, borderRight: `1px solid ${CN.border}`,
       }}>
         <div style={{ padding: "12px 16px", fontSize: 10, fontWeight: 700, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1.5px", borderBottom: `1px solid ${CN.border}` }}>
-          REASONING CHAINS
+          推理链
         </div>
         {CHAINS.map((c) => (
           <button key={c.id}
@@ -123,8 +123,8 @@ export default function ReasoningPage() {
         </div>
         <div style={{ display: "flex", gap: 12, marginBottom: 24, fontSize: 12, color: CN.textSecondary }}>
           <span>Agent: <strong style={{ color: CN.text }}>{chain.agent}</strong></span>
-          <span>ID: <span style={{ fontFamily: "monospace", color: CN.textMuted }}>{chain.id}</span></span>
-          <span>Time: {chain.time}</span>
+          <span>编号: <span style={{ fontFamily: "monospace", color: CN.textMuted }}>{chain.id}</span></span>
+          <span>时间: {chain.time}</span>
         </div>
 
         {/* Pipeline Steps */}

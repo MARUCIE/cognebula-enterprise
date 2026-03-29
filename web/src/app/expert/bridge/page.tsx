@@ -20,10 +20,10 @@ export default function SystemBridgePage() {
     <div style={{ padding: "24px 32px" }}>
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ fontSize: "1.5rem", fontWeight: 800, color: CN.text, marginBottom: 4 }}>
-          System Bridge
+          系统桥接
         </h1>
         <p style={{ fontSize: 13, color: CN.textSecondary }}>
-          Cross-system navigation and data flow between CogNebula (A) and Lingque (B)
+          CogNebula (A) 与灵阙 (B) 之间的跨系统导航与数据流
         </p>
       </div>
 
@@ -38,7 +38,7 @@ export default function SystemBridgePage() {
             <div>
               <div style={{ fontSize: 15, fontWeight: 800, color: CN.blue }}>CogNebula</div>
               <div style={{ fontSize: 10, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1px" }}>
-                Internal KG Infrastructure
+                内部 KG 基础设施
               </div>
             </div>
           </div>
@@ -46,15 +46,15 @@ export default function SystemBridgePage() {
           {/* KPI */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", background: CN.border, marginBottom: 16 }}>
             <div style={{ padding: "10px 12px", background: CN.bg }}>
-              <div style={{ ...cnLabel, fontSize: 9 }}>Nodes</div>
+              <div style={{ ...cnLabel, fontSize: 9 }}>节点</div>
               <div style={{ fontSize: "1.1rem", fontWeight: 800, color: CN.blue }}>{stats ? `${(stats.total_nodes / 1000).toFixed(0)}K` : "..."}</div>
             </div>
             <div style={{ padding: "10px 12px", background: CN.bg }}>
-              <div style={{ ...cnLabel, fontSize: 9 }}>Edges</div>
+              <div style={{ ...cnLabel, fontSize: 9 }}>边</div>
               <div style={{ fontSize: "1.1rem", fontWeight: 800, color: CN.blue }}>{stats ? `${(stats.total_edges / 1000).toFixed(0)}K` : "..."}</div>
             </div>
             <div style={{ padding: "10px 12px", background: CN.bg }}>
-              <div style={{ ...cnLabel, fontSize: 9 }}>Quality</div>
+              <div style={{ ...cnLabel, fontSize: 9 }}>质量</div>
               <div style={{ fontSize: "1.1rem", fontWeight: 800, color: quality && (quality.quality_score || 0) >= 80 ? CN.green : CN.amber }}>
                 {quality ? `${(quality.quality_score || 0).toFixed(1)}%` : "..."}
               </div>
@@ -69,13 +69,13 @@ export default function SystemBridgePage() {
 
           {/* Quick Nav */}
           <div style={{ fontSize: 10, fontWeight: 700, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 8 }}>
-            TOOLS
+            工具
           </div>
           {[
-            { href: "/expert/kg", label: "KG Explorer", color: CN.blue },
-            { href: "/expert/data-quality", label: "Data Quality", color: CN.green },
-            { href: "/expert/reasoning", label: "Reasoning Inspector", color: CN.purple },
-            { href: "/expert/rules", label: "Rules Debugger", color: CN.purple },
+            { href: "/expert/kg", label: "知识图谱探索器", color: CN.blue },
+            { href: "/expert/data-quality", label: "数据质量", color: CN.green },
+            { href: "/expert/reasoning", label: "推理链检查器", color: CN.purple },
+            { href: "/expert/rules", label: "合规规则调试器", color: CN.purple },
           ].map((item) => (
             <Link key={item.href} href={item.href} style={{
               display: "block", padding: "6px 10px", marginBottom: 2,
@@ -91,7 +91,7 @@ export default function SystemBridgePage() {
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 24, padding: "0 8px" }}>
           {/* A -> B */}
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 9, fontWeight: 700, color: CN.blue, letterSpacing: "1px", marginBottom: 4 }}>KG QUERY API</div>
+            <div style={{ fontSize: 9, fontWeight: 700, color: CN.blue, letterSpacing: "1px", marginBottom: 4 }}>KG 查询 API</div>
             <svg width="120" height="32" viewBox="0 0 120 32">
               <defs>
                 <marker id="arrowR" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
@@ -100,14 +100,14 @@ export default function SystemBridgePage() {
               </defs>
               <line x1="10" y1="16" x2="100" y2="16" stroke={CN.blue} strokeWidth="2" markerEnd="url(#arrowR)" strokeDasharray="6,3" />
             </svg>
-            <div style={{ fontSize: 9, color: CN.textMuted }}>via CF Worker Proxy</div>
+            <div style={{ fontSize: 9, color: CN.textMuted }}>经 CF Worker 代理</div>
           </div>
 
           <div style={{ width: 1, height: 24, background: CN.border }} />
 
           {/* B -> A */}
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 9, fontWeight: 700, color: CN.green, letterSpacing: "1px", marginBottom: 4 }}>AGENT FEEDBACK</div>
+            <div style={{ fontSize: 9, fontWeight: 700, color: CN.green, letterSpacing: "1px", marginBottom: 4 }}>Agent 反馈</div>
             <svg width="120" height="32" viewBox="0 0 120 32">
               <defs>
                 <marker id="arrowL" markerWidth="8" markerHeight="6" refX="0" refY="3" orient="auto">
@@ -116,7 +116,7 @@ export default function SystemBridgePage() {
               </defs>
               <line x1="20" y1="16" x2="110" y2="16" stroke={CN.green} strokeWidth="2" markerStart="url(#arrowL)" strokeDasharray="6,3" />
             </svg>
-            <div style={{ fontSize: 9, color: CN.textMuted }}>Quality signals</div>
+            <div style={{ fontSize: 9, color: CN.textMuted }}>质量信号</div>
           </div>
         </div>
 
@@ -130,9 +130,9 @@ export default function SystemBridgePage() {
               <span style={{ fontSize: 18, fontWeight: 900, color: "#003A70" }}>B</span>
             </div>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: "#003A70" }}>Lingque</div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: "#003A70" }}>灵阙</div>
               <div style={{ fontSize: 10, color: "#6B7280", textTransform: "uppercase", letterSpacing: "1px" }}>
-                Customer-Facing Product
+                客户产品端
               </div>
             </div>
           </div>
@@ -140,32 +140,32 @@ export default function SystemBridgePage() {
           {/* Mock KPIs */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", background: "#E5E7EB", marginBottom: 16 }}>
             <div style={{ padding: "10px 12px", background: "#FFFFFF" }}>
-              <div style={{ fontSize: 9, fontWeight: 600, color: "#6B7280", textTransform: "uppercase", letterSpacing: "1px" }}>Enterprises</div>
+              <div style={{ fontSize: 9, fontWeight: 600, color: "#6B7280", textTransform: "uppercase", letterSpacing: "1px" }}>企业数</div>
               <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "#003A70" }}>999</div>
             </div>
             <div style={{ padding: "10px 12px", background: "#FFFFFF" }}>
-              <div style={{ fontSize: 9, fontWeight: 600, color: "#6B7280", textTransform: "uppercase", letterSpacing: "1px" }}>Agents</div>
+              <div style={{ fontSize: 9, fontWeight: 600, color: "#6B7280", textTransform: "uppercase", letterSpacing: "1px" }}>数字员工</div>
               <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "#003A70" }}>7</div>
             </div>
             <div style={{ padding: "10px 12px", background: "#FFFFFF" }}>
-              <div style={{ fontSize: 9, fontWeight: 600, color: "#6B7280", textTransform: "uppercase", letterSpacing: "1px" }}>Tasks</div>
+              <div style={{ fontSize: 9, fontWeight: 600, color: "#6B7280", textTransform: "uppercase", letterSpacing: "1px" }}>任务数</div>
               <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "#1B7A4E" }}>41</div>
             </div>
             <div style={{ padding: "10px 12px", background: "#FFFFFF" }}>
-              <div style={{ fontSize: 9, fontWeight: 600, color: "#6B7280", textTransform: "uppercase", letterSpacing: "1px" }}>Skills</div>
+              <div style={{ fontSize: 9, fontWeight: 600, color: "#6B7280", textTransform: "uppercase", letterSpacing: "1px" }}>技能数</div>
               <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "#1B7A4E" }}>79</div>
             </div>
           </div>
 
           {/* Quick Nav */}
           <div style={{ fontSize: 10, fontWeight: 700, color: "#6B7280", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 8 }}>
-            WORKBENCH
+            工作台
           </div>
           {[
-            { href: "/workbench/", label: "Monthly Kanban" },
-            { href: "/workbench/agents/", label: "Digital Employees" },
-            { href: "/workbench/batch/", label: "Batch Operations" },
-            { href: "/workbench/calendar/", label: "Calendar View" },
+            { href: "/workbench/", label: "月度看板" },
+            { href: "/workbench/agents/", label: "数字员工" },
+            { href: "/workbench/batch/", label: "批量操作" },
+            { href: "/workbench/calendar/", label: "日历视图" },
           ].map((item) => (
             <Link key={item.href} href={item.href} style={{
               display: "block", padding: "6px 10px", marginBottom: 2,
@@ -182,19 +182,19 @@ export default function SystemBridgePage() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1px", background: CN.border }}>
         <div style={{ padding: "10px 16px", background: CN.bgCard, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <span style={{ fontSize: 12, color: CN.textSecondary }}>KG API</span>
-          <span style={cnBadge(kgOk ? CN.green : CN.red, kgOk ? CN.greenBg : CN.redBg)}>{kgOk ? "ONLINE" : "OFFLINE"}</span>
+          <span style={cnBadge(kgOk ? CN.green : CN.red, kgOk ? CN.greenBg : CN.redBg)}>{kgOk ? "在线" : "离线"}</span>
         </div>
         <div style={{ padding: "10px 16px", background: CN.bgCard, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontSize: 12, color: CN.textSecondary }}>CF Worker Proxy</span>
-          <span style={cnBadge(CN.textMuted, CN.bgElevated)}>PENDING</span>
+          <span style={{ fontSize: 12, color: CN.textSecondary }}>CF Worker 代理</span>
+          <span style={cnBadge(CN.textMuted, CN.bgElevated)}>待部署</span>
         </div>
         <div style={{ padding: "10px 16px", background: CN.bgCard, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontSize: 12, color: CN.textSecondary }}>Lingque Frontend</span>
-          <span style={cnBadge(CN.green, CN.greenBg)}>ONLINE</span>
+          <span style={{ fontSize: 12, color: CN.textSecondary }}>灵阙前端</span>
+          <span style={cnBadge(CN.green, CN.greenBg)}>在线</span>
         </div>
         <div style={{ padding: "10px 16px", background: CN.bgCard, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontSize: 12, color: CN.textSecondary }}>Agent Engine</span>
-          <span style={cnBadge(CN.green, CN.greenBg)}>ONLINE</span>
+          <span style={{ fontSize: 12, color: CN.textSecondary }}>Agent 引擎</span>
+          <span style={cnBadge(CN.green, CN.greenBg)}>在线</span>
         </div>
       </div>
     </div>

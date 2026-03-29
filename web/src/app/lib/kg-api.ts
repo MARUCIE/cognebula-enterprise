@@ -1,7 +1,11 @@
-/* KG API Client — connects to CogNebula KG service on VPS.
-   API base: Tailscale 100.75.77.112:8400 (CORS open). */
+/* KG API Client — connects to CogNebula KG service.
+   Production: CF Worker proxy (HTTPS) → VPS public IP.
+   Local dev:  Direct Tailscale HTTP. */
 
-const KG_API_BASE = "http://100.75.77.112:8400/api/v1";
+const KG_API_BASE =
+  typeof window !== "undefined" && window.location.protocol === "https:"
+    ? "https://cognebula-kg-proxy.maoyuan-wen-683.workers.dev/api/v1"
+    : "http://100.75.77.112:8400/api/v1";
 
 export interface KGStats {
   total_nodes: number;

@@ -31,7 +31,7 @@ export default function KGExplorerPage() {
   const graphRef = useRef<CytoscapeGraphHandle>(null);
 
   useEffect(() => {
-    getStats().then(setStats).catch(() => setError("KG API unreachable"));
+    getStats().then(setStats).catch(() => setError("KG API 无法连接"));
   }, []);
 
   const buildGraphFromTraversal = useCallback(
@@ -98,7 +98,7 @@ export default function KGExplorerPage() {
 
       const searchResult = await searchNodes(q, 10);
       const results = searchResult.results || [];
-      if (!results.length) { setError(`Not found: ${q}`); setLoading(false); return; }
+      if (!results.length) { setError(`未找到: ${q}`); setLoading(false); return; }
 
       const addedGroups = new Set<string>();
       const addedNodes = new Set<string>();
@@ -135,7 +135,7 @@ export default function KGExplorerPage() {
         } catch { /* skip */ }
       }
       setGraphData({ nodes: allNodes, edges: allEdges, groups });
-    } catch (e) { setError(e instanceof Error ? e.message : "Search failed"); }
+    } catch (e) { setError(e instanceof Error ? e.message : "搜索失败"); }
     setLoading(false);
   }, [searchQuery, buildGraphFromTraversal]);
 
@@ -144,7 +144,7 @@ export default function KGExplorerPage() {
     try {
       const result = await getGraph(nodeType, nodeId);
       if (result.node) setGraphData(buildGraphFromTraversal(nodeType, nodeId, result.node._label || nodeId, result.neighbors));
-    } catch (e) { setError(e instanceof Error ? e.message : "Expand failed"); }
+    } catch (e) { setError(e instanceof Error ? e.message : "展开失败"); }
     setLoading(false);
   }, [buildGraphFromTraversal]);
 
@@ -172,7 +172,7 @@ export default function KGExplorerPage() {
         </button>
         <input
           type="text"
-          placeholder="Search entities (e.g. VAT, TT_VAT, Corporate Income Tax Law)..."
+          placeholder="搜索实体 (如: 增值税, TT_VAT, 企业所得税法)..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -180,14 +180,14 @@ export default function KGExplorerPage() {
         />
         <button onClick={handleSearch} disabled={loading}
           style={{ ...cnBtnPrimary, opacity: loading ? 0.5 : 1, cursor: loading ? "wait" : "pointer" }}>
-          {loading ? "..." : "Search"}
+          {loading ? "..." : "搜索"}
         </button>
-        <button onClick={() => graphRef.current?.fit()} style={cnBtn}>Reset</button>
-        <button onClick={toggleLayout} style={cnBtn}>Layout: {currentLayout}</button>
+        <button onClick={() => graphRef.current?.fit()} style={cnBtn}>重置</button>
+        <button onClick={toggleLayout} style={cnBtn}>布局: {currentLayout}</button>
 
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 16, fontSize: 12, color: CN.textMuted }}>
-          <span>Graph: <strong style={{ color: CN.blue }}>{graphData.nodes.length}</strong> nodes</span>
-          <span><strong style={{ color: CN.blue }}>{graphData.edges.length}</strong> edges</span>
+          <span>图谱: <strong style={{ color: CN.blue }}>{graphData.nodes.length}</strong> 节点</span>
+          <span><strong style={{ color: CN.blue }}>{graphData.edges.length}</strong> 边</span>
           {stats && (
             <span>KG: <strong style={{ color: CN.green }}>{(stats.total_nodes / 1000).toFixed(0)}K</strong> / <strong style={{ color: CN.green }}>{(stats.total_edges / 1000).toFixed(0)}K</strong></span>
           )}
@@ -209,7 +209,7 @@ export default function KGExplorerPage() {
             background: CN.bgCard, borderRight: `1px solid ${CN.border}`, padding: "12px 0",
           }}>
             <div style={{ padding: "0 12px 8px", fontSize: 10, fontWeight: 700, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1.5px" }}>
-              NODE TYPES
+              节点类型
             </div>
             {topTypes.map(([type, count]) => (
               <button key={type}
@@ -234,7 +234,7 @@ export default function KGExplorerPage() {
             ))}
 
             <div style={{ padding: "16px 12px 8px", fontSize: 10, fontWeight: 700, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1.5px", borderTop: `1px solid ${CN.border}`, marginTop: 8 }}>
-              LAYER GROUPS
+              层级分组
             </div>
             {Object.entries(LAYER_GROUPS).map(([name, info]) => (
               <div key={name} style={{ display: "flex", alignItems: "center", gap: 8, padding: "3px 12px", fontSize: 11, color: CN.textSecondary }}>
@@ -261,8 +261,8 @@ export default function KGExplorerPage() {
                 <circle cx="19" cy="19" r="2" stroke="currentColor" strokeWidth="1.5" />
                 <path d="M7 6.5L9.5 10M14.5 10L17 6.5M9.5 14L7 17.5M14.5 14L17 17.5" stroke="currentColor" strokeWidth="1" />
               </svg>
-              <span style={{ fontSize: 15, color: "#E6EDF3" }}>Search to explore the Knowledge Graph</span>
-              <span style={{ fontSize: 12, marginTop: 6, color: "#8B949E" }}>Double-click nodes to expand connections</span>
+              <span style={{ fontSize: 15, color: "#E6EDF3" }}>搜索实体开始探索知识图谱</span>
+              <span style={{ fontSize: 12, marginTop: 6, color: "#8B949E" }}>双击节点可展开关联</span>
             </div>
           )}
           <CytoscapeGraph ref={graphRef} data={graphData} onNodeSelect={setSelectedNode} onNodeDblClick={handleNodeDblClick} />
@@ -285,7 +285,7 @@ export default function KGExplorerPage() {
             </div>
 
             <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 10, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1px" }}>Type</div>
+              <div style={{ fontSize: 10, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1px" }}>类型</div>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
                 <span style={{ width: 8, height: 8, borderRadius: "50%", background: NODE_COLORS[selectedNode.type] || "#94A3B8" }} />
                 <span style={{ fontSize: 13, color: CN.text }}>{selectedNode.type}</span>
@@ -301,7 +301,7 @@ export default function KGExplorerPage() {
 
             <div style={{ borderTop: `1px solid ${CN.border}`, paddingTop: 12, marginTop: 12 }}>
               <div style={{ fontSize: 10, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1px", marginBottom: 8 }}>
-                Connections ({selectedNode.neighbors.length})
+                关联 ({selectedNode.neighbors.length})
               </div>
               {selectedNode.neighbors.map((nb, i) => (
                 <div key={i} style={{
@@ -327,7 +327,7 @@ export default function KGExplorerPage() {
                 borderRadius: 6,
               }}
             >
-              Expand from this node
+              以此节点为中心展开
             </button>
           </div>
         )}

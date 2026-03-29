@@ -1,10 +1,10 @@
 /* KG API Client — connects to CogNebula KG service.
-   Production: CF Worker proxy (HTTPS) → VPS public IP.
+   Production: Cloudflare Tunnel (HTTPS) → VPS KuzuDB.
    Local dev:  Direct Tailscale HTTP. */
 
 const KG_API_BASE =
   typeof window !== "undefined" && window.location.protocol === "https:"
-    ? "https://cognebula-kg-proxy.maoyuan-wen-683.workers.dev/api/v1"
+    ? "https://opportunity-pentium-blessed-notes.trycloudflare.com/api/v1"
     : "http://100.75.77.112:8400/api/v1";
 
 export interface KGStats {

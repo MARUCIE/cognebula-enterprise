@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CogNebula Ontology v4.1 -- 知识图谱本体设计</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue-900: #002855;
+  --blue-700: #003A70;
+  --blue-500: #0066B3;
+  --blue-100: #E8F0FE;
+  --blue-50: #F4F7FB;
+  --green: #1B7F4B;
+  --green-light: #E6F4EC;
+  --amber: #D4850D;
+  --amber-light: #FEF3E0;
+  --red: #C4281C;
+  --red-light: #FDECEB;
+  --ink: #1A1A2E;
+  --body: #2D2D3F;
+  --secondary: #5A5A72;
+  --muted: #8E8EA0;
+  --rule: #D4D4DC;
+  --bg: #FFFFFF;
+  --bg-gray: #F5F5F8;
+  --bg-dark: #002855;
+  --font: 'Inter', 'Noto Sans SC', 'PingFang SC', sans-serif;
+  --mono: 'JetBrains Mono', 'SF Mono', monospace;
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { overflow-x: hidden; }
+body { font-family: var(--font); font-size: 15px; color: var(--body); line-height: 1.7; letter-spacing: 0.01em; -webkit-font-smoothing: antialiased; word-break: keep-all; overflow-wrap: break-word; }
+.hero { background: var(--bg-dark); color: #fff; padding: 56px 0; }
+.hero-inner { max-width: 1040px; margin: 0 auto; padding: 0 4vw; }
+.hero-tag { font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 16px; }
+.hero h1 { font-size: 2.4rem; font-weight: 900; line-height: 1.15; margin-bottom: 16px; max-width: 800px; }
+.hero .subtitle { color: rgba(255,255,255,0.7); font-size: 1.05rem; max-width: 700px; line-height: 1.6; }
+.container { max-width: 1040px; margin: 0 auto; padding: 0 4vw; }
+section { padding: 48px 0; }
+section.alt { background: var(--bg-gray); }
+.section-num { font-size: 13px; font-weight: 700; color: var(--blue-700); letter-spacing: 2px; margin-bottom: 6px; }
+h2 { font-size: 1.5rem; font-weight: 800; color: var(--ink); margin-bottom: 20px; }
+h3 { font-size: 1.1rem; font-weight: 700; color: var(--ink); margin-bottom: 12px; }
+p { margin-bottom: 16px; }
+.key-message { background: var(--blue-700); color: #fff; padding: 16px 24px; font-weight: 600; font-size: 1.02rem; line-height: 1.6; margin: 20px 0; }
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin-bottom: 32px; }
+.kpi { padding: 20px 24px; background: var(--bg); }
+.kpi .label { font-size: 11px; font-weight: 600; color: var(--secondary); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; }
+.kpi .value { font-size: 1.5rem; font-weight: 800; color: var(--blue-700); line-height: 1.2; }
+.kpi .ctx { font-size: 12px; color: var(--secondary); margin-top: 4px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.table-wrap { overflow-x: hidden; margin-bottom: 24px; }
+th { background: var(--blue-900); color: #fff; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; padding: 10px 14px; text-align: left; white-space: normal; word-break: break-word; }
+td { padding: 10px 14px; border-bottom: 1px solid var(--rule); vertical-align: top; word-break: break-word; white-space: nowrap; }
+td:last-child, td:nth-child(4) { white-space: normal; word-break: break-word; } /* 来源表列允许换行 */
+tr:nth-child(even) td { background: var(--blue-50); }
+code { font-family: var(--mono); font-size: 12px; background: var(--bg-gray); padding: 2px 6px; border: 1px solid var(--rule); }
+.callout { background: var(--blue-100); border-left: 4px solid var(--blue-700); padding: 18px 24px; margin: 20px 0; font-size: 0.95rem; line-height: 1.7; }
+.callout-risk { background: var(--red-light); border-left: 4px solid var(--red); padding: 18px 24px; margin: 20px 0; }
+.callout-action { background: var(--amber-light); border-left: 4px solid var(--amber); padding: 18px 24px; margin: 20px 0; }
+.implication { background: var(--bg-gray); border: 1px solid var(--rule); border-left: 4px solid var(--blue-700); padding: 18px 24px; margin-top: 24px; }
+.imp-label { font-size: 11px; font-weight: 700; color: var(--blue-700); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px; }
+.status-tag { display: inline-block; font-size: 10px; font-weight: 700; padding: 3px 10px; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
+.tag-green { background: var(--green-light); color: var(--green); }
+.tag-amber { background: var(--amber-light); color: var(--amber); }
+.tag-red { background: var(--red-light); color: var(--red); }
+.tag-blue { background: var(--blue-100); color: var(--blue-700); }
+.pillar-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 1px solid var(--rule); margin-bottom: 24px; }
+.pillar { padding: 24px; border-right: 1px solid var(--rule); }
+.pillar:last-child { border-right: none; }
+.pillar-num { font-size: 1.8rem; font-weight: 900; color: var(--blue-700); margin-bottom: 6px; }
+.pillar h3 { border-bottom: 2px solid var(--blue-700); padding-bottom: 8px; margin-bottom: 12px; }
+.phase-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 1px solid var(--rule); margin-bottom: 24px; }
+.phase { padding: 20px; border-right: 1px solid var(--rule); }
+.phase:last-child { border-right: none; }
+.phase-hdr { background: var(--blue-700); color: #fff; padding: 8px 14px; font-weight: 700; font-size: 13px; margin: -20px -20px 16px; }
+.phase-hdr.p1 { background: #004D8C; }
+.phase-hdr.p2 { background: var(--blue-500); }
+.phase-hdr.p3 { background: #0088CC; }
+/* Ontology graph SVG */
+.onto-graph { width: 100%; margin: 24px 0; }
+.onto-graph svg { width: 100%; height: auto; }
+/* Node type cards */
+.node-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+.node-card { border: 1px solid var(--rule); border-top: 3px solid var(--blue-700); padding: 16px 20px; background: var(--bg); min-width: 0; }
+.node-card.new { border-top-color: var(--green); }
+.node-card.renamed { border-top-color: var(--amber); }
+.node-card .nc-id { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 1px; margin-bottom: 4px; }
+.node-card .nc-name { font-size: 15px; font-weight: 800; color: var(--ink); margin-bottom: 2px; }
+.node-card .nc-zh { font-size: 13px; color: var(--blue-700); font-weight: 600; margin-bottom: 8px; }
+.node-card .nc-desc { font-size: 12px; color: var(--secondary); line-height: 1.6; }
+.node-card .nc-count { font-size: 12px; color: var(--muted); margin-top: 8px; }
+.edge-list { columns: 2; column-gap: 32px; font-size: 13px; line-height: 2; }
+.edge-list .edge-item { break-inside: avoid; }
+.edge-cat { font-size: 11px; font-weight: 700; color: var(--blue-700); text-transform: uppercase; letter-spacing: 1.5px; margin: 16px 0 6px; }
+footer { text-align: center; padding: 48px 20px 32px; color: var(--muted); font-size: 13px; line-height: 2.2; border-top: 3px solid var(--blue-900); margin-top: 48px; }
+@media (max-width: 960px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .pillar-grid, .phase-grid, .node-grid { grid-template-columns: 1fr; }
+  .edge-list { columns: 1; }
+  .hero h1 { font-size: 1.8rem; }
+}
+@media (max-width: 640px) {
+  .hero { padding: 32px 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag">COGNEBULA KNOWLEDGE GRAPH</div>
+    <h1>Ontology v4.1 -- 业财税知识图谱本体设计</h1>
+    <div class="subtitle">21 节点 + 52 边，基于 29 个财税 Skill 专家团交叉验证。从 v4.0 新增 SocialInsuranceRule / InvoiceRule / IndustryBenchmark 三类节点，12 条新边，12 个属性增强。</div>
+  </div>
+</div>
+
+<!-- EXECUTIVE SUMMARY -->
+<section>
+  <div class="container">
+    <div class="section-num">EXECUTIVE SUMMARY</div>
+    <h2>v4.0 到 v4.1 的核心变化</h2>
+
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="label">节点类型</div>
+        <div class="value">21</div>
+        <div class="ctx">v4.0: 18 (+3 新增)</div>
+      </div>
+      <div class="kpi">
+        <div class="label">边类型</div>
+        <div class="value">52</div>
+        <div class="ctx">v4.0: 40 (+12 新增)</div>
+      </div>
+      <div class="kpi">
+        <div class="label">待迁移节点</div>
+        <div class="value">185K</div>
+        <div class="ctx">从 70 张旧表合并</div>
+      </div>
+      <div class="kpi">
+        <div class="label">迁移后总节点</div>
+        <div class="value">513K</div>
+        <div class="ctx">统一到 21 张本体表</div>
+      </div>
+    </div>
+
+    <div class="key-message">
+      v4.1 基于 29 个财税专家 Skill（284 个 Playbook）的 5 路蜂群交叉审查。新增 3 个节点（SocialInsuranceRule/InvoiceRule/IndustryBenchmark）、12 条新边、12 个属性增强。解决社保空白、发票缺失、行业基准缺失三大 P0 缺口。
+    </div>
+
+    <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:120px">维度</th>
+          <th style="width:140px">v4.0</th>
+          <th style="width:140px">v4.1</th>
+          <th>变更依据</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>节点类型</strong></td><td>18</td><td><strong>21</strong> (+3)</td><td>新增 SocialInsuranceRule、InvoiceRule、IndustryBenchmark</td></tr>
+        <tr><td><strong>边类型</strong></td><td>40</td><td><strong>52</strong> (+12)</td><td>新增 12 种边（含科目层级、优惠互斥、关联方、发票、社保、行业基准等）</td></tr>
+        <tr><td><strong>社保公积金</strong></td><td>未建模</td><td><strong>SocialInsuranceRule 一等节点</strong></td><td>双比例+上下限费率结构与税率 schema 不兼容，ft-social-insurance Skill P0</td></tr>
+        <tr><td><strong>发票管理</strong></td><td>未建模</td><td><strong>InvoiceRule 一等节点</strong></td><td>独立领域（ft-invoice-manager），规则量 30+，值得独立建模</td></tr>
+        <tr><td><strong>行业基准</strong></td><td>未建模</td><td><strong>IndustryBenchmark 一等节点</strong></td><td>需要数值范围查询，KnowledgeUnit 无法支持；ft-risk-assessment P1</td></tr>
+        <tr><td><strong>属性增强</strong></td><td>基础属性</td><td><strong>+12 个新属性覆盖 8 个节点</strong></td><td>LegalDocument/LegalClause/TaxRate/AccountingSubject/TaxEntity/Region/FilingForm/TaxAccountingGap</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 01: THREE PILLARS -->
+<section class="alt">
+  <div class="container">
+    <div class="section-num">01</div>
+    <h2>设计原则 -- 三大支柱</h2>
+    <div class="key-message">本体设计遵循三个核心原则：最小节点集（21 &le; 25 上限）、显式语义边（52 种精确关系）、单一命名规范（无版本后缀）。</div>
+
+    <div class="pillar-grid">
+      <div class="pillar">
+        <div class="pillar-num">01</div>
+        <h3>最小节点集</h3>
+        <p>21 种节点类型覆盖完整业财税领域。每新增一种必须回答：它能被现有节点的属性覆盖吗？如果能，不加。</p>
+        <p><strong>案例</strong>：v4.1 新增 SocialInsuranceRule 而非合并入 ComplianceRule，因为双比例+上下限费率结构与 ComplianceRule schema 不兼容。</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-num">02</div>
+        <h3>显式语义边</h3>
+        <p>52 种边类型，每种只连接特定的 From-To 节点对。v3.1 最大改进：将 EXPLAINS（475K 条，占总边 55%）拆分为 6 种精确关系。v4.1 新增 12 种边覆盖社保/发票/行业基准/优惠互斥/关联方。</p>
+        <p><strong>案例</strong>：INTERPRETS（解释法规）vs WARNS_ABOUT（风险提示）vs GUIDES_FILING（申报指南）。</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-num">03</div>
+        <h3>单一命名</h3>
+        <p>所有节点使用 PascalCase 基础名，无版本后缀。版本号属于本体版本（v4.1），不属于节点名。</p>
+        <p><strong>修正</strong>：<code>ComplianceRuleV2</code> &rarr; <code>ComplianceRule</code>，<code>FilingFormV2</code> &rarr; <code>FilingForm</code>。</p>
+      </div>
+    </div>
+
+    <div class="implication">
+      <div class="imp-label">设计参考</div>
+      <p style="margin:0">FIBO（金融行业本体，W3C/OWL，70+ 领域）| XBRL Taxonomy（会计报告分类标准）| FinRegOnt（金融监管本体）| 中国税务大数据知识工程（工程院院刊 2023）| CPA/CTA 考试知识框架</p>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 02: FOUR LAYERS -->
+<section>
+  <div class="container">
+    <div class="section-num">02</div>
+    <h2>四层架构 -- 21 种节点类型</h2>
+    <div class="key-message">节点按领域职责分为四层：L1 法规层（法律文件 + 条款 + 发布机构）、L2 业务层（税种/税率/科目/分类/申报）、L3 合规层（规则/指标/优惠/处罚/审计/税会差异/社保/发票/行业基准）、知识层（知识单元）。</div>
+
+    <!-- L1 -->
+    <h3 style="color:var(--blue-700); margin-top:32px; border-bottom:2px solid var(--blue-700); padding-bottom:8px">L1 法规层 -- 法律法规的数字化表达</h3>
+    <div class="node-grid">
+      <div class="node-card">
+        <div class="nc-id">N1</div>
+        <div class="nc-name">LegalDocument</div>
+        <div class="nc-zh">法律法规文件</div>
+        <div class="nc-desc">合并 LawOrRegulation + AccountingStandard。包含法律、行政法规、部门规章、规范性文件、会计准则。<code>level</code> 属性表示层级（1-4）。</div>
+        <div class="nc-count">~94,090 节点</div>
+      </div>
+      <div class="node-card">
+        <div class="nc-id">N2</div>
+        <div class="nc-name">LegalClause</div>
+        <div class="nc-zh">法规条款</div>
+        <div class="nc-desc">合并 RegulationClause + DocumentSection。从法律文件中提取的逐条条款，通过 <code>documentId</code> 关联父文件。</div>
+        <div class="nc-count">~155,350 节点</div>
+      </div>
+      <div class="node-card">
+        <div class="nc-id">N15</div>
+        <div class="nc-name">IssuingBody</div>
+        <div class="nc-zh">发布机构</div>
+        <div class="nc-desc">法规的颁布机关。如财政部、国家税务总局、国务院等。通过 ISSUED_BY 边关联到 LegalDocument。</div>
+        <div class="nc-count">~398 节点</div>
+      </div>
+    </div>
+
+    <!-- L2 -->
+    <h3 style="color:var(--blue-500); margin-top:32px; border-bottom:2px solid var(--blue-500); padding-bottom:8px">L2 业务层 -- 税务业务的结构化表达</h3>
+    <div class="node-grid">
+      <div class="node-card">
+        <div class="nc-id">N3</div>
+        <div class="nc-name">TaxRate</div>
+        <div class="nc-zh">税率事实</div>
+        <div class="nc-desc">从 TaxRule 拆分（Hickey 审查）。合并 TaxRateMapping + TaxRateDetail + TaxRateSchedule。支持累进税率（<code>valueExpression</code>）。</div>
+        <div class="nc-count">~9,140 节点</div>
+      </div>
+      <div class="node-card">
+        <div class="nc-id">N10</div>
+        <div class="nc-name">TaxType</div>
+        <div class="nc-zh">税种</div>
+        <div class="nc-desc">中国现行 18 个税种。5 大分类：流转税（增值税/消费税/关税）、所得税（企业所得税/个人所得税）、资源税、特定目的税、财产行为税。</div>
+        <div class="nc-count">19 节点</div>
+      </div>
+      <div class="node-card">
+        <div class="nc-id">N9</div>
+        <div class="nc-name">AccountingSubject</div>
+        <div class="nc-zh">会计科目</div>
+        <div class="nc-desc">合并 ChartOfAccount + AccountingEntry + AccountRuleMapping。覆盖资产/负债/权益/成本/损益五大类。</div>
+        <div class="nc-count">~1,026 节点</div>
+      </div>
+      <div class="node-card">
+        <div class="nc-id">N8</div>
+        <div class="nc-name">Classification</div>
+        <div class="nc-zh">分类体系</div>
+        <div class="nc-desc">合并 HSCode + TaxClassificationCode + Industry + IndustryRiskProfile 等 8 张表。统一的多级分类编码体系。</div>
+        <div class="nc-count">~61,427 节点</div>
+      </div>
+      <div class="node-card">
+        <div class="nc-id">N11</div>
+        <div class="nc-name">TaxEntity</div>
+        <div class="nc-zh">纳税主体</div>
+        <div class="nc-desc">合并 EnterpriseType + TaxpayerStatus。纳税人类型：一般纳税人、小规模纳税人、自然人。</div>
+        <div class="nc-count">~34 节点</div>
+      </div>
+      <div class="node-card">
+        <div class="nc-id">N12</div>
+        <div class="nc-name">Region</div>
+        <div class="nc-zh">行政区划</div>
+        <div class="nc-desc">合并 Region + RegionalTaxPolicy。省/市/区三级行政区域 + 地方税收政策差异。</div>
+        <div class="nc-count">~651 节点</div>
+      </div>
+      <div class="node-card">
+        <div class="nc-id">N13</div>
+        <div class="nc-name">FilingForm</div>
+        <div class="nc-zh">申报表</div>
+        <div class="nc-desc">合并 FilingFormV2 + FormTemplate + TaxCalendar。申报表模板 + 征期日历规则。</div>
+        <div class="nc-count">~242 节点</div>
+      </div>
+      <div class="node-card">
+        <div class="nc-id">N14</div>
+        <div class="nc-name">BusinessActivity</div>
+        <div class="nc-zh">经济业务</div>
+        <div class="nc-desc">合并 BusinessActivity + TaxRiskScenario。企业经营活动分类，通过 TRIGGERS_TAX 触发税种。</div>
+        <div class="nc-count">~384 节点</div>
+      </div>
+    </div>
+
+    <!-- L3 -->
+    <h3 style="color:var(--amber); margin-top:32px; border-bottom:2px solid var(--amber); padding-bottom:8px">L3 合规层 -- 合规约束与风险管控</h3>
+    <div class="node-grid">
+      <div class="node-card renamed">
+        <div class="nc-id">N4 <span class="status-tag tag-amber">RENAMED</span></div>
+        <div class="nc-name">ComplianceRule</div>
+        <div class="nc-zh">合规规则</div>
+        <div class="nc-desc">v3.1 名称: ComplianceRuleV2。从 TaxRule 拆分（Hickey 审查）。企业必须遵守的财税合规条件 + 违规后果。</div>
+        <div class="nc-count">~104 节点</div>
+      </div>
+      <div class="node-card renamed">
+        <div class="nc-id">N5 <span class="status-tag tag-amber">RENAMED</span></div>
+        <div class="nc-name">RiskIndicator</div>
+        <div class="nc-zh">风险指标</div>
+        <div class="nc-desc">v3.1 名称: RiskIndicatorV2。合并 TaxCreditIndicator + TaxWarningIndicator。税务风险预警指标及触发阈值。</div>
+        <div class="nc-count">~548 节点</div>
+      </div>
+      <div class="node-card renamed">
+        <div class="nc-id">N6 <span class="status-tag tag-amber">RENAMED</span></div>
+        <div class="nc-name">TaxIncentive</div>
+        <div class="nc-zh">税收优惠</div>
+        <div class="nc-desc">v3.1 名称: TaxIncentiveV2。合并新旧两张 TaxIncentive 表。覆盖减免税额、即征即退、加计扣除等。</div>
+        <div class="nc-count">~218 节点</div>
+      </div>
+      <div class="node-card new">
+        <div class="nc-id">N16 <span class="status-tag tag-green">NEW</span></div>
+        <div class="nc-name">Penalty</div>
+        <div class="nc-zh">处罚规定</div>
+        <div class="nc-desc"><strong>补缺</strong>：KG 中已有 127 个节点，被 PENALIZED_BY 边引用，但 v3.1 DDL 遗漏了表定义。违规行为对应的罚则和处罚标准。</div>
+        <div class="nc-count">127 节点（已有）</div>
+      </div>
+      <div class="node-card new">
+        <div class="nc-id">N17 <span class="status-tag tag-green">NEW</span></div>
+        <div class="nc-name">AuditTrigger</div>
+        <div class="nc-zh">审计触发</div>
+        <div class="nc-desc"><strong>补缺</strong>：KG 中已有 463 个节点，被 TRIGGERED_BY 和 AUDIT_FOR_TAX 边引用。触发税务稽查的异常指标。</div>
+        <div class="nc-count">463 节点（已有）</div>
+      </div>
+      <div class="node-card new">
+        <div class="nc-id">N18 <span class="status-tag tag-green">NEW</span></div>
+        <div class="nc-name">TaxAccountingGap</div>
+        <div class="nc-zh">税会差异</div>
+        <div class="nc-desc"><strong>全新建模</strong>：CPA/CTA 考试核心领域，代账公司最高频问题。链接 AccountingSubject 和 TaxType。<code>gapType</code>: 永久性/时间性/方法差异。</div>
+        <div class="nc-count">待入库 50+ 条</div>
+      </div>
+      <div class="node-card new">
+        <div class="nc-id">N19 <span class="status-tag tag-green">NEW</span></div>
+        <div class="nc-name">SocialInsuranceRule</div>
+        <div class="nc-zh">社保公积金规则</div>
+        <div class="nc-desc"><strong>v4.1 新增</strong>：ft-social-insurance Skill 审查 P0 缺口。双比例费率（单位+个人）、基数上下限（社平工资 60%-300%）、地区差异。<code>insuranceType</code>: 养老/医疗/失业/工伤/生育/公积金/残保金。</div>
+        <div class="nc-count">待入库（各地区 x 险种）</div>
+      </div>
+      <div class="node-card new">
+        <div class="nc-id">N20 <span class="status-tag tag-green">NEW</span></div>
+        <div class="nc-name">InvoiceRule</div>
+        <div class="nc-zh">发票管理规则</div>
+        <div class="nc-desc"><strong>v4.1 新增</strong>：ft-invoice-manager Skill 审查 P0 缺口。覆盖认证、抵扣、转出、红字、验真、数电票。<code>ruleType</code>: certification/deduction/transfer_out/red_letter/verification/e_invoice。</div>
+        <div class="nc-count">待入库 30+ 条</div>
+      </div>
+      <div class="node-card new">
+        <div class="nc-id">N21 <span class="status-tag tag-green">NEW</span></div>
+        <div class="nc-name">IndustryBenchmark</div>
+        <div class="nc-zh">行业基准数据</div>
+        <div class="nc-desc"><strong>v4.1 新增</strong>：ft-risk-assessment + ft-financial-statement Skill 审查 P1 缺口。行业毛利率/净利率/税负率/费用率/周转率，支持数值范围查询（KnowledgeUnit 无法支持）。</div>
+        <div class="nc-count">待入库（行业 x 地区 x 年份）</div>
+      </div>
+    </div>
+
+    <!-- Knowledge -->
+    <h3 style="color:var(--green); margin-top:32px; border-bottom:2px solid var(--green); padding-bottom:8px">知识层 -- 非结构化知识单元</h3>
+    <div class="node-grid" style="grid-template-columns: 1fr">
+      <div class="node-card">
+        <div class="nc-id">N7</div>
+        <div class="nc-name">KnowledgeUnit</div>
+        <div class="nc-zh">知识单元</div>
+        <div class="nc-desc">合并 CPAKnowledge + FAQEntry + MindmapNode + SpreadsheetEntry + IndustryKnowledge。<code>type</code> 属性区分来源（FAQ / 案例解析 / 考点 / 风险提示 / 操作指南 / 思维导图）。通过 INTERPRETS 等 6 种边关联到 LegalClause。</div>
+        <div class="nc-count">~189,672 节点（KG 最大表）</div>
+      </div>
+    </div>
+
+    <div class="implication">
+      <div class="imp-label">设计决策</div>
+      <p style="margin:0"><strong>不加的节点</strong>：RegulationHierarchy（用 level 属性替代）、Evidence（用节点属性替代）、RevisionChain（用 SUPERSEDES/AMENDS 边替代）、TaxTreatment（合并入 TaxAccountingGap）。原则：能用属性解决的不加节点，控制总数 &le; 25。v4.1 新增 3 个节点均通过 29-Skill 专家团 5 路蜂群交叉审查验证，确认无法用现有节点属性替代。</p>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 03: EDGES -->
+<section class="alt">
+  <div class="container">
+    <div class="section-num">03</div>
+    <h2>52 种语义边 -- 精确关系定义</h2>
+    <div class="key-message">每种边只连接特定的 From &rarr; To 节点对。v3.1 最大改进（Hickey/Meadows P0）：将 EXPLAINS（475K 条边，占 55%）拆分为 6 种精确关系。v4.0 新增 4 种边，v4.1 新增 12 种边（含 1 条自引用升级）。</div>
+
+    <div class="edge-list">
+      <div class="edge-cat">结构 (3)</div>
+      <div class="edge-item"><code>PART_OF</code> LegalClause &rarr; LegalDocument</div>
+      <div class="edge-item"><code>CHILD_OF</code> Classification &rarr; Classification</div>
+      <div class="edge-item"><code>PARENT_CLAUSE</code> LegalClause &rarr; LegalClause <span class="status-tag tag-green">v4.1</span></div>
+
+      <div class="edge-cat">法规演进 (3)</div>
+      <div class="edge-item"><code>SUPERSEDES</code> LegalDocument &rarr; LegalDocument</div>
+      <div class="edge-item"><code>AMENDS</code> LegalDocument &rarr; LegalDocument</div>
+      <div class="edge-item"><code>CONFLICTS_WITH</code> LegalClause &rarr; LegalClause</div>
+
+      <div class="edge-cat">引用与授权 (4)</div>
+      <div class="edge-item"><code>REFERENCES_CLAUSE</code> LegalClause &rarr; LegalClause</div>
+      <div class="edge-item"><code>BASED_ON</code> TaxRate &rarr; LegalClause</div>
+      <div class="edge-item"><code>INCENTIVE_BASED_ON</code> TaxIncentive &rarr; LegalClause</div>
+      <div class="edge-item"><code>ISSUED_BY</code> LegalDocument &rarr; IssuingBody</div>
+
+      <div class="edge-cat">适用范围 (4)</div>
+      <div class="edge-item"><code>APPLIES_TO_TAX</code> TaxRate &rarr; TaxType</div>
+      <div class="edge-item"><code>APPLIES_TO_ENTITY</code> TaxRate &rarr; TaxEntity</div>
+      <div class="edge-item"><code>APPLIES_IN_REGION</code> TaxRate &rarr; Region</div>
+      <div class="edge-item"><code>APPLIES_TO_CLASS</code> TaxRate &rarr; Classification</div>
+
+      <div class="edge-cat">税种间 (3)</div>
+      <div class="edge-item"><code>CALCULATED_FROM</code> TaxType &rarr; TaxType</div>
+      <div class="edge-item"><code>SURCHARGE_OF</code> TaxType &rarr; TaxType</div>
+      <div class="edge-item"><code>RELATED_TAX</code> TaxType &rarr; TaxType</div>
+
+      <div class="edge-cat">税种桥接 (8)</div>
+      <div class="edge-item"><code>TRIGGERS_TAX</code> BusinessActivity &rarr; TaxType</div>
+      <div class="edge-item"><code>INCENTIVE_FOR_TAX</code> TaxIncentive &rarr; TaxType</div>
+      <div class="edge-item"><code>RULE_FOR_TAX</code> ComplianceRule &rarr; TaxType</div>
+      <div class="edge-item"><code>FILING_FOR_TAX</code> FilingForm &rarr; TaxType</div>
+      <div class="edge-item"><code>MAPS_TO_ACCOUNT</code> TaxType &rarr; AccountingSubject</div>
+      <div class="edge-item"><code>RISK_FOR_TAX</code> RiskIndicator &rarr; TaxType</div>
+      <div class="edge-item"><code>KU_ABOUT_TAX</code> KnowledgeUnit &rarr; TaxType</div>
+      <div class="edge-item"><code>AUDIT_FOR_TAX</code> AuditTrigger &rarr; TaxType</div>
+
+      <div class="edge-cat">申报与合规 (2)</div>
+      <div class="edge-item"><code>REQUIRES_FILING</code> BusinessActivity &rarr; FilingForm</div>
+      <div class="edge-item"><code>GOVERNED_BY</code> BusinessActivity &rarr; ComplianceRule</div>
+
+      <div class="edge-cat">会计 (2)</div>
+      <div class="edge-item"><code>DEBITS_V2</code> TaxType &rarr; AccountingSubject</div>
+      <div class="edge-item"><code>CREDITS_V2</code> TaxType &rarr; AccountingSubject</div>
+
+      <div class="edge-cat">合规执行 (2)</div>
+      <div class="edge-item"><code>PENALIZED_BY</code> ComplianceRule &rarr; Penalty</div>
+      <div class="edge-item"><code>TRIGGERED_BY</code> AuditTrigger &rarr; RiskIndicator</div>
+
+      <div class="edge-cat">知识关联 (6) -- v3.1 EXPLAINS 拆分</div>
+      <div class="edge-item"><code>INTERPRETS</code> KnowledgeUnit &rarr; LegalClause (82%)</div>
+      <div class="edge-item"><code>EXEMPLIFIED_BY</code> KnowledgeUnit &rarr; LegalClause (1%)</div>
+      <div class="edge-item"><code>EXPLAINS_RATE</code> KnowledgeUnit &rarr; LegalClause (4%)</div>
+      <div class="edge-item"><code>WARNS_ABOUT</code> KnowledgeUnit &rarr; LegalClause (5%)</div>
+      <div class="edge-item"><code>DESCRIBES_INCENTIVE</code> KnowledgeUnit &rarr; LegalClause (4%)</div>
+      <div class="edge-item"><code>GUIDES_FILING</code> KnowledgeUnit &rarr; LegalClause (4%)</div>
+
+      <div class="edge-cat">v4.0 新增 (4)</div>
+      <div class="edge-item"><code>HAS_GAP</code> AccountingSubject &rarr; TaxAccountingGap</div>
+      <div class="edge-item"><code>GAP_FOR_TAX</code> TaxAccountingGap &rarr; TaxType</div>
+      <div class="edge-item"><code>OVERRIDES_IN</code> Region &rarr; ComplianceRule</div>
+      <div class="edge-item"><code>AUDIT_TRIGGERS</code> AuditTrigger &rarr; ComplianceRule</div>
+
+      <div class="edge-cat">v4.1 新增 (12) <span class="status-tag tag-green">NEW</span></div>
+      <div class="edge-item"><code>PARENT_SUBJECT</code> AccountingSubject &rarr; AccountingSubject -- 科目层级自引用</div>
+      <div class="edge-item"><code>MAPS_TO_SUBJECT</code> BusinessActivity &rarr; AccountingSubject -- 业务活动到会计科目（P0 核心路径）</div>
+      <div class="edge-item"><code>STACKS_WITH</code> TaxIncentive &rarr; TaxIncentive -- 优惠可叠加</div>
+      <div class="edge-item"><code>EXCLUDES</code> TaxIncentive &rarr; TaxIncentive -- 优惠互斥</div>
+      <div class="edge-item"><code>CREATES_GAP</code> TaxIncentive &rarr; TaxAccountingGap -- 优惠引发税会差异（P0 汇算清缴直通）</div>
+      <div class="edge-item"><code>HAS_BUSINESS_GAP</code> BusinessActivity &rarr; TaxAccountingGap -- 业务级税会差异</div>
+      <div class="edge-item"><code>RELATED_PARTY</code> TaxEntity &rarr; TaxEntity -- 关联方关系（P0 合并报表+转让定价）</div>
+      <div class="edge-item"><code>HAS_RATE</code> Classification &rarr; TaxRate -- HS编码到退税率/征税率（P1 出口退税）</div>
+      <div class="edge-item"><code>INSURANCE_IN_REGION</code> SocialInsuranceRule &rarr; Region -- 社保规则地区适用</div>
+      <div class="edge-item"><code>INVOICE_FOR_TAX</code> InvoiceRule &rarr; TaxType -- 发票规则税种关联</div>
+      <div class="edge-item"><code>BENCHMARK_FOR</code> IndustryBenchmark &rarr; Classification -- 行业基准关联分类</div>
+      <div class="edge-item"><code>RULE_FOR_INDUSTRY</code> ComplianceRule &rarr; Classification -- 行业特定合规规则</div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 04: MIGRATION -->
+<section>
+  <div class="container">
+    <div class="section-num">04</div>
+    <h2>迁移路线图 -- 四阶段执行</h2>
+    <div class="key-message">从当前 74 张物理表迁移到 21 张本体表，分 4 个阶段执行。总迁移量 185K 节点。通过 admin API 批量执行，无需停机。</div>
+
+    <div class="phase-grid">
+      <div class="phase">
+        <div class="phase-hdr">Phase 0: Schema</div>
+        <p><strong>无数据变更</strong></p>
+        <ul style="font-size:13px; padding-left:16px; line-height:1.8">
+          <li>创建 3 张新节点表</li>
+          <li>创建 4 张新边表</li>
+          <li>V2 表重命名</li>
+        </ul>
+        <p style="font-size:12px; color:var(--muted); margin-top:12px">预计: 10 分钟</p>
+      </div>
+      <div class="phase">
+        <div class="phase-hdr p1">Phase 1: Data</div>
+        <p><strong>合并 70 张旧表</strong></p>
+        <ul style="font-size:13px; padding-left:16px; line-height:1.8">
+          <li>LegalDocument +39K</li>
+          <li>LegalClause +72K</li>
+          <li>KnowledgeUnit +37K</li>
+          <li>Classification +33K</li>
+          <li>其他 9 张表 +3K</li>
+        </ul>
+        <p style="font-size:12px; color:var(--muted); margin-top:12px">预计: 2-4 小时</p>
+      </div>
+      <div class="phase">
+        <div class="phase-hdr p2">Phase 2: Seed</div>
+        <p><strong>新数据入库</strong></p>
+        <ul style="font-size:13px; padding-left:16px; line-height:1.8">
+          <li>TaxAccountingGap 50+ 条</li>
+          <li>Penalty 数据校验</li>
+          <li>AuditTrigger 数据校验</li>
+          <li>边完整性检查</li>
+        </ul>
+        <p style="font-size:12px; color:var(--muted); margin-top:12px">预计: 1 小时</p>
+      </div>
+      <div class="phase">
+        <div class="phase-hdr p3">Phase 3: Cleanup</div>
+        <p><strong>清理 + 验证</strong></p>
+        <ul style="font-size:13px; padding-left:16px; line-height:1.8">
+          <li>计数对比验证</li>
+          <li>DROP 70 张旧表</li>
+          <li>前端切换到 18 表</li>
+          <li>API 质量审计更新</li>
+        </ul>
+        <p style="font-size:12px; color:var(--muted); margin-top:12px">预计: 30 分钟</p>
+      </div>
+    </div>
+
+    <h3>数据迁移清单</h3>
+    <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:160px">目标表</th>
+          <th style="width:80px">当前</th>
+          <th style="width:80px">迁移后</th>
+          <th>来源表</th>
+          <th style="width:70px">状态</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>KnowledgeUnit</td><td>152,237</td><td>189,672</td><td>CPAKnowledge, FAQEntry, MindmapNode, SpreadsheetEntry, IndustryKnowledge</td><td><span class="status-tag tag-amber">MIGRATE</span></td></tr>
+        <tr><td>LegalClause</td><td>83,443</td><td>155,350</td><td>RegulationClause, DocumentSection</td><td><span class="status-tag tag-amber">MIGRATE</span></td></tr>
+        <tr><td>LegalDocument</td><td>54,865</td><td>94,090</td><td>LawOrRegulation, AccountingStandard</td><td><span class="status-tag tag-amber">MIGRATE</span></td></tr>
+        <tr><td>Classification</td><td>28,035</td><td>61,427</td><td>HSCode, TaxClassificationCode, TaxCodeDetail, Industry 等 8 表</td><td><span class="status-tag tag-amber">MIGRATE</span></td></tr>
+        <tr><td>TaxRate</td><td>9,000</td><td>9,140</td><td>TaxRateMapping, TaxRateDetail, TaxRateSchedule</td><td><span class="status-tag tag-amber">MIGRATE</span></td></tr>
+        <tr><td>AccountingSubject</td><td>159</td><td>1,026</td><td>ChartOfAccount, AccountingEntry, AccountRuleMapping 等 5 表</td><td><span class="status-tag tag-amber">MIGRATE</span></td></tr>
+        <tr><td>Region</td><td>31</td><td>651</td><td>RegionalTaxPolicy</td><td><span class="status-tag tag-amber">MIGRATE</span></td></tr>
+        <tr><td>RiskIndicator</td><td>0</td><td>548</td><td>RiskIndicatorV2, TaxCreditIndicator, TaxWarningIndicator</td><td><span class="status-tag tag-red">CREATE</span></td></tr>
+        <tr><td>BusinessActivity</td><td>204</td><td>384</td><td>TaxRiskScenario</td><td><span class="status-tag tag-amber">MIGRATE</span></td></tr>
+        <tr><td>FilingForm</td><td>0</td><td>242</td><td>FilingFormV2, FormTemplate, TaxCalendar</td><td><span class="status-tag tag-red">CREATE</span></td></tr>
+        <tr><td>TaxIncentive</td><td>109</td><td>218</td><td>TaxIncentiveV2</td><td><span class="status-tag tag-amber">MIGRATE</span></td></tr>
+        <tr><td>ComplianceRule</td><td>0</td><td>104</td><td>ComplianceRuleV2, TaxPolicy</td><td><span class="status-tag tag-red">CREATE</span></td></tr>
+        <tr><td>TaxAccountingGap</td><td>0</td><td>50+</td><td>新建（CPA/CTA 考试内容 + 实务经验）</td><td><span class="status-tag tag-green">NEW</span></td></tr>
+        <tr><td>TaxType</td><td>19</td><td>19</td><td>--</td><td><span class="status-tag tag-green">OK</span></td></tr>
+        <tr><td>IssuingBody</td><td>398</td><td>398</td><td>--</td><td><span class="status-tag tag-green">OK</span></td></tr>
+        <tr><td>TaxEntity</td><td>17</td><td>34</td><td>EnterpriseType, TaxpayerStatus, EntityTypeProfile</td><td><span class="status-tag tag-amber">MIGRATE</span></td></tr>
+        <tr><td>Penalty</td><td>127</td><td>127</td><td>--（已有数据，补 DDL 定义）</td><td><span class="status-tag tag-blue">DDL</span></td></tr>
+        <tr><td>AuditTrigger</td><td>463</td><td>463</td><td>--（已有数据，补 DDL 定义）</td><td><span class="status-tag tag-blue">DDL</span></td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 05: 29-SKILL REVIEW -->
+<section class="alt">
+  <div class="container">
+    <div class="section-num">05</div>
+    <h2>29-Skill 交叉审查结论</h2>
+    <div class="key-message">v4.1 升级基于 29 个财税专家 Skill（284 个 Playbook）的 5 路蜂群交叉审查。每路独立评估本体与 Skill 需求的供需匹配度，汇总后形成统一升级方案。</div>
+
+    <h3>审查路线总览</h3>
+    <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:80px">路线</th>
+          <th style="width:160px">Agent 角色</th>
+          <th style="width:80px">发现数</th>
+          <th style="width:120px">P0 / P1 / P2</th>
+          <th>关键结论</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Route 1</td><td>合规 + 风控专家</td><td>8</td><td>3 / 3 / 2</td><td>社保公积金完全空白（P0）；行业预警值无数值范围查询（P1）</td></tr>
+        <tr><td>Route 2</td><td>会计 + 税会差异专家</td><td>7</td><td>2 / 3 / 2</td><td>科目层级缺自引用（P0）；优惠叠加/互斥关系缺失（P1）</td></tr>
+        <tr><td>Route 3</td><td>发票 + 申报专家</td><td>6</td><td>2 / 2 / 2</td><td>发票管理完全空白（P0）；申报表频率属性缺失（P1）</td></tr>
+        <tr><td>Route 4</td><td>筹划 + 优惠专家</td><td>5</td><td>1 / 3 / 1</td><td>优惠到税会差异直通路径缺失（P0）；优惠状态字段缺失（P1）</td></tr>
+        <tr><td>Route 5</td><td>架构 + 数据建模专家</td><td>6</td><td>2 / 2 / 2</td><td>关联方关系缺失（P0）；HS 编码到退税率路径断裂（P1）</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3>供需匹配度提升</h3>
+    <div class="kpi-grid" style="grid-template-columns: repeat(3, 1fr)">
+      <div class="kpi">
+        <div class="label">v4.0 匹配度</div>
+        <div class="value" style="color:var(--amber)">55%</div>
+        <div class="ctx">29 Skill 中 16 个有供需缺口</div>
+      </div>
+      <div class="kpi">
+        <div class="label">v4.1 匹配度（预估）</div>
+        <div class="value" style="color:var(--green)">80%</div>
+        <div class="ctx">P0 缺口全部覆盖，P1 大部分覆盖</div>
+      </div>
+      <div class="kpi">
+        <div class="label">剩余缺口</div>
+        <div class="value">6</div>
+        <div class="ctx">P2 级别，可在 v4.2 补齐</div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>关键 Skill 覆盖</strong>：ft-social-insurance（社保）、ft-invoice-manager（发票）、ft-risk-assessment（风控）、ft-financial-statement（报表）、ft-tax-planning（筹划）、ft-annual-settlement（汇算清缴）六大高频 Skill 的 P0 需求在 v4.1 中全部得到本体层面支持。
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 06: DECISIONS -->
+<section>
+  <div class="container">
+    <div class="section-num">06</div>
+    <h2>决策记录</h2>
+    <div class="key-message">每个设计决策记录选择理由和放弃方案，确保可追溯。</div>
+
+    <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:200px">决策</th>
+          <th style="width:100px">选择</th>
+          <th style="width:180px">放弃方案</th>
+          <th>理由</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>新增 TaxAccountingGap</td><td><span class="status-tag tag-green">YES</span></td><td>嵌入边属性</td><td>一等节点支持 RAG 检索、搜索、版本管理；CPA/CTA 考试独立领域</td></tr>
+        <tr><td>保留 Penalty / AuditTrigger</td><td><span class="status-tag tag-green">YES</span></td><td>合并入 ComplianceRule</td><td>已有 590 个节点；生命周期独立（处罚标准 vs 合规规则）</td></tr>
+        <tr><td>不加 RegulationHierarchy</td><td><span class="status-tag tag-red">NO</span></td><td>5 种法规层级节点</td><td>LegalDocument.level 属性已够用；KuzuDB 属性查询高效</td></tr>
+        <tr><td>不加 Evidence 节点</td><td><span class="status-tag tag-red">NO</span></td><td>独立溯源节点</td><td>用 sourceUrl + confidence 属性替代；避免节点爆炸</td></tr>
+        <tr><td>统一命名（去 V2）</td><td><span class="status-tag tag-green">YES</span></td><td>保留 V2 后缀</td><td>版本号属于本体版本，不属于节点名</td></tr>
+        <tr><td>18 类型上限</td><td><span class="status-tag tag-green">YES</span></td><td>22+ 类型</td><td>最小复杂度原则；必要时可拆分</td></tr>
+        <tr><td>新增 SocialInsuranceRule</td><td><span class="status-tag tag-green">YES</span></td><td>合并入 ComplianceRule</td><td>社保费率结构（双比例+上下限）与税率差异大，schema 不兼容</td></tr>
+        <tr><td>新增 InvoiceRule</td><td><span class="status-tag tag-green">YES</span></td><td>合并入 ComplianceRule</td><td>发票管理是独立领域（ft-invoice-manager），规则量 30+，值得独立</td></tr>
+        <tr><td>新增 IndustryBenchmark</td><td><span class="status-tag tag-green">YES</span></td><td>KnowledgeUnit 标记</td><td>需要数值范围查询，KnowledgeUnit 无法支持</td></tr>
+        <tr><td>新增 RELATED_PARTY 边</td><td><span class="status-tag tag-green">YES</span></td><td>Application layer only</td><td>合并报表+转让定价的硬依赖，3/5 路审查提出</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="callout-risk">
+      <strong>被否决的调研建议</strong>：v4.0 调研提出 11 种新节点类型，经评估仅保留 3 种（Penalty/AuditTrigger/TaxAccountingGap）。v4.1 蜂群审查进一步提出 6 种候选，经 5 路交叉验证保留 3 种（SocialInsuranceRule/InvoiceRule/IndustryBenchmark），否决 3 种（TaxCalendarRule 用 FilingForm.frequency 替代、AuditWorkpaper 属于运行时数据、TransferPricingMethod 用 KnowledgeUnit 覆盖）。
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 07: FRONTEND -->
+<section>
+  <div class="container">
+    <div class="section-num">07</div>
+    <h2>前端适配 -- 迁移后的 UI 结构</h2>
+    <div class="key-message">迁移完成后，前端的 3D 图谱、法规条款浏览器、知识问答页面全部切换到 21 种本体类型。不再展示旧表。</div>
+
+    <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:100px">层级</th>
+          <th style="width:100px">颜色</th>
+          <th>包含节点类型</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>L1 法规层</strong></td><td style="color:var(--red)">红色系</td><td>LegalDocument (法律法规文件) / LegalClause (法规条款) / IssuingBody (发布机构)</td></tr>
+        <tr><td><strong>L2 业务层</strong></td><td style="color:var(--blue-500)">蓝色系</td><td>TaxRate (税率) / TaxType (税种) / AccountingSubject (会计科目) / Classification (分类体系) / TaxEntity (纳税主体) / Region (地区) / FilingForm (申报表) / BusinessActivity (经济业务)</td></tr>
+        <tr><td><strong>L3 合规层</strong></td><td style="color:var(--amber)">琥珀色系</td><td>ComplianceRule (合规规则) / RiskIndicator (风险指标) / TaxIncentive (税收优惠) / Penalty (处罚规定) / AuditTrigger (审计触发) / TaxAccountingGap (税会差异) / SocialInsuranceRule (社保公积金规则) / InvoiceRule (发票管理规则) / IndustryBenchmark (行业基准数据)</td></tr>
+        <tr><td><strong>知识层</strong></td><td style="color:var(--green)">绿色系</td><td>KnowledgeUnit (知识单元)</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="implication">
+      <div class="imp-label">下一步</div>
+      <p style="margin:0">1. 审阅本文档确认 v4.1 方案 &rarr; 2. 执行迁移 Phase 0-3 &rarr; 3. 更新前端 LAYER_GROUPS / NODE_COLORS / NODE_ZH（21 类型）&rarr; 4. 重建 3D 图谱 + 法规浏览器 &rarr; 5. 部署验证</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>CogNebula v4.1 -- Knowledge Graph Ontology Design</p>
+  <p>Maurice | maurice_wen@proton.me</p>
+  <p style="font-size:12px; margin-top:8px">CONFIDENTIAL -- For internal use only | Generated 2026-03-29 | Sources: FIBO, XBRL, FinRegOnt, CPA/CTA Frameworks, Chinese Tax KG Research, 29-Skill Expert Team Swarm Review</p>
+</footer>
+
+</body>
+</html>

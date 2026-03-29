@@ -1,176 +1,435 @@
 "use client";
 
-import { useState } from "react";
-import { CN, cnCard, cnBadge } from "../../lib/cognebula-theme";
+import { useState, useRef, useCallback, useEffect } from "react";
+import dynamic from "next/dynamic";
+import {
+  chatRAG, getGraph, searchNodes,
+  NODE_COLORS, EDGE_LABELS_ZH, EDGE_COLORS, LAYER_GROUPS, getNodeLayer,
+  type ChatResponse, type ChatSource, type KGNeighbor,
+} from "../../lib/kg-api";
+import type { GraphData, SelectedNode, CytoscapeGraphHandle } from "../../components/CytoscapeGraph";
+import { CN, cnCard, cnInput, cnBtnPrimary, cnBadge } from "../../lib/cognebula-theme";
 
-interface Step {
-  phase: string;
-  label: string;
-  detail: string;
-  confidence: number;
-  duration: string;
-}
+const CytoscapeGraph = dynamic(() => import("../../components/CytoscapeGraph"), { ssr: false });
 
-interface Chain {
+interface QAEntry {
   id: string;
-  agent: string;
-  task: string;
-  time: string;
-  confidence: number;
-  steps: Step[];
+  question: string;
+  answer: string;
+  sources: ChatSource[];
+  html?: string;
+  graphData: GraphData;
+  timestamp: string;
 }
 
-const CHAINS: Chain[] = [
-  {
-    id: "RC-001", agent: "林税安",
-    task: "月度增值税申报 -- 杭州明达科技",
-    time: "2024-11-24 10:42", confidence: 98,
-    steps: [
-      { phase: "INPUT", label: "接收任务", detail: "查询杭州明达科技增值税申报状态", confidence: 100, duration: "0.1s" },
-      { phase: "RETRIEVAL", label: "KG 实体检索", detail: "匹配到 12 条 KnowledgeUnit + LawOrRegulation 记录", confidence: 96, duration: "0.8s" },
-      { phase: "REASONING", label: "规则推理", detail: "一般纳税人 13% 税率，高新技术企业加计扣除", confidence: 94, duration: "0.3s" },
-      { phase: "VALIDATION", label: "合规校验", detail: "交叉验证 3 部法规，无冲突", confidence: 98, duration: "0.2s" },
-      { phase: "OUTPUT", label: "生成回复", detail: "申报状态 + 税额计算 + 扣除说明", confidence: 98, duration: "1.2s" },
-    ],
-  },
-  {
-    id: "RC-002", agent: "赵合规",
-    task: "转让定价文档审核 -- 华夏贸易",
-    time: "2024-11-23 14:20", confidence: 72,
-    steps: [
-      { phase: "INPUT", label: "接收审核任务", detail: "审核华夏贸易进出口转让定价文档", confidence: 100, duration: "0.1s" },
-      { phase: "RETRIEVAL", label: "法规检索", detail: "匹配 OECD 转让定价指南 + 42 号公告", confidence: 88, duration: "1.2s" },
-      { phase: "REASONING", label: "合规分析", detail: "CUT 方法参数偏离行业均值 15%", confidence: 65, duration: "2.1s" },
-      { phase: "ESCALATION", label: "触发人工审核", detail: "置信度低于 80% 阈值，标记待审核", confidence: 72, duration: "0.1s" },
-    ],
-  },
-  {
-    id: "RC-003", agent: "周风控",
-    task: "现金流异常检测 -- 中科电子",
-    time: "2024-11-22 09:15", confidence: 91,
-    steps: [
-      { phase: "INPUT", label: "定时扫描", detail: "中科电子 Q3 现金流异常检测", confidence: 100, duration: "0.1s" },
-      { phase: "RETRIEVAL", label: "财务数据提取", detail: "连续 4 个季度经营性现金流/净利润比率", confidence: 95, duration: "0.5s" },
-      { phase: "REASONING", label: "模式匹配", detail: "触发 CR-005: 经营性现金流 < 净利润 x 0.5 连续 2 个季度", confidence: 88, duration: "0.4s" },
-      { phase: "VALIDATION", label: "交叉验证", detail: "对比行业基准，确认异常", confidence: 91, duration: "0.3s" },
-      { phase: "OUTPUT", label: "生成告警", detail: "向审计团队发送风险告警，严重级别: 警告", confidence: 91, duration: "0.2s" },
-    ],
-  },
-];
+function extractGenUI(answer: string): { text: string; html: string | null } {
+  const marker = "<!--GENUI-->";
+  const endMarker = "<!--/GENUI-->";
+  const start = answer.indexOf(marker);
+  if (start === -1) return { text: answer, html: null };
+  const end = answer.indexOf(endMarker, start);
+  const htmlContent = end !== -1
+    ? answer.slice(start + marker.length, end).trim()
+    : answer.slice(start + marker.length).trim();
+  const text = answer.slice(0, start).trim();
+  return { text, html: htmlContent };
+}
 
-const PHASE_COLORS: Record<string, string> = {
-  INPUT: CN.blue,
-  RETRIEVAL: CN.purple,
-  REASONING: CN.amber,
-  VALIDATION: CN.green,
-  OUTPUT: CN.blue,
-  ESCALATION: CN.red,
-};
+function buildSourceGraph(sources: ChatSource[]): GraphData {
+  const groups: GraphData["groups"] = [];
+  const nodes: GraphData["nodes"] = [];
+  const edges: GraphData["edges"] = [];
+  const addedGroups = new Set<string>();
+  const addedNodes = new Set<string>();
 
-function confColor(v: number) {
-  if (v >= 90) return CN.green;
-  if (v >= 75) return CN.amber;
-  return CN.red;
+  // Center node: the answer
+  nodes.push({
+    id: "__answer__",
+    label: "AI 回答",
+    type: "Answer",
+    color: "#2563EB",
+    size: 40,
+    parent: undefined,
+  });
+
+  for (const src of sources) {
+    if (!src.id || addedNodes.has(src.id)) continue;
+    addedNodes.add(src.id);
+
+    const nodeType = src.table || "Unknown";
+    const layer = getNodeLayer(nodeType);
+    if (!addedGroups.has(layer)) {
+      addedGroups.add(layer);
+      groups.push({ id: layer, label: layer });
+    }
+
+    const label = (src.text || src.id).slice(0, 35);
+    nodes.push({
+      id: src.id,
+      label,
+      type: nodeType,
+      color: NODE_COLORS[nodeType] || "#94A3B8",
+      size: 20,
+      parent: layer,
+    });
+
+    edges.push({
+      id: `${src.id}-__answer__`,
+      source: src.id,
+      target: "__answer__",
+      label: "支撑",
+      color: "#60A5FA",
+    });
+  }
+
+  return { nodes, edges, groups };
 }
 
 export default function ReasoningPage() {
-  const [selected, setSelected] = useState<string>(CHAINS[0].id);
-  const chain = CHAINS.find((c) => c.id === selected) || CHAINS[0];
+  const [entries, setEntries] = useState<QAEntry[]>([]);
+  const [question, setQuestion] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedEntry, setSelectedEntry] = useState<string | null>(null);
+  const [selectedNode, setSelectedNode] = useState<SelectedNode | null>(null);
+  const [expandedSources, setExpandedSources] = useState(false);
+  const graphRef = useRef<CytoscapeGraphHandle>(null);
+  const answerRef = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  const currentEntry = entries.find((e) => e.id === selectedEntry) || entries[0] || null;
+
+  const handleAsk = useCallback(async () => {
+    const q = question.trim();
+    if (!q || loading) return;
+    setLoading(true);
+    setError(null);
+
+    try {
+      const resp = await chatRAG(q);
+      const { text, html } = extractGenUI(resp.answer);
+
+      // Build graph from sources
+      let graphData = buildSourceGraph(resp.sources || []);
+
+      // Try to expand top sources with graph neighbors for richer visualization
+      if (resp.sources && resp.sources.length > 0) {
+        const addedNodes = new Set(graphData.nodes.map((n) => n.id));
+        const addedGroups = new Set(graphData.groups.map((g) => g.id));
+        const extraNodes = [...graphData.nodes];
+        const extraEdges = [...graphData.edges];
+        const extraGroups = [...graphData.groups];
+
+        for (const src of resp.sources.slice(0, 3)) {
+          if (!src.id || !src.table) continue;
+          try {
+            const gr = await getGraph(src.table, src.id);
+            for (const nb of (gr.neighbors || []).slice(0, 5)) {
+              if (!nb.target_id || addedNodes.has(nb.target_id)) continue;
+              addedNodes.add(nb.target_id);
+              const layer = getNodeLayer(nb.target_type);
+              if (!addedGroups.has(layer)) {
+                addedGroups.add(layer);
+                extraGroups.push({ id: layer, label: layer });
+              }
+              extraNodes.push({
+                id: nb.target_id,
+                label: (nb.target_label || nb.target_id).slice(0, 30),
+                type: nb.target_type,
+                color: NODE_COLORS[nb.target_type] || "#94A3B8",
+                size: 12,
+                parent: layer,
+              });
+              const s = nb.direction === "incoming" ? nb.target_id : src.id;
+              const t = nb.direction === "incoming" ? src.id : nb.target_id;
+              extraEdges.push({
+                id: `${s}-${t}-${nb.edge_type}`,
+                source: s, target: t,
+                label: EDGE_LABELS_ZH[nb.edge_type] || nb.edge_type.slice(0, 12),
+                color: EDGE_COLORS[nb.edge_type] || "#4B5563",
+              });
+            }
+          } catch { /* skip */ }
+        }
+        graphData = { nodes: extraNodes, edges: extraEdges, groups: extraGroups };
+      }
+
+      const entry: QAEntry = {
+        id: `qa-${Date.now()}`,
+        question: q,
+        answer: text,
+        sources: resp.sources || [],
+        html: html || resp.html || undefined,
+        graphData,
+        timestamp: new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }),
+      };
+
+      setEntries((prev) => [entry, ...prev]);
+      setSelectedEntry(entry.id);
+      setQuestion("");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "查询失败");
+    }
+    setLoading(false);
+  }, [question, loading]);
+
+  // Resize iframe for GenUI content
+  useEffect(() => {
+    const handler = (ev: MessageEvent) => {
+      if (ev.data?.type === "resize" && iframeRef.current) {
+        iframeRef.current.style.height = `${ev.data.height + 20}px`;
+      }
+    };
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+  }, []);
 
   return (
-    <div style={{ display: "flex", height: "calc(100vh - 49px)" }}>
-      {/* Left: Chain List */}
+    <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 49px)" }}>
+      {/* Top: Question Input */}
       <div style={{
-        width: 320, flexShrink: 0, overflowY: "auto",
-        background: CN.bgCard, borderRight: `1px solid ${CN.border}`,
+        padding: "12px 32px", background: CN.bg, borderBottom: `1px solid ${CN.border}`,
+        display: "flex", alignItems: "center", gap: 12, flexShrink: 0,
       }}>
-        <div style={{ padding: "12px 16px", fontSize: 10, fontWeight: 700, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1.5px", borderBottom: `1px solid ${CN.border}` }}>
-          推理链
+        <div style={{ fontSize: 13, fontWeight: 700, color: CN.blue, whiteSpace: "nowrap" }}>
+          知识问答
         </div>
-        {CHAINS.map((c) => (
-          <button key={c.id}
-            onClick={() => setSelected(c.id)}
-            style={{
-              display: "block", width: "100%", padding: "12px 16px", textAlign: "left",
-              background: c.id === selected ? CN.blueBg : "transparent",
-              border: "none",
-              borderLeft: `2px solid ${c.id === selected ? CN.blue : "transparent"}`,
-              borderBottom: `1px solid ${CN.border}`,
-              cursor: "pointer",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-              <span style={{ fontSize: 12, fontWeight: 600, color: CN.text }}>{c.agent}</span>
-              <span style={cnBadge(confColor(c.confidence), c.confidence >= 90 ? CN.greenBg : c.confidence >= 75 ? CN.amberBg : CN.redBg)}>
-                {c.confidence}%
-              </span>
-            </div>
-            <div style={{ fontSize: 12, color: CN.textSecondary, marginBottom: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {c.task}
-            </div>
-            <div style={{ fontSize: 10, color: CN.textMuted }}>{c.time}</div>
-          </button>
-        ))}
+        <input
+          type="text"
+          placeholder="输入业财税问题 (如: 增值税小规模纳税人优惠政策有哪些?)"
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleAsk()}
+          style={{ ...cnInput, flex: 1 }}
+        />
+        <button onClick={handleAsk} disabled={loading}
+          style={{ ...cnBtnPrimary, opacity: loading ? 0.5 : 1, cursor: loading ? "wait" : "pointer", whiteSpace: "nowrap" }}>
+          {loading ? "查询中..." : "提问"}
+        </button>
       </div>
 
-      {/* Right: Chain Detail */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "24px 32px", background: CN.bg }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: CN.text, margin: 0 }}>{chain.task}</h2>
-          <span style={cnBadge(confColor(chain.confidence), chain.confidence >= 90 ? CN.greenBg : chain.confidence >= 75 ? CN.amberBg : CN.redBg)}>
-            {chain.confidence}%
-          </span>
+      {error && (
+        <div style={{ padding: "8px 32px", background: CN.redBg, color: CN.red, fontSize: 13, borderBottom: `1px solid ${CN.border}` }}>
+          {error}
         </div>
-        <div style={{ display: "flex", gap: 12, marginBottom: 24, fontSize: 12, color: CN.textSecondary }}>
-          <span>Agent: <strong style={{ color: CN.text }}>{chain.agent}</strong></span>
-          <span>编号: <span style={{ fontFamily: "monospace", color: CN.textMuted }}>{chain.id}</span></span>
-          <span>时间: {chain.time}</span>
+      )}
+
+      {/* Main: 3-Panel Layout */}
+      <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
+        {/* Left: Q&A History */}
+        <div style={{
+          width: 280, flexShrink: 0, overflowY: "auto",
+          background: CN.bgCard, borderRight: `1px solid ${CN.border}`,
+        }}>
+          <div style={{ padding: "12px 16px", fontSize: 10, fontWeight: 700, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1.5px", borderBottom: `1px solid ${CN.border}` }}>
+            问答记录 ({entries.length})
+          </div>
+          {entries.length === 0 ? (
+            <div style={{ padding: 20, textAlign: "center", color: CN.textMuted, fontSize: 12 }}>
+              输入问题开始知识问答
+            </div>
+          ) : entries.map((entry) => (
+            <button key={entry.id}
+              onClick={() => setSelectedEntry(entry.id)}
+              style={{
+                display: "block", width: "100%", padding: "12px 16px", textAlign: "left",
+                background: entry.id === selectedEntry ? CN.blueBg : "transparent",
+                border: "none",
+                borderLeft: `2px solid ${entry.id === selectedEntry ? CN.blue : "transparent"}`,
+                borderBottom: `1px solid ${CN.border}`,
+                cursor: "pointer",
+              }}
+            >
+              <div style={{ fontSize: 12, fontWeight: 600, color: CN.text, marginBottom: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {entry.question}
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: 10, color: CN.textMuted }}>{entry.timestamp}</span>
+                <span style={cnBadge(CN.green, CN.greenBg)}>
+                  {entry.sources.length} 源
+                </span>
+              </div>
+            </button>
+          ))}
         </div>
 
-        {/* Pipeline Steps */}
-        <div style={{ position: "relative", paddingLeft: 24 }}>
-          {/* Vertical line */}
-          <div style={{ position: "absolute", left: 11, top: 0, bottom: 0, width: 2, background: CN.border }} />
-
-          {chain.steps.map((step, i) => {
-            const phaseColor = PHASE_COLORS[step.phase] || CN.textMuted;
-            return (
-              <div key={i} style={{ position: "relative", marginBottom: 20 }}>
-                {/* Dot on the line */}
+        {/* Center: Answer + Graph */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+          {!currentEntry ? (
+            <div style={{
+              flex: 1, display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center", color: CN.textMuted,
+            }}>
+              <svg width="56" height="56" viewBox="0 0 24 24" fill="none" style={{ marginBottom: 16, opacity: 0.3 }}>
+                <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5" />
+                <circle cx="5" cy="5" r="2" stroke="currentColor" strokeWidth="1.5" />
+                <circle cx="19" cy="5" r="2" stroke="currentColor" strokeWidth="1.5" />
+                <circle cx="5" cy="19" r="2" stroke="currentColor" strokeWidth="1.5" />
+                <circle cx="19" cy="19" r="2" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M7 6.5L9.5 10M14.5 10L17 6.5M9.5 14L7 17.5M14.5 14L17 17.5" stroke="currentColor" strokeWidth="1" />
+              </svg>
+              <span style={{ fontSize: 15, color: CN.text }}>基于知识图谱的智能问答</span>
+              <span style={{ fontSize: 12, marginTop: 6 }}>输入业财税问题，AI 结合 KG 实时检索回答</span>
+            </div>
+          ) : (
+            <>
+              {/* Answer Section */}
+              <div ref={answerRef} style={{
+                padding: "20px 28px", overflowY: "auto",
+                borderBottom: `1px solid ${CN.border}`,
+                maxHeight: currentEntry.html ? "35vh" : "45vh",
+              }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: CN.blue, marginBottom: 8 }}>
+                  Q: {currentEntry.question}
+                </div>
                 <div style={{
-                  position: "absolute", left: -18, top: 6,
-                  width: 14, height: 14, borderRadius: "50%",
-                  background: CN.bg, border: `2px solid ${phaseColor}`,
-                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 14, color: CN.text, lineHeight: 1.8,
+                  whiteSpace: "pre-wrap",
                 }}>
-                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: phaseColor }} />
+                  {currentEntry.answer}
                 </div>
 
-                <div style={{ ...cnCard, marginLeft: 12 }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <span style={cnBadge(phaseColor, `${phaseColor}15`)}>{step.phase}</span>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: CN.text }}>{step.label}</span>
+                {/* GenUI HTML iframe */}
+                {currentEntry.html && (
+                  <div style={{ marginTop: 16, border: `1px solid ${CN.border}`, borderRadius: 6, overflow: "hidden" }}>
+                    <div style={{ padding: "6px 12px", background: CN.bgElevated, fontSize: 10, fontWeight: 700, color: CN.textMuted, letterSpacing: "1px" }}>
+                      INTERACTIVE VISUALIZATION
                     </div>
-                    <span style={{ fontSize: 11, color: CN.textMuted, fontFamily: "monospace" }}>{step.duration}</span>
+                    <iframe
+                      ref={iframeRef}
+                      srcDoc={currentEntry.html}
+                      style={{ width: "100%", minHeight: 200, border: "none", background: "#fff" }}
+                      sandbox="allow-scripts"
+                    />
                   </div>
-                  <div style={{ fontSize: 12, color: CN.textSecondary, marginBottom: 10, lineHeight: 1.6 }}>
-                    {step.detail}
+                )}
+
+                {/* Sources list */}
+                {currentEntry.sources.length > 0 && (
+                  <div style={{ marginTop: 16 }}>
+                    <button
+                      onClick={() => setExpandedSources(!expandedSources)}
+                      style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11, fontWeight: 700, color: CN.textMuted, letterSpacing: "1px", padding: 0 }}
+                    >
+                      {expandedSources ? "v" : ">"} 知识来源 ({currentEntry.sources.length})
+                    </button>
+                    {expandedSources && (
+                      <div style={{ marginTop: 8 }}>
+                        {currentEntry.sources.map((src, i) => (
+                          <div key={i} style={{
+                            padding: "8px 12px", marginBottom: 4,
+                            background: CN.bgElevated, borderRadius: 4, border: `1px solid ${CN.border}`,
+                          }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                              <span style={cnBadge(NODE_COLORS[src.table] || CN.textMuted, CN.bgCard)}>
+                                {src.table}
+                              </span>
+                              {src.score !== undefined && (
+                                <span style={{ fontSize: 10, color: CN.textMuted, fontFamily: "monospace" }}>
+                                  score: {src.score.toFixed(4)}
+                                </span>
+                              )}
+                            </div>
+                            <div style={{ fontSize: 12, color: CN.textSecondary, lineHeight: 1.6 }}>
+                              {src.text?.slice(0, 200) || src.id}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  {/* Confidence bar */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <div style={{ flex: 1, height: 4, background: CN.bgElevated, borderRadius: 2, overflow: "hidden" }}>
-                      <div style={{ height: "100%", width: `${step.confidence}%`, background: confColor(step.confidence), borderRadius: 2, transition: "width 0.3s" }} />
+                )}
+              </div>
+
+              {/* Knowledge Graph Visualization */}
+              <div style={{ flex: 1, position: "relative", minHeight: 200, background: CN.bgCanvas }}>
+                <div style={{
+                  position: "absolute", top: 8, left: 12, zIndex: 10,
+                  fontSize: 10, fontWeight: 700, color: "#8B949E", letterSpacing: "1px",
+                  background: "rgba(13,17,23,0.8)", padding: "4px 10px", borderRadius: 4,
+                }}>
+                  KNOWLEDGE GRAPH -- {currentEntry.graphData.nodes.length} 节点 / {currentEntry.graphData.edges.length} 边
+                </div>
+                <CytoscapeGraph
+                  ref={graphRef}
+                  data={currentEntry.graphData}
+                  onNodeSelect={setSelectedNode}
+                  onNodeDblClick={() => {}}
+                />
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Right: Selected Node Detail */}
+        {selectedNode && currentEntry && (
+          <div style={{
+            width: 280, flexShrink: 0, overflowY: "auto",
+            background: CN.bgCard, borderLeft: `1px solid ${CN.border}`, padding: 16,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <h3 style={{ fontSize: 14, fontWeight: 700, color: CN.text, margin: 0 }}>
+                {selectedNode.label}
+              </h3>
+              <button onClick={() => setSelectedNode(null)}
+                style={{ background: "none", border: "none", color: CN.textMuted, cursor: "pointer", fontSize: 18 }}>
+                x
+              </button>
+            </div>
+
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ fontSize: 10, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1px" }}>类型</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: NODE_COLORS[selectedNode.type] || "#94A3B8" }} />
+                <span style={{ fontSize: 13, color: CN.text }}>{selectedNode.type}</span>
+              </div>
+            </div>
+
+            {/* Show full source text if available */}
+            {(() => {
+              const src = currentEntry.sources.find((s) => s.id === selectedNode.id);
+              if (src?.text) {
+                return (
+                  <div style={{ marginBottom: 12 }}>
+                    <div style={{ fontSize: 10, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1px", marginBottom: 4 }}>内容</div>
+                    <div style={{ fontSize: 12, color: CN.textSecondary, lineHeight: 1.7, maxHeight: 200, overflowY: "auto" }}>
+                      {src.text}
                     </div>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: confColor(step.confidence), fontVariantNumeric: "tabular-nums", minWidth: 36, textAlign: "right" }}>
-                      {step.confidence}%
+                  </div>
+                );
+              }
+              return null;
+            })()}
+
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ fontSize: 10, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1px" }}>ID</div>
+              <div style={{ fontSize: 11, color: CN.textMuted, marginTop: 2, wordBreak: "break-all", fontFamily: "monospace" }}>
+                {selectedNode.id}
+              </div>
+            </div>
+
+            {selectedNode.neighbors.length > 0 && (
+              <div style={{ borderTop: `1px solid ${CN.border}`, paddingTop: 12 }}>
+                <div style={{ fontSize: 10, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1px", marginBottom: 8 }}>
+                  关联 ({selectedNode.neighbors.length})
+                </div>
+                {selectedNode.neighbors.map((nb, i) => (
+                  <div key={i} style={{
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                    padding: "5px 0", borderBottom: `1px solid ${CN.bgElevated}`, fontSize: 12,
+                  }}>
+                    <span style={{ color: CN.text, maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {nb.direction === "incoming" ? "\u2190 " : "\u2192 "}{nb.target_label}
+                    </span>
+                    <span style={cnBadge(EDGE_COLORS[nb.edge_type] || CN.textMuted, CN.bgElevated)}>
+                      {EDGE_LABELS_ZH[nb.edge_type] || nb.edge_type}
                     </span>
                   </div>
-                </div>
+                ))}
               </div>
-            );
-          })}
-        </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

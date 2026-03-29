@@ -14,11 +14,11 @@ function KPI({ label, value, sub, color }: { label: string; value: string; sub: 
   );
 }
 
-function CoverageBar({ label, value, target }: { label: string; value: number; target: number }) {
+function CoverageBar({ label, value, target, desc }: { label: string; value: number; target: number; desc: string }) {
   const hit = value >= target;
   const color = hit ? CN.green : CN.amber;
   return (
-    <div style={{ marginBottom: 14 }}>
+    <div style={{ marginBottom: 18 }}>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: CN.textSecondary, marginBottom: 4 }}>
         <span>{label}</span>
         <span style={{ color, fontVariantNumeric: "tabular-nums" }}>
@@ -28,14 +28,57 @@ function CoverageBar({ label, value, target }: { label: string; value: number; t
       <div style={{ height: 6, background: CN.border, borderRadius: 3, overflow: "hidden" }}>
         <div style={{ height: "100%", width: `${Math.min(value, 100)}%`, background: color, transition: "width 0.5s" }} />
       </div>
+      <div style={{ fontSize: 11, color: CN.textMuted, marginTop: 4, lineHeight: 1.5 }}>
+        {desc}
+      </div>
     </div>
   );
 }
+
+/* Metric explanation data */
+const METRIC_EXPLANATIONS: Record<string, { formula: string; meaning: string; threshold: string }> = {
+  "节点总数": {
+    formula: "SUM(COUNT(n) for each node table)",
+    meaning: "KuzuDB 中所有节点表的节点总数。包括法规条款、知识单元、税率、会计科目等 74 张表。",
+    threshold: "无固定阈值。数量越多表示知识图谱覆盖面越广。",
+  },
+  "边总数": {
+    formula: "SUM(COUNT(e) for each edge table)",
+    meaning: "所有关系边的总数。边表示节点间的语义关联，如 INTERPRETS（解释）、ISSUED_BY（发布）、REFERENCES_CLAUSE（引用条款）等。",
+    threshold: "无固定阈值。边越多表示知识关联越丰富。",
+  },
+  "边密度": {
+    formula: "total_edges / total_nodes",
+    meaning: "平均每个节点拥有的边数。反映图谱的连通性和关联丰富度。密度越高说明节点之间的关系越丰富。",
+    threshold: ">= 0.5 为 OK。当前 3.0+ 表示平均每个节点有 3 条关联，属于高质量水平。",
+  },
+  "标题覆盖率": {
+    formula: "COUNT(nodes with title >= 2 chars) / total_v2_nodes * 100%",
+    meaning: "v2 版本节点表中，拥有有效标题（title/name/topic 字段 >= 2 字符）的节点占比。标题是节点的可读标识，没有标题的节点在搜索和展示时会显示为 ID 哈希。",
+    threshold: ">= 95% 为 OK。当前 99.6% 表示仅极少数节点缺少标题。",
+  },
+  "内容覆盖率": {
+    formula: "COUNT(nodes with content >= 20 chars) / total_v2_nodes * 100%",
+    meaning: "v2 版本节点表中，拥有有效内容（fullText/content/description 字段 >= 20 字符）的节点占比。内容是节点的核心信息，决定了 RAG 检索和知识问答的回答质量。",
+    threshold: ">= 80% 为 OK。当前 31.2% 偏低，主要因为元数据节点（HSCode、Classification 等）本身只有编码无正文。",
+  },
+  "质量评分": {
+    formula: "100 - (title_gap * 100) - (density_gap * 50)",
+    meaning: "综合质量分。从 100 分起扣：标题覆盖率每低于 95% 目标扣 1 分（按差值百分比），边密度每低于 0.5 目标扣 0.5 分。",
+    threshold: ">= 80 为 A，>= 60 为 B，< 60 为 C。当前 100 表示标题覆盖率和边密度均达标。",
+  },
+  "等级": {
+    formula: "A: score >= 90 | B: score >= 70 | C: score < 70 | F: gate FAIL",
+    meaning: "基于质量评分的等级划分。A 表示图谱质量优秀，所有核心指标达标。",
+    threshold: "PASS gate 要求 score >= 60。",
+  },
+};
 
 export default function DataQualityPage() {
   const [stats, setStats] = useState<KGStats | null>(null);
   const [quality, setQuality] = useState<KGQuality | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [expandedMetric, setExpandedMetric] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([getStats(), getQuality()])
@@ -68,7 +111,7 @@ export default function DataQualityPage() {
         <KPI label="质量评分" value={quality ? `${quality.quality_score || 0}` : "..."} sub={quality ? `等级 ${quality.grade || "--"}` : "--"} color={quality ? gradeColor(quality.quality_score || 0) : CN.textMuted} />
       </div>
 
-      {/* 2-Column: Bar Chart + Coverage */}
+      {/* 3-Column: Chart + Coverage + Detail */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
         {/* Left: Node Type Distribution */}
         <div style={{ ...cnCard }}>
@@ -99,8 +142,14 @@ export default function DataQualityPage() {
               <div style={{ fontSize: 13, fontWeight: 700, color: CN.text, marginBottom: 14 }}>
                 覆盖率指标
               </div>
-              <CoverageBar label="标题覆盖率" value={quality.title_coverage || 0} target={95} />
-              <CoverageBar label="内容覆盖率" value={quality.content_coverage || 0} target={80} />
+              <CoverageBar
+                label="标题覆盖率" value={quality.title_coverage || 0} target={95}
+                desc="统计范围: v2 节点表 (17 张) | 检查字段: title / name / topic | 有效阈值: >= 2 字符"
+              />
+              <CoverageBar
+                label="内容覆盖率" value={quality.content_coverage || 0} target={80}
+                desc="统计范围: v2 节点表 (17 张) | 检查字段: fullText / content / description | 有效阈值: >= 20 字符"
+              />
             </div>
           )}
 
@@ -124,21 +173,88 @@ export default function DataQualityPage() {
                     { m: "边密度", v: (quality.edge_density || 0).toFixed(3), ok: (quality.edge_density || 0) >= 0.5 },
                     { m: "标题覆盖率", v: `${(quality.title_coverage || 0).toFixed(1)}%`, ok: (quality.title_coverage || 0) >= 95 },
                     { m: "内容覆盖率", v: `${(quality.content_coverage || 0).toFixed(1)}%`, ok: (quality.content_coverage || 0) >= 80 },
-                  ].map((r) => (
-                    <tr key={r.m} style={{ borderBottom: `1px solid ${CN.border}` }}>
-                      <td style={{ padding: "6px 0", color: CN.textSecondary }}>{r.m}</td>
-                      <td style={{ padding: "6px 0", textAlign: "right", color: CN.text, fontVariantNumeric: "tabular-nums" }}>{r.v}</td>
-                      <td style={{ padding: "6px 0", textAlign: "right" }}>
-                        <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", color: r.ok ? CN.green : CN.amber, background: r.ok ? CN.greenBg : CN.amberBg }}>
-                          {r.ok ? "OK" : "WARN"}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  ].map((r) => {
+                    const explanation = METRIC_EXPLANATIONS[r.m];
+                    const isExpanded = expandedMetric === r.m;
+                    return (
+                      <tr key={r.m}
+                        style={{ borderBottom: `1px solid ${CN.border}`, cursor: "pointer" }}
+                        onClick={() => setExpandedMetric(isExpanded ? null : r.m)}
+                      >
+                        <td style={{ padding: "6px 0", color: CN.textSecondary }}>
+                          <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                            <span style={{ color: CN.textMuted, fontSize: 10 }}>{isExpanded ? "v" : ">"}</span>
+                            {r.m}
+                          </span>
+                        </td>
+                        <td style={{ padding: "6px 0", textAlign: "right", color: CN.text, fontVariantNumeric: "tabular-nums" }}>{r.v}</td>
+                        <td style={{ padding: "6px 0", textAlign: "right" }}>
+                          <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", color: r.ok ? CN.green : CN.amber, background: r.ok ? CN.greenBg : CN.amberBg }}>
+                            {r.ok ? "OK" : "WARN"}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Expanded Metric Explanation */}
+      {expandedMetric && METRIC_EXPLANATIONS[expandedMetric] && (
+        <div style={{
+          ...cnCard, borderLeft: `3px solid ${CN.blue}`, marginBottom: 24,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: CN.text }}>
+              {expandedMetric} -- 计算说明
+            </div>
+            <button onClick={() => setExpandedMetric(null)}
+              style={{ background: "none", border: "none", color: CN.textMuted, cursor: "pointer", fontSize: 16 }}>x</button>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: "12px 16px", fontSize: 13 }}>
+            <span style={{ fontWeight: 700, color: CN.textMuted }}>公式</span>
+            <code style={{ padding: "4px 10px", background: CN.bgElevated, borderRadius: 4, fontSize: 12, fontFamily: "'SF Mono', monospace", color: CN.text }}>
+              {METRIC_EXPLANATIONS[expandedMetric].formula}
+            </code>
+            <span style={{ fontWeight: 700, color: CN.textMuted }}>含义</span>
+            <span style={{ color: CN.textSecondary, lineHeight: 1.7 }}>
+              {METRIC_EXPLANATIONS[expandedMetric].meaning}
+            </span>
+            <span style={{ fontWeight: 700, color: CN.textMuted }}>阈值</span>
+            <span style={{ color: CN.textSecondary, lineHeight: 1.7 }}>
+              {METRIC_EXPLANATIONS[expandedMetric].threshold}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Data Source & Methodology */}
+      <div style={{ ...cnCard, borderTop: `2px solid ${CN.blue}` }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: CN.text, marginBottom: 12 }}>
+          数据来源与计算方法
+        </div>
+        <div style={{ fontSize: 12, color: CN.textSecondary, lineHeight: 1.8 }}>
+          <p style={{ marginBottom: 12 }}>
+            <strong>数据来源</strong>: 所有指标实时查询 KuzuDB 图数据库 (API: <code style={{ fontSize: 11, padding: "1px 6px", background: CN.bgElevated, borderRadius: 3 }}>GET /api/v1/quality</code>)。
+            统计范围限定于 v2 版本的 17 张核心节点表 (LegalDocument, LegalClause, ComplianceRuleV2 等)，排除已归档的旧版表以避免重复计数。
+          </p>
+          <p style={{ marginBottom: 12 }}>
+            <strong>边密度计算</strong>: 仅统计 v2 版本的 36 种边类型 (INTERPRETS, ISSUED_BY, REFERENCES_CLAUSE 等)。
+            公式: <code style={{ fontSize: 11, padding: "1px 6px", background: CN.bgElevated, borderRadius: 3 }}>total_v2_edges / total_v2_nodes</code>。
+            当前值 3.044 表示平均每个节点有 3 条语义关联。
+          </p>
+          <p style={{ marginBottom: 12 }}>
+            <strong>质量评分</strong>: 满分 100，两项扣分: (1) 标题覆盖率每低于 95% 目标差值按比例扣分 (权重 100); (2) 边密度每低于 0.5 目标差值按比例扣分 (权重 50)。
+            Gate 通过条件: score {">"}= 60。
+          </p>
+          <p style={{ marginBottom: 0 }}>
+            <strong>内容覆盖率说明</strong>: 当前 31.2% 偏低属于结构性原因 -- KG 中有大量元数据节点 (HSCode 23K, Classification 28K, TaxClassificationCode 4K 等) 本身只有编码和名称，没有正文内容。
+            法规类节点 (LegalClause 83K, LawOrRegulation 39K) 的内容覆盖率显著更高。提升整体覆盖率需要为元数据节点补充释义文本。
+          </p>
         </div>
       </div>
     </div>

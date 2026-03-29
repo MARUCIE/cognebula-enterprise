@@ -362,6 +362,26 @@ def quality_audit():
 
     metrics["title_coverage"] = round(total_with_title / total_nodes, 3) if total_nodes > 0 else 0
 
+    # Content coverage: nodes with fullText/content >= QG_CONTENT_MIN_LEN chars
+    total_with_content = 0
+    for tbl in node_tables:
+        if tbl not in V2_TABLES:
+            continue
+        content_fields = ["fullText", "content", "description"]
+        if tbl in TABLE_LABEL_FIELDS:
+            content_fields.extend(TABLE_LABEL_FIELDS[tbl])
+        best_count = 0
+        for field in content_fields:
+            try:
+                r = conn.execute(
+                    f"MATCH (n:{tbl}) WHERE n.{field} IS NOT NULL AND size(n.{field}) >= {QG_CONTENT_MIN_LEN} RETURN count(n)"
+                )
+                best_count = max(best_count, r.get_next()[0])
+            except:
+                pass
+        total_with_content += best_count
+    metrics["content_coverage"] = round(total_with_content / total_nodes, 3) if total_nodes > 0 else 0
+
     # Edge density (v3.1 edges only)
     total_edges = 0
     edge_debug = {}
@@ -539,8 +559,8 @@ def graph_traverse(
             raw = row[0] if row else None
             if isinstance(raw, dict):
                 node_dict = raw
-                # Return clean version with label
-                node = {k: str(v)[:300] if v is not None else None for k, v in raw.items()}
+                # Return clean version with label (10K limit for full-text display)
+                node = {k: str(v)[:10000] if v is not None else None for k, v in raw.items()}
                 node["_label"] = _get_node_label(
                     node.get("id"), title=node.get("title"),
                     name=node.get("name"), question=node.get("question"),
@@ -575,7 +595,7 @@ def graph_traverse(
                 }
             else:
                 # Fallback for non-dict nodes
-                s = str(raw_node)[:300]
+                s = str(raw_node)[:10000]
                 # Try to extract id from string repr
                 import re
                 id_match = re.search(r"id:\s*([^,}]+)", s)
@@ -629,12 +649,13 @@ def migrate_table(payload: dict):
 
     # Build SELECT clause from field_map
     # field_map: {new_field: "n.old_field" or "'literal'"}
+    # Each column gets an alias to avoid KuzuDB "duplicate column name" error
     return_cols = []
-    for new_field, expr in field_map.items():
+    for i, (new_field, expr) in enumerate(field_map.items()):
         if expr.startswith("'") and expr.endswith("'"):
-            return_cols.append(expr)  # literal value
+            return_cols.append(f"{expr} AS col_{i}")
         else:
-            return_cols.append(f"n.{expr}")
+            return_cols.append(f"n.{expr} AS col_{i}")
 
     query = f"MATCH (n:{source}) RETURN {', '.join(return_cols)} SKIP {offset} LIMIT {batch_size}"
 
@@ -727,6 +748,7 @@ def execute_ddl(payload: dict):
             "CREATE NODE TABLE", "CREATE REL TABLE", "DROP TABLE",
             "CREATE (", "MATCH (", "CREATE REL TABLE IF NOT EXISTS",
             "CREATE NODE TABLE IF NOT EXISTS", "DROP TABLE IF EXISTS",
+            "ALTER TABLE",
         )
         if not any(upper.startswith(p) for p in ALLOWED_PREFIXES):
             results.append({"statement": stmt[:80], "status": "REJECTED", "reason": "Not in allowed prefix list"})
@@ -1167,7 +1189,7 @@ class ChatResponse(_BaseModel):
     tokens_used: int = 0
 
 
-def _gemini_generate(prompt: str, system: str = "", model: str = "gemini-3.1-flash-lite") -> str:
+def _gemini_generate(prompt: str, system: str = "", model: str = "gemini-2.5-flash") -> str:
     """Call LLM via Poe API (OpenAI-compatible) for text generation.
 
     Falls back to Google Gemini API if POE_API_KEY is not set.
@@ -1258,7 +1280,7 @@ def _rag_search_context(question: str, limit: int = 8) -> tuple:
             for r in results:
                 src = {
                     "id": r.get("id", ""),
-                    "text": (r.get("text", "") or "")[:500],
+                    "text": (r.get("text", "") or "")[:5000],
                     "table": r.get("table", ""),
                     "category": r.get("category", ""),
                     "score": round(float(r.get("_distance", 0)), 4),

@@ -1,66 +1,58 @@
 #!/usr/bin/env python3
-"""Incremental embedding: embed new nodes without full DB rebuild.
+"""Incremental embedding: add new KU nodes to existing LanceDB index.
 
-Reads node IDs from LanceDB, compares with KuzuDB, embeds only new ones.
-Does NOT lock KuzuDB for extended periods (opens/closes per batch).
+Reads: data/ku_embed_incremental.jsonl (exported from VPS)
+Writes: data/lancedb-build/kg_nodes (appends to existing table)
 
-M2 Principle: new nodes embed immediately, no full rebuild unless schema changes.
+Skips IDs already in the LanceDB table. Uses local Gemini API key.
 
 Usage:
     python3 src/embed_incremental.py
-    python3 src/embed_incremental.py --batch-size 100
+    python3 src/embed_incremental.py --limit 500
 """
-import argparse
-import json
-import logging
-import os
-import sys
-import time
+import json, logging, os, sys, time
 from pathlib import Path
 
-import httpx
-import kuzu
-import lancedb
-import pyarrow as pa
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(message)s",
-)
-log = logging.getLogger("embed_incremental")
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+log = logging.getLogger("embed_incr")
 
 EMBEDDING_DIM = 768
 MODEL = "gemini-embedding-2-preview"
-GEMINI_EMBED_BASE = os.environ.get(
-    "GEMINI_EMBED_BASE",
-    "https://gemini-api-proxy.maoyuan-wen-683.workers.dev"
-)
-EMBED_URL = f"{GEMINI_EMBED_BASE}/v1beta/models/{MODEL}:embedContent"
+TABLE_NAME = "kg_nodes"
+
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+INPUT = os.path.join(BASE, "data", "ku_embed_incremental.jsonl")
+LANCE_DIR = os.path.join(BASE, "data", "lancedb-build")
+CHECKPOINT = os.path.join(BASE, "data", "embed_incr_checkpoint.json")
 
 
 def get_api_key():
+    for p in [os.path.expanduser("~/.openclaw/.env"), ".env"]:
+        if os.path.exists(p):
+            for line in open(p):
+                if line.strip().startswith("GEMINI_API_KEY="):
+                    return line.strip().split("=", 1)[1]
     key = os.environ.get("GEMINI_API_KEY")
     if key:
         return key
-    for p in [Path.home() / ".openclaw" / ".env", Path(".env")]:
-        if p.exists():
-            for line in p.read_text().splitlines():
-                if line.startswith("GEMINI_API_KEY="):
-                    return line.split("=", 1)[1].strip()
     raise RuntimeError("GEMINI_API_KEY not found")
 
 
-def embed_one(text: str, api_key: str, client: httpx.Client) -> list[float]:
+def embed_one(text, api_key, client):
+    import httpx
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:embedContent"
     body = {
         "model": f"models/{MODEL}",
         "content": {"parts": [{"text": text[:8000]}]},
+        "taskType": "RETRIEVAL_DOCUMENT",
         "outputDimensionality": EMBEDDING_DIM,
     }
     for attempt in range(5):
         try:
-            resp = client.post(f"{EMBED_URL}?key={api_key}", json=body, timeout=30)
+            resp = client.post(f"{url}?key={api_key}", json=body, timeout=30)
             if resp.status_code == 429:
-                time.sleep(2 ** attempt + 1)
+                wait = min(2 ** attempt + 1, 30)
+                time.sleep(wait)
                 continue
             resp.raise_for_status()
             return resp.json()["embedding"]["values"]
@@ -68,120 +60,111 @@ def embed_one(text: str, api_key: str, client: httpx.Client) -> list[float]:
             if attempt < 4:
                 time.sleep(2 ** attempt)
             else:
-                log.error("Embed failed: %s", e)
-                return [0.0] * EMBEDDING_DIM
-    return [0.0] * EMBEDDING_DIM
+                log.error("Embed failed: %s", str(e)[:80])
+                return None
+    return None
+
+
+def load_checkpoint():
+    if os.path.exists(CHECKPOINT):
+        with open(CHECKPOINT) as f:
+            return json.load(f)
+    return {"done_ids": [], "count": 0}
+
+
+def save_checkpoint(state):
+    with open(CHECKPOINT, "w") as f:
+        json.dump(state, f)
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--db", default="data/finance-tax-graph")
-    parser.add_argument("--lance", default="data/finance-tax-lance")
-    parser.add_argument("--batch-size", type=int, default=500)
-    args = parser.parse_args()
+    import httpx
+    import lancedb
+
+    limit = None
+    for i, a in enumerate(sys.argv):
+        if a == "--limit" and i + 1 < len(sys.argv):
+            limit = int(sys.argv[i + 1])
 
     api_key = get_api_key()
-    log.info("API key loaded")
+    log.info("API key: %s...", api_key[:15])
 
-    # Get existing IDs from LanceDB
-    lance_db = lancedb.connect(args.lance)
-    try:
-        tbl = lance_db.open_table("finance_tax_embeddings")
-        existing_ids = set(tbl.to_pandas()["id"].tolist())
-        log.info("LanceDB existing: %d vectors", len(existing_ids))
-    except Exception:
-        log.info("No existing LanceDB table, will create")
-        existing_ids = set()
+    docs = []
+    with open(INPUT) as f:
+        for line in f:
+            docs.append(json.loads(line))
+    log.info("Loaded %d docs from incremental export", len(docs))
 
-    # Get all node IDs from KuzuDB (quick read, release lock fast)
-    db = kuzu.Database(args.db)
-    conn = kuzu.Connection(db)
+    lance_db = lancedb.connect(LANCE_DIR)
+    tbl = lance_db.open_table(TABLE_NAME)
+    existing_count = tbl.count_rows()
+    log.info("Existing LanceDB: %d rows", existing_count)
 
-    new_docs = []
+    existing_ids = set(tbl.to_arrow().column("id").to_pylist())
+    log.info("Existing IDs: %d", len(existing_ids))
 
-    # LawOrRegulation
-    r = conn.execute(
-        "MATCH (n:LawOrRegulation) RETURN n.id, n.title, n.regulationType, "
-        "n.issuingAuthority, n.fullText"
-    )
-    while r.has_next():
-        row = r.get_next()
-        nid = row[0] or ""
-        if nid in existing_ids:
-            continue
-        title = row[1] or ""
-        text = (row[4] or "")[:1500]
-        new_docs.append({
-            "id": nid,
-            "title": title[:200],
-            "node_type": "LawOrRegulation",
-            "reg_type": row[2] or "",
-            "source": row[3] or "",
-            "embed_text": f"{title}\n{text}"[:3000],
-        })
+    ckpt = load_checkpoint()
+    done_ids = set(ckpt.get("done_ids", []))
+    log.info("Checkpoint: %d already done this run", len(done_ids))
 
-    # RegulationClause -- SKIP embedding (accessed via CLAUSE_OF graph traversal)
-    # Clauses are reachable through their parent LawOrRegulation vectors.
-    # Embedding 42K+ clauses would take ~10 hours with minimal retrieval benefit.
-    log.info("Skipping RegulationClause (accessed via graph traversal, not vector search)")
+    pending = [d for d in docs if d["id"] not in existing_ids and d["id"] not in done_ids]
+    if limit:
+        pending = pending[:limit]
+    log.info("Pending: %d new docs to embed", len(pending))
 
-    # Close DB connection to release lock
-    del conn
-    del db
-
-    log.info("New documents to embed: %d", len(new_docs))
-    if not new_docs:
-        log.info("Nothing to embed, all up to date")
+    if not pending:
+        log.info("Nothing new to embed!")
         return
 
-    # Embed in batches
     client = httpx.Client()
     records = []
-    start = time.time()
+    t0 = time.time()
+    batch_size = 500
+    failed = 0
+    embedded = 0
 
-    for i, doc in enumerate(new_docs):
+    for i, doc in enumerate(pending):
         vec = embed_one(doc["embed_text"], api_key, client)
+        if vec is None:
+            failed += 1
+            if failed > 50:
+                log.error("Too many failures (%d), stopping", failed)
+                break
+            continue
+
         records.append({
             "id": doc["id"],
             "title": doc["title"],
             "node_type": doc["node_type"],
-            "reg_type": doc["reg_type"],
             "source": doc["source"],
             "vector": vec,
         })
+        done_ids.add(doc["id"])
+        embedded += 1
 
-        if (i + 1) % args.batch_size == 0:
-            # Append batch to LanceDB
-            try:
-                tbl = lance_db.open_table("finance_tax_embeddings")
-                tbl.add(records)
-                log.info("Appended %d vectors (%d/%d total)",
-                         len(records), i + 1, len(new_docs))
-            except Exception:
-                # Table might not exist yet, create it
-                tbl = lance_db.create_table("finance_tax_embeddings", records)
-                log.info("Created table with %d vectors", len(records))
+        if len(records) >= batch_size:
+            tbl.add(records)
+            save_checkpoint({"done_ids": list(done_ids), "count": embedded + ckpt.get("count", 0)})
+            elapsed = time.time() - t0
+            rate = embedded / elapsed
+            eta = (len(pending) - i - 1) / rate / 60 if rate > 0 else 0
+            log.info("Batch: +%d vectors (total %d, %.1f/s, ETA %.0f min, %d failed)",
+                     len(records), embedded, rate, eta, failed)
             records = []
 
-        if (i + 1) % 100 == 0:
-            time.sleep(0.5)  # Rate limit
-
-    # Final batch
     if records:
-        try:
-            tbl = lance_db.open_table("finance_tax_embeddings")
-            tbl.add(records)
-        except Exception:
-            tbl = lance_db.create_table("finance_tax_embeddings", records)
-        log.info("Final batch: %d vectors", len(records))
+        tbl.add(records)
+        save_checkpoint({"done_ids": list(done_ids), "count": embedded + ckpt.get("count", 0)})
 
     client.close()
-    elapsed = time.time() - start
+    elapsed = time.time() - t0
 
-    # Summary
-    tbl = lance_db.open_table("finance_tax_embeddings")
-    log.info("Done: +%d vectors in %.1f min | Total: %d vectors",
-             len(new_docs), elapsed / 60, tbl.count_rows())
+    final_count = tbl.count_rows()
+    log.info("=" * 60)
+    log.info("DONE: +%d vectors in %.1f min (%.1f/s)", embedded, elapsed / 60, embedded / elapsed if elapsed > 0 else 0)
+    log.info("Total in LanceDB: %d vectors", final_count)
+    log.info("Failed: %d", failed)
+    log.info("Next: bash scripts/sync_lancedb_to_vps.sh")
 
 
 if __name__ == "__main__":

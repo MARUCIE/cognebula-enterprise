@@ -64,7 +64,25 @@ export async function getStats(): Promise<KGStats> {
 }
 
 export async function getQuality(): Promise<KGQuality> {
-  return kgFetch("/quality");
+  const raw = await kgFetch<{
+    gate: string; score: number;
+    metrics: Record<string, number>;
+    title_stats?: Record<string, unknown>;
+    issues?: unknown[];
+  }>("/quality");
+  // Backend nests data inside metrics — flatten for frontend
+  const m = raw.metrics || {};
+  return {
+    total_nodes: m.total_nodes || 0,
+    total_edges: m.total_edges || 0,
+    edge_density: m.edge_density || 0,
+    title_coverage: (m.title_coverage || 0) * 100,
+    content_coverage: (m.content_coverage || 0) * 100,
+    tables_checked: 0,
+    quality_score: m.quality_score || raw.score || 0,
+    grade: raw.gate === "PASS" ? (m.quality_score >= 90 ? "A" : m.quality_score >= 70 ? "B" : "C") : "F",
+    details: raw.issues as Record<string, unknown>[],
+  };
 }
 
 export async function getGraph(
@@ -82,29 +100,84 @@ export async function searchNodes(query: string, limit = 10): Promise<{ results:
   return kgFetch(`/search?${params}`);
 }
 
-export async function listNodes(table: string, limit = 20): Promise<{ nodes: Record<string, unknown>[] }> {
-  const params = new URLSearchParams({ table, limit: String(limit) });
+export async function listNodes(table: string, limit = 20, offset = 0, q?: string): Promise<{ type: string; count: number; offset: number; results: Record<string, unknown>[] }> {
+  const params = new URLSearchParams({ type: table, limit: String(limit), offset: String(offset) });
+  if (q) params.set("q", q);
   return kgFetch(`/nodes?${params}`);
 }
 
-/* Layer classification for node types */
+/* ── Node Detail ────────────────────────────── */
+export interface KGNodeDetail {
+  id: string;
+  title?: string;
+  name?: string;
+  fullText?: string;
+  content?: string;
+  description?: string;
+  sourceUrl?: string;
+  regulationNumber?: string;
+  effectiveDate?: string;
+  hierarchyLevel?: string;
+  regulationType?: string;
+  status?: string;
+  _display_label?: string;
+  [key: string]: unknown;
+}
+
+export async function getNodeDetail(table: string, id: string): Promise<KGNodeDetail | null> {
+  const graphResult = await getGraph(table, id);
+  if (!graphResult.node) return null;
+  return { ...graphResult.node, id } as KGNodeDetail;
+}
+
+/* ── Chat RAG ───────────────────────────────── */
+export interface ChatSource {
+  id: string;
+  text: string;
+  table: string;
+  category?: string;
+  score?: number;
+}
+
+export interface ChatResponse {
+  answer: string;
+  sources: ChatSource[];
+  cypher?: string;
+  html?: string;
+  mode: string;
+  tokens_used?: number;
+}
+
+export async function chatRAG(question: string, limit = 8): Promise<ChatResponse> {
+  const resp = await fetch(`${KG_API_BASE}/chat`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ question, mode: "rag", limit }),
+  });
+  if (!resp.ok) throw new Error(`Chat API ${resp.status}: ${resp.statusText}`);
+  return resp.json();
+}
+
+/* v4.1 Ontology: 21 node types across 4 layers */
 export const LAYER_GROUPS: Record<string, { color: string; darkColor: string; nodes: string[] }> = {
-  "L1 法规层": { color: "#FEE2E2", darkColor: "#7F1D1D", nodes: ["LegalDocument", "LawOrRegulation", "LegalClause", "IssuingBody", "RegulationClause", "DocumentSection"] },
-  "L2 业务层": { color: "#DBEAFE", darkColor: "#1E3A5F", nodes: ["TaxRate", "AccountingSubject", "FilingFormV2", "BusinessActivity", "TaxEntity", "HSCode", "TaxClassificationCode", "TaxCodeDetail", "TaxCodeIndustryMap", "AccountingEntry", "AccountRuleMapping", "ChartOfAccount", "ChartOfAccountDetail", "FormTemplate", "SpreadsheetEntry"] },
-  "L3 合规层": { color: "#FEF3C7", darkColor: "#78350F", nodes: ["ComplianceRuleV2", "RiskIndicatorV2", "Penalty", "AuditTrigger", "TaxRiskScenario"] },
-  "Shared 共享": { color: "#F0FDF4", darkColor: "#14532D", nodes: ["TaxType", "TaxIncentiveV2", "TaxIncentive", "KnowledgeUnit", "Classification", "Region", "RegionalTaxPolicy", "FAQEntry", "CPAKnowledge", "MindmapNode", "IndustryRiskProfile"] },
+  "L1 法规层": { color: "#FEE2E2", darkColor: "#7F1D1D", nodes: ["LegalDocument", "LegalClause", "IssuingBody"] },
+  "L2 业务层": { color: "#DBEAFE", darkColor: "#1E3A5F", nodes: ["TaxRate", "AccountingSubject", "Classification", "TaxEntity", "Region", "FilingForm", "BusinessActivity"] },
+  "L3 合规层": { color: "#FEF3C7", darkColor: "#78350F", nodes: ["ComplianceRule", "RiskIndicator", "TaxIncentive", "Penalty", "AuditTrigger", "TaxAccountingGap", "SocialInsuranceRule", "InvoiceRule", "IndustryBenchmark"] },
+  "L4 知识层": { color: "#F0FDF4", darkColor: "#14532D", nodes: ["TaxType", "KnowledgeUnit"] },
 };
 
 export const NODE_COLORS: Record<string, string> = {
-  LegalDocument: "#EF4444", LawOrRegulation: "#F87171", LegalClause: "#FB923C", IssuingBody: "#FCA5A5",
-  RegulationClause: "#F97316", DocumentSection: "#FDBA74",
-  TaxRate: "#3B82F6", AccountingSubject: "#60A5FA", FilingFormV2: "#93C5FD",
-  BusinessActivity: "#2563EB", TaxEntity: "#1D4ED8", HSCode: "#38BDF8", TaxClassificationCode: "#0EA5E9",
-  ComplianceRuleV2: "#F59E0B", RiskIndicatorV2: "#FBBF24", Penalty: "#DC2626", AuditTrigger: "#F97316",
-  TaxType: "#8B5CF6", TaxIncentiveV2: "#A78BFA", KnowledgeUnit: "#10B981",
-  Classification: "#6EE7B7", Region: "#34D399", CPAKnowledge: "#14B8A6",
-  MindmapNode: "#06B6D4", FAQEntry: "#22D3EE", IndustryRiskProfile: "#F472B6",
-  RegionalTaxPolicy: "#4ADE80", TaxRiskScenario: "#FB7185",
+  // L1 Legal
+  LegalDocument: "#EF4444", LegalClause: "#FB923C", IssuingBody: "#FCA5A5",
+  // L2 Business
+  TaxRate: "#3B82F6", AccountingSubject: "#60A5FA", Classification: "#6EE7B7",
+  TaxEntity: "#1D4ED8", Region: "#34D399", FilingForm: "#93C5FD", BusinessActivity: "#2563EB",
+  // L3 Compliance
+  ComplianceRule: "#F59E0B", RiskIndicator: "#FBBF24", TaxIncentive: "#A78BFA",
+  Penalty: "#DC2626", AuditTrigger: "#F97316", TaxAccountingGap: "#E879F9",
+  SocialInsuranceRule: "#22D3EE", InvoiceRule: "#FB7185", IndustryBenchmark: "#F472B6",
+  // L4 Knowledge
+  TaxType: "#8B5CF6", KnowledgeUnit: "#10B981",
 };
 
 export const EDGE_LABELS_ZH: Record<string, string> = {
@@ -114,6 +187,14 @@ export const EDGE_LABELS_ZH: Record<string, string> = {
   APPLIES_TO_TAX: "适用税种", BASED_ON: "依据", CHILD_OF: "子分类",
   REFERENCES_CLAUSE: "引用", GOVERNED_BY: "受约束", TRIGGERS_TAX: "触发税种",
   KU_ABOUT_TAX: "知识税种", TRIGGERED_BY: "触发", PENALIZED_BY: "处罚",
+  // v4.1 new edges
+  PARENT_CLAUSE: "上级条款", PARENT_SUBJECT: "上级科目",
+  MAPS_TO_SUBJECT: "对应科目", STACKS_WITH: "可叠加", EXCLUDES: "互斥",
+  CREATES_GAP: "产生差异", HAS_GAP: "税会差异", GAP_FOR_TAX: "差异税种",
+  HAS_BUSINESS_GAP: "业务差异", RELATED_PARTY: "关联方",
+  HAS_RATE: "适用税率", INSURANCE_IN_REGION: "社保地区",
+  INVOICE_FOR_TAX: "发票税种", BENCHMARK_FOR: "行业基准",
+  RULE_FOR_INDUSTRY: "行业规则", OVERRIDES_IN: "地方覆盖", AUDIT_TRIGGERS: "审计触发",
 };
 
 export const EDGE_COLORS: Record<string, string> = {
@@ -129,5 +210,5 @@ export function getNodeLayer(type: string): string {
   for (const [group, info] of Object.entries(LAYER_GROUPS)) {
     if (info.nodes.includes(type)) return group;
   }
-  return "Shared 共享";
+  return "L4 知识层";
 }

@@ -1,6 +1,55 @@
 # HANDOFF.md -- CogNebula / Lingque Desktop
 
-> Last updated: 2026-03-29T00:40Z
+> Last updated: 2026-03-29T22:25Z
+
+## Session 20 — KG v4.1 Migration Phase 1-3
+
+### Phase 1: Data Migration DONE (+26,611 nodes)
+- Fixed migrate-table API: removed 500-char truncation, added column alias for KuzuDB
+- Added 19 missing columns to target tables via ALTER TABLE
+- Migrated 34 source tables → 12 target tables (scripts/migrate_v4.1.py)
+- Key additions: Classification +25,085, RiskIndicator +463, TaxRate +160, FilingForm +133
+- Total nodes: 513,893 → 540,504
+
+### Phase 3a: Edge Tables Created (13 new + 4 existed)
+- Created 17 v4.1 edge tables (PARENT_CLAUSE, PARENT_SUBJECT, STACKS_WITH, etc.)
+
+### Phase 2: Seed Data IN PROGRESS
+- 3 agents generating: TaxAccountingGap(50+), SocialInsuranceRule(120+), InvoiceRule(40), IndustryBenchmark(30)
+- Ingest script: scripts/ingest_seed_v4.1.py
+
+### Migration Progress
+```
+Phase 0: Schema      DONE
+Phase 1: Data 185K   DONE (+26,611 new, rest already existed)
+Phase 2: Seed data   DONE (+273 records: 50 Gap + 138 Insurance + 40 Invoice + 45 Benchmark)
+Phase 3a: Edge DDL   DONE (17 tables created)
+Phase 3b: Seed edges DONE (+213: 123 Insurance + 40 Invoice + 50 Gap)
+Phase 3c: AI edges   PENDING (PARENT_CLAUSE, STACKS_WITH, HAS_RATE, etc. — need semantic extraction)
+Phase 4a: Frontend   DONE (21 v4.1 types only in LAYER_GROUPS, NODE_COLORS, NODE_ZH)
+Phase 4b: DROP legacy DEFERRED (39 tables, 184K nodes — keep until full verification)
+```
+
+### API Fixes Applied to VPS
+1. kg-api-server.py line 707: `str(val)[:500]` → `str(val)` (no truncation)
+2. migrate-table: added `AS col_i` aliases to prevent KuzuDB duplicate column error
+3. execute-ddl: added "CALL" to ALLOWED_PREFIXES
+
+VPS: kg@100.75.77.112, KuzuDB: /home/kg/cognebula-enterprise/data/finance-tax-graph
+
+---
+
+## Session 19 — KG Ontology v4.1 + 29-Skill Finance Tax Team + 3D Graph
+
+### DONE: Frontend + Backend + Ontology + Skills
+- All 6 Expert pages connected to real KG API (3D graph, Q&A, data quality, legal browser)
+- Backend: /graph truncation 300->10000, content_coverage, Gemini model fix
+- Data: 76 ComplianceRuleV2 fullText re-ingested
+- Ontology v4.1: 21 nodes + 52 edges (DDL: schemas/ontology_v4.1.cypher)
+- 29 Skills + 284 Playbooks created, 9 rounds audited, registered in skill-groups.json v6.0.0
+- Phase 0 Schema: 3 new tables + 35 ALTER attributes on VPS
+
+---
 
 ## Session 18 Summary — System A PC Redesign + 3-Round Visual Audit + Cleanup
 

@@ -814,18 +814,31 @@ def graph_traverse(
                 }
 
         try:
-            result = conn.execute(f"MATCH (n:{safe_table})-[e]->(m) WHERE n.{safe_field} = '{safe_val}' RETURN label(e), label(m), m LIMIT 50")
+            result = conn.execute(f"MATCH (n:{safe_table})-[e]->(m) WHERE n.{safe_field} = '{safe_val}' RETURN label(e), label(m), m LIMIT 100")
             while result.has_next():
                 neighbors.append(_parse_neighbor(result.get_next(), "outgoing"))
         except Exception as _ge:
             import sys; print(f"GRAPH_ERR: {_ge}", file=sys.stderr)
         try:
-            result = conn.execute(f"MATCH (m)-[e]->(n:{safe_table}) WHERE n.{safe_field} = '{safe_val}' RETURN label(e), label(m), m LIMIT 50")
+            result = conn.execute(f"MATCH (m)-[e]->(n:{safe_table}) WHERE n.{safe_field} = '{safe_val}' RETURN label(e), label(m), m LIMIT 100")
             while result.has_next():
                 neighbors.append(_parse_neighbor(result.get_next(), "incoming"))
         except Exception as _ge:
             import sys; print(f"GRAPH_ERR: {_ge}", file=sys.stderr)
-        return {"node": node, "neighbors": neighbors, "depth": depth}
+
+        # Sort: backbone ontology edges first, bulk/legacy edges last
+        BACKBONE_EDGES = {
+            "INCENTIVE_FOR_TAX", "RULE_FOR_TAX", "APPLIES_TO_TAX", "GAP_FOR_TAX",
+            "INVOICE_FOR_TAX", "AUDIT_FOR_TAX", "RISK_FOR_TAX", "FILING_FOR_TAX",
+            "TRIGGERS_TAX", "STACKS_WITH", "EXCLUDES", "CREATES_GAP",
+            "HAS_GAP", "INSURANCE_IN_REGION", "BENCHMARK_FOR", "AUDIT_TRIGGERS",
+            "OVERRIDES_IN", "PENALIZED_BY", "TRIGGERED_BY", "GOVERNED_BY",
+            "CALCULATED_FROM", "SURCHARGE_OF", "RELATED_TAX",
+            "PARENT_SUBJECT", "PARENT_CLAUSE", "MAPS_TO_SUBJECT",
+            "PART_OF", "CHILD_OF", "ISSUED_BY", "SUPERSEDES", "AMENDS",
+        }
+        neighbors.sort(key=lambda n: (0 if n.get("edge_type") in BACKBONE_EDGES else 1, n.get("edge_type", "")))
+        return {"node": node, "neighbors": neighbors[:100], "depth": depth}
     except Exception as e:
         raise HTTPException(400, str(e))
 

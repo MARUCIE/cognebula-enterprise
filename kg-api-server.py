@@ -575,25 +575,40 @@ def _cypher_text_search(conn, query: str, limit: int = 10, table_filter: str = N
             except Exception:
                 continue
 
-    # If full-phrase search returned too few, try splitting into 2-char terms
+    # If full-phrase search returned too few, try domain-aware term extraction
+    DOMAIN_TERMS = [
+        "小规模纳税人", "一般纳税人", "增值税", "企业所得税", "个人所得税", "消费税",
+        "土地增值税", "房产税", "印花税", "契税", "关税", "车船税", "资源税",
+        "城建税", "教育费附加", "税收优惠", "减免税", "加计扣除", "即征即退",
+        "纳税申报", "汇算清缴", "税务登记", "发票管理", "进项税额", "销项税额",
+        "小微企业", "高新技术", "研发费用", "社保", "公积金",
+        "税会差异", "纳税调整", "视同销售", "税前扣除", "合规", "风险", "稽查",
+    ]
     if len(results) < limit and len(query) > 3:
         import re as _re_split
-        # Split on common Chinese particles first
+        # First: extract known domain terms
+        subterms = []
+        for dt in DOMAIN_TERMS:
+            if dt in query and dt not in subterms:
+                subterms.append(dt)
+        # Second: split on particles, keep 2-4 char chunks (no overlapping bigrams)
         raw = _re_split.split(
             r'[，。？！、的了在是有和与或及其对于关于如何什么哪些可以怎么为被将把各多少几个 ]',
             query,
         )
-        subterms = []
         for t in raw:
             t = t.strip()
-            if len(t) == 2 or len(t) == 3:
+            if 2 <= len(t) <= 4 and t not in subterms:
                 subterms.append(t)
-            elif len(t) > 3:
-                # Bigram split: "上海社保" → "上海", "社保"
+            elif len(t) > 4:
                 for i in range(0, len(t) - 1, 2):
                     bi = t[i:i+2]
-                    if bi not in subterms:
+                    if bi not in subterms and len(bi) == 2:
                         subterms.append(bi)
+        # Filter out subterms that are substrings of domain terms
+        found_domain = [t for t in subterms if t in DOMAIN_TERMS]
+        if found_domain:
+            subterms = [t for t in subterms if t in DOMAIN_TERMS or not any(t in dt for dt in found_domain)]
         existing_ids = {r["id"] for r in results}
         for st in subterms[:4]:
             if st == query:
@@ -1431,35 +1446,49 @@ def _rag_search_context(question: str, limit: int = 8) -> tuple:
         sources.append(src)
         context_parts.append(f"[{r['table']}] {r['id']}: {r.get('title', '')} — {r['text']}")
 
-    # Step 1.5: Also search individual keywords for broader coverage
-    # Chinese text needs aggressive splitting — extract 2-3 char substrings
+    # Step 1.5: Domain-aware keyword extraction for broader coverage
+    # Uses a dictionary of known tax/finance terms to avoid naive bigram pollution
+    # (e.g., "小规模纳税人" should NOT be split into "小规" which matches "小规格木材")
+    DOMAIN_TERMS = [
+        "小规模纳税人", "一般纳税人", "增值税", "企业所得税", "个人所得税", "消费税",
+        "土地增值税", "房产税", "印花税", "契税", "关税", "车船税", "资源税", "环保税",
+        "城建税", "教育费附加", "税收优惠", "减免税", "加计扣除", "即征即退",
+        "纳税申报", "汇算清缴", "税务登记", "发票管理", "进项税额", "销项税额",
+        "小微企业", "高新技术", "研发费用", "固定资产", "无形资产",
+        "社保", "公积金", "养老保险", "医疗保险", "失业保险", "工伤保险",
+        "税会差异", "纳税调整", "视同销售", "税前扣除", "税收征管",
+        "合规", "风险", "稽查", "处罚", "罚款", "滞纳金",
+    ]
     if len(question) > 2:
-        # First: split on particles
+        # First: extract known domain terms from question
+        terms = []
+        for dt in DOMAIN_TERMS:
+            if dt in question and dt not in terms:
+                terms.append(dt)
+        # Second: split remainder on particles, keep 2-4 char chunks
         raw_terms = _re_rag.split(
             r'[，。？！、的了在是有和与或及其对于关于如何什么哪些可以怎么为被将把各多少几个 ]',
             question,
         )
-        raw_terms = [t.strip() for t in raw_terms if len(t.strip()) >= 2]
-        # Second: if any term is > 4 chars, split into 2-char bigrams
-        terms = []
         for t in raw_terms:
-            if len(t) <= 4:
+            t = t.strip()
+            if 2 <= len(t) <= 4 and t not in terms:
                 terms.append(t)
-            else:
-                # Extract overlapping 2-char bigrams: "上海社保" → "上海", "海社", "社保"
-                for i in range(0, len(t) - 1):
+            elif len(t) > 4 and t not in terms:
+                # Non-overlapping 2-char split (NOT overlapping bigrams)
+                for i in range(0, len(t) - 1, 2):
                     bi = t[i:i+2]
-                    if bi not in terms:
+                    if bi not in terms and len(bi) == 2:
                         terms.append(bi)
-        # Deduplicate and limit
-        seen_terms = set()
-        unique_terms = []
-        for t in terms:
-            if t not in seen_terms and t != question:
-                seen_terms.add(t)
-                unique_terms.append(t)
+        # Filter out subterms that are substrings of already-found domain terms
+        # e.g., "小规" is a substring of "小规模纳税人" → remove to avoid "小规格木材" pollution
+        found_domain = [t for t in terms if t in DOMAIN_TERMS]
+        if found_domain:
+            terms = [t for t in terms if t in DOMAIN_TERMS or not any(t in dt for dt in found_domain)]
         seen_ids = {s["id"] for s in sources}
-        for term in unique_terms[:5]:
+        for term in terms[:5]:
+            if term == question:
+                continue
             extra = _cypher_text_search(conn, term, 5)
             for r in extra:
                 if r["id"] not in seen_ids:
@@ -1673,21 +1702,74 @@ def chat(req: ChatRequest):
 
         answer = _gemini_generate(prompt=prompt, system=SYSTEM_PROMPT_RAG)
 
-        # Fallback: if LLM fails (429/error), build structured answer from context
+        # Fallback: if LLM fails (429/error), build readable structured answer
         if answer.startswith("[ERROR]"):
-            fallback_lines = ["基于知识图谱数据，以下是相关结果：\n"]
-            # Include search results
+            # Table name → Chinese label mapping
+            TABLE_ZH = {
+                "TaxType": "税种", "TaxRate": "税率", "TaxIncentive": "税收优惠",
+                "ComplianceRule": "合规规则", "RiskIndicator": "风险指标",
+                "TaxAccountingGap": "税会差异", "SocialInsuranceRule": "社保规则",
+                "InvoiceRule": "发票规则", "IndustryBenchmark": "行业基准",
+                "AuditTrigger": "审计触发", "Penalty": "处罚", "FilingForm": "申报表",
+                "TaxEntity": "纳税主体", "BusinessActivity": "业务活动",
+                "AccountingSubject": "会计科目", "LegalDocument": "法规文件",
+                "LegalClause": "法规条款", "KnowledgeUnit": "知识",
+                "FAQEntry": "问答", "CPAKnowledge": "CPA知识",
+                "Classification": "分类", "Region": "地区", "IssuingBody": "发布机构",
+            }
+            fallback_lines = [f"以下是知识图谱中与「{question}」相关的数据：\n"]
+            seen_names = set()
+            # Include search results (deduplicated by name)
             for _src in sources[:8]:
                 _title = _src.get("title", _src.get("text", "")[:60])
+                if _title in seen_names:
+                    continue
+                seen_names.add(_title)
                 _table = _src.get("table", "")
-                fallback_lines.append(f"**[{_table}]** {_title}")
+                _label = TABLE_ZH.get(_table, _table)
                 _text = _src.get("text", "")
-                if _text and _text != _title:
-                    fallback_lines.append(f"  {_text[:300]}\n")
-            # Also include structured query context (crucial when text search returns 0)
+                if _text and _text != _title and len(_text) > 10:
+                    fallback_lines.append(f"[{_label}] {_title}\n  {_text[:200]}\n")
+                else:
+                    fallback_lines.append(f"[{_label}] {_title}")
+            # Include structured query data in readable format (not raw pipes)
             for _cp in context_parts:
-                if _cp.startswith("[Structured ") or " | " in _cp:
-                    fallback_lines.append(_cp)
+                if _cp.startswith("[Structured "):
+                    # Extract table name and format as section header
+                    import re as _re_fb
+                    _m = _re_fb.match(r'\[Structured (\w+)\] (.*)', _cp)
+                    if _m:
+                        _tbl = _m.group(1)
+                        _label = TABLE_ZH.get(_tbl, _tbl)
+                        fallback_lines.append(f"\n--- {_label}数据 ---")
+                elif " | " in _cp and not _cp.startswith("["):
+                    # Data row: convert pipe format to readable Chinese text
+                    FIELD_ZH = {
+                        "tiered": "分级税率", "flat": "固定费率", "progressive_7tier": "7级累进",
+                        "progressive_4tier": "4级超率累进", "flat_with_incentives": "固定+优惠",
+                        "tiered_by_good": "按商品分级", "tiered_by_hs": "按HS编码",
+                        "tiered_by_location": "按地区", "tiered_by_resource": "按资源",
+                        "tiered_by_area": "按面积", "tiered_by_displacement": "按排量",
+                        "tiered_by_contract": "按合同", "dual_method": "从价从量复合",
+                        "monthly": "月报", "quarterly": "季报", "annual": "年报",
+                        "per_shipment": "逐票", "per_transaction": "逐笔",
+                        "NATIONAL": "全国", "exemption": "免征", "rate_reduction": "减征",
+                        "refund": "退税", "deduction": "扣除", "timing": "时间性差异",
+                        "permanent": "永久性差异",
+                    }
+                    fields = [f.strip() for f in _cp.split("|")]
+                    if fields and fields[0]:
+                        readable = fields[0]
+                        details = []
+                        for f in fields[1:]:
+                            f = f.strip()
+                            if f and f != "None" and f != "":
+                                details.append(FIELD_ZH.get(f, f))
+                        if details:
+                            readable += " (" + ", ".join(details[:4]) + ")"
+                        if readable not in seen_names:
+                            fallback_lines.append(f"  {readable}")
+                            seen_names.add(readable)
             if len(fallback_lines) > 1:
                 answer = "\n".join(fallback_lines)
             else:

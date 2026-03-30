@@ -64,7 +64,7 @@ export default function ExpertDashboardPage() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16, marginBottom: 24 }}>
         <QuickCard href="/expert/kg" title="知识图谱探索器" desc="基于 Cytoscape.js fcose 布局的交互式图谱可视化。支持搜索、展开邻居节点、分层着色。" tag="核心工具" tagColor={CN.blue} />
         <QuickCard href="/expert/data-quality" title="数据质量仪表盘" desc="实时监控标题覆盖率、内容覆盖率、节点类型分布。已对接 KG API /quality 接口。" tag="监控" tagColor={CN.green} />
-        <QuickCard href="/expert/reasoning" title="推理链检查器" desc="Agent 推理过程可视化。展示 INPUT > RETRIEVAL > REASONING > VALIDATION > OUTPUT 各阶段置信度。" tag="诊断" tagColor={CN.purple} />
+        <QuickCard href="/expert/reasoning" title="知识问答" desc="基于知识图谱的智能问答。输入业财税问题，AI 结合 KG 实时检索回答，返回来源和关联图谱。" tag="核心工具" tagColor={CN.blue} />
         <QuickCard href="/expert/rules" title="合规规则调试器" desc="8 条合规规则状态监控 (生效/预警/严重/废弃)、命中次数、最近触发日志。" tag="诊断" tagColor={CN.purple} />
       </div>
 

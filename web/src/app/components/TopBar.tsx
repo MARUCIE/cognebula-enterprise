@@ -21,7 +21,7 @@ const pageTitles: Record<string, string> = {
   "/skills": "技能商店",
   "/settings": "系统设置",
   "/expert/kg": "知识图谱探索",
-  "/expert/reasoning": "推理链检查器",
+  "/expert/reasoning": "知识问答",
   "/expert/rules": "合规规则调试",
   "/expert/data-quality": "数据质量审计",
   "/expert/bridge": "系统桥接",

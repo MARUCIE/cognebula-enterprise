@@ -53,13 +53,13 @@ const METRIC_EXPLANATIONS: Record<string, { formula: string; meaning: string; th
     threshold: ">= 0.5 为 OK。当前 3.0+ 表示平均每个节点有 3 条关联，属于高质量水平。",
   },
   "标题覆盖率": {
-    formula: "COUNT(nodes with title >= 2 chars) / total_v2_nodes * 100%",
-    meaning: "v2 版本节点表中，拥有有效标题（title/name/topic 字段 >= 2 字符）的节点占比。标题是节点的可读标识，没有标题的节点在搜索和展示时会显示为 ID 哈希。",
+    formula: "COUNT(nodes with title >= 2 chars) / total_nodes * 100%",
+    meaning: "v4.1 本体 21 类节点表中，拥有有效标题（title/name/topic 字段 >= 2 字符）的节点占比。标题是节点的可读标识，没有标题的节点在搜索和展示时会显示为 ID 哈希。",
     threshold: ">= 95% 为 OK。当前 99.6% 表示仅极少数节点缺少标题。",
   },
   "内容覆盖率": {
-    formula: "COUNT(nodes with content >= 20 chars) / total_v2_nodes * 100%",
-    meaning: "v2 版本节点表中，拥有有效内容（fullText/content/description 字段 >= 20 字符）的节点占比。内容是节点的核心信息，决定了 RAG 检索和知识问答的回答质量。",
+    formula: "COUNT(nodes with content >= 20 chars) / total_nodes * 100%",
+    meaning: "v4.1 本体 21 类节点表中，拥有有效内容（fullText/content/description 字段 >= 20 字符）的节点占比。内容是节点的核心信息，决定了 RAG 检索和知识问答的回答质量。",
     threshold: ">= 80% 为 OK。当前 31.2% 偏低，主要因为元数据节点（HSCode、Classification 等）本身只有编码无正文。",
   },
   "质量评分": {
@@ -144,11 +144,11 @@ export default function DataQualityPage() {
               </div>
               <CoverageBar
                 label="标题覆盖率" value={quality.title_coverage || 0} target={95}
-                desc="统计范围: v2 节点表 (17 张) | 检查字段: title / name / topic | 有效阈值: >= 2 字符"
+                desc="统计范围: v4.1 节点表 (21 张) | 检查字段: title / name / topic | 有效阈值: >= 2 字符"
               />
               <CoverageBar
                 label="内容覆盖率" value={quality.content_coverage || 0} target={80}
-                desc="统计范围: v2 节点表 (17 张) | 检查字段: fullText / content / description | 有效阈值: >= 20 字符"
+                desc="统计范围: v4.1 节点表 (21 张) | 检查字段: fullText / content / description | 有效阈值: >= 20 字符"
               />
             </div>
           )}
@@ -240,11 +240,11 @@ export default function DataQualityPage() {
         <div style={{ fontSize: 12, color: CN.textSecondary, lineHeight: 1.8 }}>
           <p style={{ marginBottom: 12 }}>
             <strong>数据来源</strong>: 所有指标实时查询 KuzuDB 图数据库 (API: <code style={{ fontSize: 11, padding: "1px 6px", background: CN.bgElevated, borderRadius: 3 }}>GET /api/v1/quality</code>)。
-            统计范围限定于 v2 版本的 17 张核心节点表 (LegalDocument, LegalClause, ComplianceRuleV2 等)，排除已归档的旧版表以避免重复计数。
+            统计范围限定于 v4.1 本体的 21 张节点表 (TaxType, TaxIncentive, ComplianceRule, LegalDocument, LegalClause 等)，覆盖 L1-L4 四层。
           </p>
           <p style={{ marginBottom: 12 }}>
-            <strong>边密度计算</strong>: 仅统计 v2 版本的 36 种边类型 (INTERPRETS, ISSUED_BY, REFERENCES_CLAUSE 等)。
-            公式: <code style={{ fontSize: 11, padding: "1px 6px", background: CN.bgElevated, borderRadius: 3 }}>total_v2_edges / total_v2_nodes</code>。
+            <strong>边密度计算</strong>: 仅统计 v4.1 本体的 52 种边类型 (INTERPRETS, ISSUED_BY, REFERENCES_CLAUSE 等)。
+            公式: <code style={{ fontSize: 11, padding: "1px 6px", background: CN.bgElevated, borderRadius: 3 }}>total_edges / total_nodes</code>。
             当前值 3.044 表示平均每个节点有 3 条语义关联。
           </p>
           <p style={{ marginBottom: 12 }}>

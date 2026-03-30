@@ -74,7 +74,7 @@ export default function SystemBridgePage() {
           {[
             { href: "/expert/kg", label: "知识图谱探索器", color: CN.blue },
             { href: "/expert/data-quality", label: "数据质量", color: CN.green },
-            { href: "/expert/reasoning", label: "推理链检查器", color: CN.purple },
+            { href: "/expert/reasoning", label: "知识问答", color: CN.blue },
             { href: "/expert/rules", label: "合规规则调试器", color: CN.purple },
           ].map((item) => (
             <Link key={item.href} href={item.href} style={{

@@ -67,9 +67,14 @@ export default function KGExplorerPage() {
   const [nodeDetail, setNodeDetail] = useState<KGNodeDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [expandedLayers, setExpandedLayers] = useState<Set<string>>(new Set(["L1 法规层", "L3 合规层"]));
-  const [viewMode, setViewMode] = useState<"3d" | "2d">("3d");
+  const [viewMode, setViewMode] = useState<"cards" | "3d" | "2d">("cards");
   const [graph3DData, setGraph3DData] = useState<Graph3DData>({ nodes: [], links: [] });
   const [drillLayer, setDrillLayer] = useState<string | null>(null);
+  const [cardType, setCardType] = useState("TaxType");
+  const [cardNodes, setCardNodes] = useState<Record<string, unknown>[]>([]);
+  const [cardLoading, setCardLoading] = useState(false);
+  const [cardPage, setCardPage] = useState(0);
+  const CARD_PAGE_SIZE = 20;
   const graphRef = useRef<CytoscapeGraphHandle>(null);
   const graph3DRef = useRef<ForceGraph3DHandle>(null);
 
@@ -333,6 +338,48 @@ export default function KGExplorerPage() {
     setLoading(false);
   }, []);
 
+  // Card view: load nodes when type or page changes
+  const loadCards = useCallback(async (type: string, page: number) => {
+    setCardLoading(true);
+    try {
+      const res = await listNodes(type, CARD_PAGE_SIZE, page * CARD_PAGE_SIZE);
+      setCardNodes(res.results || []);
+    } catch { setCardNodes([]); }
+    setCardLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (viewMode === "cards") loadCards(cardType, cardPage);
+  }, [viewMode, cardType, cardPage, loadCards]);
+
+  // Card type-specific field renderer
+  const renderCardFields = (n: Record<string, unknown>, type: string) => {
+    const s = (k: string) => String(n[k] || "");
+    const TYPE_ZH: Record<string, string> = { exemption: "免征", rate_reduction: "减征", refund: "退税", deduction: "扣除", deferral: "递延", credit: "抵免", timing: "时间性", permanent: "永久性" };
+    switch (type) {
+      case "TaxType":
+        return [["税率范围", s("rateRange")], ["申报周期", s("filingFrequency").replace("monthly","月报").replace("quarterly","季报").replace("annual","年报")], ["适用法律", s("governingLaw")]];
+      case "TaxIncentive":
+        return [["优惠类型", TYPE_ZH[s("incentiveType")] || s("incentiveType")], ["适用条件", s("eligibilityCriteria")], ["法律依据", s("lawReference")]];
+      case "ComplianceRule":
+        return [["规则类型", s("ruleType")], ["内容", s("fullText").slice(0, 80)]];
+      case "TaxAccountingGap":
+        return [["差异类型", TYPE_ZH[s("gapType")] || s("gapType")], ["会计处理", s("accountingTreatment").slice(0, 60)], ["税务处理", s("taxTreatment").slice(0, 60)]];
+      case "SocialInsuranceRule":
+        return [["险种", s("insuranceType")], ["单位费率", s("employerRate")], ["个人费率", s("employeeRate")]];
+      case "InvoiceRule":
+        return [["规则类型", s("ruleType")], ["适用条件", s("condition").slice(0, 60)]];
+      case "IndustryBenchmark":
+        return [["行业代码", s("industryCode")], ["范围", `${s("minValue")}~${s("maxValue")} ${s("unit")}`]];
+      case "TaxRate":
+        return [["税率", s("rateValue") || s("rate") || ""], ["适用范围", s("applicableScope") || s("name")]];
+      case "Penalty":
+        return [["处罚类型", s("penaltyType") || ""], ["说明", s("name")]];
+      default:
+        return [["类型", type], ["说明", s("fullText").slice(0, 80) || s("title") || s("name")]];
+    }
+  };
+
   // Fetch full node detail when a node is selected
   useEffect(() => {
     if (!selectedNode) { setNodeDetail(null); return; }
@@ -460,6 +507,12 @@ export default function KGExplorerPage() {
 
   // Browse a node type: load sample nodes and build graph
   const handleBrowseType = useCallback(async (nodeType: string) => {
+    // In card mode, switch card type instead of loading graph
+    if (viewMode === "cards") {
+      setCardType(nodeType);
+      setCardPage(0);
+      return;
+    }
     setLoading(true);
     setError(null);
     setSearchQuery(getNodeZh(nodeType));
@@ -570,15 +623,21 @@ export default function KGExplorerPage() {
             ))}
           </div>
         )}
-        <button
-          onClick={() => setViewMode(viewMode === "3d" ? "2d" : "3d")}
-          style={{ ...cnBtn, color: viewMode === "3d" ? CN.blue : CN.textSecondary, borderColor: viewMode === "3d" ? CN.blue : CN.border }}
-        >
-          {viewMode === "3d" ? "3D" : "2D"}
-        </button>
+        {/* View mode switcher: 卡片 / 3D / 2D */}
+        <div style={{ display: "flex", gap: 0, border: `1px solid ${CN.border}`, borderRadius: 4, overflow: "hidden" }}>
+          {(["cards", "3d", "2d"] as const).map((m) => (
+            <button key={m} onClick={() => setViewMode(m)}
+              style={{ padding: "4px 10px", fontSize: 11, fontWeight: 600, border: "none", cursor: "pointer",
+                background: viewMode === m ? CN.blue : "transparent", color: viewMode === m ? "#fff" : CN.textSecondary }}>
+              {m === "cards" ? "卡片" : m.toUpperCase()}
+            </button>
+          ))}
+        </div>
 
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 16, fontSize: 12, color: CN.textMuted }}>
-          {viewMode === "3d" ? (
+          {viewMode === "cards" ? (
+            <span>{NODE_ZH[cardType]?.zh || cardType}: <strong style={{ color: CN.blue }}>{cardNodes.length}</strong> 条</span>
+          ) : viewMode === "3d" ? (
             <span>3D: <strong style={{ color: CN.blue }}>{graph3DData.nodes.length}</strong> 节点{drillLayer && ` -- ${drillLayer}`}</span>
           ) : (
             <>
@@ -684,9 +743,84 @@ export default function KGExplorerPage() {
           </div>
         )}
 
-        {/* Center: Graph Canvas */}
-        <div style={{ flex: 1, position: "relative", minWidth: 0, background: CN.bgCanvas }}>
-          {viewMode === "3d" ? (
+        {/* Center: Graph Canvas OR Card Grid */}
+        <div style={{ flex: 1, position: "relative", minWidth: 0, background: viewMode === "cards" ? CN.bg : CN.bgCanvas, overflowY: viewMode === "cards" ? "auto" : "hidden" }}>
+          {viewMode === "cards" ? (
+            /* ── Knowledge Cards View ── */
+            <div style={{ padding: 20 }}>
+              {/* Type selector pills */}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 16 }}>
+                {Object.entries(LAYER_GROUPS).map(([layerName, layerInfo]) =>
+                  layerInfo.nodes.filter(t => (stats?.nodes_by_type?.[t] || 0) > 0).map(type => (
+                    <button key={type} onClick={() => { setCardType(type); setCardPage(0); }}
+                      style={{
+                        padding: "4px 10px", fontSize: 11, fontWeight: 600, borderRadius: 12, cursor: "pointer",
+                        border: cardType === type ? `2px solid ${NODE_COLORS[type]}` : `1px solid ${CN.border}`,
+                        background: cardType === type ? NODE_COLORS[type] + "18" : "transparent",
+                        color: cardType === type ? NODE_COLORS[type] : CN.textSecondary,
+                      }}>
+                      {NODE_ZH[type]?.zh || type} <span style={{ opacity: 0.6 }}>{stats?.nodes_by_type?.[type] || 0}</span>
+                    </button>
+                  ))
+                )}
+              </div>
+
+              {/* Card grid */}
+              {cardLoading ? (
+                <div style={{ textAlign: "center", padding: 40, color: CN.textMuted }}>加载中...</div>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 12 }}>
+                  {cardNodes.map((n, i) => {
+                    const nid = String(n.id || "");
+                    const name = String(n.name || n.title || n._display_label || "");
+                    const fields = renderCardFields(n, cardType);
+                    const ft = String(n.fullText || "");
+                    return (
+                      <div key={nid || i} onClick={() => {
+                        setSelectedNode({ id: nid, label: name, type: cardType, neighbors: [] });
+                      }} style={{
+                        background: CN.bgCard, border: `1px solid ${CN.border}`, borderRadius: 8,
+                        borderLeft: `3px solid ${NODE_COLORS[cardType] || "#94A3B8"}`,
+                        padding: 14, cursor: "pointer", transition: "box-shadow 0.15s",
+                      }}
+                      onMouseEnter={e => (e.currentTarget.style.boxShadow = `0 2px 12px ${NODE_COLORS[cardType]}22`)}
+                      onMouseLeave={e => (e.currentTarget.style.boxShadow = "none")}
+                      >
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                          <div style={{ fontWeight: 700, fontSize: 14, color: CN.text, lineHeight: 1.4 }}>{name || nid}</div>
+                          <span style={{ fontSize: 9, fontWeight: 600, color: NODE_COLORS[cardType], background: NODE_COLORS[cardType] + "18", padding: "2px 6px", borderRadius: 3, flexShrink: 0 }}>
+                            {NODE_ZH[cardType]?.zh || cardType}
+                          </span>
+                        </div>
+                        {fields.map(([label, value]) => value ? (
+                          <div key={label} style={{ display: "flex", gap: 8, fontSize: 12, lineHeight: 1.6, color: CN.textSecondary }}>
+                            <span style={{ color: CN.textMuted, minWidth: 56, flexShrink: 0 }}>{label}</span>
+                            <span style={{ color: CN.text }}>{String(value).slice(0, 80)}</span>
+                          </div>
+                        ) : null)}
+                        {ft && ft.length > 10 && (
+                          <div style={{ marginTop: 8, fontSize: 12, color: CN.textMuted, lineHeight: 1.5, borderTop: `1px solid ${CN.border}`, paddingTop: 8 }}>
+                            {ft.slice(0, 120)}{ft.length > 120 ? "..." : ""}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Pagination */}
+              {cardNodes.length >= CARD_PAGE_SIZE && (
+                <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 16 }}>
+                  <button disabled={cardPage === 0} onClick={() => setCardPage(p => p - 1)}
+                    style={{ ...cnBtn, padding: "4px 12px", opacity: cardPage === 0 ? 0.3 : 1 }}>&lt; 上一页</button>
+                  <span style={{ fontSize: 12, color: CN.textMuted, padding: "4px 8px" }}>第 {cardPage + 1} 页</span>
+                  <button onClick={() => setCardPage(p => p + 1)}
+                    style={{ ...cnBtn, padding: "4px 12px" }}>下一页 &gt;</button>
+                </div>
+              )}
+            </div>
+          ) : viewMode === "3d" ? (
             /* ── 3D Force Graph ── */
             <>
               {graph3DData.nodes.length === 0 && !loading && (
@@ -791,7 +925,7 @@ export default function KGExplorerPage() {
                   </div>
                 )}
 
-                {/* Full Text / Content / Description */}
+                {/* Full Text / Content / Description — no height limit for verification */}
                 {(nodeDetail.fullText || nodeDetail.content || nodeDetail.description) && (
                   <div style={{ marginBottom: 12 }}>
                     <div style={{ fontSize: 10, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1px", marginBottom: 4 }}>
@@ -799,7 +933,6 @@ export default function KGExplorerPage() {
                     </div>
                     <div style={{
                       fontSize: 12, color: CN.textSecondary, lineHeight: 1.8,
-                      maxHeight: 300, overflowY: "auto",
                       padding: "10px 12px", background: CN.bg, border: `1px solid ${CN.border}`,
                       borderRadius: 4, whiteSpace: "pre-wrap",
                     }}>
@@ -807,6 +940,29 @@ export default function KGExplorerPage() {
                     </div>
                   </div>
                 )}
+
+                {/* All non-empty properties (for full content verification) */}
+                {(() => {
+                  const SKIP_KEYS = new Set(["_id", "_label", "_display_label", "id", "title", "name", "fullText", "content", "description",
+                    "regulationNumber", "effectiveDate", "hierarchyLevel", "regulationType", "status", "sourceUrl"]);
+                  const extraProps = Object.entries(nodeDetail)
+                    .filter(([k, v]) => !SKIP_KEYS.has(k) && v != null && String(v).length > 0 && String(v) !== "null")
+                    .map(([k, v]) => [k, String(v)]);
+                  if (extraProps.length === 0) return null;
+                  return (
+                    <div style={{ marginBottom: 12 }}>
+                      <div style={{ fontSize: 10, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1px", marginBottom: 4 }}>完整属性</div>
+                      <div style={{ fontSize: 12, lineHeight: 1.7 }}>
+                        {extraProps.map(([k, v]) => (
+                          <div key={k} style={{ display: "flex", gap: 8, padding: "3px 0", borderBottom: `1px solid ${CN.bgElevated}` }}>
+                            <span style={{ color: CN.textMuted, minWidth: 80, flexShrink: 0, fontSize: 11 }}>{k}</span>
+                            <span style={{ color: CN.text, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{v}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Metadata fields */}
                 {(() => {

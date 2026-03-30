@@ -3,7 +3,7 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
 import {
-  getStats, getGraph, searchNodes, getNodeDetail, listNodes,
+  getStats, getGraph, searchNodes, getNodeDetail, listNodes, getConstellation,
   NODE_COLORS, EDGE_LABELS_ZH, EDGE_COLORS, LAYER_GROUPS, getNodeLayer,
   type KGStats, type KGNeighbor, type KGNodeDetail,
 } from "../../lib/kg-api";
@@ -395,77 +395,20 @@ export default function KGExplorerPage() {
     if (viewMode === "cards") loadCards(cardType, cardPage);
   }, [viewMode, cardType, cardPage, loadCards]);
 
-  // Sigma: load large-scale constellation data
+  // Sigma: single API call for constellation data
   useEffect(() => {
-    if (viewMode !== "sigma" || !stats || sigmaData.nodes.length > 0) return;
+    if (viewMode !== "sigma" || sigmaData.nodes.length > 0) return;
     setSigmaLoading(true);
-    (async () => {
-      const nodes: SigmaGraphData["nodes"] = [];
-      const edges: SigmaGraphData["edges"] = [];
-      const addedIds = new Set<string>();
-
-      // Load nodes from all v4.1 types (proportional sampling, up to 800 total)
-      const SIGMA_TYPES: [string, number][] = [
-        ["TaxType", 19], ["TaxIncentive", 50], ["ComplianceRule", 50],
-        ["TaxRate", 30], ["TaxAccountingGap", 50], ["SocialInsuranceRule", 50],
-        ["InvoiceRule", 40], ["IndustryBenchmark", 45], ["AuditTrigger", 30],
-        ["Penalty", 30], ["TaxEntity", 34], ["BusinessActivity", 30],
-        ["AccountingSubject", 30], ["FilingForm", 30], ["Region", 31],
-        ["IssuingBody", 30], ["RiskIndicator", 30],
-        ["LegalDocument", 20], ["LegalClause", 20], ["KnowledgeUnit", 10],
-        ["FAQEntry", 20],
-      ];
-
-      for (const [type, sampleSize] of SIGMA_TYPES) {
-        if (!stats.nodes_by_type[type]) continue;
-        try {
-          const res = await listNodes(type, sampleSize);
-          for (const item of (res.results || [])) {
-            const nid = String(item.id || "");
-            if (!nid || addedIds.has(nid)) continue;
-            const label = String(item.name || item.title || item._display_label || "").slice(0, 20);
-            if (!label || label.startsWith("...") || /^[\d.\-/%]+$/.test(label)) continue;
-            addedIds.add(nid);
-            // Hub nodes (TaxType) bigger, others smaller
-            const size = type === "TaxType" ? 8 : type === "TaxIncentive" || type === "ComplianceRule" ? 4 : 2.5;
-            nodes.push({ id: nid, label, type, size });
-          }
-        } catch { /* skip */ }
-      }
-
-      // Load edges for hub nodes (TaxType) to create the constellation structure
-      for (const n of nodes.filter(n => n.type === "TaxType").slice(0, 19)) {
-        try {
-          const gr = await getGraph("TaxType", n.id);
-          for (const nb of (gr.neighbors || []).slice(0, 15)) {
-            if (!nb.target_id || !addedIds.has(nb.target_id)) continue;
-            edges.push({
-              source: nb.direction === "incoming" ? nb.target_id : n.id,
-              target: nb.direction === "incoming" ? n.id : nb.target_id,
-              label: EDGE_LABELS_ZH[nb.edge_type] || "",
-            });
-          }
-        } catch { /* skip */ }
-      }
-
-      // Also load edges for some compliance/incentive nodes
-      for (const n of nodes.filter(n => n.type === "TaxIncentive" || n.type === "ComplianceRule").slice(0, 10)) {
-        try {
-          const gr = await getGraph(n.type, n.id);
-          for (const nb of (gr.neighbors || []).slice(0, 5)) {
-            if (!nb.target_id || !addedIds.has(nb.target_id)) continue;
-            edges.push({
-              source: nb.direction === "incoming" ? nb.target_id : n.id,
-              target: nb.direction === "incoming" ? n.id : nb.target_id,
-            });
-          }
-        } catch { /* skip */ }
-      }
-
-      setSigmaData({ nodes, edges });
-      setSigmaLoading(false);
-    })().catch(() => setSigmaLoading(false));
-  }, [viewMode, stats, sigmaData.nodes.length]);
+    getConstellation(600)
+      .then((data) => {
+        setSigmaData({
+          nodes: data.nodes,
+          edges: data.edges.map((e) => ({ source: e.source, target: e.target, label: EDGE_LABELS_ZH[e.type] || "" })),
+        });
+      })
+      .catch(() => {})
+      .finally(() => setSigmaLoading(false));
+  }, [viewMode, sigmaData.nodes.length]);
 
   // Card type-specific field renderer
   const renderCardFields = (n: Record<string, unknown>, type: string) => {

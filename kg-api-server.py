@@ -453,6 +453,88 @@ def quality_audit():
     }
 
 
+# === Constellation (single-call graph data for Sigma.js) ===
+@app.get("/api/v1/constellation")
+def constellation(limit: int = Query(500, ge=10, le=2000)):
+    """Return pre-computed graph data for large-scale visualization.
+
+    Single API call replaces 50+ sequential frontend calls.
+    Returns nodes (sampled from all v4.1 types) + edges (from hub nodes).
+    """
+    conn = get_kuzu()
+    nodes = []
+    edges = []
+    added_ids = set()
+
+    # Sample nodes from v4.1 types
+    TYPES = [
+        ("TaxType", 19, 8), ("TaxIncentive", 50, 4), ("ComplianceRule", 50, 4),
+        ("TaxRate", 25, 3), ("TaxAccountingGap", 50, 3), ("SocialInsuranceRule", 50, 3),
+        ("InvoiceRule", 40, 3), ("IndustryBenchmark", 45, 3), ("AuditTrigger", 25, 3),
+        ("Penalty", 25, 3), ("TaxEntity", 34, 3), ("BusinessActivity", 25, 3),
+        ("AccountingSubject", 25, 3), ("FilingForm", 25, 3), ("Region", 25, 3),
+        ("IssuingBody", 25, 3), ("RiskIndicator", 25, 3),
+        ("LegalDocument", 15, 2.5), ("LegalClause", 15, 2.5), ("KnowledgeUnit", 10, 2.5),
+        ("FAQEntry", 15, 2.5),
+    ]
+
+    for table, sample, size in TYPES:
+        try:
+            r = conn.execute(f"MATCH (n:{table}) RETURN n.id, n.name, n.title LIMIT {sample}")
+            while r.has_next():
+                row = r.get_next()
+                nid = str(row[0]) if row[0] else ""
+                if not nid or nid in added_ids:
+                    continue
+                name = str(row[1] or row[2] or "")[:25]
+                if not name or name.startswith("...") or len(name) < 2:
+                    continue
+                added_ids.add(nid)
+                nodes.append({"id": nid, "label": name, "type": table, "size": size})
+        except Exception:
+            continue
+
+    # Load edges from hub nodes (TaxType) + some backbone types
+    hub_ids = [n["id"] for n in nodes if n["type"] == "TaxType"]
+    for hub_id in hub_ids[:19]:
+        safe_id = hub_id.replace("'", "\\'")
+        # Outgoing
+        try:
+            r = conn.execute(
+                f"MATCH (n:TaxType)-[e]->(m) WHERE n.id = '{safe_id}' "
+                f"RETURN n.id, label(e), m.id LIMIT 15"
+            )
+            while r.has_next():
+                row = r.get_next()
+                if row[2] and str(row[2]) in added_ids:
+                    edges.append({"source": str(row[0]), "target": str(row[2]), "type": str(row[1])})
+        except Exception:
+            pass
+        # Incoming
+        try:
+            r = conn.execute(
+                f"MATCH (m)-[e]->(n:TaxType) WHERE n.id = '{safe_id}' "
+                f"RETURN m.id, label(e), n.id LIMIT 15"
+            )
+            while r.has_next():
+                row = r.get_next()
+                if row[0] and str(row[0]) in added_ids:
+                    edges.append({"source": str(row[0]), "target": str(row[2]), "type": str(row[1])})
+        except Exception:
+            pass
+
+    # Deduplicate edges
+    seen_edges = set()
+    unique_edges = []
+    for e in edges:
+        key = f"{e['source']}-{e['target']}-{e['type']}"
+        if key not in seen_edges:
+            seen_edges.add(key)
+            unique_edges.append(e)
+
+    return {"nodes": nodes, "edges": unique_edges, "total_nodes": len(nodes), "total_edges": len(unique_edges)}
+
+
 # === Query nodes ===
 @app.get("/api/v1/nodes")
 def query_nodes(

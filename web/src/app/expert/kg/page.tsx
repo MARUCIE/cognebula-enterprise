@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
 import {
-  getStats, getGraph, searchNodes, getNodeDetail, listNodes, getConstellation,
+  getStats, getGraph, searchNodes, getNodeDetail, listNodes, getConstellation, getConstellationByType,
   NODE_COLORS, EDGE_LABELS_ZH, EDGE_COLORS, LAYER_GROUPS,
   type KGStats, type KGNeighbor, type KGNodeDetail,
 } from "../../lib/kg-api";
@@ -217,17 +217,40 @@ export default function KGExplorerPage() {
   }, [searchQuery]);
 
   // Browse a node type: switch card type or highlight in sigma
+  const [sigmaFocusType, setSigmaFocusType] = useState<string | null>(null);
+
   const handleBrowseType = useCallback(async (nodeType: string) => {
     if (viewMode === "cards") {
       setCardType(nodeType);
       setCardPage(0);
       return;
     }
-    // In sigma mode, highlight this type (toggle: click again to clear)
-    setSigmaHighlightTypes(prev =>
-      prev.length === 1 && prev[0] === nodeType ? [] : [nodeType]
-    );
-  }, [viewMode]);
+    // Sigma mode: load type-focused subgraph (toggle: click same type to return to overview)
+    if (sigmaFocusType === nodeType) {
+      // Return to global constellation
+      setSigmaFocusType(null);
+      setSigmaLoading(true);
+      setSigmaHighlightTypes([]);
+      try {
+        const c = await getConstellation(500);
+        setSigmaData({ nodes: c.nodes, edges: c.edges.map(e => ({ ...e, label: EDGE_LABELS_ZH[e.type] || "" })) });
+      } catch { /* keep current */ }
+      setSigmaLoading(false);
+      return;
+    }
+    // Load focused subgraph for this type
+    setSigmaFocusType(nodeType);
+    setSigmaLoading(true);
+    setSigmaHighlightTypes([]);
+    try {
+      const c = await getConstellationByType(nodeType, 300);
+      setSigmaData({
+        nodes: c.nodes,
+        edges: c.edges.map(e => ({ ...e, label: EDGE_LABELS_ZH[e.type] || "" })),
+      });
+    } catch (e) { setError(e instanceof Error ? e.message : "加载子图失败"); }
+    setSigmaLoading(false);
+  }, [viewMode, sigmaFocusType]);
 
   // Select a node and load its neighbors for the detail panel
   const handleNodeSelect = useCallback(async (nodeId: string, nodeType: string) => {
@@ -275,7 +298,13 @@ export default function KGExplorerPage() {
 
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 16, fontSize: 12, color: CN.textMuted }}>
           {viewMode === "sigma" ? (
-            <span>星图: <strong style={{ color: CN.blue }}>{sigmaData.nodes.length}</strong> 节点 / <strong>{sigmaData.edges.length}</strong> 边{sigmaHighlightTypes.length > 0 && <span style={{ color: CN.amber }}> -- 过滤中 <button onClick={() => setSigmaHighlightTypes([])} style={{ background: "none", border: "none", color: CN.blue, cursor: "pointer", fontSize: 11, textDecoration: "underline" }}>清除</button></span>}</span>
+            <span>
+              {sigmaFocusType ? (
+                <>{NODE_ZH[sigmaFocusType]?.zh || sigmaFocusType}: <strong style={{ color: CN.blue }}>{sigmaData.nodes.length}</strong> 节点 / <strong>{sigmaData.edges.length}</strong> 边 <button onClick={() => handleBrowseType(sigmaFocusType)} style={{ background: "none", border: "none", color: CN.blue, cursor: "pointer", fontSize: 11, textDecoration: "underline" }}>返回全局</button></>
+              ) : (
+                <>星图: <strong style={{ color: CN.blue }}>{sigmaData.nodes.length}</strong> 节点 / <strong>{sigmaData.edges.length}</strong> 边{sigmaHighlightTypes.length > 0 && <span style={{ color: CN.amber }}> -- 过滤中 <button onClick={() => setSigmaHighlightTypes([])} style={{ background: "none", border: "none", color: CN.blue, cursor: "pointer", fontSize: 11, textDecoration: "underline" }}>清除</button></span>}</>
+              )}
+            </span>
           ) : (
             <span>{NODE_ZH[cardType]?.zh || cardType}: <strong style={{ color: CN.blue }}>{cardNodes.length}</strong> 条</span>
           )}

@@ -104,6 +104,16 @@ export async function getConstellation(limit = 500): Promise<{
   return kgFetch(`/constellation?limit=${limit}`);
 }
 
+export async function getConstellationByType(type: string, limit = 300): Promise<{
+  nodes: { id: string; label: string; type: string; size: number }[];
+  edges: { source: string; target: string; type: string }[];
+  total_nodes: number;
+  total_edges: number;
+  focus_type: string;
+}> {
+  return kgFetch(`/constellation/type?type=${encodeURIComponent(type)}&limit=${limit}`);
+}
+
 export async function searchNodes(query: string, limit = 10): Promise<{ results: KGSearchResult[] }> {
   const params = new URLSearchParams({ q: query, limit: String(limit) });
   return kgFetch(`/search?${params}`);

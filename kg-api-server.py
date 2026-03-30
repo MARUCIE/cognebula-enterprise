@@ -598,6 +598,108 @@ def constellation(limit: int = Query(500, ge=10, le=2000)):
     return {"nodes": nodes, "edges": unique_edges, "total_nodes": len(nodes), "total_edges": len(unique_edges)}
 
 
+@app.get("/api/v1/constellation/type")
+def constellation_by_type(
+    type: str = Query(..., description="Node type to focus on"),
+    limit: int = Query(300, ge=10, le=1000),
+):
+    """Return a type-focused subgraph: sample nodes of this type + their neighbors.
+
+    Used when user clicks a specific type in the sidebar.
+    Shows hierarchical structure (PART_OF, CHILD_OF) and cross-type connections.
+    """
+    conn = get_kuzu()
+    nodes = []
+    edges = []
+    added_ids = set()
+
+    # Type-specific label fields (same as main constellation)
+    LABEL_MAP = {
+        "IndustryBenchmark": "ratioName", "FAQEntry": "question",
+        "LegalClause": "title", "KnowledgeUnit": "topic",
+    }
+    label_field = LABEL_MAP.get(type, "name")
+
+    # 1. Sample nodes of the target type
+    try:
+        r = conn.execute(f"MATCH (n:{type}) RETURN n.id, n.{label_field} LIMIT {limit}")
+        while r.has_next():
+            row = r.get_next()
+            nid = str(row[0]) if row[0] else ""
+            if not nid or nid in added_ids:
+                continue
+            name = str(row[1] or "")[:30]
+            if not name or len(name) < 2:
+                continue
+            added_ids.add(nid)
+            nodes.append({"id": nid, "label": name, "type": type, "size": 5})
+    except Exception:
+        pass
+
+    # 2. For each sampled node, get neighbors (up to 8 per node, capped at 50 queries)
+    sampled_ids = list(added_ids)[:50]
+    neighbor_ids_to_add = {}  # id -> (label, type, size)
+    for nid in sampled_ids:
+        safe_id = nid.replace("'", "\\'")
+        for direction in ["outgoing", "incoming"]:
+            try:
+                if direction == "outgoing":
+                    q = f"MATCH (n:{type})-[e]->(m) WHERE n.id = '{safe_id}' RETURN n.id, label(e), m.id, m.name, label(m) LIMIT 8"
+                else:
+                    q = f"MATCH (m)-[e]->(n:{type}) WHERE n.id = '{safe_id}' RETURN m.id, label(e), n.id, m.name, label(m) LIMIT 8"
+                r = conn.execute(q)
+                while r.has_next():
+                    row = r.get_next()
+                    src_id = str(row[0] or "")
+                    edge_type = str(row[1] or "")
+                    tgt_id = str(row[2] or "")
+                    nb_name = str(row[3] or "")[:25]
+                    nb_type = str(row[4] or "")
+
+                    if direction == "outgoing":
+                        nb_id, nb_label, nb_t = tgt_id, nb_name, nb_type
+                        e_src, e_tgt = src_id, tgt_id
+                    else:
+                        nb_id, nb_label, nb_t = src_id, nb_name, nb_type
+                        e_src, e_tgt = src_id, tgt_id
+
+                    if nb_id and nb_id not in added_ids:
+                        neighbor_ids_to_add[nb_id] = (nb_label or nb_id[:15], nb_t, 3)
+                    if e_src and e_tgt:
+                        edges.append({"source": e_src, "target": e_tgt, "type": edge_type})
+            except Exception:
+                pass
+
+    # 3. Add neighbor nodes
+    for nid, (label, ntype, size) in list(neighbor_ids_to_add.items())[:200]:
+        added_ids.add(nid)
+        nodes.append({"id": nid, "label": label, "type": ntype, "size": size})
+
+    # 4. Find internal edges (between sampled nodes of the same type)
+    INTERNAL_EDGES = ["PART_OF", "CHILD_OF", "PARENT_CLAUSE", "PARENT_SUBJECT", "SUPERSEDES", "AMENDS"]
+    for edge_table in INTERNAL_EDGES:
+        try:
+            r = conn.execute(f"MATCH (a:{type})-[e:{edge_table}]->(b) RETURN a.id, b.id LIMIT 500")
+            while r.has_next():
+                row = r.get_next()
+                src, tgt = str(row[0] or ""), str(row[1] or "")
+                if src in added_ids and tgt in added_ids:
+                    edges.append({"source": src, "target": tgt, "type": edge_table})
+        except Exception:
+            pass
+
+    # Deduplicate
+    seen = set()
+    unique = []
+    for e in edges:
+        key = f"{e['source']}-{e['target']}-{e['type']}"
+        if key not in seen:
+            seen.add(key)
+            unique.append(e)
+
+    return {"nodes": nodes, "edges": unique, "total_nodes": len(nodes), "total_edges": len(unique), "focus_type": type}
+
+
 # === Query nodes ===
 @app.get("/api/v1/nodes")
 def query_nodes(

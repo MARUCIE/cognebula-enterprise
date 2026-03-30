@@ -22,6 +22,53 @@ interface QAEntry {
   timestamp: string;
 }
 
+/* Format RAG fallback answer: tags → badges, --- → dividers, indent → blocks */
+function formatRAGAnswer(text: string): React.ReactNode {
+  if (!text) return null;
+  const lines = text.split("\n");
+  return lines.map((line, i) => {
+    const trimmed = line.trim();
+    if (!trimmed) return <div key={i} style={{ height: 8 }} />;
+    // Section header: "--- 税种数据 ---"
+    if (trimmed.startsWith("---") && trimmed.endsWith("---")) {
+      const title = trimmed.replace(/^-+\s*/, "").replace(/\s*-+$/, "");
+      return (
+        <div key={i} style={{ margin: "12px 0 6px", padding: "6px 0", borderTop: `1px solid ${CN.border}`, fontSize: 12, fontWeight: 700, color: CN.blue, letterSpacing: "0.5px" }}>
+          {title}
+        </div>
+      );
+    }
+    // Tag line: "[税率] 小规模纳税人..." or "[社保规则] ..."
+    const tagMatch = trimmed.match(/^\[([^\]]+)\]\s*(.*)/);
+    if (tagMatch) {
+      return (
+        <div key={i} style={{ display: "flex", gap: 8, alignItems: "baseline", padding: "3px 0" }}>
+          <span style={{ fontSize: 10, fontWeight: 600, color: CN.blue, background: CN.blueBg, padding: "2px 6px", borderRadius: 3, flexShrink: 0 }}>{tagMatch[1]}</span>
+          <span>{tagMatch[2]}</span>
+        </div>
+      );
+    }
+    // Indented structured data: "  增值税 (0.0, 13.0, 分级税率, 月报)"
+    if (line.startsWith("  ") && trimmed.includes("(")) {
+      const parts = trimmed.match(/^(.+?)\s*\((.+)\)$/);
+      if (parts) {
+        return (
+          <div key={i} style={{ display: "flex", gap: 8, padding: "2px 0 2px 16px", fontSize: 13 }}>
+            <span style={{ fontWeight: 600, minWidth: 100 }}>{parts[1]}</span>
+            <span style={{ color: CN.textMuted }}>{parts[2]}</span>
+          </div>
+        );
+      }
+    }
+    // Indented line
+    if (line.startsWith("  ")) {
+      return <div key={i} style={{ paddingLeft: 16, padding: "2px 0 2px 16px", fontSize: 13 }}>{trimmed}</div>;
+    }
+    // Normal line
+    return <div key={i} style={{ padding: "2px 0" }}>{trimmed}</div>;
+  });
+}
+
 function extractGenUI(answer: string): { text: string; html: string | null } {
   const marker = "<!--GENUI-->";
   const endMarker = "<!--/GENUI-->";
@@ -282,11 +329,8 @@ export default function ReasoningPage() {
                 <div style={{ fontSize: 13, fontWeight: 700, color: CN.blue, marginBottom: 8 }}>
                   Q: {currentEntry.question}
                 </div>
-                <div style={{
-                  fontSize: 14, color: CN.text, lineHeight: 1.8,
-                  whiteSpace: "pre-wrap",
-                }}>
-                  {currentEntry.answer}
+                <div style={{ fontSize: 14, color: CN.text, lineHeight: 1.8 }}>
+                  {formatRAGAnswer(currentEntry.answer)}
                 </div>
 
                 {/* GenUI HTML iframe */}

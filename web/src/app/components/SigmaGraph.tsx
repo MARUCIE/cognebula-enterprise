@@ -132,10 +132,9 @@ function SigmaRenderer({ data, highlightTypes, onNodeClick, onNodeHover }: Props
       });
 
       // Sigma renderer with nodeReducer/edgeReducer for hover highlighting.
-      // Reducers compute visual props per frame — no need to mutate 3000 edges.
       const sigma = new Sigma(graph, containerRef.current, {
         renderLabels: true,
-        labelRenderedSizeThreshold: nodeCount > 500 ? 12 : 8,
+        labelRenderedSizeThreshold: nodeCount > 500 ? 12 : nodeCount > 100 ? 5 : 3,
         labelSize: 11,
         labelColor: { color: "#E5E7EB" },
         labelFont: "'Inter', 'Noto Sans SC', system-ui, sans-serif",

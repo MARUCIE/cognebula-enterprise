@@ -37,10 +37,10 @@ const NODE_ZH: Record<string, { zh: string; desc: string }> = {
   BusinessActivity: { zh: "经营活动", desc: "企业经营行为分类 (销售/服务/投资等)" },
   // L3 合规层 (9)
   ComplianceRule: { zh: "合规规则", desc: "企业必须遵守的财税合规条件" },
-  RiskIndicator: { zh: "风险指标", desc: "税务风险预警指标及触发阈值" },
+  RiskIndicator: { zh: "风险指标", desc: "数据质量不足，暂不可用" },
   TaxIncentive: { zh: "税收优惠", desc: "减免税、加计扣除等优惠政策" },
   Penalty: { zh: "处罚规定", desc: "违规行为对应的罚则和处罚标准" },
-  AuditTrigger: { zh: "审计触发", desc: "触发税务稽查的异常指标" },
+  AuditTrigger: { zh: "审计触发", desc: "数据质量不足，暂不可用" },
   TaxAccountingGap: { zh: "税会差异", desc: "会计处理与税务处理的差异项 (50项)" },
   SocialInsuranceRule: { zh: "社保公积金", desc: "各城市社保/公积金费率规则" },
   InvoiceRule: { zh: "发票规则", desc: "增值税发票管理的认证/抵扣/红冲规则" },

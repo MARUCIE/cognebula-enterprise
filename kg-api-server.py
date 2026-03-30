@@ -480,7 +480,8 @@ def constellation(limit: int = Query(500, ge=10, le=2000)):
         ("SocialInsuranceRule", 138, 4, "name"),
         ("InvoiceRule", 40, 4, "name"),
         ("IndustryBenchmark", 45, 4, "ratioName"),  # No `name` column
-        ("AuditTrigger", 100, 4, "name"),
+        # AuditTrigger: SKIP — 463 nodes are 100% textbook fragments, not real triggers
+        # RiskIndicator: SKIP — 463 nodes are 100% textbook fragments, not real indicators
         ("Penalty", 127, 4, "name"),
         ("TaxEntity", 34, 5, "name"),
         ("BusinessActivity", 60, 4, "name"),
@@ -488,7 +489,7 @@ def constellation(limit: int = Query(500, ge=10, le=2000)):
         ("FilingForm", 60, 4, "name"),
         ("Region", 31, 5, "name"),
         ("IssuingBody", 60, 4, "name"),
-        ("RiskIndicator", 100, 4, "name"),
+        # RiskIndicator: excluded (see note above)
         ("LegalDocument", 40, 3, "name"),
         ("LegalClause", 30, 2.5, "title"),         # Uses `title` not `name`
         ("KnowledgeUnit", 20, 2.5, "topic"),        # Uses `topic`
@@ -496,18 +497,33 @@ def constellation(limit: int = Query(500, ge=10, le=2000)):
         ("Classification", 40, 3, "name"),
     ]
 
+    # Quality filter for node labels (shared with constellation_by_type)
+    import re
+    _GARBAGE_RE = re.compile(r'^[◆■●▶\s\d\.]+|^-{3,}|^\.{3,}|^第[一二三四五六七八九十]+[章节]')
+    def _is_quality_label(name: str) -> bool:
+        if not name or len(name) < 2:
+            return False
+        if _GARBAGE_RE.match(name):
+            return False
+        if "- - -" in name or "---" in name:
+            return False
+        return True
+
     for table, sample, size, label_field in TYPES:
         try:
-            r = conn.execute(f"MATCH (n:{table}) RETURN n.id, n.{label_field} LIMIT {sample}")
-            while r.has_next():
+            # Over-sample to compensate for quality filtering
+            r = conn.execute(f"MATCH (n:{table}) RETURN n.id, n.{label_field} LIMIT {sample * 3}")
+            count = 0
+            while r.has_next() and count < sample:
                 row = r.get_next()
                 nid = str(row[0]) if row[0] else ""
                 if not nid or nid in added_ids:
                     continue
                 name = str(row[1] or "")[:30]
-                if not name or name.startswith("...") or len(name) < 2:
+                if not _is_quality_label(name):
                     continue
                 added_ids.add(nid)
+                count += 1
                 nodes.append({"id": nid, "label": name, "type": table, "size": size})
         except Exception:
             continue
@@ -603,11 +619,13 @@ def constellation_by_type(
     type: str = Query(..., description="Node type to focus on"),
     limit: int = Query(300, ge=10, le=1000),
 ):
-    """Return a type-focused subgraph: sample nodes of this type + their neighbors.
+    """Return a type-focused subgraph: sample nodes of this type + their neighbors."""
+    # Guard: types with 100% garbage data (textbook imports)
+    DIRTY_TYPES = {"RiskIndicator", "AuditTrigger", "RiskIndicatorV2"}
+    if type in DIRTY_TYPES:
+        return {"nodes": [], "edges": [], "total_nodes": 0, "total_edges": 0,
+                "focus_type": type, "error": f"{type} 数据质量不足（教材导入数据），暂不可用"}
 
-    Used when user clicks a specific type in the sidebar.
-    Shows hierarchical structure (PART_OF, CHILD_OF) and cross-type connections.
-    """
     conn = get_kuzu()
     nodes = []
     edges = []
@@ -620,58 +638,98 @@ def constellation_by_type(
     }
     label_field = LABEL_MAP.get(type, "name")
 
-    # 1. Sample nodes of the target type
+    # Quality filter: skip garbage nodes (textbook headers, fragments, separators)
+    import re
+    _GARBAGE_RE = re.compile(r'^[◆■●▶\s\d\.]+|^-{3,}|^\.{3,}|^第[一二三四五六七八九十]+[章节]')
+    def _is_quality_label(name: str) -> bool:
+        if not name or len(name) < 2:
+            return False
+        if _GARBAGE_RE.match(name):
+            return False
+        if "- - -" in name or "---" in name or "..." == name[:3]:
+            return False
+        # Sentence fragments: too many commas/periods for a short string
+        if len(name) > 15 and name.count("，") + name.count("、") + name.count("。") > 3:
+            return False
+        return True
+
+    # 1. Sample nodes of the target type (with quality filter)
     try:
-        r = conn.execute(f"MATCH (n:{type}) RETURN n.id, n.{label_field} LIMIT {limit}")
-        while r.has_next():
+        # Over-sample to compensate for quality filtering
+        r = conn.execute(f"MATCH (n:{type}) RETURN n.id, n.{label_field} LIMIT {limit * 3}")
+        while r.has_next() and len(nodes) < limit:
             row = r.get_next()
             nid = str(row[0]) if row[0] else ""
             if not nid or nid in added_ids:
                 continue
             name = str(row[1] or "")[:30]
-            if not name or len(name) < 2:
+            if not _is_quality_label(name):
                 continue
             added_ids.add(nid)
             nodes.append({"id": nid, "label": name, "type": type, "size": 5})
     except Exception:
         pass
 
-    # 2. For each sampled node, get neighbors (up to 8 per node, capped at 50 queries)
-    sampled_ids = list(added_ids)[:50]
+    # 2. For each sampled node, get neighbors via the graph API pattern
+    #    (avoids m.name which may not exist on all target types)
+    sampled_ids = list(added_ids)[:80]
     neighbor_ids_to_add = {}  # id -> (label, type, size)
     for nid in sampled_ids:
         safe_id = nid.replace("'", "\\'")
+        # Use label(m) for type, m.id for identification; get label via separate lookup if needed
         for direction in ["outgoing", "incoming"]:
             try:
                 if direction == "outgoing":
-                    q = f"MATCH (n:{type})-[e]->(m) WHERE n.id = '{safe_id}' RETURN n.id, label(e), m.id, m.name, label(m) LIMIT 8"
+                    q = f"MATCH (n:{type})-[e]->(m) WHERE n.id = '{safe_id}' RETURN n.id, label(e), m.id, label(m) LIMIT 10"
                 else:
-                    q = f"MATCH (m)-[e]->(n:{type}) WHERE n.id = '{safe_id}' RETURN m.id, label(e), n.id, m.name, label(m) LIMIT 8"
+                    q = f"MATCH (m)-[e]->(n:{type}) WHERE n.id = '{safe_id}' RETURN m.id, label(e), n.id, label(m) LIMIT 10"
                 r = conn.execute(q)
                 while r.has_next():
                     row = r.get_next()
                     src_id = str(row[0] or "")
                     edge_type = str(row[1] or "")
                     tgt_id = str(row[2] or "")
-                    nb_name = str(row[3] or "")[:25]
-                    nb_type = str(row[4] or "")
+                    nb_type_raw = str(row[3] or "")
 
                     if direction == "outgoing":
-                        nb_id, nb_label, nb_t = tgt_id, nb_name, nb_type
+                        nb_id, nb_t = tgt_id, nb_type_raw
                         e_src, e_tgt = src_id, tgt_id
                     else:
-                        nb_id, nb_label, nb_t = src_id, nb_name, nb_type
+                        nb_id, nb_t = src_id, nb_type_raw
                         e_src, e_tgt = src_id, tgt_id
 
                     if nb_id and nb_id not in added_ids:
-                        neighbor_ids_to_add[nb_id] = (nb_label or nb_id[:15], nb_t, 3)
+                        # Use ID prefix as fallback label; real label fetched via type-aware query
+                        neighbor_ids_to_add[nb_id] = (nb_id[:15], nb_t, 3)
                     if e_src and e_tgt:
                         edges.append({"source": e_src, "target": e_tgt, "type": edge_type})
             except Exception:
                 pass
 
-    # 3. Add neighbor nodes
-    for nid, (label, ntype, size) in list(neighbor_ids_to_add.items())[:200]:
+    # Fetch proper labels for neighbor nodes (batch per type)
+    from collections import defaultdict
+    nb_by_type = defaultdict(list)
+    for nid, (_, ntype, _) in neighbor_ids_to_add.items():
+        nb_by_type[ntype].append(nid)
+    nb_labels = {}
+    for ntype, nids in nb_by_type.items():
+        nb_label_field = LABEL_MAP.get(ntype, "name")
+        for batch_id in nids[:50]:
+            try:
+                safe = batch_id.replace("'", "\\'")
+                r = conn.execute(f"MATCH (n:{ntype}) WHERE n.id = '{safe}' RETURN n.{nb_label_field}")
+                if r.has_next():
+                    val = r.get_next()[0]
+                    if val:
+                        nb_labels[batch_id] = str(val)[:25]
+            except Exception:
+                pass
+
+    # 3. Add neighbor nodes with proper labels
+    for nid, (fallback_label, ntype, size) in list(neighbor_ids_to_add.items())[:200]:
+        label = nb_labels.get(nid, fallback_label)
+        if not _is_quality_label(label):
+            label = nid[:15]
         added_ids.add(nid)
         nodes.append({"id": nid, "label": label, "type": ntype, "size": size})
 

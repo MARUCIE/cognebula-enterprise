@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CogNebula Ontology v4.2 Design</title>
+<title>CogNebula 本体架构 v4.2 -- 完整设计文档</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -32,10 +32,23 @@
   --font-headline: 'Inter', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --font-body: 'Inter', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+
+  /* Layer colors */
+  --l1: #60A5FA;
+  --l1-bg: #DBEAFE;
+  --l2: #22D3EE;
+  --l2-bg: #CFFAFE;
+  --l3: #FBBF24;
+  --l3-bg: #FEF3C7;
+  --l4: #9CA3AF;
+  --l4-bg: #F3F4F6;
+  --l5: #A78BFA;
+  --l5-bg: #EDE9FE;
+  --lx: #F472B6;
+  --lx-bg: #FCE7F3;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
 html, body { overflow-x: hidden; }
 
 body {
@@ -117,25 +130,22 @@ body {
   letter-spacing: 2px;
   margin-bottom: 6px;
 }
-.section h2 {
+h2 {
   font-family: var(--font-headline);
   font-weight: 800;
   font-size: 1.5rem;
   color: var(--ink);
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   line-height: 1.3;
 }
-.section h3 {
+h3 {
   font-family: var(--font-headline);
   font-weight: 700;
   font-size: 1.15rem;
   color: var(--ink);
-  margin: 28px 0 12px;
+  margin: 24px 0 12px;
 }
-.section p {
-  margin-bottom: 14px;
-  max-width: 780px;
-}
+p { margin-bottom: 12px; }
 
 /* ---- Key Message ---- */
 .key-message {
@@ -175,8 +185,6 @@ body {
   color: var(--blue-700);
   line-height: 1.2;
 }
-.kpi .value .from { color: var(--muted); font-weight: 500; font-size: 1rem; }
-.kpi .value .arrow { color: var(--secondary); font-size: 0.9rem; margin: 0 4px; }
 .kpi .context {
   font-size: 13px;
   color: var(--secondary);
@@ -186,13 +194,12 @@ body {
 /* ---- Tables ---- */
 .table-wrapper {
   overflow-x: hidden;
-  margin: 16px 0;
+  margin: 20px 0;
 }
 table {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
-  font-size: 14px;
 }
 th {
   background: var(--blue-900);
@@ -201,18 +208,49 @@ th {
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  padding: 12px 16px;
+  padding: 12px 14px;
   text-align: left;
   white-space: normal;
   word-break: break-word;
 }
 td {
-  padding: 12px 16px;
+  padding: 10px 14px;
   border-bottom: 1px solid var(--rule);
+  font-size: 14px;
   vertical-align: top;
   word-break: break-word;
 }
 tr:nth-child(even) td { background: var(--blue-50); }
+
+/* ---- Status Badges ---- */
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  letter-spacing: 0.5px;
+}
+.badge-green { background: var(--green-light); color: var(--green); }
+.badge-amber { background: var(--amber-light); color: var(--amber); }
+.badge-red { background: var(--red-light); color: var(--red); }
+.badge-blue { background: var(--blue-100); color: var(--blue-700); }
+.badge-purple { background: var(--l5-bg); color: #6D28D9; }
+.badge-pink { background: var(--lx-bg); color: #DB2777; }
+
+/* ---- Layer Chips ---- */
+.layer-chip {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  letter-spacing: 0.5px;
+}
+.chip-l1 { background: var(--l1-bg); color: #1E3A5F; }
+.chip-l2 { background: var(--l2-bg); color: #164E63; }
+.chip-l3 { background: var(--l3-bg); color: #78350F; }
+.chip-l4 { background: var(--l4-bg); color: #1F2937; }
+.chip-l5 { background: var(--l5-bg); color: #4C1D95; }
+.chip-lx { background: var(--lx-bg); color: #9D174D; }
 
 /* ---- Pillar Grid ---- */
 .pillar-grid {
@@ -220,7 +258,7 @@ tr:nth-child(even) td { background: var(--blue-50); }
   grid-template-columns: repeat(3, 1fr);
   gap: 0;
   border: 1px solid var(--rule);
-  margin: 20px 0;
+  margin: 24px 0;
 }
 .pillar {
   padding: 24px;
@@ -239,9 +277,16 @@ tr:nth-child(even) td { background: var(--blue-50); }
   margin-bottom: 12px;
   margin-top: 0;
 }
-.pillar p { font-size: 14px; color: var(--body); }
-.pillar ul { font-size: 14px; padding-left: 18px; margin-top: 8px; }
-.pillar li { margin-bottom: 4px; }
+.pillar ul {
+  list-style: none;
+  padding: 0;
+}
+.pillar ul li {
+  padding: 4px 0;
+  font-size: 14px;
+  border-bottom: 1px solid var(--rule);
+}
+.pillar ul li:last-child { border-bottom: none; }
 
 /* ---- Cards ---- */
 .card {
@@ -253,39 +298,47 @@ tr:nth-child(even) td { background: var(--blue-50); }
 }
 .card h3 { margin-top: 0; }
 
-/* ---- Grid layouts ---- */
-.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin: 16px 0; }
-.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin: 16px 0; }
-
-/* ---- Status Tags ---- */
-.status-tag {
-  display: inline-block;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 4px 12px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+/* ---- Phase Grid ---- */
+.phase-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+  border: 1px solid var(--rule);
+  margin: 24px 0;
 }
-.status-tag.green { background: var(--green-light); color: var(--green); }
-.status-tag.amber { background: var(--amber-light); color: var(--amber); }
-.status-tag.red   { background: var(--red-light); color: var(--red); }
+.phase {
+  padding: 24px;
+  border-right: 1px solid var(--rule);
+}
+.phase:nth-child(2n) { border-right: none; }
+.phase-header {
+  background: var(--blue-700);
+  color: #fff;
+  padding: 10px 16px;
+  font-weight: 700;
+  font-size: 14px;
+  margin: -24px -24px 20px;
+}
+.phase-header.p2 { background: var(--blue-500); }
+.phase-header.p3 { background: #0088CC; }
+.phase-header.p4 { background: #2D8A6E; }
 
-/* ---- Callouts ---- */
+/* ---- Callout ---- */
 .callout {
   background: var(--blue-100);
   border-left: 4px solid var(--blue-700);
   padding: 20px 24px;
+  margin: 20px 0;
   font-size: 0.95rem;
-  margin: 16px 0;
 }
 .callout-risk {
   background: var(--red-light);
   border-left: 4px solid var(--red);
   padding: 20px 24px;
-  margin: 16px 0;
+  margin: 20px 0;
 }
 
-/* ---- Implication Box ---- */
+/* ---- Implication ---- */
 .implication {
   background: var(--bg-gray);
   border: 1px solid var(--rule);
@@ -302,158 +355,66 @@ tr:nth-child(even) td { background: var(--blue-50); }
   margin-bottom: 8px;
 }
 
-/* ---- Phase Grid ---- */
-.phase-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0;
+/* ---- Layer Block ---- */
+.layer-block {
   border: 1px solid var(--rule);
   margin: 20px 0;
 }
-.phase {
-  padding: 24px;
-  border-right: 1px solid var(--rule);
-}
-.phase:last-child { border-right: none; }
-.phase-header {
-  background: var(--blue-700);
-  color: #fff;
-  padding: 10px 16px;
+.layer-header {
+  padding: 12px 20px;
   font-weight: 700;
   font-size: 14px;
-  margin: -24px -24px 20px;
-}
-.phase-header.p2 { background: var(--blue-500); }
-.phase-header.p3 { background: #0088CC; }
-.phase-header.p4 { background: #00A3CC; }
-.phase ul { padding-left: 18px; font-size: 13px; }
-.phase li { margin-bottom: 6px; }
-
-/* ---- Chain Diagram ---- */
-.chain-diagram {
-  background: var(--bg-gray);
-  border: 1px solid var(--rule);
-  padding: 24px;
-  margin: 16px 0;
-  text-align: center;
-}
-.chain-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0;
-  margin: 8px 0;
-}
-.chain-node {
-  background: var(--blue-100);
-  border: 1px solid var(--blue-500);
-  padding: 8px 14px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--blue-700);
-  min-width: 110px;
-  text-align: center;
-}
-.chain-node.existing {
-  background: var(--bg);
-  border-color: var(--rule);
-  color: var(--secondary);
-}
-.chain-node.new {
-  background: var(--green-light);
-  border-color: var(--green);
-  color: var(--green);
-}
-.chain-node.break {
-  background: var(--red-light);
-  border-color: var(--red);
-  color: var(--red);
-}
-.chain-arrow {
-  font-size: 18px;
-  color: var(--muted);
-  margin: 0 6px;
-  flex-shrink: 0;
-}
-.chain-label {
-  font-size: 12px;
-  color: var(--secondary);
-  margin-top: 4px;
-}
-
-/* ---- Anti-Req Grid ---- */
-.anti-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0;
-  border: 1px solid var(--rule);
-  margin: 20px 0;
-}
-.anti-item {
-  padding: 16px 20px;
-  border-right: 1px solid var(--rule);
-  border-bottom: 1px solid var(--rule);
-  display: flex;
-  align-items: flex-start;
   gap: 12px;
 }
-.anti-item:nth-child(2n) { border-right: none; }
-.anti-item:nth-last-child(-n+2) { border-bottom: none; }
-.anti-num {
-  font-size: 1.2rem;
-  font-weight: 900;
-  color: var(--red);
-  flex-shrink: 0;
-  width: 28px;
+.layer-header .layer-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--secondary);
 }
-.anti-text { font-size: 14px; }
-.anti-text strong { color: var(--ink); }
+.lh-l1 { background: var(--l1-bg); color: #1E3A5F; border-bottom: 2px solid var(--l1); }
+.lh-l2 { background: var(--l2-bg); color: #164E63; border-bottom: 2px solid var(--l2); }
+.lh-l3 { background: var(--l3-bg); color: #78350F; border-bottom: 2px solid var(--l3); }
+.lh-l4 { background: var(--l4-bg); color: #1F2937; border-bottom: 2px solid var(--l4); }
+.lh-l5 { background: var(--l5-bg); color: #4C1D95; border-bottom: 2px solid var(--l5); }
+.lh-lx { background: var(--lx-bg); color: #9D174D; border-bottom: 2px solid var(--lx); }
 
-/* ---- Priority Tag ---- */
-.priority {
-  display: inline-block;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 8px;
-  letter-spacing: 0.5px;
+/* ---- Code ---- */
+code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: var(--bg-gray);
+  padding: 1px 5px;
+  color: var(--blue-700);
 }
-.priority.p0 { background: var(--blue-900); color: #fff; }
-.priority.p1 { background: var(--blue-500); color: #fff; }
-.priority.p2 { background: var(--muted); color: #fff; }
 
 /* ---- Footer ---- */
 .site-footer {
-  border-top: 3px solid var(--blue-700);
   text-align: center;
   padding: 60px 20px 40px;
   color: var(--muted);
   font-size: 13px;
   line-height: 2.2;
-}
-.site-footer .attr {
-  font-size: 12px;
-  margin-top: 8px;
+  border-top: 3px solid var(--blue-900);
 }
 
 /* ---- Responsive ---- */
 @media (max-width: 960px) {
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-  .pillar-grid, .phase-grid { grid-template-columns: 1fr; }
-  .grid-2, .grid-3 { grid-template-columns: 1fr; }
-  .anti-grid { grid-template-columns: 1fr; }
-  .anti-item { border-right: none; }
-  .anti-item:nth-last-child(-n+2) { border-bottom: 1px solid var(--rule); }
-  .anti-item:last-child { border-bottom: none; }
+  .pillar-grid { grid-template-columns: 1fr; }
+  .pillar { border-right: none; border-bottom: 1px solid var(--rule); }
+  .pillar:last-child { border-bottom: none; }
+  .phase-grid { grid-template-columns: 1fr; }
+  .phase { border-right: none; border-bottom: 1px solid var(--rule); }
 }
 @media (max-width: 640px) {
   .hero { padding: 32px 0; }
-  .hero-inner { padding: 0 20px; }
+  .hero-inner, .container { padding: 0 20px; }
   .hero h1 { font-size: 1.8rem; }
-  .container { padding: 0 20px; }
-  .kpi-grid { grid-template-columns: 1fr 1fr; }
-  .chain-row { flex-direction: column; }
-  .chain-arrow { transform: rotate(90deg); }
+  .kpi-grid { grid-template-columns: 1fr; }
+  table { font-size: 13px; }
+  th, td { padding: 8px 10px; }
 }
 </style>
 </head>
@@ -464,769 +425,1255 @@ tr:nth-child(even) td { background: var(--blue-50); }
 <!-- ============================================================ -->
 <div class="hero">
   <div class="hero-inner">
-    <div class="hero-tag">ONTOLOGY ARCHITECTURE</div>
-    <h1>CogNebula Ontology v4.2 Design</h1>
-    <div class="subtitle">3 Rounds, 17 Experts, 360-Degree Swarm Consensus -- v4.2 surgical increment on v4.1 framework. +14 node types, +20 edge types, 2 type rebuilds.</div>
-    <div class="hero-meta">2026-03-30 | CogNebula Enterprise</div>
+    <div class="hero-tag">COGNEBULA ONTOLOGY ARCHITECTURE</div>
+    <h1>CogNebula 财税知识图谱本体架构 v4.2</h1>
+    <div class="subtitle">3 轮 17 路蜂群共识 -- 完整本体设计。35 节点类型、~72 边类型、四层架构、540K+ 存量节点。从 v4.1 的 21 类型外科手术式增量至 Brooks 概念完整性极限（37）。</div>
+    <div class="hero-meta">2026-03-30 | CogNebula Enterprise | v4.1 -> v4.2 Final Design</div>
   </div>
 </div>
 
 <!-- ============================================================ -->
-<!-- EXECUTIVE SUMMARY -->
+<!-- 01 执行摘要 -->
 <!-- ============================================================ -->
 <div class="section">
   <div class="container">
-    <div class="section-num">EXECUTIVE SUMMARY</div>
-    <h2>v4.2: 精准外科式增量，而非推倒重来</h2>
+    <span class="section-num">01</span>
+    <h2>执行摘要</h2>
+
+    <div class="key-message">v4.2 在 v4.1 框架上外科手术式增量：+14 节点类型、+20 边类型、2 类型重建。总计 35 节点类型、~72 边类型，控制在 Brooks 概念完整性极限（37）之内。不迁移 540K 存量节点，不追"百万节点"虚假 KPI。</div>
 
     <div class="kpi-grid">
       <div class="kpi">
-        <div class="label">Node Types</div>
-        <div class="value"><span class="from">21</span><span class="arrow">&rarr;</span>35</div>
-        <div class="context">+14 新类型，3 优先级梯队</div>
+        <div class="label">节点类型</div>
+        <div class="value">35</div>
+        <div class="context">v4.1: 21 -> v4.2: +14</div>
       </div>
       <div class="kpi">
-        <div class="label">Edge Types</div>
-        <div class="value"><span class="from">52</span><span class="arrow">&rarr;</span>72</div>
-        <div class="context">+20 新边，补全断链</div>
+        <div class="label">边类型</div>
+        <div class="value">~72</div>
+        <div class="context">v4.1: 52 -> v4.2: +20</div>
       </div>
       <div class="kpi">
-        <div class="label">Garbage Nodes</div>
-        <div class="value"><span class="from">926</span><span class="arrow">&rarr;</span>0</div>
-        <div class="context">RiskIndicator + AuditTrigger 全量清洗重建</div>
+        <div class="label">存量节点</div>
+        <div class="value">540K+</div>
+        <div class="context">不迁移，增量扩展</div>
       </div>
       <div class="kpi">
-        <div class="label">Expert Consensus</div>
+        <div class="label">蜂群共识</div>
         <div class="value">17/17</div>
-        <div class="context">3 轮蜂群审查全票通过</div>
+        <div class="context">3 轮全票通过</div>
       </div>
-    </div>
-
-    <div class="key-message">
-      结论：17 位专家跨 3 轮蜂群审查一致认同 -- v4.1 的 4 层框架结构健全，但存在关键概念缺口（不是层级缺口）。修复方式是新增 14 个代表全新知识维度的节点类型，重建 2 个垃圾数据类型，总量控制在 Brooks 概念完整性极限（37）以内。
-    </div>
-
-    <p>v4.2 遵循三条战略原则：(1) 不做 v5.0 全面重构（Brooks 第二系统效应）；(2) 不增加层级子类型（用属性 + 边解决）；(3) 数据质量优先于结构扩张。最终方案在 35 个节点类型、约 72 条边类型的规模上实现了财税知识图谱的核心链路闭环。</p>
-
-    <div class="implication">
-      <div class="implication-label">IMPLICATION</div>
-      v4.2 完成后，CogNebula 将具备回答"经济业务如何记账 &rarr; 如何算税 &rarr; 如何填表 &rarr; 如何分析 &rarr; 有什么风险"全链路问题的能力。这是从"税务知识百科"升级为"代账操作手册"的关键一步。
-    </div>
-  </div>
-</div>
-
-<!-- ============================================================ -->
-<!-- 01 STRATEGIC CONSENSUS -->
-<!-- ============================================================ -->
-<div class="section section-alt">
-  <div class="container">
-    <div class="section-num">01</div>
-    <h2>战略共识（第 1 轮：6 位顾问）</h2>
-
-    <div class="key-message">
-      6 位战略顾问全票通过"精准外科式增量"路线 -- 只动有真实数据需求的类型，最坏情况不过删一列。
     </div>
 
     <div class="table-wrapper">
       <table>
-        <colgroup>
-          <col style="width: 120px">
-          <col style="width: 100px">
-          <col>
-        </colgroup>
         <thead>
           <tr>
-            <th>顾问模型</th>
-            <th>判定</th>
-            <th>核心洞察</th>
+            <th style="width:100px;">指标</th>
+            <th style="width:100px;">v4.1</th>
+            <th style="width:100px;">v4.2</th>
+            <th style="width:100px;">变化</th>
           </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>Hickey</strong><br><span style="font-size:12px;color:var(--muted)">简洁性</span></td>
-            <td><span class="status-tag amber">RETHINK</span></td>
-            <td>层级是边模式，不是类型继承。clauseLevel + PARENT_CLAUSE 已经存在，不需要新增层级子类型</td>
-          </tr>
-          <tr>
-            <td><strong>Drucker</strong><br><span style="font-size:12px;color:var(--muted)">商业价值</span></td>
-            <td><span class="status-tag amber">RETHINK</span></td>
-            <td>客户需要的是"任务清单"不是"本体层级"。先用真实查询验证，再决定加什么类型</td>
-          </tr>
-          <tr>
-            <td><strong>Munger</strong><br><span style="font-size:12px;color:var(--muted)">风险/逆向</span></td>
-            <td><span class="status-tag green">CAUTION</span></td>
-            <td>"精准增量" -- 只动有真实数据的类型。最坏情况 = 删除一列，不是重构整个系统</td>
-          </tr>
-          <tr>
-            <td><strong>Brooks</strong><br><span style="font-size:12px;color:var(--muted)">复杂性/进度</span></td>
-            <td><span class="status-tag green">SIMPLIFY</span></td>
-            <td>数据垃圾、空内容、缺失层级是 3 个不同问题。不要用 1 种方法试图解决全部</td>
-          </tr>
-          <tr>
-            <td><strong>Meadows</strong><br><span style="font-size:12px;color:var(--muted)">系统动力学</span></td>
-            <td><span class="status-tag red">INTERVENE</span></td>
-            <td>系统目标错位："1 亿节点知识图谱" vs "月度合规知识库"。后者才是真正的杠杆点</td>
-          </tr>
-          <tr>
-            <td><strong>Ontology&nbsp;Research</strong><br><span style="font-size:12px;color:var(--muted)">FIBO/学术</span></td>
-            <td><span class="status-tag green">GO</span></td>
-            <td>FIBO 建议 5-6 层深度。仅在 >30% 类型需要重新分类时才做全面重构</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <h3>战略红线（4 条不可逾越）</h3>
-    <div class="pillar-grid" style="grid-template-columns: repeat(2, 1fr);">
-      <div class="pillar">
-        <div class="pillar-num">01</div>
-        <h3>不做全面重构</h3>
-        <p>Brooks 第二系统效应警告：v3.1 已有 53 类型（过多），v4.1 精简到 21 是正确方向。v4.2 控制在 35 以内。</p>
-      </div>
-      <div class="pillar">
-        <div class="pillar-num">02</div>
-        <h3>不增层级子类型</h3>
-        <p>LegalDocumentChapter、LegalDocumentSection 等层级子类型一律不加。用 clauseLevel 属性 + PARENT_CLAUSE 边解决。</p>
-      </div>
-      <div class="pillar">
-        <div class="pillar-num">03</div>
-        <h3>数据质量优先</h3>
-        <p>926 个垃圾节点（RiskIndicator + AuditTrigger）必须先清洗重建，才能在其上建新边。</p>
-      </div>
-      <div class="pillar">
-        <div class="pillar-num">04</div>
-        <h3>真实查询验证</h3>
-        <p>每个新类型必须对应至少一个真实业务查询场景。"能回答什么问题"是唯一的准入标准。</p>
-      </div>
-    </div>
-
-    <div class="implication">
-      <div class="implication-label">IMPLICATION</div>
-      第 1 轮确立了 v4.2 的操作边界：在不触碰 540K 存量节点、不打破 4 层框架的前提下，精准补充缺失概念。这是"增量"而非"重构"。
-    </div>
-  </div>
-</div>
-
-<!-- ============================================================ -->
-<!-- 02 DOMAIN EXPERT FINDINGS -->
-<!-- ============================================================ -->
-<div class="section">
-  <div class="container">
-    <div class="section-num">02</div>
-    <h2>领域专家发现（第 2 轮：5 位专家）</h2>
-
-    <div class="key-message">
-      5 位领域专家独立审计后发现：v4.1 本体是一部不错的"税务知识百科"，但远远不是一本"代账操作手册" -- 核心记账链有 2 处断裂，税法 8 要素覆盖仅 70-75%。
-    </div>
-
-    <!-- Tax Law Expert -->
-    <h3>税法结构专家 -- 税法 8 要素覆盖审计</h3>
-    <p>中国税法对每个税种有 8 个核心要素。当前本体覆盖情况：</p>
-
-    <div class="table-wrapper">
-      <table>
-        <colgroup>
-          <col style="width: 140px">
-          <col style="width: 120px">
-          <col style="width: 100px">
-          <col>
-        </colgroup>
-        <thead>
-          <tr>
-            <th>要素</th>
-            <th>中文名</th>
-            <th>覆盖度</th>
-            <th>缺口说明</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Taxpayer</td>
-            <td>纳税人</td>
-            <td><span class="status-tag amber">PARTIAL</span></td>
-            <td>缺少扣缴义务人（WithholdingAgent）建模</td>
-          </tr>
-          <tr>
-            <td><strong>Tax Item</strong></td>
-            <td><strong>征税范围/税目</strong></td>
-            <td><span class="status-tag red">MISSING</span></td>
-            <td>消费税 15 个税目、印花税 17 个税目完全未建模</td>
-          </tr>
-          <tr>
-            <td>Tax Rate</td>
-            <td>税率</td>
-            <td><span class="status-tag green">GOOD</span></td>
-            <td>--</td>
-          </tr>
-          <tr>
-            <td><strong>Tax Basis</strong></td>
-            <td><strong>计税依据</strong></td>
-            <td><span class="status-tag red">MISSING</span></td>
-            <td>从价/从量/复合计税无法表达</td>
-          </tr>
-          <tr>
-            <td><strong>Liability Trigger</strong></td>
-            <td><strong>纳税义务发生时间</strong></td>
-            <td><span class="status-tag red">MISSING</span></td>
-            <td>增值税有 9 种不同的纳税义务发生时间规则</td>
-          </tr>
-          <tr>
-            <td>Tax Location</td>
-            <td>纳税地点</td>
-            <td><span class="status-tag amber">WEAK</span></td>
-            <td>注册地 vs 经营地 vs 不动产所在地规则缺失</td>
-          </tr>
-          <tr>
-            <td>Tax Incentive</td>
-            <td>税收优惠</td>
-            <td><span class="status-tag green">GOOD</span></td>
-            <td>--</td>
-          </tr>
-          <tr>
-            <td>Administration</td>
-            <td>征收管理</td>
-            <td><span class="status-tag amber">PARTIAL</span></td>
-            <td>--</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="callout">
-      <strong>专家结论</strong>：当前本体覆盖中国税法知识结构约 70-75%。建议 38 个节点类型 + 约 48 条边。4-5 跳查询深度是实际极限。
-    </div>
-
-    <!-- Accounting Expert -->
-    <h3>会计准则专家 -- 经济业务到报表的核心链断裂</h3>
-    <p>核心记账链有 2 处关键断裂，导致无法回答"这笔业务怎么记账"和"这个科目体现在报表哪里"：</p>
-
-    <div class="chain-diagram">
-      <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:12px;">核心记账链 -- 断裂分析</div>
-      <div class="chain-row">
-        <div class="chain-node existing">BusinessActivity<br><span class="chain-label">经济业务</span></div>
-        <div class="chain-arrow">&rarr;</div>
-        <div class="chain-node break">BREAK<br><span class="chain-label">完全缺失</span></div>
-        <div class="chain-arrow">&rarr;</div>
-        <div class="chain-node new">JournalEntryTemplate<br><span class="chain-label">会计分录模板 [NEW]</span></div>
-        <div class="chain-arrow">&rarr;</div>
-        <div class="chain-node existing">AccountingSubject<br><span class="chain-label">会计科目</span></div>
-        <div class="chain-arrow">&rarr;</div>
-        <div class="chain-node break">BREAK<br><span class="chain-label">完全缺失</span></div>
-        <div class="chain-arrow">&rarr;</div>
-        <div class="chain-node new">FinancialStatementItem<br><span class="chain-label">报表项目 [NEW]</span></div>
-        <div class="chain-arrow">&rarr;</div>
-        <div class="chain-node existing">FilingForm<br><span class="chain-label">申报表</span></div>
-      </div>
-    </div>
-
-    <div class="grid-2">
-      <div class="card">
-        <h3>P0 新类型</h3>
-        <ul style="padding-left:18px;font-size:14px;">
-          <li><strong>JournalEntryTemplate</strong> -- 会计分录模板（200-300 条）</li>
-          <li><strong>FinancialStatementItem</strong> -- 报表项目（150-200 项）</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h3>P0 新边</h3>
-        <ul style="padding-left:18px;font-size:14px;">
-          <li>HAS_ENTRY_TEMPLATE -- 业务 &rarr; 分录</li>
-          <li>ENTRY_DEBITS / ENTRY_CREDITS -- 分录 &rarr; 科目</li>
-          <li>POPULATES -- 科目 &rarr; 报表项目</li>
-        </ul>
-      </div>
-    </div>
-
-    <p><strong>数据扩展</strong>：AccountingSubject 从 223 扩充到 500-600（补充二三级明细科目）。月度结账 10 步流程中第 2/4/5/6/9 步依赖缺失的知识节点。</p>
-
-    <!-- Practice Expert -->
-    <h3>实务合规专家 -- "百科全书" vs "操作手册"</h3>
-
-    <div class="callout">
-      <strong>专家原话</strong>："当前本体是一部不错的'税务知识百科'，但远远不是一本'代账操作手册'。"
-    </div>
-
-    <p>增值税完整链路覆盖度：<strong>40-50%</strong>。骨架存在但缺失：</p>
-    <ul style="padding-left:18px;margin-bottom:16px;">
-      <li>计算逻辑 -- 如何计算销项/进项增值税（需要 TaxCalculationRule）</li>
-      <li>申报表栏次级逻辑 -- 哪一行 = 哪个公式（需要 FilingFormField）</li>
-      <li>批量处理 -- 缺少 ENTITY_HAS_TAX_OBLIGATION 边（无法筛选"本月哪些客户需要申报房产税"）</li>
-    </ul>
-
-    <!-- Tax Risk Expert -->
-    <h3>税务风险与审计专家 -- 垃圾数据全量重建</h3>
-
-    <div class="callout-risk">
-      <strong>WARNING</strong>：RiskIndicator（463 条）和 AuditTrigger（463 条）100% 为教材照搬的垃圾数据。必须 TRUNCATE 后用结构化专家知识重建。
-    </div>
-
-    <p>金税四期风控系统 6 大模块重建计划：</p>
-    <div class="table-wrapper">
-      <table>
-        <colgroup>
-          <col style="width: 40px">
-          <col style="width: 200px">
-          <col style="width: 100px">
-        </colgroup>
-        <thead>
-          <tr><th>#</th><th>模块</th><th>目标数量</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>1</td><td>税负指标</td><td>20-25</td></tr>
-          <tr><td>2</td><td>发票指标</td><td>25-30</td></tr>
-          <tr><td>3</td><td>财务比率指标</td><td>30-35</td></tr>
-          <tr><td>4</td><td>申报行为指标</td><td>15-20</td></tr>
-          <tr><td>5</td><td>银行/资金指标（金税四期新增）</td><td>20-25</td></tr>
-          <tr><td>6</td><td>跨系统比对指标</td><td>15-20</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p><strong>重建目标</strong>：150-200 RiskIndicator + 80-120 AuditTrigger（替换 926 条垃圾节点）。</p>
-
-    <div class="implication">
-      <div class="implication-label">IMPLICATION</div>
-      第 2 轮揭示了 v4.1 的 3 个核心缺陷：记账链断裂（2 处）、税法要素覆盖不全（3 个 MISSING）、风控数据全量垃圾。这些是"概念缺口"而非"结构缺陷" -- 用新增类型精准修补，不需要动框架。
-    </div>
-  </div>
-</div>
-
-<!-- ============================================================ -->
-<!-- 03 BUSINESS DEEP-DIVE -->
-<!-- ============================================================ -->
-<div class="section section-alt">
-  <div class="container">
-    <div class="section-num">03</div>
-    <h2>业务纵深审查（第 3 轮：6 位专家）</h2>
-
-    <div class="key-message">
-      第 3 轮引入 CPA 六科、税筹、企业生命周期、管理会计、国际税、社保薪酬 6 个维度，补充了 Round 2 未覆盖的 5 个新类型和 8 条新边。
-    </div>
-
-    <div class="pillar-grid">
-      <div class="pillar">
-        <div class="pillar-num">01</div>
-        <h3>CPA 六科知识</h3>
-        <p>核心发现：</p>
-        <ul>
-          <li><strong>FinancialIndicator</strong> -- 杜邦分析分解树、税负分析、偿债能力等 40+ 核心指标完全缺失（4/4 共识）</li>
-          <li><strong>AccountingStandard</strong> -- CAS 1-42 会计准则不应与 LegalDocument 混存（结构性分离）</li>
-          <li><strong>DeductionRule</strong> -- 企业所得税 20+ 扣除项、个税专项扣除标准需独立建模</li>
-        </ul>
-      </div>
-      <div class="pillar">
-        <div class="pillar-num">02</div>
-        <h3>税务筹划策略</h3>
-        <p>核心发现：</p>
-        <ul>
-          <li>税筹不是独立类型 -- 是图路径搜索 + Agent 推理的结果</li>
-          <li><strong>SPLITS_INTO</strong> 边 -- 混合销售/分别经营的业务拆分路径（30-50 条）</li>
-          <li>税收优惠叠加规则 -- STACKS_WITH/EXCLUDES 60-80 条确定性规则（P0）</li>
-        </ul>
-      </div>
-      <div class="pillar">
-        <div class="pillar-num">03</div>
-        <h3>企业生命周期税务</h3>
-        <p>核心发现：</p>
-        <ul>
-          <li><strong>TaxMilestoneEvent</strong> -- 设立 &rarr; 运营 &rarr; 并购 &rarr; 清算全链路事件节点（30-50 条）</li>
-          <li>生命周期视角可串联企业从注册到注销的全部税务义务</li>
-          <li>与 BusinessActivity 互补：前者是"阶段"，后者是"动作"</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="pillar-grid">
-      <div class="pillar">
-        <div class="pillar-num">04</div>
-        <h3>财务分析与管理会计</h3>
-        <p>核心发现：</p>
-        <ul>
-          <li><strong>DECOMPOSES_INTO</strong> 边 -- 杜邦分析分解树，FinancialIndicator 自关联（P0）</li>
-          <li><strong>COMPUTED_FROM</strong> 边 -- 指标数据来源连接到 FinancialStatementItem</li>
-          <li><strong>HAS_BENCHMARK</strong> 边 -- 指标与 IndustryBenchmark 基线对比</li>
-        </ul>
-      </div>
-      <div class="pillar">
-        <div class="pillar-num">05</div>
-        <h3>跨境国际税务</h3>
-        <p>核心发现：</p>
-        <ul>
-          <li><strong>TaxTreaty</strong> -- 无法回答"向新加坡付款预提税率是多少？"（3/3 共识）</li>
-          <li><strong>PARTY_TO</strong> 边 -- Region &rarr; TaxTreaty 缔约方关系</li>
-          <li><strong>OVERRIDES_RATE</strong> 边 -- TaxTreaty &rarr; TaxRate 协定税率覆盖国内税率</li>
-          <li>完整国际税层为 P3 按需扩展，TaxTreaty 本身为 P0</li>
-        </ul>
-      </div>
-      <div class="pillar">
-        <div class="pillar-num">06</div>
-        <h3>薪酬与社会保险</h3>
-        <p>核心发现：</p>
-        <ul>
-          <li>TaxLiabilityTrigger 同样适用于社保/工伤/公积金的义务发生时间</li>
-          <li>与 Payroll 专家共识确认 TaxLiabilityTrigger 覆盖面足够广</li>
-          <li>SocialInsuranceRule 已在 v4.1 中存在，无需新增</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="implication">
-      <div class="implication-label">IMPLICATION</div>
-      第 3 轮将 v4.2 从 Round 2 的 9 个新类型扩展到 14 个，从 15 条新边扩展到 20 条。新增的 5 个类型（FinancialIndicator、AccountingStandard、TaxTreaty、DeductionRule、TaxMilestoneEvent）填补了财务分析、国际税、CPA 知识等维度的盲区。
-    </div>
-  </div>
-</div>
-
-<!-- ============================================================ -->
-<!-- 04 FINAL SCHEMA -->
-<!-- ============================================================ -->
-<div class="section">
-  <div class="container">
-    <div class="section-num">04</div>
-    <h2>最终方案 -- 完整节点类型表（35 类型）</h2>
-
-    <div class="key-message">
-      35 个节点类型分 3 个梯队：21 个 v4.1 继承类型（稳定基座） + 7 个 P0 新增（核心链路闭环） + 5 个 P1 新增（税法完备性） + 2 个 P2 新增（运营与风控）。Brooks 概念完整性极限为 37，当前 35 留有余量。
-    </div>
-
-    <!-- Existing 21 types -->
-    <h3>继承自 v4.1 的 21 个节点类型</h3>
-    <div class="table-wrapper">
-      <table>
-        <colgroup>
-          <col style="width: 40px">
-          <col style="width: 180px">
-          <col style="width: 130px">
-          <col style="width: 80px">
-          <col>
-        </colgroup>
-        <thead>
-          <tr><th>#</th><th>类型</th><th>中文名</th><th>状态</th><th>说明</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>1</td><td>LegalDocument</td><td>法律法规文件</td><td><span class="status-tag green">STABLE</span></td><td>~94K 节点，v3.1 合并 LawOrRegulation + AccountingStandard</td></tr>
-          <tr><td>2</td><td>LegalClause</td><td>法规条款</td><td><span class="status-tag green">STABLE</span></td><td>~155K 节点，法规条文级粒度</td></tr>
-          <tr><td>3</td><td>TaxRate</td><td>税率事实</td><td><span class="status-tag green">STABLE</span></td><td>~9K 节点，合并 3 个旧表</td></tr>
-          <tr><td>4</td><td>ComplianceRule</td><td>合规规则</td><td><span class="status-tag amber">EXPAND</span></td><td>84 &rarr; 200+（补充反洗钱、转让定价）</td></tr>
-          <tr><td>5</td><td>RiskIndicator</td><td>风险指标</td><td><span class="status-tag red">REBUILD</span></td><td>463 垃圾 &rarr; TRUNCATE &rarr; 150-200 结构化重建</td></tr>
-          <tr><td>6</td><td>TaxIncentive</td><td>税收优惠</td><td><span class="status-tag amber">EXPAND</span></td><td>109 &rarr; 120+（补充 7 项个税专项附加扣除）</td></tr>
-          <tr><td>7</td><td>KnowledgeUnit</td><td>知识单元</td><td><span class="status-tag green">STABLE</span></td><td>~190K 节点，通用知识容器</td></tr>
-          <tr><td>8</td><td>Classification</td><td>分类体系</td><td><span class="status-tag green">STABLE</span></td><td>~61K 节点，HS 编码/行业分类等</td></tr>
-          <tr><td>9</td><td>AccountingSubject</td><td>会计科目</td><td><span class="status-tag amber">EXPAND</span></td><td>223 &rarr; 500-600（补充二三级明细科目）</td></tr>
-          <tr><td>10</td><td>TaxType</td><td>税种</td><td><span class="status-tag green">STABLE</span></td><td>19 个税种，核心枚举类型</td></tr>
-          <tr><td>11</td><td>TaxEntity</td><td>纳税主体</td><td><span class="status-tag green">STABLE</span></td><td>~34 个企业类型/纳税人身份</td></tr>
-          <tr><td>12</td><td>Region</td><td>地区</td><td><span class="status-tag green">STABLE</span></td><td>~651 个行政区划</td></tr>
-          <tr><td>13</td><td>BusinessActivity</td><td>经济业务</td><td><span class="status-tag green">STABLE</span></td><td>~384 个业务场景</td></tr>
-          <tr><td>14</td><td>FilingForm</td><td>申报表</td><td><span class="status-tag green">STABLE</span></td><td>~242 个申报表模板</td></tr>
-          <tr><td>15</td><td>IssuingBody</td><td>发布机构</td><td><span class="status-tag green">STABLE</span></td><td>~398 个政府/监管机构</td></tr>
-          <tr><td>16</td><td>Penalty</td><td>处罚规定</td><td><span class="status-tag amber">EXPAND</span></td><td>127 &rarr; 200+（补充刑事责任 + 附带后果）</td></tr>
-          <tr><td>17</td><td>AuditTrigger</td><td>审计触发</td><td><span class="status-tag red">REBUILD</span></td><td>463 垃圾 &rarr; TRUNCATE &rarr; 80-120 结构化重建</td></tr>
-          <tr><td>18</td><td>TaxAccountingGap</td><td>税会差异</td><td><span class="status-tag amber">EXPAND</span></td><td>50 &rarr; 80-100（覆盖 A105000 全部行项）</td></tr>
-          <tr><td>19</td><td>SocialInsuranceRule</td><td>社保规则</td><td><span class="status-tag green">STABLE</span></td><td>社保/公积金/工伤缴纳规则</td></tr>
-          <tr><td>20</td><td>InvoiceRule</td><td>发票规则</td><td><span class="status-tag amber">EXPAND</span></td><td>40 &rarr; 55（补充加计抵减、电子发票过渡）</td></tr>
-          <tr><td>21</td><td>IndustryBenchmark</td><td>行业基准</td><td><span class="status-tag amber">EXPAND</span></td><td>45 &rarr; 500-600（30 行业 x 6 指标 x 3 地区）</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- New 14 types -->
-    <h3>v4.2 新增的 14 个节点类型</h3>
-    <div class="table-wrapper">
-      <table>
-        <colgroup>
-          <col style="width: 40px">
-          <col style="width: 80px">
-          <col style="width: 180px">
-          <col style="width: 120px">
-          <col style="width: 80px">
-          <col>
-        </colgroup>
-        <thead>
-          <tr><th>#</th><th>优先级</th><th>类型</th><th>中文名</th><th>预估数据</th><th>来源与理由</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>22</td><td><span class="priority p0">P0</span></td><td>JournalEntryTemplate</td><td>会计分录模板</td><td>200-300</td><td>记账链断裂修复 -- Accounting, Practice, CPA</td></tr>
-          <tr><td>23</td><td><span class="priority p0">P0</span></td><td>FinancialStatementItem</td><td>报表项目</td><td>150-200</td><td>科目 &rarr; 报表链断裂修复 -- Accounting, Financial</td></tr>
-          <tr><td>24</td><td><span class="priority p0">P0</span></td><td>TaxCalculationRule</td><td>税额计算规则</td><td>100-150</td><td>"怎么算"完全缺失 -- Practice, Tax Law, Planning</td></tr>
-          <tr><td>25</td><td><span class="priority p0">P0</span></td><td>FilingFormField</td><td>申报表栏次</td><td>300-500</td><td>"怎么填"完全缺失 -- Practice</td></tr>
-          <tr><td>26</td><td><span class="priority p0">P0</span></td><td>FinancialIndicator</td><td>财务分析指标</td><td>80-120</td><td>杜邦分解、税负分析 -- Financial, CPA（4/4 共识）</td></tr>
-          <tr><td>27</td><td><span class="priority p0">P0</span></td><td>AccountingStandard</td><td>会计准则</td><td>60-80</td><td>CAS 1-42 不应与 LegalDocument 混存 -- CPA</td></tr>
-          <tr><td>28</td><td><span class="priority p0">P0</span></td><td>TaxTreaty</td><td>税收协定</td><td>112</td><td>无法回答"向新加坡付款预提税率" -- Tax Law, Lifecycle, Cross-border（3/3）</td></tr>
-          <tr><td>29</td><td><span class="priority p1">P1</span></td><td>TaxItem</td><td>税目</td><td>80-100</td><td>8 要素缺口：消费税 15 目、印花税 17 目 -- Tax Law</td></tr>
-          <tr><td>30</td><td><span class="priority p1">P1</span></td><td>TaxBasis</td><td>计税依据</td><td>30-50</td><td>8 要素缺口：从价/从量/复合 -- Tax Law</td></tr>
-          <tr><td>31</td><td><span class="priority p1">P1</span></td><td>TaxLiabilityTrigger</td><td>纳税义务发生时间</td><td>50-80</td><td>8 要素缺口：增值税 9 种触发规则 -- Tax Law, Payroll</td></tr>
-          <tr><td>32</td><td><span class="priority p1">P1</span></td><td>DeductionRule</td><td>扣除限额规则</td><td>60-80</td><td>企业所得税/个税 20+ 扣除标准 -- CPA</td></tr>
-          <tr><td>33</td><td><span class="priority p1">P1</span></td><td>TaxMilestoneEvent</td><td>生命周期事件</td><td>30-50</td><td>设立 &rarr; 运营 &rarr; 并购 &rarr; 清算链 -- Lifecycle</td></tr>
-          <tr><td>34</td><td><span class="priority p2">P2</span></td><td>ResponseStrategy</td><td>预警应对策略</td><td>50-80</td><td>"收到预警怎么办"链缺失 -- Practice, Risk</td></tr>
-          <tr><td>35</td><td><span class="priority p2">P2</span></td><td>PolicyChange</td><td>政策变动事件</td><td>20-50</td><td>"政策变了影响什么"链缺失 -- Practice</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- 20 new edges -->
-    <h3>v4.2 新增的 20 条边类型</h3>
-    <div class="table-wrapper">
-      <table>
-        <colgroup>
-          <col style="width: 40px">
-          <col style="width: 70px">
-          <col style="width: 180px">
-          <col>
-          <col style="width: 100px">
-        </colgroup>
-        <thead>
-          <tr><th>#</th><th>优先级</th><th>边类型</th><th>From &rarr; To &amp; 用途</th><th>来源</th></tr>
-        </thead>
-        <tbody>
-          <!-- P0 edges -->
-          <tr><td>1</td><td><span class="priority p0">P0</span></td><td>HAS_ENTRY_TEMPLATE</td><td>BusinessActivity &rarr; JournalEntryTemplate -- 业务到分录</td><td>Accounting</td></tr>
-          <tr><td>2</td><td><span class="priority p0">P0</span></td><td>ENTRY_DEBITS</td><td>JournalEntryTemplate &rarr; AccountingSubject -- 借方科目</td><td>Accounting</td></tr>
-          <tr><td>3</td><td><span class="priority p0">P0</span></td><td>ENTRY_CREDITS</td><td>JournalEntryTemplate &rarr; AccountingSubject -- 贷方科目</td><td>Accounting</td></tr>
-          <tr><td>4</td><td><span class="priority p0">P0</span></td><td>POPULATES</td><td>AccountingSubject &rarr; FinancialStatementItem -- 科目到报表</td><td>Accounting, Financial</td></tr>
-          <tr><td>5</td><td><span class="priority p0">P0</span></td><td>FIELD_OF</td><td>FilingFormField &rarr; FilingForm -- 栏次归属表</td><td>Practice</td></tr>
-          <tr><td>6</td><td><span class="priority p0">P0</span></td><td>DERIVES_FROM</td><td>FilingFormField &rarr; FilingFormField -- 跨表引用</td><td>Practice</td></tr>
-          <tr><td>7</td><td><span class="priority p0">P0</span></td><td>CALCULATION_FOR_TAX</td><td>TaxCalculationRule &rarr; TaxType -- 计算规则对应税种</td><td>Practice</td></tr>
-          <tr><td>8</td><td><span class="priority p0">P0</span></td><td>DECOMPOSES_INTO</td><td>FinancialIndicator &rarr; FinancialIndicator -- 杜邦分解树</td><td>Financial (P0)</td></tr>
-          <tr><td>9</td><td><span class="priority p0">P0</span></td><td>COMPUTED_FROM</td><td>FinancialIndicator &rarr; FinancialStatementItem -- 指标数据源</td><td>Financial</td></tr>
-          <tr><td>10</td><td><span class="priority p0">P0</span></td><td>HAS_BENCHMARK</td><td>FinancialIndicator &rarr; IndustryBenchmark -- 指标基线</td><td>Financial</td></tr>
-          <tr><td>11</td><td><span class="priority p0">P0</span></td><td>PARTY_TO</td><td>Region &rarr; TaxTreaty -- 协定缔约方</td><td>Cross-border</td></tr>
-          <tr><td>12</td><td><span class="priority p0">P0</span></td><td>OVERRIDES_RATE</td><td>TaxTreaty &rarr; TaxRate -- 协定税率覆盖国内税率</td><td>Cross-border</td></tr>
-          <!-- P1 edges -->
-          <tr><td>13</td><td><span class="priority p1">P1</span></td><td>HAS_ITEM</td><td>TaxType &rarr; TaxItem -- 税种包含税目</td><td>Tax Law</td></tr>
-          <tr><td>14</td><td><span class="priority p1">P1</span></td><td>COMPUTED_BY</td><td>TaxItem &rarr; TaxBasis -- 税目使用计税依据</td><td>Tax Law</td></tr>
-          <tr><td>15</td><td><span class="priority p1">P1</span></td><td>LIABILITY_TRIGGERED_BY</td><td>TaxType &rarr; TaxLiabilityTrigger -- 义务触发</td><td>Tax Law</td></tr>
-          <tr><td>16</td><td><span class="priority p1">P1</span></td><td>INDICATES_RISK</td><td>RiskIndicator &rarr; AuditTrigger -- 指标到触发</td><td>Risk</td></tr>
-          <tr><td>17</td><td><span class="priority p1">P1</span></td><td>PENALIZED_FOR</td><td>Penalty &rarr; BusinessActivity -- 违规处罚</td><td>Risk</td></tr>
-          <tr><td>18</td><td><span class="priority p1">P1</span></td><td>ESCALATES_TO</td><td>Penalty &rarr; Penalty -- 行政到刑事升级</td><td>Risk</td></tr>
-          <tr><td>19</td><td><span class="priority p1">P1</span></td><td>SPLITS_INTO</td><td>BusinessActivity &rarr; BusinessActivity -- 混合销售/分别经营</td><td>Planning</td></tr>
-          <tr><td>20</td><td><span class="priority p1">P1</span></td><td>DEDUCTS_FROM</td><td>DeductionRule &rarr; TaxBasis -- 扣除减少税基</td><td>CPA</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Rebuild types -->
-    <h3>重建类型（2 个）</h3>
-    <div class="grid-2">
-      <div class="card">
-        <h3>RiskIndicator 风险指标</h3>
-        <p><span class="status-tag red">TRUNCATE + REBUILD</span></p>
-        <p style="margin-top:12px;">当前 463 条垃圾 &rarr; 目标 150-200 条结构化数据。按金税四期 6 模块体系重建，每条包含指标名称、计算公式、正常阈值、预警阈值、数据来源。</p>
-      </div>
-      <div class="card">
-        <h3>AuditTrigger 审计触发</h3>
-        <p><span class="status-tag red">TRUNCATE + REBUILD</span></p>
-        <p style="margin-top:12px;">当前 463 条垃圾 &rarr; 目标 80-120 条结构化数据。按 3 级触发体系（自动预警 / 人工复核 / 稽查转办）重建。</p>
-      </div>
-    </div>
-
-    <!-- Schema size summary -->
-    <h3>Schema 规模汇总</h3>
-    <div class="table-wrapper">
-      <table>
-        <colgroup>
-          <col style="width: 200px">
-          <col style="width: 120px">
-          <col style="width: 120px">
-          <col>
-        </colgroup>
-        <thead>
-          <tr><th>指标</th><th>v4.1</th><th>v4.2</th><th>变化</th></tr>
         </thead>
         <tbody>
           <tr><td>节点类型</td><td>21</td><td><strong>35</strong></td><td>+14</td></tr>
           <tr><td>边类型</td><td>52</td><td><strong>~72</strong></td><td>+20</td></tr>
-          <tr><td>垃圾节点</td><td>926</td><td><strong>0</strong></td><td>TRUNCATED</td></tr>
-          <tr><td>重建节点</td><td>--</td><td><strong>230-320</strong></td><td>专家策展重建</td></tr>
-          <tr><td>高质量数据新增</td><td>--</td><td><strong>~3,000-5,000</strong></td><td>种子 + LLM 富化</td></tr>
+          <tr><td>垃圾节点</td><td>926</td><td><strong>0</strong></td><td>TRUNCATE</td></tr>
+          <tr><td>重建节点</td><td>--</td><td>230-320</td><td>专家策展</td></tr>
+          <tr><td>质量数据新增</td><td>--</td><td>~3,000-5,000</td><td>种子+LLM 充实</td></tr>
         </tbody>
       </table>
     </div>
 
     <div class="implication">
-      <div class="implication-label">IMPLICATION</div>
-      35 个节点类型在 Brooks 概念完整性极限（37）以内，留有 2 个余量。v3.1 曾有 53 个类型（过多），v4.0 精简到 18，v4.1 扩展到 21，v4.2 增长到 35 -- 这是经过 17 位专家验证的"甜区"。
+      <div class="implication-label">核心决策</div>
+      <p style="margin:0;">外科手术式增量，不做 v5.0 全面重构。填补"经济业务->会计分录->报表->申报表栏次"全链路断裂，补齐税法八要素缺失，重建 926 条垃圾数据。</p>
     </div>
   </div>
 </div>
 
 <!-- ============================================================ -->
-<!-- 05 IMPLEMENTATION ROADMAP -->
+<!-- 02 四层架构总览 -->
 <!-- ============================================================ -->
 <div class="section section-alt">
   <div class="container">
-    <div class="section-num">05</div>
-    <h2>实施路线图 -- 4 阶段 6 周</h2>
+    <span class="section-num">02</span>
+    <h2>四层架构总览 -- 全部 35 节点类型</h2>
 
-    <div class="key-message">
-      4 个阶段严格按优先级排列：Phase 1 闭合核心记账链（P0），Phase 2 补全税法要素（P1），Phase 3 扩展运营风控（P2），Phase 4 全链路验证。每个阶段独立可交付、独立可验证。
+    <div class="key-message">六层分布：L1 法规层 4 类型 | L2 业务层 8 类型 | L3 合规层 13 类型 | L4 知识层 2 类型 | L5 会计操作层 4 类型 | 跨层 4 类型。共 35 类型。</div>
+
+    <!-- L1 法规层 -->
+    <div class="layer-block">
+      <div class="layer-header lh-l1">
+        <span>L1 法规层</span>
+        <span class="layer-count">3 继承 + 1 新增 = 4 类型</span>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:40px;">#</th>
+              <th style="width:130px;">中文名</th>
+              <th style="width:150px;">英文名</th>
+              <th style="width:65px;">状态</th>
+              <th style="width:80px;">预估数量</th>
+              <th>核心属性</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>法律法规文件</td>
+              <td><code>LegalDocument</code></td>
+              <td><span class="badge badge-green">继承</span></td>
+              <td>~2,000</td>
+              <td>name, type, level, documentType, standardNumber, status, effectiveDate</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>法规条款</td>
+              <td><code>LegalClause</code></td>
+              <td><span class="badge badge-green">继承</span></td>
+              <td>~50,000</td>
+              <td>clauseNumber, clauseLevel, sortOrder, title, content</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>发布机构</td>
+              <td><code>IssuingBody</code></td>
+              <td><span class="badge badge-green">继承</span></td>
+              <td>~50</td>
+              <td>name, shortName</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>会计准则</td>
+              <td><code>AccountingStandard</code></td>
+              <td><span class="badge badge-blue">P0 新增</span></td>
+              <td>60-80</td>
+              <td>CAS 1-42 独立于 LegalDocument，避免法规/准则混用</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    <div class="phase-grid">
-      <div class="phase">
-        <div class="phase-header">PHASE 1: 基座（Week 1-2）</div>
-        <p style="font-size:13px;font-weight:600;color:var(--blue-700);margin-bottom:8px;">P0 核心链路闭环</p>
-        <ul>
-          <li>DDL: CREATE 7 个 P0 节点表 + 12 个 P0 边表</li>
-          <li>种子: JournalEntryTemplate Top-100 分录</li>
-          <li>种子: FinancialStatementItem 150+ 报表项</li>
-          <li>种子: TaxCalculationRule 增值税/企业所得税/个税核心公式</li>
-          <li>种子: FilingFormField 增值税主表 + 附表栏次</li>
-          <li>种子: FinancialIndicator 40 核心指标 + 杜邦树</li>
-          <li>种子: AccountingStandard CAS 1-42</li>
-          <li>种子: TaxTreaty Top-20 协定</li>
-          <li>扩展: AccountingSubject &rarr; 500+</li>
-          <li>扩展: TaxIncentive +7 个税专项扣除</li>
-          <li>扩展: STACKS_WITH/EXCLUDES 60-80 边</li>
-          <li>清洗: TRUNCATE RiskIndicator + AuditTrigger</li>
-        </ul>
+    <!-- L2 业务层 -->
+    <div class="layer-block">
+      <div class="layer-header lh-l2">
+        <span>L2 业务层</span>
+        <span class="layer-count">7 继承 + 1 新增 = 8 类型</span>
       </div>
-      <div class="phase">
-        <div class="phase-header p2">PHASE 2: 税法补全（Week 3-4）</div>
-        <p style="font-size:13px;font-weight:600;color:var(--blue-500);margin-bottom:8px;">P1 税法要素完备</p>
-        <ul>
-          <li>DDL: CREATE 5 个 P1 节点表 + 8 个 P1 边表</li>
-          <li>种子: TaxItem（消费税 15 + 印花税 17 + 增值税分类）</li>
-          <li>种子: TaxBasis（从价/从量/复合，按税种）</li>
-          <li>种子: TaxLiabilityTrigger（增值税 9 规则、企业所得税、个税）</li>
-          <li>种子: DeductionRule（企业所得税 20+ 项、个税扣除）</li>
-          <li>种子: TaxMilestoneEvent（设立 &rarr; 运营 &rarr; 并购 &rarr; 清算）</li>
-          <li>重建: RiskIndicator 150-200（金税四期 6 模块）</li>
-          <li>重建: AuditTrigger 80-120（3 级触发体系）</li>
-          <li>扩展: IndustryBenchmark &rarr; 500+</li>
-          <li>扩展: ComplianceRule &rarr; 200+</li>
-          <li>扩展: SPLITS_INTO 边 30-50</li>
-        </ul>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:40px;">#</th>
+              <th style="width:130px;">中文名</th>
+              <th style="width:150px;">英文名</th>
+              <th style="width:65px;">状态</th>
+              <th style="width:80px;">预估数量</th>
+              <th>核心属性</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>5</td>
+              <td>税率事实</td>
+              <td><code>TaxRate</code></td>
+              <td><span class="badge badge-green">继承</span></td>
+              <td>~300</td>
+              <td>value, valueExpression, calculationBasis, taxMethod, rateType</td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>会计科目</td>
+              <td><code>AccountingSubject</code></td>
+              <td><span class="badge badge-green">继承</span></td>
+              <td>223->500+</td>
+              <td>code(PK), name, category, balanceDirection, level, parentCode, isLeaf</td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td>分类体系</td>
+              <td><code>Classification</code></td>
+              <td><span class="badge badge-green">继承</span></td>
+              <td>~5,000</td>
+              <td>code(PK), name, system(国民经济/HS/税收分类/企业类型), notes</td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td>纳税主体</td>
+              <td><code>TaxEntity</code></td>
+              <td><span class="badge badge-green">继承</span></td>
+              <td>~100</td>
+              <td>type, taxpayerStatus, residencyStatus, sizeCategory, ownershipType</td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td>地区</td>
+              <td><code>Region</code></td>
+              <td><span class="badge badge-green">继承</span></td>
+              <td>~500</td>
+              <td>code(PK), name, level(省/市/区县/国家), regionType</td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td>申报表</td>
+              <td><code>FilingForm</code></td>
+              <td><span class="badge badge-green">继承</span></td>
+              <td>~60</td>
+              <td>name, reportCycle, deadlineDay, frequency, applicableTaxpayerType</td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td>经济业务</td>
+              <td><code>BusinessActivity</code></td>
+              <td><span class="badge badge-green">继承</span></td>
+              <td>~200</td>
+              <td>name, description</td>
+            </tr>
+            <tr>
+              <td>12</td>
+              <td>税目</td>
+              <td><code>TaxItem</code></td>
+              <td><span class="badge badge-amber">P1 新增</span></td>
+              <td>80-100</td>
+              <td>消费税 15 目、印花税 17 目、增值税类目（八要素缺失项）</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <div class="phase">
-        <div class="phase-header p3">PHASE 3: 运营风控（Week 5-6）</div>
-        <p style="font-size:13px;font-weight:600;color:#0088CC;margin-bottom:8px;">P2 操作层闭环</p>
-        <ul>
-          <li>DDL: CREATE 2 个 P2 节点表 + 剩余边</li>
-          <li>种子: ResponseStrategy 50-80（风险应对流程）</li>
-          <li>种子: PolicyChange（近期政策变动 + 影响映射）</li>
-          <li>扩展: Penalty &rarr; 200+（刑事责任 + 附带后果）</li>
-          <li>扩展: InvoiceRule +15（加计抵减、电子发票过渡）</li>
-          <li>内容: LLM 批量 fullText 富化全部类型</li>
-        </ul>
+    </div>
+
+    <!-- L3 合规层 -->
+    <div class="layer-block">
+      <div class="layer-header lh-l3">
+        <span>L3 合规层</span>
+        <span class="layer-count">9 继承 + 2 重建 + 2 新增 = 13 类型</span>
       </div>
-      <div class="phase">
-        <div class="phase-header p4">PHASE 4: 验证</div>
-        <p style="font-size:13px;font-weight:600;color:#00A3CC;margin-bottom:8px;">全链路端到端测试</p>
-        <ul>
-          <li>10 个真实业务查询测试</li>
-          <li>月度结账 10 步链路验证</li>
-          <li>增值税完整链端到端测试</li>
-          <li>杜邦分析分解树测试</li>
-          <li>星座图可视化更新</li>
-          <li>Skill Playbook &rarr; 本体缺口闭环验证</li>
-        </ul>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:40px;">#</th>
+              <th style="width:130px;">中文名</th>
+              <th style="width:150px;">英文名</th>
+              <th style="width:65px;">状态</th>
+              <th style="width:80px;">预估数量</th>
+              <th>核心属性</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>13</td>
+              <td>合规规则</td>
+              <td><code>ComplianceRule</code></td>
+              <td><span class="badge badge-green">继承</span></td>
+              <td>84->200+</td>
+              <td>name, category, consequence, applicableScope, effectiveDate</td>
+            </tr>
+            <tr>
+              <td>14</td>
+              <td>风险指标</td>
+              <td><code>RiskIndicator</code></td>
+              <td><span class="badge badge-red">重建</span></td>
+              <td>463->150-200</td>
+              <td>TRUNCATE 垃圾 + 6 模块重建（金税四期体系）: formula, severity, category</td>
+            </tr>
+            <tr>
+              <td>15</td>
+              <td>税收优惠</td>
+              <td><code>TaxIncentive</code></td>
+              <td><span class="badge badge-green">继承</span></td>
+              <td>109->120+</td>
+              <td>incentiveType, status, stackingGroup, eligibilityCriteria</td>
+            </tr>
+            <tr>
+              <td>16</td>
+              <td>处罚规定</td>
+              <td><code>Penalty</code></td>
+              <td><span class="badge badge-green">继承</span></td>
+              <td>127->200+</td>
+              <td>penaltyType(行政/刑事), legalBasis, minAmount, maxAmount, maxSentence</td>
+            </tr>
+            <tr>
+              <td>17</td>
+              <td>审计触发</td>
+              <td><code>AuditTrigger</code></td>
+              <td><span class="badge badge-red">重建</span></td>
+              <td>463->80-120</td>
+              <td>TRUNCATE 垃圾 + 3 级重建: triggerCondition, threshold, frequency</td>
+            </tr>
+            <tr>
+              <td>18</td>
+              <td>税会差异</td>
+              <td><code>TaxAccountingGap</code></td>
+              <td><span class="badge badge-green">继承</span></td>
+              <td>50->80-100</td>
+              <td>gapType, adjustmentDirection, A105000LineRef, deferredTaxType</td>
+            </tr>
+            <tr>
+              <td>19</td>
+              <td>社保公积金规则</td>
+              <td><code>SocialInsuranceRule</code></td>
+              <td><span class="badge badge-green">继承</span></td>
+              <td>~200</td>
+              <td>insuranceType, employerRate, employeeRate, baseFloor, baseCeiling</td>
+            </tr>
+            <tr>
+              <td>20</td>
+              <td>发票管理规则</td>
+              <td><code>InvoiceRule</code></td>
+              <td><span class="badge badge-green">继承</span></td>
+              <td>40->55</td>
+              <td>ruleType, invoiceType, condition, procedure, legalBasis</td>
+            </tr>
+            <tr>
+              <td>21</td>
+              <td>行业基准数据</td>
+              <td><code>IndustryBenchmark</code></td>
+              <td><span class="badge badge-green">继承</span></td>
+              <td>45->500+</td>
+              <td>ratioName, minValue, maxValue, unit, year, regionId, source</td>
+            </tr>
+            <tr>
+              <td>22</td>
+              <td>扣除限额规则</td>
+              <td><code>DeductionRule</code></td>
+              <td><span class="badge badge-amber">P1 新增</span></td>
+              <td>60-80</td>
+              <td>企业所得税/个税扣除标准（20+ 扣除项目）</td>
+            </tr>
+            <tr>
+              <td>23</td>
+              <td>税额计算规则</td>
+              <td><code>TaxCalculationRule</code></td>
+              <td><span class="badge badge-blue">P0 新增</span></td>
+              <td>100-150</td>
+              <td>增值税/企业所得税/个税核心公式（"怎么算"完全缺失）</td>
+            </tr>
+            <tr>
+              <td>24</td>
+              <td>预警应对策略</td>
+              <td><code>ResponseStrategy</code></td>
+              <td><span class="badge badge-purple">P2 新增</span></td>
+              <td>50-80</td>
+              <td>"收到预警后怎么办"链条缺失</td>
+            </tr>
+            <tr>
+              <td>25</td>
+              <td>政策变动事件</td>
+              <td><code>PolicyChange</code></td>
+              <td><span class="badge badge-purple">P2 新增</span></td>
+              <td>20-50</td>
+              <td>"政策变了影响什么"链条缺失</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- L4 知识层 -->
+    <div class="layer-block">
+      <div class="layer-header lh-l4">
+        <span>L4 知识层</span>
+        <span class="layer-count">2 继承 = 2 类型</span>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:40px;">#</th>
+              <th style="width:130px;">中文名</th>
+              <th style="width:150px;">英文名</th>
+              <th style="width:65px;">状态</th>
+              <th style="width:80px;">预估数量</th>
+              <th>核心属性</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>26</td>
+              <td>税种</td>
+              <td><code>TaxType</code></td>
+              <td><span class="badge badge-green">继承</span></td>
+              <td>19</td>
+              <td>name（中国 19 个税种的核心锚点，所有 *_FOR_TAX 边的终点）</td>
+            </tr>
+            <tr>
+              <td>27</td>
+              <td>知识单元</td>
+              <td><code>KnowledgeUnit</code></td>
+              <td><span class="badge badge-green">继承</span></td>
+              <td>~480,000</td>
+              <td>type(FAQ/案例/考点/风险提示/操作指南等), title, content, source</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- L5 会计操作层 -->
+    <div class="layer-block">
+      <div class="layer-header lh-l5">
+        <span>L5 会计操作层</span>
+        <span class="layer-count">0 继承 + 4 新增 = 4 类型（全部 P0/P1）</span>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:40px;">#</th>
+              <th style="width:130px;">中文名</th>
+              <th style="width:150px;">英文名</th>
+              <th style="width:65px;">状态</th>
+              <th style="width:80px;">预估数量</th>
+              <th>核心属性</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>28</td>
+              <td>会计分录模板</td>
+              <td><code>JournalEntryTemplate</code></td>
+              <td><span class="badge badge-blue">P0 新增</span></td>
+              <td>200-300</td>
+              <td>经济业务->分录链条断裂修复（会计/实务/CPA 三源共识）</td>
+            </tr>
+            <tr>
+              <td>29</td>
+              <td>报表项目</td>
+              <td><code>FinancialStatementItem</code></td>
+              <td><span class="badge badge-blue">P0 新增</span></td>
+              <td>150-200</td>
+              <td>分录->报表链条断裂修复（会计/财务分析双源共识）</td>
+            </tr>
+            <tr>
+              <td>30</td>
+              <td>申报表栏次</td>
+              <td><code>FilingFormField</code></td>
+              <td><span class="badge badge-blue">P0 新增</span></td>
+              <td>300-500</td>
+              <td>"怎么填表"缺失修复（实务专家源）</td>
+            </tr>
+            <tr>
+              <td>31</td>
+              <td>财务分析指标</td>
+              <td><code>FinancialIndicator</code></td>
+              <td><span class="badge badge-blue">P0 新增</span></td>
+              <td>80-120</td>
+              <td>杜邦分解树、税负分析（财务/CPA 4/4 共识）</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 跨层类型 -->
+    <div class="layer-block">
+      <div class="layer-header lh-lx">
+        <span>跨层类型</span>
+        <span class="layer-count">0 继承 + 4 新增 = 4 类型</span>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:40px;">#</th>
+              <th style="width:130px;">中文名</th>
+              <th style="width:150px;">英文名</th>
+              <th style="width:65px;">状态</th>
+              <th style="width:80px;">预估数量</th>
+              <th>核心属性</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>32</td>
+              <td>税收协定</td>
+              <td><code>TaxTreaty</code></td>
+              <td><span class="badge badge-blue">P0 新增</span></td>
+              <td>112</td>
+              <td>无法回答"对新加坡预提税率"（税法/生命周期/跨境 3/3 共识）</td>
+            </tr>
+            <tr>
+              <td>33</td>
+              <td>计税依据</td>
+              <td><code>TaxBasis</code></td>
+              <td><span class="badge badge-amber">P1 新增</span></td>
+              <td>30-50</td>
+              <td>从价/从量/复合（八要素缺失项）</td>
+            </tr>
+            <tr>
+              <td>34</td>
+              <td>纳税义务发生时间</td>
+              <td><code>TaxLiabilityTrigger</code></td>
+              <td><span class="badge badge-amber">P1 新增</span></td>
+              <td>50-80</td>
+              <td>增值税 9 条规则等（八要素缺失项）</td>
+            </tr>
+            <tr>
+              <td>35</td>
+              <td>生命周期事件</td>
+              <td><code>TaxMilestoneEvent</code></td>
+              <td><span class="badge badge-amber">P1 新增</span></td>
+              <td>30-50</td>
+              <td>设立->经营->并购->清算全链条</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
     <div class="implication">
-      <div class="implication-label">IMPLICATION</div>
-      Phase 1 完成后即可回答"这笔业务怎么记账、记哪个科目、体现在报表哪里"的全链路问题。Phase 2 完成后可回答"这个税种的税目、计税依据、义务触发时间"等税法结构问题。Phase 3 完成后覆盖"收到预警怎么办、政策变了影响什么"的操作层问题。
+      <div class="implication-label">架构含义</div>
+      <p style="margin:0;">L1-L4 继承 v4.1 的 21 类型（其中 2 个重建），L5 会计操作层为全新增层（4 类型），跨层 4 类型覆盖税收协定、计税依据、纳税义务和生命周期。总计 35 类型在 Brooks 极限（37）之内，预留 2 个类型位用于未来扩展。</p>
     </div>
   </div>
 </div>
 
 <!-- ============================================================ -->
-<!-- 06 ANTI-REQUIREMENTS -->
+<!-- 03 完整边类型表 -->
 <!-- ============================================================ -->
 <div class="section">
   <div class="container">
-    <div class="section-num">06</div>
-    <h2>反需求 -- 我们明确不做的 8 件事</h2>
+    <span class="section-num">03</span>
+    <h2>完整边类型表 -- 全部 ~72 边类型</h2>
 
-    <div class="key-message">
-      知道不做什么和知道做什么同样重要。以下 8 项是经过 17 位专家充分讨论后明确排除的方向，每一条都有清晰的理由。
+    <div class="key-message">v4.1 继承 52 条边 + v4.2 新增 20 条边 = ~72 条边。分 7 大类：结构边、核心骨架、跨类型语义、合规关联、映射边、v4.2 P0 新增、v4.2 P1 新增。</div>
+
+    <!-- 结构边 -->
+    <h3>3.1 结构边（7 条）</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:40px;">#</th>
+            <th style="width:140px;">边名</th>
+            <th style="width:80px;">中文</th>
+            <th>From -> To</th>
+            <th style="width:65px;">状态</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td><code>PART_OF</code></td><td>属于</td><td>LegalClause -> LegalDocument</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>2</td><td><code>CHILD_OF</code></td><td>子分类</td><td>Classification -> Classification</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>3</td><td><code>PARENT_CLAUSE</code></td><td>上级条款</td><td>LegalClause -> LegalClause</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>4</td><td><code>PARENT_SUBJECT</code></td><td>上级科目</td><td>AccountingSubject -> AccountingSubject</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>5</td><td><code>ISSUED_BY</code></td><td>发布</td><td>LegalDocument -> IssuingBody</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>6</td><td><code>SUPERSEDES</code></td><td>替代</td><td>LegalDocument -> LegalDocument</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>7</td><td><code>AMENDS</code></td><td>修订</td><td>LegalDocument -> LegalDocument</td><td><span class="badge badge-green">继承</span></td></tr>
+        </tbody>
+      </table>
     </div>
 
-    <div class="anti-grid">
-      <div class="anti-item">
-        <div class="anti-num">01</div>
-        <div class="anti-text"><strong>不做 v5.0 全面重构</strong><br>Brooks 第二系统效应：v4.1 框架结构健全，问题在概念缺口而非架构缺陷。</div>
-      </div>
-      <div class="anti-item">
-        <div class="anti-num">02</div>
-        <div class="anti-text"><strong>不增加层级子类型</strong><br>LegalDocumentChapter 等一律不加。用 clauseLevel 属性 + PARENT_CLAUSE 边解决层级需求。</div>
-      </div>
-      <div class="anti-item">
-        <div class="anti-num">03</div>
-        <div class="anti-text"><strong>不做 TaxPlanningStrategy 类型</strong><br>税筹 = 图路径搜索 + Agent 推理的结果，不是静态类型。</div>
-      </div>
-      <div class="anti-item">
-        <div class="anti-num">04</div>
-        <div class="anti-text"><strong>不做 L5 国际税完整层</strong><br>TaxTreaty 是 P0，其余国际税内容（常设机构、受控外国企业等）为 P3 按需扩展。</div>
-      </div>
-      <div class="anti-item">
-        <div class="anti-num">05</div>
-        <div class="anti-text"><strong>不迁移 540K 存量节点</strong><br>存量数据保持现状，新类型从种子数据开始，逐步通过 LLM 富化扩展。</div>
-      </div>
-      <div class="anti-item">
-        <div class="anti-num">06</div>
-        <div class="anti-text"><strong>不超过 37 个节点类型</strong><br>Brooks 概念完整性极限。当前 35 留 2 个余量。v3.1 的 53 个类型是前车之鉴。</div>
-      </div>
-      <div class="anti-item">
-        <div class="anti-num">07</div>
-        <div class="anti-text"><strong>不加 ProcessStep/Workflow 类型</strong><br>P2+ 延后处理。用 KnowledgeUnit.type="process_guide" 属性暂时替代。</div>
-      </div>
-      <div class="anti-item">
-        <div class="anti-num">08</div>
-        <div class="anti-text"><strong>不追求"百万节点"KPI</strong><br>Meadows：虚假库存指标。系统真正的杠杆点是知识密度，不是节点数量。</div>
-      </div>
+    <!-- 核心骨架 -->
+    <h3>3.2 核心骨架边（8 条 Tax-Bridge）</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:40px;">#</th>
+            <th style="width:160px;">边名</th>
+            <th style="width:80px;">中文</th>
+            <th>From -> To</th>
+            <th style="width:65px;">状态</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>8</td><td><code>APPLIES_TO_TAX</code></td><td>适用税种</td><td>TaxRate -> TaxType</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>9</td><td><code>INCENTIVE_FOR_TAX</code></td><td>优惠政策</td><td>TaxIncentive -> TaxType</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>10</td><td><code>RULE_FOR_TAX</code></td><td>合规规则</td><td>ComplianceRule -> TaxType</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>11</td><td><code>FILING_FOR_TAX</code></td><td>申报表</td><td>FilingForm -> TaxType</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>12</td><td><code>RISK_FOR_TAX</code></td><td>风险指标</td><td>RiskIndicator -> TaxType</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>13</td><td><code>AUDIT_FOR_TAX</code></td><td>审计指标</td><td>AuditTrigger -> TaxType</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>14</td><td><code>KU_ABOUT_TAX</code></td><td>知识税种</td><td>KnowledgeUnit -> TaxType</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>15</td><td><code>GAP_FOR_TAX</code></td><td>差异税种</td><td>TaxAccountingGap -> TaxType</td><td><span class="badge badge-green">继承</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 跨类型语义 -->
+    <h3>3.3 跨类型语义边（14 条）</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:40px;">#</th>
+            <th style="width:160px;">边名</th>
+            <th style="width:80px;">中文</th>
+            <th>From -> To</th>
+            <th style="width:65px;">状态</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>16</td><td><code>BASED_ON</code></td><td>依据</td><td>TaxRate -> LegalClause</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>17</td><td><code>REFERENCES_CLAUSE</code></td><td>引用</td><td>LegalClause -> LegalClause</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>18</td><td><code>CONFLICTS_WITH</code></td><td>冲突</td><td>LegalClause -> LegalClause</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>19</td><td><code>GOVERNED_BY</code></td><td>受约束</td><td>BusinessActivity -> ComplianceRule</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>20</td><td><code>TRIGGERS_TAX</code></td><td>触发税种</td><td>BusinessActivity -> TaxType</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>21</td><td><code>INCENTIVE_BASED_ON</code></td><td>优惠依据</td><td>TaxIncentive -> LegalClause</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>22</td><td><code>MAPS_TO_ACCOUNT</code></td><td>会计科目</td><td>TaxType -> AccountingSubject</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>23</td><td><code>MAPS_TO_SUBJECT</code></td><td>对应科目</td><td>BusinessActivity -> AccountingSubject</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>24</td><td><code>CALCULATED_FROM</code></td><td>计税基础</td><td>TaxType -> TaxType</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>25</td><td><code>SURCHARGE_OF</code></td><td>附加税</td><td>TaxType -> TaxType</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>26</td><td><code>RELATED_TAX</code></td><td>关联税种</td><td>TaxType -> TaxType</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>27</td><td><code>REQUIRES_FILING</code></td><td>需申报</td><td>BusinessActivity -> FilingForm</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>28</td><td><code>CREATES_GAP</code></td><td>产生差异</td><td>TaxIncentive -> TaxAccountingGap</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>29</td><td><code>HAS_BUSINESS_GAP</code></td><td>业务差异</td><td>BusinessActivity -> TaxAccountingGap</td><td><span class="badge badge-green">继承</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 适用范围边 -->
+    <h3>3.4 适用范围边（4 条）</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:40px;">#</th>
+            <th style="width:160px;">边名</th>
+            <th style="width:80px;">中文</th>
+            <th>From -> To</th>
+            <th style="width:65px;">状态</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>30</td><td><code>APPLIES_TO_ENTITY</code></td><td>适用主体</td><td>TaxRate -> TaxEntity</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>31</td><td><code>APPLIES_IN_REGION</code></td><td>适用地区</td><td>TaxRate -> Region</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>32</td><td><code>APPLIES_TO_CLASS</code></td><td>适用分类</td><td>TaxRate -> Classification</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>33</td><td><code>HAS_RATE</code></td><td>适用税率</td><td>Classification -> TaxRate</td><td><span class="badge badge-green">继承</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 合规关联边 -->
+    <h3>3.5 合规与风险边（6 条）</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:40px;">#</th>
+            <th style="width:160px;">边名</th>
+            <th style="width:80px;">中文</th>
+            <th>From -> To</th>
+            <th style="width:65px;">状态</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>34</td><td><code>PENALIZED_BY</code></td><td>处罚</td><td>ComplianceRule -> Penalty</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>35</td><td><code>TRIGGERED_BY</code></td><td>触发</td><td>AuditTrigger -> RiskIndicator</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>36</td><td><code>HAS_GAP</code></td><td>税会差异</td><td>AccountingSubject -> TaxAccountingGap</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>37</td><td><code>OVERRIDES_IN</code></td><td>地方覆盖</td><td>Region -> ComplianceRule</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>38</td><td><code>AUDIT_TRIGGERS</code></td><td>审计触发</td><td>AuditTrigger -> ComplianceRule</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>39</td><td><code>STACKS_WITH</code></td><td>可叠加</td><td>TaxIncentive -> TaxIncentive</td><td><span class="badge badge-green">继承</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 优惠互斥/实体/行业边 -->
+    <h3>3.6 实体/行业/发票/社保/会计边（13 条）</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:40px;">#</th>
+            <th style="width:180px;">边名</th>
+            <th style="width:80px;">中文</th>
+            <th>From -> To</th>
+            <th style="width:65px;">状态</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>40</td><td><code>EXCLUDES</code></td><td>互斥</td><td>TaxIncentive -> TaxIncentive</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>41</td><td><code>RELATED_PARTY</code></td><td>关联方</td><td>TaxEntity -> TaxEntity</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>42</td><td><code>INSURANCE_IN_REGION</code></td><td>社保地区</td><td>SocialInsuranceRule -> Region</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>43</td><td><code>INVOICE_FOR_TAX</code></td><td>发票税种</td><td>InvoiceRule -> TaxType</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>44</td><td><code>BENCHMARK_FOR</code></td><td>行业基准</td><td>IndustryBenchmark -> Classification</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>45</td><td><code>RULE_FOR_INDUSTRY</code></td><td>行业规则</td><td>ComplianceRule -> Classification</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>46</td><td><code>DEBITS_V2</code></td><td>借方</td><td>TaxType -> AccountingSubject</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>47</td><td><code>CREDITS_V2</code></td><td>贷方</td><td>TaxType -> AccountingSubject</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>48</td><td><code>ENTITY_FOR_TAX</code></td><td>主体税种</td><td>TaxEntity -> TaxType</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>49</td><td><code>FT_GOVERNED_BY</code></td><td>受监管</td><td>FilingForm -> ComplianceRule</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>50</td><td><code>FT_QUALIFIES_FOR</code></td><td>符合条件</td><td>TaxEntity -> TaxIncentive</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>51</td><td><code>FT_INCENTIVE_TAX</code></td><td>优惠</td><td>TaxIncentive -> TaxType</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>52</td><td><code>CLASSIFIED_UNDER_TAX</code></td><td>归属法规</td><td>Classification -> TaxType</td><td><span class="badge badge-green">继承</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 知识单元边 -->
+    <h3>3.7 知识单元语义边（6 条）</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:40px;">#</th>
+            <th style="width:170px;">边名</th>
+            <th style="width:80px;">中文</th>
+            <th>From -> To</th>
+            <th style="width:65px;">状态</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>53</td><td><code>INTERPRETS</code></td><td>解释</td><td>KnowledgeUnit -> LegalClause</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>54</td><td><code>EXEMPLIFIED_BY</code></td><td>案例</td><td>KnowledgeUnit -> LegalClause</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>55</td><td><code>EXPLAINS_RATE</code></td><td>税率说明</td><td>KnowledgeUnit -> LegalClause</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>56</td><td><code>WARNS_ABOUT</code></td><td>风险提示</td><td>KnowledgeUnit -> LegalClause</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>57</td><td><code>DESCRIBES_INCENTIVE</code></td><td>优惠说明</td><td>KnowledgeUnit -> LegalClause</td><td><span class="badge badge-green">继承</span></td></tr>
+          <tr><td>58</td><td><code>GUIDES_FILING</code></td><td>申报指南</td><td>KnowledgeUnit -> LegalClause</td><td><span class="badge badge-green">继承</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- v4.2 P0 新增边 -->
+    <h3>3.8 v4.2 P0 新增边（12 条）</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:40px;">#</th>
+            <th style="width:180px;">边名</th>
+            <th style="width:80px;">中文</th>
+            <th>From -> To</th>
+            <th style="width:65px;">状态</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>59</td><td><code>HAS_ENTRY_TEMPLATE</code></td><td>分录模板</td><td>BusinessActivity -> JournalEntryTemplate</td><td><span class="badge badge-blue">P0</span></td></tr>
+          <tr><td>60</td><td><code>ENTRY_DEBITS</code></td><td>借方科目</td><td>JournalEntryTemplate -> AccountingSubject</td><td><span class="badge badge-blue">P0</span></td></tr>
+          <tr><td>61</td><td><code>ENTRY_CREDITS</code></td><td>贷方科目</td><td>JournalEntryTemplate -> AccountingSubject</td><td><span class="badge badge-blue">P0</span></td></tr>
+          <tr><td>62</td><td><code>POPULATES</code></td><td>填充报表</td><td>AccountingSubject -> FinancialStatementItem</td><td><span class="badge badge-blue">P0</span></td></tr>
+          <tr><td>63</td><td><code>FIELD_OF</code></td><td>栏次归属</td><td>FilingFormField -> FilingForm</td><td><span class="badge badge-blue">P0</span></td></tr>
+          <tr><td>64</td><td><code>DERIVES_FROM</code></td><td>跨表引用</td><td>FilingFormField -> FilingFormField</td><td><span class="badge badge-blue">P0</span></td></tr>
+          <tr><td>65</td><td><code>CALCULATION_FOR_TAX</code></td><td>计算规则</td><td>TaxCalculationRule -> TaxType</td><td><span class="badge badge-blue">P0</span></td></tr>
+          <tr><td>66</td><td><code>DECOMPOSES_INTO</code></td><td>杜邦分解</td><td>FinancialIndicator -> FinancialIndicator</td><td><span class="badge badge-blue">P0</span></td></tr>
+          <tr><td>67</td><td><code>COMPUTED_FROM</code></td><td>数据来源</td><td>FinancialIndicator -> FinancialStatementItem</td><td><span class="badge badge-blue">P0</span></td></tr>
+          <tr><td>68</td><td><code>HAS_BENCHMARK</code></td><td>行业基线</td><td>FinancialIndicator -> IndustryBenchmark</td><td><span class="badge badge-blue">P0</span></td></tr>
+          <tr><td>69</td><td><code>PARTY_TO</code></td><td>缔约方</td><td>Region -> TaxTreaty</td><td><span class="badge badge-blue">P0</span></td></tr>
+          <tr><td>70</td><td><code>OVERRIDES_RATE</code></td><td>协定税率</td><td>TaxTreaty -> TaxRate</td><td><span class="badge badge-blue">P0</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- v4.2 P1 新增边 -->
+    <h3>3.9 v4.2 P1 新增边（8 条）</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:40px;">#</th>
+            <th style="width:190px;">边名</th>
+            <th style="width:80px;">中文</th>
+            <th>From -> To</th>
+            <th style="width:65px;">状态</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>71</td><td><code>HAS_ITEM</code></td><td>税目</td><td>TaxType -> TaxItem</td><td><span class="badge badge-amber">P1</span></td></tr>
+          <tr><td>72</td><td><code>COMPUTED_BY</code></td><td>计税方式</td><td>TaxItem -> TaxBasis</td><td><span class="badge badge-amber">P1</span></td></tr>
+          <tr><td>73</td><td><code>LIABILITY_TRIGGERED_BY</code></td><td>义务触发</td><td>TaxType -> TaxLiabilityTrigger</td><td><span class="badge badge-amber">P1</span></td></tr>
+          <tr><td>74</td><td><code>INDICATES_RISK</code></td><td>风险指示</td><td>RiskIndicator -> AuditTrigger</td><td><span class="badge badge-amber">P1</span></td></tr>
+          <tr><td>75</td><td><code>PENALIZED_FOR</code></td><td>违法处罚</td><td>Penalty -> BusinessActivity</td><td><span class="badge badge-amber">P1</span></td></tr>
+          <tr><td>76</td><td><code>ESCALATES_TO</code></td><td>升级处罚</td><td>Penalty -> Penalty</td><td><span class="badge badge-amber">P1</span></td></tr>
+          <tr><td>77</td><td><code>SPLITS_INTO</code></td><td>拆分业务</td><td>BusinessActivity -> BusinessActivity</td><td><span class="badge badge-amber">P1</span></td></tr>
+          <tr><td>78</td><td><code>DEDUCTS_FROM</code></td><td>扣除基数</td><td>DeductionRule -> TaxBasis</td><td><span class="badge badge-amber">P1</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 隐含边（from EDGE_LABELS_ZH 但未在新增列表中） -->
+    <h3>3.10 其余映射边（已在 v4.1 中定义但上文未单独列出）</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:40px;">#</th>
+            <th style="width:180px;">边名</th>
+            <th style="width:80px;">中文</th>
+            <th>From -> To</th>
+            <th style="width:65px;">状态</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>--</td><td><code>FT_APPLIES_TO</code></td><td>适用于</td><td>FilingForm -> TaxEntity</td><td><span class="badge badge-green">继承</span></td></tr>
+        </tbody>
+      </table>
     </div>
 
     <div class="implication">
-      <div class="implication-label">IMPLICATION</div>
-      8 条反需求共同界定了 v4.2 的操作边界。任何超出此边界的需求，无论来源多权威，都应延后到 v4.3+ 或以"不做"的方式明确记录。做减法的纪律是保持系统概念完整性的关键。
+      <div class="implication-label">边类型含义</div>
+      <p style="margin:0;">P0 的 12 条新边修复了三条核心链路断裂：(1) 经济业务->分录->科目->报表项目（会计全链路），(2) 申报表->栏次->跨表引用（填表全链路），(3) 地区->协定->税率覆盖（国际税收全链路）。P1 的 8 条边补齐税法八要素关联和风险升级路径。</p>
     </div>
   </div>
 </div>
 
 <!-- ============================================================ -->
-<!-- APPENDIX: EXPERT SOURCES -->
+<!-- 04 蜂群共识 -->
 <!-- ============================================================ -->
 <div class="section section-alt">
   <div class="container">
-    <div class="section-num">APPENDIX</div>
-    <h2>蜂群专家来源（3 轮，17 位专家）</h2>
+    <span class="section-num">04</span>
+    <h2>蜂群共识 -- 3 轮 17 路专家</h2>
+
+    <div class="key-message">三轮递进式蜂群审查：第一轮战略定位（6 路），第二轮领域深挖（5 路），第三轮业务深潜（6 路）。17/17 全票通过 v4.2 方案。</div>
 
     <div class="pillar-grid">
       <div class="pillar">
-        <div class="pillar-num">R1</div>
-        <h3>战略顾问（6 位）</h3>
+        <div class="pillar-num">01</div>
+        <h3>战略轮（6 路）</h3>
+        <p style="font-size:13px;color:var(--secondary);margin-bottom:12px;">方法论与架构约束</p>
         <ul>
-          <li>Hickey -- 简洁性</li>
-          <li>Drucker -- 商业价值</li>
-          <li>Munger -- 风险/逆向思维</li>
-          <li>Brooks -- 复杂性/进度</li>
-          <li>Meadows -- 系统动力学</li>
-          <li>Ontology Research -- FIBO/学术</li>
+          <li><strong>Hickey</strong> -- 简单性原则</li>
+          <li><strong>Drucker</strong> -- 商业价值导向</li>
+          <li><strong>Munger</strong> -- 风险/逆向思维</li>
+          <li><strong>Brooks</strong> -- 复杂度/进度约束</li>
+          <li><strong>Meadows</strong> -- 系统动力学</li>
+          <li><strong>本体研究</strong> -- FIBO/学术标准</li>
         </ul>
+        <div class="callout" style="margin-top:12px;font-size:13px;">
+          <strong>核心输出：</strong>Brooks 概念完整性极限（37 类型）、Meadows "百万节点"虚假 KPI 警告、Hickey 外科手术式增量优于全面重构。
+        </div>
       </div>
       <div class="pillar">
-        <div class="pillar-num">R2</div>
-        <h3>领域专家（5 位）</h3>
+        <div class="pillar-num">02</div>
+        <h3>领域轮（5 路）</h3>
+        <p style="font-size:13px;color:var(--secondary);margin-bottom:12px;">财税专业深度审查</p>
         <ul>
-          <li>税法结构专家</li>
-          <li>会计准则专家（CAS）</li>
-          <li>税务合规实务专家（10 年代账经验）</li>
-          <li>知识图谱本体设计研究员</li>
-          <li>税务风险与审计专家（税务局视角）</li>
+          <li><strong>税法结构</strong> -- 八要素缺失分析</li>
+          <li><strong>会计准则</strong> -- CAS 1-42 独立性</li>
+          <li><strong>税务合规实务</strong> -- 10 年记账经验</li>
+          <li><strong>KG 本体设计</strong> -- 学术研究视角</li>
+          <li><strong>税务风险审计</strong> -- 税务局视角</li>
         </ul>
+        <div class="callout" style="margin-top:12px;font-size:13px;">
+          <strong>核心输出：</strong>税法八要素缺失（TaxItem/TaxBasis/TaxLiabilityTrigger），RiskIndicator 463 条垃圾需 TRUNCATE，AccountingStandard 必须独立于 LegalDocument。
+        </div>
       </div>
       <div class="pillar">
-        <div class="pillar-num">R3</div>
-        <h3>业务纵深专家（6 位）</h3>
+        <div class="pillar-num">03</div>
+        <h3>业务轮（6 路）</h3>
+        <p style="font-size:13px;color:var(--secondary);margin-bottom:12px;">业务场景实操验证</p>
         <ul>
-          <li>CPA 六科知识</li>
-          <li>税务筹划策略</li>
-          <li>企业生命周期税务</li>
-          <li>财务分析与管理会计</li>
-          <li>跨境国际税务</li>
-          <li>薪酬与社会保险</li>
+          <li><strong>CPA 六科</strong> -- 分录/报表链路</li>
+          <li><strong>税务筹划</strong> -- 优惠叠加/互斥</li>
+          <li><strong>企业生命周期</strong> -- 设立到清算</li>
+          <li><strong>财务分析</strong> -- 杜邦分解树</li>
+          <li><strong>跨境国际税</strong> -- 税收协定</li>
+          <li><strong>薪酬社保</strong> -- 扣除规则</li>
+        </ul>
+        <div class="callout" style="margin-top:12px;font-size:13px;">
+          <strong>核心输出：</strong>JournalEntryTemplate + FinancialStatementItem（4/4 共识），TaxTreaty（3/3 共识），FinancialIndicator 杜邦分解（4/4 共识），TaxMilestoneEvent 生命周期链条。
+        </div>
+      </div>
+    </div>
+
+    <div class="implication">
+      <div class="implication-label">共识含义</div>
+      <p style="margin:0;">三轮蜂群从不同维度交叉验证了 v4.2 的 14 个新增类型。P0 类型（7 个）获得 3 个以上专家源独立确认，P1 类型（5 个）获得 2 个以上，P2 类型（2 个）获得 1-2 个。无反对票。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 05 数据规模与质量 -->
+<!-- ============================================================ -->
+<div class="section">
+  <div class="container">
+    <span class="section-num">05</span>
+    <h2>数据规模与质量</h2>
+
+    <div class="key-message">540K+ 存量节点不迁移。重点：TRUNCATE 926 条垃圾（RiskIndicator + AuditTrigger），扩展 6 个存量类型，种子 14 个新类型。目标新增 3,000-5,000 条质量数据。</div>
+
+    <h3>5.1 全类型数据状态表</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:40px;">#</th>
+            <th style="width:130px;">类型</th>
+            <th style="width:60px;">层</th>
+            <th style="width:80px;">当前数量</th>
+            <th style="width:80px;">目标数量</th>
+            <th style="width:70px;">内容状态</th>
+            <th style="width:65px;">优先级</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>LegalDocument</td><td><span class="chip-l1">L1</span></td><td>~2,000</td><td>~2,000</td><td><span class="badge badge-green">有内容</span></td><td>--</td><td>维持</td></tr>
+          <tr><td>2</td><td>LegalClause</td><td><span class="chip-l1">L1</span></td><td>~50,000</td><td>~50,000</td><td><span class="badge badge-green">有内容</span></td><td>--</td><td>维持</td></tr>
+          <tr><td>3</td><td>IssuingBody</td><td><span class="chip-l1">L1</span></td><td>~50</td><td>~50</td><td><span class="badge badge-green">有内容</span></td><td>--</td><td>维持</td></tr>
+          <tr><td>4</td><td>AccountingStandard</td><td><span class="chip-l1">L1</span></td><td>0</td><td>60-80</td><td><span class="badge badge-amber">待种子</span></td><td><span class="badge badge-blue">P0</span></td><td>CAS 1-42 种子</td></tr>
+          <tr><td>5</td><td>TaxRate</td><td><span class="chip-l2">L2</span></td><td>~300</td><td>~300</td><td><span class="badge badge-green">有内容</span></td><td>--</td><td>维持</td></tr>
+          <tr><td>6</td><td>AccountingSubject</td><td><span class="chip-l2">L2</span></td><td>223</td><td>500-600</td><td><span class="badge badge-amber">需扩展</span></td><td><span class="badge badge-blue">P0</span></td><td>补充二/三级科目</td></tr>
+          <tr><td>7</td><td>Classification</td><td><span class="chip-l2">L2</span></td><td>~5,000</td><td>~5,000</td><td><span class="badge badge-green">有内容</span></td><td>--</td><td>维持</td></tr>
+          <tr><td>8</td><td>TaxEntity</td><td><span class="chip-l2">L2</span></td><td>~100</td><td>~100</td><td><span class="badge badge-green">有内容</span></td><td>--</td><td>维持</td></tr>
+          <tr><td>9</td><td>Region</td><td><span class="chip-l2">L2</span></td><td>~500</td><td>~500</td><td><span class="badge badge-green">有内容</span></td><td>--</td><td>维持</td></tr>
+          <tr><td>10</td><td>FilingForm</td><td><span class="chip-l2">L2</span></td><td>~60</td><td>~60</td><td><span class="badge badge-green">有内容</span></td><td>--</td><td>维持</td></tr>
+          <tr><td>11</td><td>BusinessActivity</td><td><span class="chip-l2">L2</span></td><td>~200</td><td>~200</td><td><span class="badge badge-green">有内容</span></td><td>--</td><td>维持</td></tr>
+          <tr><td>12</td><td>TaxItem</td><td><span class="chip-l2">L2</span></td><td>0</td><td>80-100</td><td><span class="badge badge-amber">待种子</span></td><td><span class="badge badge-amber">P1</span></td><td>消费税/印花税/增值税税目</td></tr>
+          <tr><td>13</td><td>ComplianceRule</td><td><span class="chip-l3">L3</span></td><td>84</td><td>200+</td><td><span class="badge badge-amber">需扩展</span></td><td><span class="badge badge-amber">P1</span></td><td>反洗钱/转让定价</td></tr>
+          <tr><td>14</td><td>RiskIndicator</td><td><span class="chip-l3">L3</span></td><td>463</td><td>150-200</td><td><span class="badge badge-red">垃圾</span></td><td><span class="badge badge-blue">P0</span></td><td>TRUNCATE + 6 模块重建</td></tr>
+          <tr><td>15</td><td>TaxIncentive</td><td><span class="chip-l3">L3</span></td><td>109</td><td>120+</td><td><span class="badge badge-amber">需扩展</span></td><td><span class="badge badge-blue">P0</span></td><td>+7 个税专项扣除</td></tr>
+          <tr><td>16</td><td>Penalty</td><td><span class="chip-l3">L3</span></td><td>127</td><td>200+</td><td><span class="badge badge-amber">需扩展</span></td><td><span class="badge badge-amber">P1</span></td><td>刑事责任 + 连带后果</td></tr>
+          <tr><td>17</td><td>AuditTrigger</td><td><span class="chip-l3">L3</span></td><td>463</td><td>80-120</td><td><span class="badge badge-red">垃圾</span></td><td><span class="badge badge-blue">P0</span></td><td>TRUNCATE + 3 级重建</td></tr>
+          <tr><td>18</td><td>TaxAccountingGap</td><td><span class="chip-l3">L3</span></td><td>50</td><td>80-100</td><td><span class="badge badge-amber">需扩展</span></td><td><span class="badge badge-amber">P1</span></td><td>覆盖 A105000</td></tr>
+          <tr><td>19</td><td>SocialInsuranceRule</td><td><span class="chip-l3">L3</span></td><td>~200</td><td>~200</td><td><span class="badge badge-green">有内容</span></td><td>--</td><td>维持</td></tr>
+          <tr><td>20</td><td>InvoiceRule</td><td><span class="chip-l3">L3</span></td><td>40</td><td>55</td><td><span class="badge badge-amber">需扩展</span></td><td><span class="badge badge-purple">P2</span></td><td>加计抵减/电子发票</td></tr>
+          <tr><td>21</td><td>IndustryBenchmark</td><td><span class="chip-l3">L3</span></td><td>45</td><td>500+</td><td><span class="badge badge-amber">需扩展</span></td><td><span class="badge badge-amber">P1</span></td><td>30 行业 x 6 指标 x 3 地区</td></tr>
+          <tr><td>22</td><td>DeductionRule</td><td><span class="chip-l3">L3</span></td><td>0</td><td>60-80</td><td><span class="badge badge-amber">待种子</span></td><td><span class="badge badge-amber">P1</span></td><td>CIT/PIT 扣除标准</td></tr>
+          <tr><td>23</td><td>TaxCalculationRule</td><td><span class="chip-l3">L3</span></td><td>0</td><td>100-150</td><td><span class="badge badge-amber">待种子</span></td><td><span class="badge badge-blue">P0</span></td><td>增值税/CIT/PIT 核心公式</td></tr>
+          <tr><td>24</td><td>ResponseStrategy</td><td><span class="chip-l3">L3</span></td><td>0</td><td>50-80</td><td><span class="badge badge-amber">待种子</span></td><td><span class="badge badge-purple">P2</span></td><td>风险预警应对流程</td></tr>
+          <tr><td>25</td><td>PolicyChange</td><td><span class="chip-l3">L3</span></td><td>0</td><td>20-50</td><td><span class="badge badge-amber">待种子</span></td><td><span class="badge badge-purple">P2</span></td><td>近期政策变动+影响映射</td></tr>
+          <tr><td>26</td><td>TaxType</td><td><span class="chip-l4">L4</span></td><td>19</td><td>19</td><td><span class="badge badge-green">有内容</span></td><td>--</td><td>维持（19 税种锚点）</td></tr>
+          <tr><td>27</td><td>KnowledgeUnit</td><td><span class="chip-l4">L4</span></td><td>~480,000</td><td>~480,000</td><td><span class="badge badge-green">有内容</span></td><td>--</td><td>维持（LLM 批量 fullText 充实）</td></tr>
+          <tr><td>28</td><td>JournalEntryTemplate</td><td><span class="chip-l5">L5</span></td><td>0</td><td>200-300</td><td><span class="badge badge-amber">待种子</span></td><td><span class="badge badge-blue">P0</span></td><td>Top-100 分录优先</td></tr>
+          <tr><td>29</td><td>FinancialStatementItem</td><td><span class="chip-l5">L5</span></td><td>0</td><td>150-200</td><td><span class="badge badge-amber">待种子</span></td><td><span class="badge badge-blue">P0</span></td><td>三表项目全覆盖</td></tr>
+          <tr><td>30</td><td>FilingFormField</td><td><span class="chip-l5">L5</span></td><td>0</td><td>300-500</td><td><span class="badge badge-amber">待种子</span></td><td><span class="badge badge-blue">P0</span></td><td>增值税主表+附表优先</td></tr>
+          <tr><td>31</td><td>FinancialIndicator</td><td><span class="chip-l5">L5</span></td><td>0</td><td>80-120</td><td><span class="badge badge-amber">待种子</span></td><td><span class="badge badge-blue">P0</span></td><td>40 核心指标+杜邦树</td></tr>
+          <tr><td>32</td><td>TaxTreaty</td><td><span class="chip-lx">跨层</span></td><td>0</td><td>112</td><td><span class="badge badge-amber">待种子</span></td><td><span class="badge badge-blue">P0</span></td><td>Top-20 协定优先</td></tr>
+          <tr><td>33</td><td>TaxBasis</td><td><span class="chip-lx">跨层</span></td><td>0</td><td>30-50</td><td><span class="badge badge-amber">待种子</span></td><td><span class="badge badge-amber">P1</span></td><td>从价/从量/复合</td></tr>
+          <tr><td>34</td><td>TaxLiabilityTrigger</td><td><span class="chip-lx">跨层</span></td><td>0</td><td>50-80</td><td><span class="badge badge-amber">待种子</span></td><td><span class="badge badge-amber">P1</span></td><td>增值税 9 条规则等</td></tr>
+          <tr><td>35</td><td>TaxMilestoneEvent</td><td><span class="chip-lx">跨层</span></td><td>0</td><td>30-50</td><td><span class="badge badge-amber">待种子</span></td><td><span class="badge badge-amber">P1</span></td><td>设立/经营/并购/清算</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>5.2 RiskIndicator 重建方案（6 模块）</h3>
+    <div class="card">
+      <p><strong>现状：</strong>463 条数据为 LLM 批量生成的垃圾，无 formula、无 threshold、无 category 区分。</p>
+      <p><strong>操作：</strong>TRUNCATE 全部 463 条，按金税四期体系 6 模块重建 150-200 条。</p>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:40px;">#</th>
+              <th style="width:160px;">模块</th>
+              <th style="width:80px;">预估数量</th>
+              <th>说明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>空壳公司识别</td><td>25-30</td><td>注册地集中、零申报、法人年龄异常等</td></tr>
+            <tr><td>2</td><td>隐匿收入</td><td>30-35</td><td>存贷双高、收入成本倒挂、现金比率异常等</td></tr>
+            <tr><td>3</td><td>关联交易</td><td>25-30</td><td>转让定价偏离度、关联方资金占用率等</td></tr>
+            <tr><td>4</td><td>税负异常</td><td>30-35</td><td>增值税/所得税税负率偏离行业基准等</td></tr>
+            <tr><td>5</td><td>发票风险</td><td>20-25</td><td>进项集中度、品名与经营范围不匹配等</td></tr>
+            <tr><td>6</td><td>社保/个税</td><td>20-25</td><td>社保基数与工资不匹配、全员零申报等</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <h3>5.3 AuditTrigger 重建方案（3 级）</h3>
+    <div class="card">
+      <p><strong>现状：</strong>463 条与 RiskIndicator 完全重复（同批 LLM 垃圾生成）。</p>
+      <p><strong>操作：</strong>TRUNCATE 全部，按 3 级触发体系重建 80-120 条。</p>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:40px;">级别</th>
+              <th style="width:160px;">名称</th>
+              <th style="width:80px;">预估数量</th>
+              <th>说明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>系统自动预警</td><td>30-40</td><td>金税系统自动比对触发（税负率/发票/申报异常）</td></tr>
+            <tr><td>2</td><td>人工风险推送</td><td>25-35</td><td>税务局风控部门人工分析推送（行业专项/区域重点）</td></tr>
+            <tr><td>3</td><td>稽查立案</td><td>25-35</td><td>正式稽查程序（举报/转办/专案/联合）</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <h3>5.4 存量类型扩展目标</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:160px;">类型</th>
+            <th style="width:80px;">当前</th>
+            <th style="width:80px;">目标</th>
+            <th style="width:65px;">优先级</th>
+            <th>扩展方向</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>AccountingSubject</td><td>223</td><td>500-600</td><td><span class="badge badge-blue">P0</span></td><td>补充二级/三级明细科目</td></tr>
+          <tr><td>TaxIncentive</td><td>109</td><td>120+</td><td><span class="badge badge-blue">P0</span></td><td>+7 个人所得税专项附加扣除</td></tr>
+          <tr><td>STACKS_WITH/EXCLUDES</td><td>0 边</td><td>60-80 边</td><td><span class="badge badge-blue">P0</span></td><td>优惠叠加/互斥确定性规则</td></tr>
+          <tr><td>TaxAccountingGap</td><td>50</td><td>80-100</td><td><span class="badge badge-amber">P1</span></td><td>覆盖 A105000 纳税调整明细表</td></tr>
+          <tr><td>IndustryBenchmark</td><td>45</td><td>500+</td><td><span class="badge badge-amber">P1</span></td><td>30 行业 x 6 指标 x 3 地区</td></tr>
+          <tr><td>ComplianceRule</td><td>84</td><td>200+</td><td><span class="badge badge-amber">P1</span></td><td>反洗钱、转让定价规则</td></tr>
+          <tr><td>Penalty</td><td>127</td><td>200+</td><td><span class="badge badge-amber">P1</span></td><td>刑事责任 + 连带后果</td></tr>
+          <tr><td>InvoiceRule</td><td>40</td><td>55</td><td><span class="badge badge-purple">P2</span></td><td>加计抵减、电子发票过渡</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="implication">
+      <div class="implication-label">数据质量含义</div>
+      <p style="margin:0;">v4.2 的核心数据动作不是"加数量"，而是"治质量"。926 条垃圾清除后，每条新数据都要求有 formula、threshold、legalBasis 等结构化属性。宁可 150 条高质量 RiskIndicator，不要 463 条 LLM 垃圾。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 06 实施路线图 -->
+<!-- ============================================================ -->
+<div class="section section-alt">
+  <div class="container">
+    <span class="section-num">06</span>
+    <h2>实施路线图 -- 四阶段 6 周</h2>
+
+    <div class="key-message">四阶段递进实施：Phase 1 基础（Week 1-2）修复核心链路断裂 | Phase 2 税法+风险（Week 3-4）补齐八要素 | Phase 3 运营（Week 5-6）预警与政策 | Phase 4 验证（持续）端到端测试。</div>
+
+    <div class="phase-grid">
+      <div class="phase">
+        <div class="phase-header">Phase 1: 基础（Week 1-2）</div>
+        <p style="font-size:13px;font-weight:700;color:var(--blue-700);margin-bottom:8px;">DDL + 种子 + 垃圾清理</p>
+        <ul style="list-style:none;padding:0;font-size:14px;">
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">CREATE 7 P0 节点表 + 12 P0 边表</li>
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">种子: JournalEntryTemplate Top-100</li>
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">种子: FinancialStatementItem 150+</li>
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">种子: TaxCalculationRule VAT/CIT/PIT</li>
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">种子: FilingFormField 增值税主表+附表</li>
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">种子: FinancialIndicator 40 核心 + 杜邦树</li>
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">种子: AccountingStandard CAS 1-42</li>
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">种子: TaxTreaty Top-20 协定</li>
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">扩展: AccountingSubject 至 500+</li>
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">扩展: TaxIncentive +7 PIT 专项扣除</li>
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">扩展: STACKS_WITH/EXCLUDES 60-80 边</li>
+          <li style="padding:4px 0;">TRUNCATE: RiskIndicator + AuditTrigger</li>
         </ul>
       </div>
+      <div class="phase">
+        <div class="phase-header p2">Phase 2: 税法+风险（Week 3-4）</div>
+        <p style="font-size:13px;font-weight:700;color:var(--blue-700);margin-bottom:8px;">八要素 + 重建</p>
+        <ul style="list-style:none;padding:0;font-size:14px;">
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">CREATE 5 P1 节点表 + 8 P1 边表</li>
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">种子: TaxItem（消费税 15 + 印花税 17 + VAT）</li>
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">种子: TaxBasis（从价/从量/复合）</li>
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">种子: TaxLiabilityTrigger（VAT 9 规则）</li>
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">种子: DeductionRule（CIT/PIT 20+ 项）</li>
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">种子: TaxMilestoneEvent（设立->清算）</li>
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">重建: RiskIndicator 150-200（6 模块）</li>
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">重建: AuditTrigger 80-120（3 级）</li>
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">扩展: IndustryBenchmark 至 500+</li>
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">扩展: ComplianceRule 至 200+</li>
+          <li style="padding:4px 0;">扩展: SPLITS_INTO 边 30-50</li>
+        </ul>
+      </div>
+      <div class="phase">
+        <div class="phase-header p3">Phase 3: 运营（Week 5-6）</div>
+        <p style="font-size:13px;font-weight:700;color:var(--blue-700);margin-bottom:8px;">预警 + 政策 + 内容充实</p>
+        <ul style="list-style:none;padding:0;font-size:14px;">
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">CREATE 2 P2 节点表 + 剩余边</li>
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">种子: ResponseStrategy 50-80</li>
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">种子: PolicyChange 近期政策变动</li>
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">扩展: Penalty 至 200+（刑事 + 连带）</li>
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">扩展: InvoiceRule +15（加计抵减等）</li>
+          <li style="padding:4px 0;">LLM 批量 fullText 充实所有类型</li>
+        </ul>
+      </div>
+      <div class="phase">
+        <div class="phase-header p4">Phase 4: 验证（持续）</div>
+        <p style="font-size:13px;font-weight:700;color:var(--blue-700);margin-bottom:8px;">端到端测试 + 可视化</p>
+        <ul style="list-style:none;padding:0;font-size:14px;">
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">10 个真实业务查询测试</li>
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">月结 10 步链路验证</li>
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">增值税完整链路端到端测试</li>
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">杜邦分析分解树测试</li>
+          <li style="padding:4px 0;border-bottom:1px solid var(--rule);">星座图可视化更新</li>
+          <li style="padding:4px 0;">Skill Playbook -> 本体缺口闭合验证</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="implication">
+      <div class="implication-label">时间线含义</div>
+      <p style="margin:0;">6 周完成 35 类型全量部署。Phase 1 的 P0 类型修复最关键的三条链路断裂，Phase 4 的端到端验证确保"能回答业务问题"而不只是"有数据"。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 07 反需求 -->
+<!-- ============================================================ -->
+<div class="section">
+  <div class="container">
+    <span class="section-num">07</span>
+    <h2>反需求 -- 我们不做什么</h2>
+
+    <div class="key-message">明确的"不做"边界与"做"同等重要。以下 8 项反需求来自蜂群共识，防止第二系统效应（Brooks）和虚假 KPI 陷阱（Meadows）。</div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:40px;">#</th>
+            <th style="width:200px;">反需求</th>
+            <th>原因</th>
+            <th style="width:80px;">来源</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>不做 v5.0 全面重构</td>
+            <td>Brooks 第二系统效应：全面重写的项目 90% 失败。外科手术式增量是唯一安全路径。</td>
+            <td>Brooks</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>不做层级子类型</td>
+            <td>不建 LegalDocumentChapter 等子类型。用 clauseLevel + PARENT_CLAUSE 自引用边实现层级，保持类型数精简。</td>
+            <td>Hickey</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>不做 TaxPlanningStrategy 类型</td>
+            <td>税务筹划 = 图谱路径搜索 + Agent 推理。它是"涌现行为"不是"存储实体"。固化为节点类型会限制灵活性。</td>
+            <td>Meadows</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>不做 L5 国际税完整层</td>
+            <td>TaxTreaty 已作为 P0 跨层类型加入。其余国际税实体（常设机构、受益所有人等）为 P3 按需扩展。</td>
+            <td>Drucker</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>不迁移 540K 存量节点</td>
+            <td>存量节点（法规条款、知识单元等）质量无问题，schema 未变。迁移成本高、风险大、收益为零。</td>
+            <td>Hickey</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>不超过 37 个节点类型</td>
+            <td>Brooks 概念完整性极限。35 类型已用 95% 配额，预留 2 个位用于未来关键扩展。</td>
+            <td>Brooks</td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td>不做 ProcessStep/Workflow 类型</td>
+            <td>流程指引用 KnowledgeUnit.type="process_guide" 表达。P2+ 延期，待业务场景验证必要性。</td>
+            <td>Hickey</td>
+          </tr>
+          <tr>
+            <td>8</td>
+            <td>不追"百万节点"KPI</td>
+            <td>Meadows：虚假存量指标（false stock metric）。质量数据 x 连通度 >> 无脑堆数量。</td>
+            <td>Meadows</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout-risk">
+      <strong>风险提醒：</strong>如果未来需求推动突破 37 类型极限，应优先考虑合并而非新增。例如 TaxBasis 和 TaxLiabilityTrigger 在极端情况下可合并为 TaxElement。但 v4.2 的 35 类型已经过 17 路专家验证为最优拆分。
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- APPENDIX -->
+<!-- ============================================================ -->
+<div class="section section-alt">
+  <div class="container">
+    <span class="section-num">APPENDIX</span>
+    <h2>附录：蜂群专家来源清单</h2>
+
+    <h3>A.1 第一轮：战略定位（6 路）</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:40px;">#</th>
+            <th style="width:160px;">专家角色</th>
+            <th>核心贡献</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>Hickey（简单性原则）</td><td>外科手术式增量优于全面重构；避免 accidental complexity</td></tr>
+          <tr><td>2</td><td>Drucker（商业价值导向）</td><td>每个新类型必须回答"能解决什么业务问题"</td></tr>
+          <tr><td>3</td><td>Munger（风险/逆向思维）</td><td>逆向分析：什么情况下 v4.2 会失败？垃圾数据是首要风险</td></tr>
+          <tr><td>4</td><td>Brooks（复杂度/进度约束）</td><td>概念完整性极限 37 类型；第二系统效应警告</td></tr>
+          <tr><td>5</td><td>Meadows（系统动力学）</td><td>"百万节点"是虚假存量 KPI；关注连通度和质量流量</td></tr>
+          <tr><td>6</td><td>本体研究（FIBO/学术）</td><td>FIBO 金融本体对标；上位概念/下位概念拆分原则</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>A.2 第二轮：领域深挖（5 路）</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:40px;">#</th>
+            <th style="width:200px;">专家角色</th>
+            <th>核心贡献</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>7</td><td>税法结构专家</td><td>税法八要素缺失分析（纳税人/征税对象/税目/税率/计税依据/纳税义务发生时间/纳税期限/纳税地点）</td></tr>
+          <tr><td>8</td><td>会计准则专家（CAS）</td><td>CAS 1-42 必须独立于 LegalDocument；AccountingStandard 结构性分离</td></tr>
+          <tr><td>9</td><td>税务合规实务专家（10 年记账）</td><td>"怎么填表"链路缺失（FilingFormField）；分录模板实操需求</td></tr>
+          <tr><td>10</td><td>KG 本体设计研究者</td><td>Brooks 极限验证；自引用边（PARENT_CLAUSE）替代子类型</td></tr>
+          <tr><td>11</td><td>税务风险与审计专家（税务局视角）</td><td>RiskIndicator 463 条垃圾确认；金税四期 6 模块重建方案</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>A.3 第三轮：业务深潜（6 路）</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:40px;">#</th>
+            <th style="width:200px;">专家角色</th>
+            <th>核心贡献</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>12</td><td>CPA 六科知识专家</td><td>JournalEntryTemplate + FinancialStatementItem 核心链路（4/4 共识）</td></tr>
+          <tr><td>13</td><td>税务筹划策略专家</td><td>TaxCalculationRule 核心公式；STACKS_WITH/EXCLUDES 确定性规则</td></tr>
+          <tr><td>14</td><td>企业生命周期税务专家</td><td>TaxMilestoneEvent（设立->经营->并购->清算）；SPLITS_INTO 混合销售</td></tr>
+          <tr><td>15</td><td>财务分析与管理会计专家</td><td>FinancialIndicator 杜邦分解树（4/4 共识）；DECOMPOSES_INTO 边</td></tr>
+          <tr><td>16</td><td>跨境国际税专家</td><td>TaxTreaty 112 条协定（3/3 共识）；PARTY_TO + OVERRIDES_RATE</td></tr>
+          <tr><td>17</td><td>薪酬与社保专家</td><td>DeductionRule 扣除标准；TaxLiabilityTrigger 薪酬相关规则</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>A.4 作用域边界</h3>
+    <div class="card">
+      <p>KG 存储<strong>静态知识</strong>（规则/法规/阈值/基准），不存运行时数据。以下数据明确由外部系统提供：</p>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:200px;">数据类型</th>
+              <th>外部系统</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>企业财务数据（科目余额/报表数据）</td><td>ERP / 财务系统</td></tr>
+            <tr><td>实时汇率</td><td>央行 API</td></tr>
+            <tr><td>银行流水</td><td>银行系统</td></tr>
+            <tr><td>社保实际缴纳数据</td><td>社保系统</td></tr>
+            <tr><td>发票明细数据</td><td>金税系统 / 电子税务局</td></tr>
+            <tr><td>可比企业财务数据</td><td>BvD / 同花顺</td></tr>
+            <tr><td>关联方持股比例</td><td>企业工商系统</td></tr>
+            <tr><td>标准成本/实际成本差异</td><td>成本核算系统</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin-bottom:0;font-size:13px;color:var(--secondary);">KG 通过 ComplianceRule / KnowledgeUnit 告诉业务系统"应该用什么规则处理这些数据"。</p>
     </div>
   </div>
 </div>
@@ -1235,9 +1682,9 @@ tr:nth-child(even) td { background: var(--blue-50); }
 <!-- FOOTER -->
 <!-- ============================================================ -->
 <footer class="site-footer">
-  <p>CogNebula -- Ontology Architecture</p>
+  <p>CogNebula Enterprise v4.2 -- 本体架构设计文档</p>
   <p>Maurice | maurice_wen@proton.me</p>
-  <p class="attr">CONFIDENTIAL -- For internal use only | Generated 2026-03-30 | Source: 3-round swarm consensus (17 experts)</p>
+  <p style="font-size:12px; margin-top:8px;">2026-03-30 | 数据来源: ontology_v4.1.cypher + 2026-03-30-ontology-v42-final-design.md + kg-api.ts LAYER_GROUPS</p>
 </footer>
 
 </body>

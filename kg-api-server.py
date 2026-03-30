@@ -493,47 +493,198 @@ def query_nodes(
     return {"type": type, "count": len(rows), "offset": offset, "results": rows}
 
 
-# === Search (LanceDB vector) ===
+# === Text-based KG Search (Cypher CONTAINS) ===
+def _cypher_text_search(conn, query: str, limit: int = 10, table_filter: str = None) -> list:
+    """Search KuzuDB using CONTAINS across v4.1 node tables.
+
+    Returns ranked results: exact name match > name contains > title > fullText.
+    Falls back gracefully if a table lacks certain columns.
+    """
+    safe_q = query.replace("\\", "\\\\").replace("'", "\\'")
+
+    SEARCH_TABLES = [
+        # v4.1 core (high priority — structured domain data)
+        "TaxType", "TaxRate", "TaxIncentive", "ComplianceRule", "RiskIndicator",
+        "TaxAccountingGap", "SocialInsuranceRule", "InvoiceRule", "IndustryBenchmark",
+        "AuditTrigger", "Penalty", "FilingForm", "TaxEntity", "BusinessActivity",
+        "AccountingSubject", "Classification", "Region", "IssuingBody",
+        # Large content tables
+        "LegalDocument", "LegalClause", "KnowledgeUnit",
+        # Legacy tables with rich Q&A content
+        "FAQEntry", "CPAKnowledge",
+    ]
+
+    if table_filter:
+        SEARCH_TABLES = [t for t in SEARCH_TABLES if t == table_filter]
+
+    results = []
+    per_table = max(5, limit)
+
+    for table in SEARCH_TABLES:
+        if len(results) >= limit * 5:
+            break
+        try:
+            # Primary: search across name, title, fullText
+            cypher = (
+                f"MATCH (n:{table}) "
+                f"WHERE n.name CONTAINS '{safe_q}' OR n.title CONTAINS '{safe_q}' "
+                f"OR (n.fullText IS NOT NULL AND n.fullText CONTAINS '{safe_q}') "
+                f"RETURN n.id, n.name, n.title, "
+                f"CASE WHEN n.fullText IS NOT NULL AND n.fullText <> '' "
+                f"THEN substring(n.fullText, 0, 500) ELSE '' END "
+                f"LIMIT {per_table}"
+            )
+            r = conn.execute(cypher)
+            while r.has_next():
+                row = r.get_next()
+                nid = str(row[0]) if row[0] is not None else ""
+                name = str(row[1]) if row[1] is not None else ""
+                title = str(row[2]) if row[2] is not None else ""
+                ft = str(row[3]) if row[3] is not None else ""
+                # Relevance scoring
+                score = 40
+                if name == query:
+                    score = 100
+                elif query in name:
+                    score = 80
+                elif title and query in title:
+                    score = 60
+                display = ft if ft else (title if title else name)
+                results.append({
+                    "id": nid, "text": display[:500], "table": table,
+                    "title": title or name, "name": name, "score": score,
+                })
+        except Exception:
+            # Fallback: table might lack title or fullText columns
+            try:
+                cypher2 = (
+                    f"MATCH (n:{table}) "
+                    f"WHERE n.name CONTAINS '{safe_q}' "
+                    f"RETURN n.id, n.name LIMIT {per_table}"
+                )
+                r = conn.execute(cypher2)
+                while r.has_next():
+                    row = r.get_next()
+                    nid = str(row[0]) if row[0] is not None else ""
+                    name = str(row[1]) if row[1] is not None else ""
+                    results.append({
+                        "id": nid, "text": name[:500], "table": table,
+                        "title": name, "name": name,
+                        "score": 80 if query in name else 40,
+                    })
+            except Exception:
+                continue
+
+    # If full-phrase search returned too few, try splitting into 2-char terms
+    if len(results) < limit and len(query) > 3:
+        import re as _re_split
+        # Split on common Chinese particles first
+        raw = _re_split.split(
+            r'[，。？！、的了在是有和与或及其对于关于如何什么哪些可以怎么为被将把各多少几个 ]',
+            query,
+        )
+        subterms = []
+        for t in raw:
+            t = t.strip()
+            if len(t) == 2 or len(t) == 3:
+                subterms.append(t)
+            elif len(t) > 3:
+                # Bigram split: "上海社保" → "上海", "社保"
+                for i in range(0, len(t) - 1, 2):
+                    bi = t[i:i+2]
+                    if bi not in subterms:
+                        subterms.append(bi)
+        existing_ids = {r["id"] for r in results}
+        for st in subterms[:4]:
+            if st == query:
+                continue
+            safe_st = st.replace("\\", "\\\\").replace("'", "\\'")
+            for table in SEARCH_TABLES:
+                if table_filter and table != table_filter:
+                    continue
+                if len(results) >= limit * 3:
+                    break
+                try:
+                    cypher = (
+                        f"MATCH (n:{table}) "
+                        f"WHERE n.name CONTAINS '{safe_st}' OR n.title CONTAINS '{safe_st}' "
+                        f"RETURN n.id, n.name, n.title, '' LIMIT 5"
+                    )
+                    r = conn.execute(cypher)
+                    while r.has_next():
+                        row = r.get_next()
+                        nid = str(row[0]) if row[0] is not None else ""
+                        if nid in existing_ids:
+                            continue
+                        name = str(row[1]) if row[1] is not None else ""
+                        title = str(row[2]) if row[2] is not None else ""
+                        results.append({
+                            "id": nid, "text": (title or name)[:500], "table": table,
+                            "title": title or name, "name": name,
+                            "score": 60 if st in name else 40,
+                        })
+                        existing_ids.add(nid)
+                except Exception:
+                    continue
+
+    results.sort(key=lambda x: -x["score"])
+    return results[:limit]
+
+
+# === Search (Cypher text + optional LanceDB vector boost) ===
 @app.get("/api/v1/search")
 def search(
     q: str = Query(..., description="Search query"),
     limit: int = Query(10, ge=1, le=100),
     table_filter: Optional[str] = Query(None, description="Filter by source table"),
 ):
-    tbl = get_lance()
+    conn = get_kuzu()
+    results = _cypher_text_search(conn, q, limit, table_filter)
 
-    # Generate query vector via Gemini Embedding API
-    import urllib.request as _urlreq
-    _api_key = os.environ.get("GEMINI_API_KEY", "")
-    _url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2-preview:embedContent?key={_api_key}"
-    _payload = json.dumps({"model": "models/gemini-embedding-2-preview", "content": {"parts": [{"text": q[:2048]}]}, "taskType": "RETRIEVAL_QUERY", "outputDimensionality": 768}).encode()
-    _req = _urlreq.Request(_url, data=_payload, headers={"Content-Type": "application/json"})
+    # Optional: boost with LanceDB vector results if embedding succeeds
     try:
-        with _urlreq.urlopen(_req, timeout=10) as _resp:
-            query_vec = json.loads(_resp.read())["embedding"]["values"]
-    except:
-        h = hashlib.sha256(q.encode()).digest()
-        np.random.seed(int.from_bytes(h[:4], "big"))
-        query_vec = np.random.randn(768).astype(np.float32).tolist()
+        import urllib.request as _urlreq
+        _api_key = os.environ.get("GEMINI_API_KEY", "")
+        if _api_key:
+            _url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2-preview:embedContent?key={_api_key}"
+            _payload = json.dumps({"model": "models/gemini-embedding-2-preview", "content": {"parts": [{"text": q[:2048]}]}, "taskType": "RETRIEVAL_QUERY", "outputDimensionality": 768}).encode()
+            _req = _urlreq.Request(_url, data=_payload, headers={"Content-Type": "application/json"})
+            with _urlreq.urlopen(_req, timeout=5) as _resp:
+                query_vec = json.loads(_resp.read())["embedding"]["values"]
+            tbl = get_lance()
+            vec_results = tbl.search(query_vec).limit(limit).to_list()
+            existing_ids = {r["id"] for r in results}
+            for vr in vec_results:
+                vid = vr.get("id", "")
+                if vid and vid not in existing_ids:
+                    results.append({
+                        "id": vid,
+                        "text": (vr.get("text", "") or "")[:500],
+                        "table": vr.get("table", ""),
+                        "title": "",
+                        "name": "",
+                        "score": max(0, 50 - float(vr.get("_distance", 50))),
+                    })
+                    existing_ids.add(vid)
+    except Exception:
+        pass  # Vector boost is optional; Cypher text search is the primary
 
-    results = tbl.search(query_vec).limit(limit * 3 if table_filter else limit).to_list()
-
-    if table_filter:
-        results = [r for r in results if r.get("table") == table_filter][:limit]
+    results.sort(key=lambda x: -x["score"])
+    results = results[:limit]
 
     return {
         "query": q,
         "count": len(results),
-        "note": "placeholder vectors — semantic accuracy pending Gemini Embedding",
         "results": [
             {
-                "id": r.get("id"),
-                "text": r.get("text", "")[:300],
-                "table": r.get("table"),
-                "category": r.get("category"),
-                "score": float(r.get("_distance", 0)),
+                "id": r["id"],
+                "text": r["text"][:300],
+                "table": r["table"],
+                "title": r.get("title", ""),
+                "name": r.get("name", ""),
+                "score": r["score"],
             }
-            for r in results[:limit]
+            for r in results
         ],
     }
 
@@ -1267,85 +1418,118 @@ def _embed_query(text: str) -> list:
 
 
 def _rag_search_context(question: str, limit: int = 8) -> tuple:
-    """Search LanceDB + KuzuDB to build RAG context."""
+    """Search KuzuDB text + structured data to build RAG context."""
+    import re as _re_rag
+    conn = get_kuzu()
     sources = []
     context_parts = []
 
-    # Step 1: Vector search
-    vec = _embed_query(question)
-    if vec:
-        try:
-            tbl = get_lance()
-            results = tbl.search(vec).limit(limit).to_list()
-            for r in results:
-                src = {
-                    "id": r.get("id", ""),
-                    "text": (r.get("text", "") or "")[:5000],
-                    "table": r.get("table", ""),
-                    "category": r.get("category", ""),
-                    "score": round(float(r.get("_distance", 0)), 4),
-                }
-                sources.append(src)
-                context_parts.append(f"[{src['table']}] {src['id']}: {src['text']}")
-        except Exception as e:
-            context_parts.append(f"[Vector search error: {str(e)[:100]}]")
+    # Step 1: Cypher text search (primary — replaces broken vector search)
+    search_results = _cypher_text_search(conn, question, limit * 2)
+    for r in search_results[:limit]:
+        src = {"id": r["id"], "text": r["text"], "table": r["table"], "score": r["score"]}
+        sources.append(src)
+        context_parts.append(f"[{r['table']}] {r['id']}: {r.get('title', '')} — {r['text']}")
 
-    # Step 1.5: Structured KuzuDB queries for common patterns
-    conn = get_kuzu()
-    struct_tables = [
-        ("TaxType", "MATCH (t:TaxType) RETURN t.name, t.code, t.minRate, t.maxRate, t.rateStructure, t.filingFrequency LIMIT 25"),
-        ("TaxIncentive", "MATCH (i:TaxIncentive) RETURN i.name, i.incentiveType, i.value, i.eligibilityCriteria LIMIT 15"),
-        ("AccountingStandard", "MATCH (a:AccountingStandard) RETURN a.name, a.casNumber, a.scope LIMIT 15"),
-    ]
+    # Step 1.5: Also search individual keywords for broader coverage
+    # Chinese text needs aggressive splitting — extract 2-3 char substrings
+    if len(question) > 2:
+        # First: split on particles
+        raw_terms = _re_rag.split(
+            r'[，。？！、的了在是有和与或及其对于关于如何什么哪些可以怎么为被将把各多少几个 ]',
+            question,
+        )
+        raw_terms = [t.strip() for t in raw_terms if len(t.strip()) >= 2]
+        # Second: if any term is > 4 chars, split into 2-char bigrams
+        terms = []
+        for t in raw_terms:
+            if len(t) <= 4:
+                terms.append(t)
+            else:
+                # Extract overlapping 2-char bigrams: "上海社保" → "上海", "海社", "社保"
+                for i in range(0, len(t) - 1):
+                    bi = t[i:i+2]
+                    if bi not in terms:
+                        terms.append(bi)
+        # Deduplicate and limit
+        seen_terms = set()
+        unique_terms = []
+        for t in terms:
+            if t not in seen_terms and t != question:
+                seen_terms.add(t)
+                unique_terms.append(t)
+        seen_ids = {s["id"] for s in sources}
+        for term in unique_terms[:5]:
+            extra = _cypher_text_search(conn, term, 5)
+            for r in extra:
+                if r["id"] not in seen_ids:
+                    sources.append({"id": r["id"], "text": r["text"], "table": r["table"], "score": r["score"],
+                                    "title": r.get("title", "")})
+                    context_parts.append(f"[{r['table']}] {r['id']}: {r.get('title', '')} — {r['text']}")
+                    seen_ids.add(r["id"])
+
+    # Step 2: Structured KuzuDB queries for common domain patterns
     keywords = question.lower()
-    for tbl_name, cypher in struct_tables:
-        trigger = False
-        if tbl_name == "TaxType" and any(k in keywords for k in ["税", "税率", "税种", "增值税", "所得税", "对比"]):
-            trigger = True
-        elif tbl_name == "TaxIncentive" and any(k in keywords for k in ["优惠", "减免", "incentive", "减税"]):
-            trigger = True
-        elif tbl_name == "AccountingStandard" and any(k in keywords for k in ["准则", "会计", "accounting"]):
-            trigger = True
-        if trigger:
+    struct_queries = [
+        ("TaxType",
+         "MATCH (t:TaxType) RETURN t.name, t.code, t.minRate, t.maxRate, t.rateStructure, t.filingFrequency LIMIT 25",
+         ["税", "税率", "税种", "增值税", "所得税", "对比"]),
+        ("TaxIncentive",
+         "MATCH (i:TaxIncentive) RETURN i.name, i.incentiveType, i.value, i.eligibilityCriteria LIMIT 15",
+         ["优惠", "减免", "incentive", "减税", "退税", "免征"]),
+        ("TaxAccountingGap",
+         "MATCH (g:TaxAccountingGap) RETURN g.name, g.gapType, g.accountingTreatment, g.taxTreatment LIMIT 15",
+         ["税会差异", "差异", "会计处理", "纳税调整"]),
+        ("SocialInsuranceRule",
+         "MATCH (s:SocialInsuranceRule) RETURN s.name, s.insuranceType, s.regionId, s.employerRate, s.employeeRate LIMIT 20",
+         ["社保", "公积金", "保险", "养老", "医疗", "失业", "工伤", "生育", "缴纳"]),
+        ("InvoiceRule",
+         "MATCH (v:InvoiceRule) RETURN v.name, v.ruleType, v.condition LIMIT 15",
+         ["发票", "开票", "电子发票", "专票", "普票"]),
+        ("IndustryBenchmark",
+         "MATCH (b:IndustryBenchmark) RETURN b.ratioName, b.industryCode, b.minValue, b.maxValue, b.unit LIMIT 15",
+         ["行业", "基准", "税负率", "预警"]),
+        ("AccountingStandard",
+         "MATCH (a:AccountingStandard) RETURN a.name, a.casNumber, a.scope LIMIT 15",
+         ["准则", "会计", "accounting"]),
+    ]
+    for tbl_name, cypher, triggers in struct_queries:
+        if any(k in keywords for k in triggers):
             try:
                 r = conn.execute(cypher)
-                rows = []
                 cols = r.get_column_names()
+                rows = []
                 while r.has_next():
                     row = r.get_next()
                     rows.append([str(v) if v is not None else "" for v in row])
                 if rows:
                     header = " | ".join(cols)
-                    context_parts.append("[Structured " + tbl_name + " Data] " + header)
+                    context_parts.append(f"[Structured {tbl_name}] {header}")
                     for row in rows:
                         context_parts.append(" | ".join(row))
-            except:
+            except Exception:
                 pass
 
-    # Step 2: Graph expansion for top results
+    # Step 3: Graph expansion for top results
     for src in sources[:3]:
         if not src["id"]:
             continue
-        try:
-            # Find neighbors
-            for tbl_name in ["TaxType", "LawOrRegulation", "FAQEntry", "CPAKnowledge",
-                             "AccountingStandard", "TaxIncentive", "ComplianceRule"]:
-                try:
-                    r = conn.execute(
-                        f"MATCH (n:{tbl_name})-[e]->(m) WHERE n.id = '{src['id']}' "
-                        f"RETURN label(e), label(m), m.id, m.name LIMIT 5"
-                    )
-                    while r.has_next():
-                        row = r.get_next()
-                        rel_info = f"  -> [{row[0]}] {row[1]}: {row[2]} ({row[3] or ''})"
-                        context_parts.append(rel_info)
-                except:
-                    continue
-        except:
-            pass
+        safe_id = src["id"].replace("'", "\\'")
+        for tbl_name in ["TaxType", "TaxIncentive", "ComplianceRule", "TaxRate",
+                         "LegalClause", "RiskIndicator", "SocialInsuranceRule"]:
+            try:
+                r = conn.execute(
+                    f"MATCH (n:{tbl_name})-[e]->(m) WHERE n.id = '{safe_id}' "
+                    f"RETURN label(e) AS rel, label(m) AS tgt_type, m.id AS tgt_id, m.name AS tgt_name LIMIT 5"
+                )
+                while r.has_next():
+                    row = r.get_next()
+                    context_parts.append(f"  -> [{row[0]}] {row[1]}: {row[2]} ({row[3] or ''})")
+            except Exception:
+                continue
 
-    context = "\n".join(context_parts[:30])  # Cap at 30 entries
-    return context, sources
+    context = "\n".join(context_parts[:40])  # Cap at 40 entries (up from 30)
+    return context, sources, context_parts
 
 
 SYSTEM_PROMPT_RAG = """你是 CogNebula 业财税知识图谱的 AI 助手。你基于知识图谱中的真实数据回答问题。
@@ -1468,7 +1652,7 @@ def chat(req: ChatRequest):
 
     else:
         # RAG mode: search → context → generate
-        context, sources = _rag_search_context(question, req.limit)
+        context, sources, context_parts = _rag_search_context(question, req.limit)
 
         if not context.strip():
             return ChatResponse(
@@ -1489,6 +1673,26 @@ def chat(req: ChatRequest):
 
         answer = _gemini_generate(prompt=prompt, system=SYSTEM_PROMPT_RAG)
 
+        # Fallback: if LLM fails (429/error), build structured answer from context
+        if answer.startswith("[ERROR]"):
+            fallback_lines = ["基于知识图谱数据，以下是相关结果：\n"]
+            # Include search results
+            for _src in sources[:8]:
+                _title = _src.get("title", _src.get("text", "")[:60])
+                _table = _src.get("table", "")
+                fallback_lines.append(f"**[{_table}]** {_title}")
+                _text = _src.get("text", "")
+                if _text and _text != _title:
+                    fallback_lines.append(f"  {_text[:300]}\n")
+            # Also include structured query context (crucial when text search returns 0)
+            for _cp in context_parts:
+                if _cp.startswith("[Structured ") or " | " in _cp:
+                    fallback_lines.append(_cp)
+            if len(fallback_lines) > 1:
+                answer = "\n".join(fallback_lines)
+            else:
+                answer = "暂时无法生成 AI 回答（LLM 服务繁忙），但已在知识图谱中找到相关数据。请查看下方来源。"
+
         # Extract GENUI HTML if present
         import re as _re2
         genui_match = _re2.search(r"<!--GENUI-->(.*?)<!--/GENUI-->", answer, _re2.DOTALL)
@@ -1500,7 +1704,7 @@ def chat(req: ChatRequest):
 
         return ChatResponse(
             answer=clean_answer,
-            sources=[{"id": s["id"], "table": s["table"], "score": s["score"]} for s in sources[:5]],
+            sources=[{"id": s["id"], "table": s["table"], "score": s.get("score", 0)} for s in sources[:5]],
             html=genui_html,
             mode="rag",
         )

@@ -216,6 +216,11 @@ export const EDGE_LABELS_ZH: Record<string, string> = {
   RISK_FOR_TAX: "风险指标", FILING_FOR_TAX: "申报表", CALCULATED_FROM: "计税基础",
   SURCHARGE_OF: "附加税", RELATED_TAX: "关联税种", FT_INCENTIVE_TAX: "优惠",
   FT_APPLIES_TO: "适用于", CLASSIFIED_UNDER_TAX: "归属法规", MAPS_TO_ACCOUNT: "会计科目",
+  // Mapping/entity edges (missing from screenshot)
+  APPLIES_TO_ENTITY: "适用主体", APPLIES_IN_REGION: "适用地区", APPLIES_TO_CLASS: "适用分类",
+  REQUIRES_FILING: "需申报", ENTITY_FOR_TAX: "主体税种",
+  INCENTIVE_BASED_ON: "优惠依据", FT_GOVERNED_BY: "受监管", FT_QUALIFIES_FOR: "符合条件",
+  DEBITS_V2: "借方", CREDITS_V2: "贷方",
 };
 
 // Quiet edge colors: only 3 semantic groups (not per-edge rainbow)

@@ -529,20 +529,20 @@ export default function KGExplorerPage() {
 
             {nodeDetail && (
               <>
-                {/* Title / Name */}
+                {/* Title / Name (only if different from panel header) */}
                 {(nodeDetail.title || nodeDetail.name) && (nodeDetail.title || nodeDetail.name) !== selectedNode.label && (
                   <div style={{ marginBottom: 12 }}>
-                    <div style={{ fontSize: 10, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1px", marginBottom: 4 }}>标题</div>
+                    <div style={{ fontSize: 10, color: CN.textMuted, letterSpacing: "1px", marginBottom: 4 }}>标题</div>
                     <div style={{ fontSize: 13, color: CN.text, lineHeight: 1.6 }}>
                       {nodeDetail.title || nodeDetail.name}
                     </div>
                   </div>
                 )}
 
-                {/* Full Text / Content / Description — no height limit for verification */}
+                {/* Full Text / Content / Description */}
                 {(nodeDetail.fullText || nodeDetail.content || nodeDetail.description) && (
                   <div style={{ marginBottom: 12 }}>
-                    <div style={{ fontSize: 10, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1px", marginBottom: 4 }}>
+                    <div style={{ fontSize: 10, color: CN.textMuted, letterSpacing: "1px", marginBottom: 4 }}>
                       {nodeDetail.fullText ? "全文内容" : nodeDetail.content ? "内容" : "描述"}
                     </div>
                     <div style={{
@@ -555,80 +555,80 @@ export default function KGExplorerPage() {
                   </div>
                 )}
 
-                {/* All non-empty properties (for full content verification) */}
+                {/* Unified properties — Chinese field names, hide internal metadata */}
                 {(() => {
-                  const SKIP_KEYS = new Set(["_id", "_label", "_display_label", "id", "title", "name", "fullText", "content", "description",
-                    "regulationNumber", "effectiveDate", "hierarchyLevel", "regulationType", "status", "sourceUrl"]);
-                  const extraProps = Object.entries(nodeDetail)
-                    .filter(([k, v]) => !SKIP_KEYS.has(k) && v != null && String(v).length > 0 && String(v) !== "null")
-                    .map(([k, v]) => [k, String(v)]);
-                  if (extraProps.length === 0) return null;
-                  return (
-                    <div style={{ marginBottom: 12 }}>
-                      <div style={{ fontSize: 10, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1px", marginBottom: 4 }}>完整属性</div>
-                      <div style={{ fontSize: 12, lineHeight: 1.7 }}>
-                        {extraProps.map(([k, v]) => (
-                          <div key={k} style={{ display: "flex", gap: 8, padding: "3px 0", borderBottom: `1px solid ${CN.bgElevated}` }}>
-                            <span style={{ color: CN.textMuted, minWidth: 80, flexShrink: 0, fontSize: 11 }}>{k}</span>
-                            <span style={{ color: CN.text, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{v}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })()}
+                  // Internal/display fields to always hide
+                  const HIDE = new Set(["_id", "_label", "_display_label", "id", "title", "name",
+                    "fullText", "content", "description", "createdAt"]);
+                  // v4.1 ontology field → Chinese label mapping
+                  const FIELD_ZH: Record<string, string> = {
+                    // Shared
+                    regulationNumber: "文号", effectiveDate: "生效日期", hierarchyLevel: "层级",
+                    regulationType: "法规类型", status: "状态", sourceUrl: "来源",
+                    // TaxType
+                    rateRange: "税率范围", filingFrequency: "申报周期", taxCategory: "税种分类",
+                    // TaxRate
+                    taxTypeId: "适用税种", valueExpression: "税率", calculationBasis: "计税基础",
+                    rateType: "税率类型", applicableCondition: "适用条件",
+                    // TaxIncentive
+                    incentiveType: "优惠类型", value: "优惠值", valueBasis: "优惠基础",
+                    beneficiaryType: "受益人类型", eligibilityCriteria: "适用条件",
+                    combinable: "可叠加", maxAnnualBenefit: "年最大收益", lawReference: "法律依据",
+                    // ComplianceRule
+                    ruleCode: "规则编号", category: "分类", conditionDescription: "条件描述",
+                    conditionFormula: "条件公式", consequence: "后果", severity: "严重程度",
+                    // TaxAccountingGap
+                    accountingTreatment: "会计处理", taxTreatment: "税务处理",
+                    gapType: "差异类型", adjustmentDirection: "调整方向",
+                    // SocialInsuranceRule
+                    insuranceType: "险种", employerRate: "单位费率", employeeRate: "个人费率",
+                    baseFloor: "缴费基数下限", baseCeiling: "缴费基数上限", regionId: "适用地区",
+                    // InvoiceRule
+                    invoiceType: "发票类型", condition: "适用条件", procedure: "操作流程",
+                    ruleType: "规则类型",
+                    // IndustryBenchmark
+                    industryCode: "行业代码", ratioName: "指标名称",
+                    minValue: "下限", maxValue: "上限", unit: "单位",
+                    // AuditTrigger
+                    triggerCode: "触发编号", patternDescription: "模式描述",
+                    detectionMethod: "检测方法", historicalFrequency: "历史频率",
+                    // Penalty
+                    penaltyCode: "处罚编号", penaltyType: "处罚类型",
+                    calculationMethod: "计算方式", dailyRate: "日利率",
+                    minAmount: "最低金额", maxAmount: "最高金额",
+                    // RiskIndicator
+                    indicatorCode: "指标编号", metricName: "指标名称",
+                    metricFormula: "计算公式", thresholdLow: "低阈值", thresholdHigh: "高阈值",
+                    // Entity/Region/Filing
+                    formNumber: "表单编号", applicableTaxpayerType: "适用纳税人",
+                    fields: "字段", shortName: "简称",
+                    // LegalDocument
+                    level: "层级", issuingBodyId: "发布机构", issueDate: "发布日期",
+                    type: "类型", abolishDate: "废止日期",
+                    // LegalClause / KnowledgeUnit
+                    topic: "主题", question: "问题", answer: "回答",
+                  };
 
-                {/* Metadata fields */}
-                {(() => {
-                  const metaFields: [string, string, unknown][] = [
-                    ["文号", "regulationNumber", nodeDetail.regulationNumber],
-                    ["生效日期", "effectiveDate", nodeDetail.effectiveDate],
-                    ["层级", "hierarchyLevel", nodeDetail.hierarchyLevel],
-                    ["类型", "regulationType", nodeDetail.regulationType],
-                    ["状态", "status", nodeDetail.status],
-                    ["来源", "sourceUrl", nodeDetail.sourceUrl],
-                  ];
-                  const visible = metaFields.filter(([, , v]) => v && String(v).length > 0 && String(v) !== "undefined" && String(v) !== "null");
-                  if (visible.length === 0) return null;
+                  const props = Object.entries(nodeDetail)
+                    .filter(([k, v]) => !HIDE.has(k) && v != null && v !== "" && String(v) !== "null" && String(v) !== "undefined"
+                      && !(typeof v === "object" && "offset" in (v as Record<string,unknown>)))  // Hide KuzuDB _id-like objects
+                    .map(([k, v]) => [FIELD_ZH[k] || k, String(v)] as [string, string]);
+                  if (props.length === 0) return null;
                   return (
                     <div style={{ marginBottom: 12 }}>
-                      <div style={{ fontSize: 10, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1px", marginBottom: 6 }}>属性</div>
-                      <div style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: "4px 8px", fontSize: 12 }}>
-                        {visible.map(([label, , value]) => (
-                          <React.Fragment key={label}>
-                            <span style={{ color: CN.textMuted, fontWeight: 600 }}>{label}</span>
-                            {String(value).startsWith("http") ? (
-                              <a href={String(value)} target="_blank" rel="noopener noreferrer"
+                      <div style={{ fontSize: 10, color: CN.textMuted, letterSpacing: "1px", marginBottom: 6 }}>属性</div>
+                      <div style={{ fontSize: 12, lineHeight: 1.7 }}>
+                        {props.map(([label, val]) => (
+                          <div key={label} style={{ display: "flex", gap: 8, padding: "3px 0", borderBottom: `1px solid ${CN.bgElevated}` }}>
+                            <span style={{ color: CN.textMuted, minWidth: 80, flexShrink: 0, fontSize: 11, fontWeight: 600 }}>{label}</span>
+                            {val.startsWith("http") ? (
+                              <a href={val} target="_blank" rel="noopener noreferrer"
                                 style={{ color: CN.blue, textDecoration: "none", wordBreak: "break-all" }}>
-                                {String(value).slice(0, 60)}...
+                                {val.slice(0, 80)}
                               </a>
                             ) : (
-                              <span style={{ color: CN.text, wordBreak: "break-all" }}>{String(value)}</span>
+                              <span style={{ color: CN.text, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{val}</span>
                             )}
-                          </React.Fragment>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                {/* Extra KG properties (dynamic) */}
-                {(() => {
-                  const knownFields = new Set(["id", "title", "name", "fullText", "content", "description",
-                    "regulationNumber", "effectiveDate", "hierarchyLevel", "regulationType", "status",
-                    "sourceUrl", "_display_label", "_label", "createdAt"]);
-                  const extra = Object.entries(nodeDetail).filter(
-                    ([k, v]) => !knownFields.has(k) && v !== null && v !== undefined && String(v).length > 0 && String(v) !== "undefined"
-                  );
-                  if (extra.length === 0) return null;
-                  return (
-                    <div style={{ marginBottom: 12 }}>
-                      <div style={{ fontSize: 10, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1px", marginBottom: 6 }}>其他属性</div>
-                      <div style={{ fontSize: 11, lineHeight: 1.7 }}>
-                        {extra.slice(0, 12).map(([k, v]) => (
-                          <div key={k} style={{ display: "flex", gap: 8, marginBottom: 2 }}>
-                            <span style={{ color: CN.textMuted, fontWeight: 600, minWidth: 80, flexShrink: 0 }}>{k}</span>
-                            <span style={{ color: CN.textSecondary, wordBreak: "break-all" }}>{String(v).slice(0, 200)}</span>
                           </div>
                         ))}
                       </div>

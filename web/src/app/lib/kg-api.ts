@@ -158,26 +158,33 @@ export async function chatRAG(question: string, limit = 8): Promise<ChatResponse
   return resp.json();
 }
 
-/* v4.1 Ontology: 21 node types across 4 layers */
+/* v4.1 Ontology: 21 node types across 4 layers
+   Color scheme: 4 layer colors (not 21 type colors) for visual clarity */
 export const LAYER_GROUPS: Record<string, { color: string; darkColor: string; nodes: string[] }> = {
-  "L1 法规层": { color: "#FEE2E2", darkColor: "#7F1D1D", nodes: ["LegalDocument", "LegalClause", "IssuingBody"] },
-  "L2 业务层": { color: "#DBEAFE", darkColor: "#1E3A5F", nodes: ["TaxRate", "AccountingSubject", "Classification", "TaxEntity", "Region", "FilingForm", "BusinessActivity"] },
+  "L1 法规层": { color: "#DBEAFE", darkColor: "#1E3A5F", nodes: ["LegalDocument", "LegalClause", "IssuingBody"] },
+  "L2 业务层": { color: "#CFFAFE", darkColor: "#164E63", nodes: ["TaxRate", "AccountingSubject", "Classification", "TaxEntity", "Region", "FilingForm", "BusinessActivity"] },
   "L3 合规层": { color: "#FEF3C7", darkColor: "#78350F", nodes: ["ComplianceRule", "RiskIndicator", "TaxIncentive", "Penalty", "AuditTrigger", "TaxAccountingGap", "SocialInsuranceRule", "InvoiceRule", "IndustryBenchmark"] },
-  "L4 知识层": { color: "#F0FDF4", darkColor: "#14532D", nodes: ["TaxType", "KnowledgeUnit"] },
+  "L4 知识层": { color: "#F3F4F6", darkColor: "#1F2937", nodes: ["TaxType", "KnowledgeUnit"] },
 };
 
+// Layer-based colors: 4 distinct hues, high contrast on dark background
+const L1_COLOR = "#60A5FA"; // Blue — regulations/law
+const L2_COLOR = "#22D3EE"; // Cyan — business operations
+const L3_COLOR = "#FBBF24"; // Amber — compliance/risk
+const L4_COLOR = "#9CA3AF"; // Gray — knowledge/reference
+
 export const NODE_COLORS: Record<string, string> = {
-  // L1 Legal
-  LegalDocument: "#EF4444", LegalClause: "#FB923C", IssuingBody: "#FCA5A5",
-  // L2 Business
-  TaxRate: "#3B82F6", AccountingSubject: "#60A5FA", Classification: "#6EE7B7",
-  TaxEntity: "#1D4ED8", Region: "#34D399", FilingForm: "#93C5FD", BusinessActivity: "#2563EB",
-  // L3 Compliance
-  ComplianceRule: "#F59E0B", RiskIndicator: "#FBBF24", TaxIncentive: "#A78BFA",
-  Penalty: "#DC2626", AuditTrigger: "#F97316", TaxAccountingGap: "#E879F9",
-  SocialInsuranceRule: "#22D3EE", InvoiceRule: "#FB7185", IndustryBenchmark: "#F472B6",
-  // L4 Knowledge
-  TaxType: "#8B5CF6", KnowledgeUnit: "#10B981",
+  // L1 Legal (blue)
+  LegalDocument: L1_COLOR, LegalClause: L1_COLOR, IssuingBody: L1_COLOR,
+  // L2 Business (cyan)
+  TaxRate: L2_COLOR, AccountingSubject: L2_COLOR, Classification: L2_COLOR,
+  TaxEntity: L2_COLOR, Region: L2_COLOR, FilingForm: L2_COLOR, BusinessActivity: L2_COLOR,
+  // L3 Compliance (amber)
+  ComplianceRule: L3_COLOR, RiskIndicator: L3_COLOR, TaxIncentive: L3_COLOR,
+  Penalty: L3_COLOR, AuditTrigger: L3_COLOR, TaxAccountingGap: L3_COLOR,
+  SocialInsuranceRule: L3_COLOR, InvoiceRule: L3_COLOR, IndustryBenchmark: L3_COLOR,
+  // L4 Knowledge (gray)
+  TaxType: L4_COLOR, KnowledgeUnit: L4_COLOR,
 };
 
 export const EDGE_LABELS_ZH: Record<string, string> = {
@@ -197,13 +204,18 @@ export const EDGE_LABELS_ZH: Record<string, string> = {
   RULE_FOR_INDUSTRY: "行业规则", OVERRIDES_IN: "地方覆盖", AUDIT_TRIGGERS: "审计触发",
 };
 
+// Quiet edge colors: only 3 semantic groups (not per-edge rainbow)
+const EDGE_STRUCTURAL = "#4B5563"; // Gray — structural (PART_OF, CHILD_OF, ISSUED_BY)
+const EDGE_SEMANTIC = "#6B7280";   // Lighter gray — semantic (INTERPRETS, EXPLAINS, GUIDES)
+const EDGE_RISK = "#DC2626";       // Red — only for conflict/risk edges
 export const EDGE_COLORS: Record<string, string> = {
-  SUPERSEDES: "#D97706", AMENDS: "#D97706", CONFLICTS_WITH: "#DC2626",
-  REFERENCES_CLAUSE: "#3B82F6", BASED_ON: "#60A5FA", ISSUED_BY: "#6366F1",
-  APPLIES_TO_TAX: "#059669", INTERPRETS: "#F59E0B", WARNS_ABOUT: "#EF4444",
-  DESCRIBES_INCENTIVE: "#10B981", GUIDES_FILING: "#8B5CF6", EXPLAINS_RATE: "#EAB308",
-  PART_OF: "#94A3B8", CHILD_OF: "#94A3B8", GOVERNED_BY: "#7C3AED",
-  TRIGGERS_TAX: "#0891B2", KU_ABOUT_TAX: "#0891B2",
+  SUPERSEDES: EDGE_STRUCTURAL, AMENDS: EDGE_STRUCTURAL, ISSUED_BY: EDGE_STRUCTURAL,
+  PART_OF: EDGE_STRUCTURAL, CHILD_OF: EDGE_STRUCTURAL, GOVERNED_BY: EDGE_STRUCTURAL,
+  REFERENCES_CLAUSE: EDGE_SEMANTIC, BASED_ON: EDGE_SEMANTIC,
+  APPLIES_TO_TAX: EDGE_SEMANTIC, INTERPRETS: EDGE_SEMANTIC,
+  DESCRIBES_INCENTIVE: EDGE_SEMANTIC, GUIDES_FILING: EDGE_SEMANTIC,
+  EXPLAINS_RATE: EDGE_SEMANTIC, TRIGGERS_TAX: EDGE_SEMANTIC, KU_ABOUT_TAX: EDGE_SEMANTIC,
+  CONFLICTS_WITH: EDGE_RISK, WARNS_ABOUT: EDGE_RISK,
 };
 
 export function getNodeLayer(type: string): string {

@@ -59,6 +59,8 @@ function SigmaRenderer({ data, highlightTypes, onNodeClick, onNodeHover }: Props
   const sigmaRef = useRef<Sigma | null>(null);
   const graphRef = useRef<Graph | null>(null);
   const nodeSizesRef = useRef<Map<string, number>>(new Map());
+  const hoveredRef = useRef<string | null>(null);
+  const neighborsRef = useRef<Set<string>>(new Set());
   const [initError, setInitError] = useState<string | null>(null);
 
   const cleanup = useCallback(() => {
@@ -66,6 +68,8 @@ function SigmaRenderer({ data, highlightTypes, onNodeClick, onNodeHover }: Props
     sigmaRef.current = null;
     graphRef.current = null;
     nodeSizesRef.current.clear();
+    hoveredRef.current = null;
+    neighborsRef.current.clear();
   }, []);
 
   useEffect(() => {
@@ -74,11 +78,10 @@ function SigmaRenderer({ data, highlightTypes, onNodeClick, onNodeHover }: Props
     setInitError(null);
 
     try {
-      // Build graphology graph
       const graph = new Graph();
       const addedNodes = new Set<string>();
 
-      // Layer filter: determine which nodes are highlighted
+      // Layer filter
       const hlSet = highlightTypes && highlightTypes.length > 0
         ? new Set(highlightTypes)
         : null;
@@ -88,13 +91,13 @@ function SigmaRenderer({ data, highlightTypes, onNodeClick, onNodeHover }: Props
         addedNodes.add(n.id);
         const baseSize = n.size || 3;
         nodeSizesRef.current.set(n.id, baseSize);
-        const isHighlighted = !hlSet || hlSet.has(n.type);
+        const isHL = !hlSet || hlSet.has(n.type);
         graph.addNode(n.id, {
           label: n.label,
           x: Math.random() * 1000,
           y: Math.random() * 1000,
-          size: isHighlighted ? baseSize : baseSize * 0.4,
-          color: isHighlighted ? "#D1D5DB" : "#1E293B",
+          size: isHL ? baseSize : baseSize * 0.4,
+          color: isHL ? "#C9CDD3" : "#1E293B",
           nodeType: n.type,
         });
       }
@@ -104,8 +107,8 @@ function SigmaRenderer({ data, highlightTypes, onNodeClick, onNodeHover }: Props
         if (graph.hasEdge(e.source, e.target)) continue;
         try {
           graph.addEdge(e.source, e.target, {
-            color: "#262D3A",
-            size: 0.3,
+            color: "#475569",   // Visible slate-600 (was #262D3A — too dark)
+            size: 0.5,
             label: e.label || "",
           });
         } catch { /* skip duplicate edges */ }
@@ -113,7 +116,7 @@ function SigmaRenderer({ data, highlightTypes, onNodeClick, onNodeHover }: Props
 
       graphRef.current = graph;
 
-      // ForceAtlas2: tuned for 1000+ nodes — more iterations, stronger gravity
+      // ForceAtlas2: tuned for 1000+ nodes
       const nodeCount = graph.order;
       forceAtlas2.assign(graph, {
         iterations: nodeCount > 500 ? 150 : 80,
@@ -128,36 +131,70 @@ function SigmaRenderer({ data, highlightTypes, onNodeClick, onNodeHover }: Props
         },
       });
 
-      // Create Sigma renderer — label threshold higher for dense graphs
+      // Sigma renderer with nodeReducer/edgeReducer for hover highlighting.
+      // Reducers compute visual props per frame — no need to mutate 3000 edges.
       const sigma = new Sigma(graph, containerRef.current, {
         renderLabels: true,
         labelRenderedSizeThreshold: nodeCount > 500 ? 12 : 8,
         labelSize: 11,
         labelColor: { color: "#E5E7EB" },
         labelFont: "'Inter', 'Noto Sans SC', system-ui, sans-serif",
-        defaultNodeColor: "#D1D5DB",
-        defaultEdgeColor: "#262D3A",
+        defaultNodeColor: "#C9CDD3",
+        defaultEdgeColor: "#475569",
         defaultNodeType: "circle",
         defaultEdgeType: "line",
         allowInvalidContainer: true,
+        nodeReducer: (node, attrs) => {
+          const res = { ...attrs };
+          const hov = hoveredRef.current;
+          if (hov) {
+            if (node === hov) {
+              res.color = "#60A5FA";
+              res.size = (nodeSizesRef.current.get(node) || 3) * 2.5;
+              res.zIndex = 2;
+            } else if (neighborsRef.current.has(node)) {
+              res.color = "#93C5FD";
+              res.size = (nodeSizesRef.current.get(node) || 3) * 1.5;
+              res.zIndex = 1;
+            } else {
+              res.color = "#1E293B";
+              res.size = (attrs.size || 3) * 0.4;
+              res.label = "";
+            }
+          }
+          return res;
+        },
+        edgeReducer: (edge, attrs) => {
+          const res = { ...attrs };
+          const hov = hoveredRef.current;
+          if (hov) {
+            const [src, tgt] = graph.extremities(edge);
+            if (src === hov || tgt === hov) {
+              res.color = "#60A5FA";
+              res.size = 2;
+            } else {
+              res.color = "#111827";
+              res.size = 0.1;
+            }
+          }
+          return res;
+        },
       });
 
       sigmaRef.current = sigma;
 
-      // Hover: highlight with stable size (no cumulative drift)
+      // Hover: set ref + refresh (reducers handle the visuals)
       sigma.on("enterNode", ({ node }) => {
+        hoveredRef.current = node;
+        neighborsRef.current = new Set(graph.neighbors(node));
         onNodeHover?.(node);
-        const base = nodeSizesRef.current.get(node) || 3;
-        graph.setNodeAttribute(node, "color", "#60A5FA");
-        graph.setNodeAttribute(node, "size", base * 2);
         sigma.refresh();
       });
 
-      sigma.on("leaveNode", ({ node }) => {
+      sigma.on("leaveNode", () => {
+        hoveredRef.current = null;
+        neighborsRef.current.clear();
         onNodeHover?.(null);
-        const base = nodeSizesRef.current.get(node) || 3;
-        graph.setNodeAttribute(node, "color", "#D1D5DB");
-        graph.setNodeAttribute(node, "size", base);
         sigma.refresh();
       });
 

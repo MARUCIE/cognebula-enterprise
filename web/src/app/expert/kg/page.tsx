@@ -834,9 +834,45 @@ export default function KGExplorerPage() {
               <SigmaGraph
                 data={sigmaData}
                 highlightTypes={sigmaHighlightTypes.length > 0 ? sigmaHighlightTypes : undefined}
-                onNodeClick={(nodeId, nodeType) => {
+                onNodeClick={async (nodeId, nodeType) => {
                   const label = sigmaData.nodes.find(n => n.id === nodeId)?.label || nodeId;
                   setSelectedNode({ id: nodeId, label, type: nodeType, neighbors: [] });
+                  // Drill-down: fetch neighbors and merge into constellation
+                  try {
+                    const gr = await getGraph(nodeType, nodeId);
+                    if (!gr.neighbors || gr.neighbors.length === 0) return;
+                    const existingIds = new Set(sigmaData.nodes.map(n => n.id));
+                    const newNodes = [...sigmaData.nodes];
+                    const newEdges = [...sigmaData.edges];
+                    let added = 0;
+                    for (const nb of gr.neighbors.slice(0, 20)) {
+                      if (!nb.target_id || existingIds.has(nb.target_id)) {
+                        // Edge to existing node — just add the edge
+                        if (nb.target_id && existingIds.has(nb.target_id)) {
+                          const src = nb.direction === "outgoing" ? nodeId : nb.target_id;
+                          const tgt = nb.direction === "outgoing" ? nb.target_id : nodeId;
+                          if (!newEdges.some(e => e.source === src && e.target === tgt)) {
+                            newEdges.push({ source: src, target: tgt, label: nb.edge_type });
+                          }
+                        }
+                        continue;
+                      }
+                      existingIds.add(nb.target_id);
+                      newNodes.push({
+                        id: nb.target_id,
+                        label: (nb.target_label || nb.target_id).slice(0, 30),
+                        type: nb.target_type,
+                        size: 4,
+                      });
+                      const src = nb.direction === "outgoing" ? nodeId : nb.target_id;
+                      const tgt = nb.direction === "outgoing" ? nb.target_id : nodeId;
+                      newEdges.push({ source: src, target: tgt, label: nb.edge_type });
+                      added++;
+                    }
+                    if (added > 0 || newEdges.length > sigmaData.edges.length) {
+                      setSigmaData({ nodes: newNodes, edges: newEdges });
+                    }
+                  } catch { /* silent — detail panel still works */ }
                 }}
               />
             ) : (

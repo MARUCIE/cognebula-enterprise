@@ -1,6 +1,43 @@
 # HANDOFF.md -- CogNebula / Lingque Desktop
 
-> Last updated: 2026-03-30T00:15Z
+> Last updated: 2026-03-30T08:30Z
+
+## Session 21 — KG Search + RAG Usability Fix
+
+### Problem Diagnosis
+System audit revealed 5 critical issues:
+1. **Search BROKEN**: LanceDB only indexed 37K/540K nodes (7%), Gemini 429 → placeholder vectors → random results
+2. **RAG Chat BROKEN**: Gemini 429 on both embedding AND generation → empty/error responses
+3. **Node content 38% empty**: LegalDocument(54K) all empty, KnowledgeUnit(152K) titles only, TaxIncentive(109) no fullText
+4. **Edge noise**: MAPS_TO_ACCOUNT over-connected (VAT → 43 accounting subjects including insurance accounts)
+5. **LanceDB coverage**: Only 6 legacy tables indexed (FAQEntry, CPAKnowledge, MindmapNode, etc.)
+
+### Fixes Applied (commit d74532e)
+1. **New `_cypher_text_search()`**: CONTAINS-based search across all 21 v4.1 + 2 legacy tables
+   - Fallback Chinese bigram splitting ("上海社保" → "上海" + "社保" separate searches)
+   - Relevance scoring: exact name=100, name contains=80, title=60, fullText=40
+2. **Search endpoint rewrite**: Cypher text primary, LanceDB vector as optional boost (when Gemini works)
+3. **RAG retrieval rewrite**: text search + keyword extraction + 7 structured domain queries
+4. **Structured fallback**: When Gemini 429, format context_parts directly (not empty error)
+5. **Column name fixes**: SocialInsuranceRule.regionId, InvoiceRule.condition, IndustryBenchmark.ratioName
+
+### Validation Results
+| Query | Structured Data | Key Tables |
+|-------|----------------|------------|
+| 增值税税率 | 30 lines | TaxType (0-13% tiered monthly) |
+| 社保缴纳 | 30 lines | SocialInsuranceRule (7 insurance types, employer/employee rates) |
+| 税会差异 | 41 lines | TaxAccountingGap (timing/permanent gaps) |
+| 发票合规 | 26 lines | InvoiceRule (certification, deduction rules) |
+| Graph TaxType/增值税 | 100 neighbors | MAPS_TO_ACCOUNT, FT_INCENTIVE_TAX, etc. |
+
+### Remaining TODOs (not blockers)
+1. **Content enrichment**: TaxIncentive(109), ComplianceRule(84) need fullText (names exist, bodies empty)
+2. **Edge cleanup**: MAPS_TO_ACCOUNT noise (43 irrelevant accounting subjects for VAT)
+3. **Permanent tunnel**: Quick tunnel URL is temporary
+4. **Frontend visual audit**: 3-round polish not yet done
+5. **LanceDB rebuild**: After content enrichment, re-index all tables with real Gemini embeddings
+
+---
 
 ## Session 20 — KG v4.1 Migration Phase 1-3
 

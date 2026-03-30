@@ -285,7 +285,7 @@ def build_missing_edges():
     ff_edges = 0
     for r in ff_data.get("results", []):
         fid = r.get("id", "")
-        fname = r.get("name", "") + " " + r.get("formNumber", "")
+        fname = str(r.get("name") or "") + " " + str(r.get("formNumber") or "")
         tax_id = r.get("taxTypeId", "")
         # Try taxTypeId first, then name matching
         target = None
@@ -312,7 +312,7 @@ def build_missing_edges():
     ri_edges = 0
     for r in ri_data.get("results", []):
         rid = r.get("id", "")
-        rname = r.get("name", "") + " " + r.get("metricName", "")
+        rname = str(r.get("name") or "") + " " + str(r.get("metricName") or "")
         target = match_tax_type(rname)
         if target and rid:
             try:
@@ -330,7 +330,7 @@ def build_missing_edges():
     at_edges = 0
     for r in at_data.get("results", []):
         aid = r.get("id", "")
-        aname = r.get("name", "") + " " + r.get("patternDescription", "")
+        aname = str(r.get("name") or "") + " " + str(r.get("patternDescription") or "")
         target = match_tax_type(aname)
         if target and aid:
             try:
@@ -353,7 +353,7 @@ def build_missing_edges():
     ib_edges = 0
     for r in ib_data.get("results", []):
         bid = r.get("id", "")
-        bname = r.get("ratioName", "") + " " + r.get("industryCode", "")
+        bname = str(r.get("ratioName") or "") + " " + str(r.get("industryCode") or "")
         # Most benchmarks relate to VAT or CIT
         target = match_tax_type(bname)
         if not target:

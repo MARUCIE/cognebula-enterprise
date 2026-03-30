@@ -490,8 +490,28 @@ def query_nodes(
             cypher = f"MATCH (n:{type}) WHERE n.name CONTAINS '{safe_q}' RETURN n SKIP {offset} LIMIT {limit}"
             result = conn.execute(cypher)
     else:
-        cypher = f"MATCH (n:{type}) RETURN n SKIP {offset} LIMIT {limit}"
-        result = conn.execute(cypher)
+        # For LegalDocument: prioritize policy content over kuaiji textbook
+        if type == "LegalDocument":
+            try:
+                cypher = (
+                    f"MATCH (n:{type}) "
+                    f"WITH n, CASE "
+                    f"WHEN n.type STARTS WITH 'policy' THEN 1 "
+                    f"WHEN n.type STARTS WITH 'provincial' THEN 2 "
+                    f"WHEN n.type STARTS WITH '12366' THEN 3 "
+                    f"WHEN n.type STARTS WITH 'compliance' THEN 4 "
+                    f"WHEN n.type = 'kuaiji' THEN 8 "
+                    f"WHEN n.type STARTS WITH 'pdf_cpa' THEN 9 "
+                    f"ELSE 5 END AS priority "
+                    f"RETURN n ORDER BY priority SKIP {offset} LIMIT {limit}"
+                )
+                result = conn.execute(cypher)
+            except Exception:
+                cypher = f"MATCH (n:{type}) RETURN n SKIP {offset} LIMIT {limit}"
+                result = conn.execute(cypher)
+        else:
+            cypher = f"MATCH (n:{type}) RETURN n SKIP {offset} LIMIT {limit}"
+            result = conn.execute(cypher)
     rows = []
     while result.has_next():
         row = result.get_next()

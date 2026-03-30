@@ -118,35 +118,37 @@ interface Props {
   onNodeSelect?: (nodeId: string, nodeType: string) => void;
 }
 
-/* ── Layout: simple horizontal layers ── */
-function layoutNodes(nodes: CardGraphNode[]): Node[] {
-  // Group by layer, then spread vertically
-  const layers: Record<string, CardGraphNode[]> = {};
+/* ── Layout: dagre auto-layout (hierarchical DAG) ── */
+function layoutNodes(nodes: CardGraphNode[], edges: CardGraphEdge[]): Node[] {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const Dagre = require("@dagrejs/dagre");
+  const g = new Dagre.graphlib.Graph();
+  g.setDefaultEdgeLabel(() => ({}));
+  g.setGraph({ rankdir: "LR", nodesep: 40, ranksep: 200, marginx: 30, marginy: 30 });
+
+  const CARD_W = 220;
+  const CARD_H = 90;
+
   for (const n of nodes) {
-    const layer = getNodeLayer(n.type);
-    (layers[layer] ||= []).push(n);
+    g.setNode(n.id, { width: CARD_W, height: CARD_H });
   }
-
-  const layerOrder = ["L4 知识层", "L3 合规层", "L2 业务层", "L1 法规层"];
-  const result: Node[] = [];
-  let xOffset = 0;
-
-  for (const layerName of layerOrder) {
-    const group = layers[layerName];
-    if (!group?.length) continue;
-
-    for (let i = 0; i < group.length; i++) {
-      const n = group[i];
-      result.push({
-        id: n.id,
-        type: "knowledgeCard",
-        position: { x: xOffset, y: i * 100 },
-        data: { label: n.label, nodeType: n.type, raw: n.raw },
-      });
+  for (const e of edges) {
+    if (g.hasNode(e.source) && g.hasNode(e.target)) {
+      g.setEdge(e.source, e.target);
     }
-    xOffset += 300;
   }
-  return result;
+
+  Dagre.layout(g);
+
+  return nodes.map((n) => {
+    const pos = g.node(n.id);
+    return {
+      id: n.id,
+      type: "knowledgeCard",
+      position: { x: (pos?.x || 0) - CARD_W / 2, y: (pos?.y || 0) - CARD_H / 2 },
+      data: { label: n.label, nodeType: n.type, raw: n.raw },
+    };
+  });
 }
 
 function layoutEdges(edges: CardGraphEdge[]): Edge[] {
@@ -155,18 +157,21 @@ function layoutEdges(edges: CardGraphEdge[]): Edge[] {
     source: e.source,
     target: e.target,
     label: e.label,
-    type: "default",
+    type: "smoothstep",
     animated: false,
-    style: { stroke: CN.textMuted, strokeWidth: 1.5 },
-    labelStyle: { fontSize: 10, fill: CN.textMuted },
-    markerEnd: { type: MarkerType.ArrowClosed, width: 12, height: 12, color: CN.textMuted },
+    style: { stroke: CN.textMuted, strokeWidth: 1.2 },
+    labelStyle: { fontSize: 9, fill: CN.textMuted },
+    labelBgStyle: { fill: CN.bg, fillOpacity: 0.8 },
+    labelBgPadding: [4, 2] as [number, number],
+    labelBgBorderRadius: 3,
+    markerEnd: { type: MarkerType.ArrowClosed, width: 10, height: 10, color: CN.textMuted },
   }));
 }
 
 /* ── Main Component ── */
 export default function KnowledgeCardGraph({ nodes: inputNodes, edges: inputEdges, onNodeSelect }: Props) {
   const initialNodes = useMemo(() => {
-    const laid = layoutNodes(inputNodes);
+    const laid = layoutNodes(inputNodes, inputEdges);
     return laid.map(n => ({
       ...n,
       data: { ...n.data, onSelect: (id: string) => {

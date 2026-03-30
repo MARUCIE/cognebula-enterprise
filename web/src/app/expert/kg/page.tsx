@@ -78,7 +78,7 @@ export default function KGExplorerPage() {
   const [cardGraphEdges, setCardGraphEdges] = useState<CardGraphEdge[]>([]);
   const [cardLoading, setCardLoading] = useState(false);
   const [cardPage, setCardPage] = useState(0);
-  const CARD_PAGE_SIZE = 20;
+  const CARD_PAGE_SIZE = 12;
   const graphRef = useRef<CytoscapeGraphHandle>(null);
   const graph3DRef = useRef<ForceGraph3DHandle>(null);
 
@@ -362,13 +362,13 @@ export default function KGExplorerPage() {
         addedIds.add(nid);
       }
 
-      // Fetch edges for first 8 nodes
-      for (const n of results.slice(0, 8)) {
+      // Fetch edges for first 5 nodes (keep graph clean)
+      for (const n of results.slice(0, 5)) {
         const nid = String(n.id || "");
         if (!nid) continue;
         try {
           const gr = await getGraph(type, nid);
-          for (const nb of (gr.neighbors || []).slice(0, 5)) {
+          for (const nb of (gr.neighbors || []).slice(0, 3)) {
             if (!nb.target_id) continue;
             // Add neighbor as card if not already present
             if (!addedIds.has(nb.target_id)) {

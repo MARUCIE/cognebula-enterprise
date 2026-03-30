@@ -367,8 +367,18 @@ export default function KGExplorerPage() {
         color: NODE_COLORS[centerTable] || "#8B5CF6", size: 45, parent: centerLayer,
       });
 
-      for (const nb of neighbors.slice(0, 30)) {
+      // Cap per edge type to prevent any single type from dominating (e.g., MAPS_TO_ACCOUNT 43)
+      const edgeTypeCounts: Record<string, number> = {};
+      const MAX_PER_EDGE_TYPE = 8;
+      const MAX_TOTAL = 40;
+      let totalAdded = 0;
+      for (const nb of neighbors) {
+        if (totalAdded >= MAX_TOTAL) break;
         if (!nb.target_id || addedNodes.has(nb.target_id)) continue;
+        const etCount = edgeTypeCounts[nb.edge_type] || 0;
+        if (etCount >= MAX_PER_EDGE_TYPE) continue;
+        edgeTypeCounts[nb.edge_type] = etCount + 1;
+        totalAdded++;
         addedNodes.add(nb.target_id);
         const nbLayer = ensureGroup(nb.target_type);
         nodes.push({

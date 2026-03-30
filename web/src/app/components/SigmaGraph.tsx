@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useCallback } from "react";
 import Graph from "graphology";
 import Sigma from "sigma";
-import Forceatlas2Layout from "graphology-layout-forceatlas2/worker";
+import forceAtlas2 from "graphology-layout-forceatlas2";
 import { CN } from "../lib/cognebula-theme";
 
 export interface SigmaGraphData {
@@ -21,11 +21,7 @@ export default function SigmaGraph({ data, onNodeClick, onNodeHover }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const sigmaRef = useRef<Sigma | null>(null);
   const graphRef = useRef<Graph | null>(null);
-  const layoutRef = useRef<Forceatlas2Layout | null>(null);
-
   const cleanup = useCallback(() => {
-    layoutRef.current?.kill();
-    layoutRef.current = null;
     sigmaRef.current?.kill();
     sigmaRef.current = null;
     graphRef.current = null;
@@ -115,8 +111,9 @@ export default function SigmaGraph({ data, onNodeClick, onNodeHover }: Props) {
       onNodeClick?.(node, nodeType);
     });
 
-    // Start ForceAtlas2 layout
-    const layout = new Forceatlas2Layout(graph, {
+    // Run ForceAtlas2 layout synchronously (50 iterations)
+    forceAtlas2.assign(graph, {
+      iterations: 80,
       settings: {
         gravity: 1,
         scalingRatio: 10,
@@ -127,16 +124,9 @@ export default function SigmaGraph({ data, onNodeClick, onNodeHover }: Props) {
         outboundAttractionDistribution: true,
       },
     });
-    layout.start();
-    layoutRef.current = layout;
-
-    // Stop layout after convergence (~5 seconds)
-    const stopTimer = setTimeout(() => {
-      layout.stop();
-    }, 5000);
+    sigma.refresh();
 
     return () => {
-      clearTimeout(stopTimer);
       cleanup();
     };
   }, [data, onNodeClick, onNodeHover, cleanup]);

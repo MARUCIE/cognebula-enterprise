@@ -464,7 +464,7 @@ export default function KGExplorerPage() {
 
       setSigmaData({ nodes, edges });
       setSigmaLoading(false);
-    })();
+    })().catch(() => setSigmaLoading(false));
   }, [viewMode, stats, sigmaData.nodes.length]);
 
   // Card type-specific field renderer

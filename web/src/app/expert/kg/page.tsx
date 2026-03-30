@@ -71,7 +71,7 @@ export default function KGExplorerPage() {
   const [nodeDetail, setNodeDetail] = useState<KGNodeDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [expandedLayers, setExpandedLayers] = useState<Set<string>>(new Set(["L1 法规层", "L3 合规层"]));
-  const [viewMode, setViewMode] = useState<"sigma" | "cards" | "3d" | "2d">("sigma");
+  const [viewMode, setViewMode] = useState<"sigma" | "cards" | "3d" | "2d">("cards");
   const [sigmaData, setSigmaData] = useState<SigmaGraphData>({ nodes: [], edges: [] });
   const [sigmaLoading, setSigmaLoading] = useState(false);
   const [graph3DData, setGraph3DData] = useState<Graph3DData>({ nodes: [], links: [] });
@@ -811,10 +811,10 @@ export default function KGExplorerPage() {
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "#E5E7EB" }}>
                 <div style={{ textAlign: "center" }}>
                   <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>构建星图...</div>
-                  <div style={{ fontSize: 12, color: "#6B7280" }}>加载 {sigmaData.nodes.length} / ~600 节点</div>
+                  <div style={{ fontSize: 12, color: "#6B7280" }}>加载 {sigmaData.nodes.length} / ~500 节点</div>
                 </div>
               </div>
-            ) : (
+            ) : sigmaData.nodes.length > 0 ? (
               <SigmaGraph
                 data={sigmaData}
                 onNodeClick={(nodeId, nodeType) => {
@@ -822,6 +822,10 @@ export default function KGExplorerPage() {
                   setSelectedNode({ id: nodeId, label, type: nodeType, neighbors: [] });
                 }}
               />
+            ) : (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "#6B7280" }}>
+                星图数据加载失败，请切换到卡片视图
+              </div>
             )
           ) : viewMode === "cards" ? (
             /* ── Knowledge Cards View ── */

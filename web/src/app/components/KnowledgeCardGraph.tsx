@@ -45,52 +45,80 @@ function getCardFields(data: Record<string, unknown>, type: string): [string, st
   }
 }
 
-/* ── Knowledge Card Node Component ── */
+/* ── Knowledge Card Node Component (compact ↔ expanded) ── */
 function KnowledgeCardNode({ data }: NodeProps) {
+  const [expanded, setExpanded] = React.useState(false);
   const nodeData = data as { label: string; nodeType: string; raw: Record<string, unknown>; onSelect?: (id: string) => void };
   const color = NODE_COLORS[nodeData.nodeType] || "#94A3B8";
   const layer = getNodeLayer(nodeData.nodeType);
   const fields = getCardFields(nodeData.raw || {}, nodeData.nodeType);
+  const ft = String(nodeData.raw?.fullText || nodeData.raw?.content || nodeData.raw?.description || "");
+  const NODE_ZH_INLINE: Record<string, string> = {
+    TaxType: "税种", TaxIncentive: "税收优惠", ComplianceRule: "合规规则", TaxRate: "税率",
+    TaxAccountingGap: "税会差异", SocialInsuranceRule: "社保", InvoiceRule: "发票",
+    IndustryBenchmark: "基准", AuditTrigger: "审计", RiskIndicator: "风险", Penalty: "处罚",
+    LegalDocument: "法规", LegalClause: "条款", IssuingBody: "机构", KnowledgeUnit: "知识",
+    AccountingSubject: "科目", Classification: "分类", TaxEntity: "主体", Region: "地区",
+    FilingForm: "申报", BusinessActivity: "业务",
+  };
 
   return (
     <div
-      onClick={() => nodeData.onSelect?.(String(nodeData.raw?.id || ""))}
+      onClick={(e) => {
+        if (e.detail === 2) {
+          // Double click → open detail panel
+          nodeData.onSelect?.(String(nodeData.raw?.id || ""));
+        } else {
+          // Single click → toggle expand
+          setExpanded(!expanded);
+        }
+      }}
       style={{
         background: CN.bgCard,
-        border: `1px solid ${CN.border}`,
+        border: `1px solid ${expanded ? color : CN.border}`,
         borderLeft: `3px solid ${color}`,
         borderRadius: 6,
-        padding: "10px 12px",
-        minWidth: 180,
-        maxWidth: 260,
+        padding: expanded ? "12px 14px" : "6px 10px",
+        width: expanded ? 300 : 180,
         cursor: "pointer",
         fontSize: 12,
-        transition: "box-shadow 0.15s",
+        transition: "all 0.2s ease",
+        boxShadow: expanded ? `0 4px 16px ${color}22` : "none",
       }}
     >
       <Handle type="target" position={Position.Left} style={{ background: color, width: 6, height: 6 }} />
       <Handle type="source" position={Position.Right} style={{ background: color, width: 6, height: 6 }} />
 
-      {/* Header: type badge + title */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 6, marginBottom: 6 }}>
-        <div style={{ fontWeight: 700, fontSize: 13, color: CN.text, lineHeight: 1.3 }}>
-          {String(nodeData.label).slice(0, 25)}
+      {/* Header: always visible */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 6 }}>
+        <div style={{ fontWeight: 700, fontSize: expanded ? 14 : 12, color: CN.text, lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: expanded ? "normal" : "nowrap" }}>
+          {String(nodeData.label).slice(0, expanded ? 60 : 20)}
         </div>
         <span style={{
           fontSize: 9, fontWeight: 600, color, background: color + "18",
           padding: "1px 5px", borderRadius: 3, flexShrink: 0, whiteSpace: "nowrap",
         }}>
-          {layer.slice(0, 5)}
+          {NODE_ZH_INLINE[nodeData.nodeType] || layer.slice(0, 5)}
         </span>
       </div>
 
-      {/* Fields */}
-      {fields.map(([label, value]) => value ? (
-        <div key={label} style={{ display: "flex", gap: 6, lineHeight: 1.5, color: CN.textSecondary }}>
-          <span style={{ color: CN.textMuted, minWidth: 28, flexShrink: 0 }}>{label}</span>
-          <span style={{ color: CN.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{value}</span>
+      {/* Expanded: show all fields + fullText */}
+      {expanded && (
+        <div style={{ marginTop: 8, borderTop: `1px solid ${CN.border}`, paddingTop: 6 }}>
+          {fields.map(([label, value]) => value ? (
+            <div key={label} style={{ display: "flex", gap: 6, lineHeight: 1.6, color: CN.textSecondary }}>
+              <span style={{ color: CN.textMuted, minWidth: 32, flexShrink: 0, fontSize: 11 }}>{label}</span>
+              <span style={{ color: CN.text }}>{value}</span>
+            </div>
+          ) : null)}
+          {ft && ft.length > 5 && (
+            <div style={{ marginTop: 6, fontSize: 11, color: CN.textMuted, lineHeight: 1.5, borderTop: `1px solid ${CN.bgElevated}`, paddingTop: 6, maxHeight: 120, overflowY: "auto" }}>
+              {ft.slice(0, 300)}{ft.length > 300 ? "..." : ""}
+            </div>
+          )}
+          <div style={{ marginTop: 4, fontSize: 9, color: CN.textMuted, textAlign: "right" }}>双击查看完整详情</div>
         </div>
-      ) : null)}
+      )}
     </div>
   );
 }

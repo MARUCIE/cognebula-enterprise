@@ -88,22 +88,32 @@ export default function KGExplorerPage() {
       const links: Graph3DData["links"] = [];
       const addedNodes = new Set<string>();
 
-      // Sample nodes from top types (proportional to count)
-      const topTypes = Object.entries(stats!.nodes_by_type)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 20);
-      const totalTop = topTypes.reduce((s, [, c]) => s + c, 0);
+      // Curated v4.1 types with meaningful labels (not bulk legacy tables)
+      const OVERVIEW_TYPES: [string, number][] = [
+        // v4.1 core types with rich names — show more of these
+        ["TaxType", 19], ["TaxIncentive", 15], ["ComplianceRule", 12],
+        ["TaxRate", 10], ["TaxAccountingGap", 10], ["SocialInsuranceRule", 10],
+        ["InvoiceRule", 8], ["IndustryBenchmark", 8], ["AuditTrigger", 8],
+        ["Penalty", 8], ["TaxEntity", 8], ["BusinessActivity", 8],
+        ["AccountingSubject", 8], ["FilingForm", 8], ["Region", 8],
+        ["IssuingBody", 8], ["RiskIndicator", 8],
+        // Bulk tables: tiny sample only
+        ["LegalDocument", 5], ["LegalClause", 5], ["KnowledgeUnit", 3],
+        ["FAQEntry", 5],
+      ];
 
-      for (const [type, count] of topTypes) {
-        // Proportional sampling: more nodes for larger types, min 3, max 25
-        const sampleSize = Math.max(3, Math.min(25, Math.round((count / totalTop) * 200)));
+      for (const [type, sampleSize] of OVERVIEW_TYPES) {
+        if (!stats!.nodes_by_type[type]) continue;
+        const count = stats!.nodes_by_type[type] || 0;
         try {
           const res = await listNodes(type, sampleSize);
           for (const item of (res.results || [])) {
             const nodeId = String(item.id || "");
             if (!nodeId || addedNodes.has(nodeId)) continue;
-            addedNodes.add(nodeId);
             const nodeLabel = String(item.title || item.name || item._display_label || item.topic || "").slice(0, 20);
+            // Skip nodes with meaningless labels (numbers, hashes, codes)
+            if (!nodeLabel || nodeLabel.startsWith("...") || /^[\d.\-/%]+$/.test(nodeLabel) || /^0\d章/.test(nodeLabel)) continue;
+            addedNodes.add(nodeId);
             nodes.push({
               id: nodeId,
               label: nodeLabel,
@@ -131,11 +141,13 @@ export default function KGExplorerPage() {
                 color: EDGE_COLORS[nb.edge_type] || "#30363D",
               });
             } else if (nodes.length < 350) {
-              // Add neighbor as new node
+              // Add neighbor as new node (skip meaningless labels)
+              const nbLabel = (nb.target_label || "").slice(0, 20);
+              if (!nbLabel || nbLabel.startsWith("...") || /^[\d.\-/%]+$/.test(nbLabel)) continue;
               addedNodes.add(nb.target_id);
               nodes.push({
                 id: nb.target_id,
-                label: (nb.target_label || "").slice(0, 20),
+                label: nbLabel,
                 type: nb.target_type,
                 color: NODE_COLORS[nb.target_type] || "#94A3B8",
                 size: 2,

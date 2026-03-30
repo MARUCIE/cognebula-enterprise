@@ -583,6 +583,10 @@ def _cypher_text_search(conn, query: str, limit: int = 10, table_filter: str = N
         "纳税申报", "汇算清缴", "税务登记", "发票管理", "进项税额", "销项税额",
         "小微企业", "高新技术", "研发费用", "社保", "公积金",
         "税会差异", "纳税调整", "视同销售", "税前扣除", "合规", "风险", "稽查",
+        # High-frequency 2-char terms (prevent bigram stride misalignment)
+        "发票", "认证", "申报", "退税", "免税", "抵扣", "征收", "缴纳",
+        "税率", "税种", "税负", "税额", "纳税", "减税", "优惠", "罚款",
+        "审计", "处罚", "滞纳", "行业", "基准", "预警", "科目", "会计",
     ]
     if len(results) < limit and len(query) > 3:
         import re as _re_split

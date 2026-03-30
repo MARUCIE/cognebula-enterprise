@@ -1,8 +1,8 @@
 # HANDOFF.md -- CogNebula / Lingque Desktop
 
-> Last updated: 2026-03-30T09:30Z
+> Last updated: 2026-03-30T10:30Z
 
-## Session 21 — KG Real-World Usability Fix (7 commits)
+## Session 21 — KG Real-World Usability Overhaul (13 commits)
 
 ### Problem Diagnosis
 System audit revealed 5 critical issues:
@@ -48,12 +48,20 @@ System audit revealed 5 critical issues:
 - Default: ComplianceRule (real data) instead of LegalDocument (garbage)
 - New row mappers: TaxAccountingGap, SocialInsuranceRule, InvoiceRule, TaxType, etc.
 
+### Phase 5: Visual Polish (commits 0941c88, be85633, a74deeb)
+- 3D graph overview: curated 21 v4.1 types (not top-20 by count), label quality filter
+- Edge cap: max 8 per edge type (stops MAPS_TO_ACCOUNT 43 from dominating)
+- 4-layer color scheme: L1 blue / L2 cyan / L3 amber / L4 gray (was 21-color rainbow)
+- Edge colors: 3 groups (structural gray / semantic gray / risk red)
+
+### Phase 6: Production Deployment Fix
+- CF Pages production branch: deployed with `--branch=master` → `lingque-desktop.pages.dev` now serves v4.1
+
 ### Remaining TODOs
-1. **Edge cleanup**: MAPS_TO_ACCOUNT noise (43 irrelevant accounting subjects for VAT)
-2. **Permanent tunnel**: Quick tunnel URL is temporary (`cloudflared tunnel login` needed on VPS)
-3. **LegalDocument data cleanup**: 54K entries contain test/encyclopedia garbage
-4. **LanceDB rebuild**: Re-index all tables with real Gemini embeddings when quota resets
-5. **CF Pages production branch**: `master` vs `main` issue from Session 20
+1. **Permanent tunnel**: Quick tunnel URL is temporary (`cloudflared tunnel login` needed interactively on VPS)
+2. **LegalDocument data cleanup**: 54K entries contain kuaiji(会计教材)/test garbage — search works, but browsing shows noise
+3. **LanceDB rebuild**: Re-index all tables with real Gemini embeddings when quota resets
+4. **Gemini API key**: Current key is rate-limited (429); need new key or quota increase for RAG AI answers
 
 ---
 

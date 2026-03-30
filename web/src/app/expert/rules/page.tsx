@@ -5,22 +5,33 @@ import Link from "next/link";
 import { listNodes, getGraph, getStats, type KGNeighbor, type KGStats, LAYER_GROUPS, NODE_COLORS, EDGE_LABELS_ZH, EDGE_COLORS } from "../../lib/kg-api";
 import { CN, cnCard, cnBadge, cnInput, cnBtn, cnBtnPrimary } from "../../lib/cognebula-theme";
 
-/* ── Regulation-relevant node types (L1 + L3 layers + key L2) ── */
+/* ── v4.1 ontology: 21 node types across 4 layers ── */
 const BROWSABLE_TYPES = [
-  { table: "LegalClause", label: "法规条款", layer: "L1" },
-  { table: "LegalDocument", label: "法律文件", layer: "L1" },
-  { table: "LawOrRegulation", label: "法律法规", layer: "L1" },
-  { table: "RegulationClause", label: "规章条款", layer: "L1" },
-  { table: "ComplianceRuleV2", label: "合规规则", layer: "L3" },
-  { table: "RiskIndicatorV2", label: "风险指标", layer: "L3" },
-  { table: "AuditTrigger", label: "审计触发", layer: "L3" },
-  { table: "Penalty", label: "处罚规定", layer: "L3" },
-  { table: "KnowledgeUnit", label: "知识单元", layer: "Shared" },
-  { table: "CPAKnowledge", label: "CPA知识", layer: "Shared" },
-  { table: "FAQEntry", label: "问答条目", layer: "Shared" },
-  { table: "TaxIncentiveV2", label: "税收优惠", layer: "L2" },
-  { table: "TaxRate", label: "税率", layer: "L2" },
-  { table: "AccountingSubject", label: "会计科目", layer: "L2" },
+  // L1 法规层
+  { table: "LegalClause", label: "法规条款", layer: "L1 法规层" },
+  { table: "LegalDocument", label: "法律文件", layer: "L1 法规层" },
+  { table: "IssuingBody", label: "发布机构", layer: "L1 法规层" },
+  // L2 业务层
+  { table: "TaxRate", label: "税率", layer: "L2 业务层" },
+  { table: "AccountingSubject", label: "会计科目", layer: "L2 业务层" },
+  { table: "Classification", label: "税收分类", layer: "L2 业务层" },
+  { table: "TaxEntity", label: "纳税主体", layer: "L2 业务层" },
+  { table: "Region", label: "行政区域", layer: "L2 业务层" },
+  { table: "FilingForm", label: "申报表", layer: "L2 业务层" },
+  { table: "BusinessActivity", label: "业务活动", layer: "L2 业务层" },
+  // L3 合规层
+  { table: "ComplianceRule", label: "合规规则", layer: "L3 合规层" },
+  { table: "RiskIndicator", label: "风险指标", layer: "L3 合规层" },
+  { table: "TaxIncentive", label: "税收优惠", layer: "L3 合规层" },
+  { table: "Penalty", label: "处罚规定", layer: "L3 合规层" },
+  { table: "AuditTrigger", label: "审计触发", layer: "L3 合规层" },
+  { table: "TaxAccountingGap", label: "税会差异", layer: "L3 合规层" },
+  { table: "SocialInsuranceRule", label: "社保公积金", layer: "L3 合规层" },
+  { table: "InvoiceRule", label: "发票规则", layer: "L3 合规层" },
+  { table: "IndustryBenchmark", label: "行业基准", layer: "L3 合规层" },
+  // L4 知识层
+  { table: "TaxType", label: "税种", layer: "L4 知识层" },
+  { table: "KnowledgeUnit", label: "知识单元", layer: "L4 知识层" },
 ];
 
 interface NodeRow {
@@ -40,22 +51,33 @@ interface NodeDetail {
   parentDocName?: string;
 }
 
-/* ── Type-specific column definitions ── */
+/* ── Type-specific column definitions (v4.1 ontology) ── */
 const TYPE_COLUMNS: Record<string, { c1: string; c2: string; c3: string }> = {
+  // L1
   LegalClause: { c1: "条款号", c2: "所属法规", c3: "条款内容" },
   LegalDocument: { c1: "文件名称", c2: "类型", c3: "生效日期" },
-  LawOrRegulation: { c1: "法规名称", c2: "发布机关", c3: "文号" },
-  RegulationClause: { c1: "条款号", c2: "所属规章", c3: "条款内容" },
-  ComplianceRuleV2: { c1: "规则名称", c2: "分类", c3: "违规后果" },
-  RiskIndicatorV2: { c1: "指标名称", c2: "分类", c3: "说明" },
-  AuditTrigger: { c1: "触发条件", c2: "分类", c3: "说明" },
-  Penalty: { c1: "处罚名称", c2: "分类", c3: "说明" },
+  IssuingBody: { c1: "机构名称", c2: "级别", c3: "管辖范围" },
+  // L2
+  TaxRate: { c1: "税率名称", c2: "税率范围", c3: "适用条件" },
+  AccountingSubject: { c1: "科目名称", c2: "科目编号", c3: "方向" },
+  Classification: { c1: "分类名称", c2: "编码", c3: "说明" },
+  TaxEntity: { c1: "纳税主体", c2: "类型", c3: "适用税种" },
+  Region: { c1: "地区名称", c2: "级别", c3: "适用政策" },
+  FilingForm: { c1: "表单名称", c2: "所属税种", c3: "申报周期" },
+  BusinessActivity: { c1: "业务活动", c2: "风险等级", c3: "说明" },
+  // L3
+  ComplianceRule: { c1: "规则名称", c2: "规则类型", c3: "内容摘要" },
+  RiskIndicator: { c1: "指标名称", c2: "风险等级", c3: "说明" },
+  TaxIncentive: { c1: "优惠名称", c2: "优惠类型", c3: "法律依据" },
+  Penalty: { c1: "处罚名称", c2: "处罚类型", c3: "说明" },
+  AuditTrigger: { c1: "触发条件", c2: "风险等级", c3: "说明" },
+  TaxAccountingGap: { c1: "差异名称", c2: "差异类型", c3: "会计处理 vs 税务处理" },
+  SocialInsuranceRule: { c1: "险种名称", c2: "单位费率", c3: "个人费率" },
+  InvoiceRule: { c1: "规则名称", c2: "规则类型", c3: "适用条件" },
+  IndustryBenchmark: { c1: "指标名称", c2: "行业代码", c3: "基准范围" },
+  // L4
+  TaxType: { c1: "税种名称", c2: "税率范围", c3: "申报周期" },
   KnowledgeUnit: { c1: "知识主题", c2: "类型", c3: "来源" },
-  CPAKnowledge: { c1: "知识主题", c2: "分类", c3: "内容" },
-  FAQEntry: { c1: "问题", c2: "分类", c3: "回答" },
-  TaxIncentiveV2: { c1: "优惠名称", c2: "类型", c3: "说明" },
-  TaxRate: { c1: "税率名称", c2: "税种", c3: "税率值" },
-  AccountingSubject: { c1: "科目名称", c2: "编号", c3: "说明" },
 };
 
 const DEFAULT_COLUMNS = { c1: "名称", c2: "分类", c3: "说明" };
@@ -100,51 +122,127 @@ function mapNodeRow(n: Record<string, unknown>, type: string): NodeRow {
         col3: String(n.content || n.title || "").slice(0, 80),
       };
     }
-    case "RegulationClause": {
-      const artNum = n.articleNumber ? `第${n.articleNumber}条` : "";
-      const regId = String(n.regulationId || "");
+    case "Region": {
       return {
         id, raw,
-        title: artNum || id,
-        subtitle: regId,
-        content: String(n.fullText || n.title || ""),
-        col1: artNum,
-        col2: docNameCache[regId] || `[${regId.slice(-8)}]`,
-        col3: String(n.fullText || n.title || "").slice(0, 80),
+        title: String(n.name || n._display_label || ""),
+        subtitle: "",
+        content: "",
+        col1: String(n.name || n._display_label || ""),
+        col2: String(n.level || ""),
+        col3: "",
       };
     }
-    case "LawOrRegulation": {
-      const title = String(n.title || n.name || "");
+    case "FilingForm": {
       return {
         id, raw,
-        title,
-        subtitle: String(n.regulationNumber || ""),
+        title: String(n.name || ""),
+        subtitle: "",
         content: String(n.fullText || ""),
-        col1: title,
-        col2: String(n.issuingAuthority || "").replace("chinatax", "国家税务总局").replace("mof", "财政部"),
-        col3: String(n.regulationNumber || n.effectiveDate || ""),
+        col1: String(n.name || ""),
+        col2: String(n.taxTypeId || ""),
+        col3: String(n.frequency || "").replace("monthly", "月报").replace("quarterly", "季报").replace("annual", "年报"),
       };
     }
     case "LegalDocument": {
       return {
         id, raw,
         title: String(n.name || n.title || ""),
-        subtitle: String(n.type || ""),
-        content: "",
+        subtitle: String(n.regulationType || n.type || ""),
+        content: String(n.fullText || ""),
         col1: String(n.name || n.title || ""),
-        col2: String(n.type || ""),
-        col3: String(n.effectiveDate || n.issueDate || ""),
+        col2: String(n.regulationType || n.type || ""),
+        col3: String(n.effectiveDate || ""),
       };
     }
-    case "ComplianceRuleV2": {
+    case "ComplianceRule": {
       return {
         id, raw,
         title: String(n.name || ""),
-        subtitle: String(n.category || ""),
+        subtitle: String(n.ruleType || ""),
         content: String(n.fullText || n.description || ""),
         col1: String(n.name || ""),
-        col2: String(n.category || ""),
-        col3: String(n.consequence || ""),
+        col2: String(n.ruleType || ""),
+        col3: String(n.fullText || n.description || "").slice(0, 80),
+      };
+    }
+    case "TaxIncentive": {
+      const TYPE_ZH: Record<string, string> = { exemption: "免征", rate_reduction: "减征", refund: "退税", deduction: "扣除", deferral: "递延", credit: "抵免" };
+      return {
+        id, raw,
+        title: String(n.name || ""),
+        subtitle: String(n.incentiveType || ""),
+        content: String(n.fullText || ""),
+        col1: String(n.name || ""),
+        col2: TYPE_ZH[String(n.incentiveType || "")] || String(n.incentiveType || ""),
+        col3: String(n.lawReference || ""),
+      };
+    }
+    case "TaxAccountingGap": {
+      const GAP_ZH: Record<string, string> = { timing: "时间性差异", permanent: "永久性差异" };
+      return {
+        id, raw,
+        title: String(n.name || ""),
+        subtitle: String(n.gapType || ""),
+        content: String(n.fullText || `会计：${n.accountingTreatment || ""}\n税务：${n.taxTreatment || ""}`),
+        col1: String(n.name || ""),
+        col2: GAP_ZH[String(n.gapType || "")] || String(n.gapType || ""),
+        col3: `会计: ${String(n.accountingTreatment || "").slice(0, 30)} / 税务: ${String(n.taxTreatment || "").slice(0, 30)}`,
+      };
+    }
+    case "SocialInsuranceRule": {
+      return {
+        id, raw,
+        title: String(n.name || ""),
+        subtitle: String(n.insuranceType || ""),
+        content: String(n.fullText || ""),
+        col1: String(n.name || ""),
+        col2: String(n.employerRate || ""),
+        col3: String(n.employeeRate || ""),
+      };
+    }
+    case "InvoiceRule": {
+      return {
+        id, raw,
+        title: String(n.name || ""),
+        subtitle: String(n.ruleType || ""),
+        content: String(n.fullText || n.condition || ""),
+        col1: String(n.name || ""),
+        col2: String(n.ruleType || ""),
+        col3: String(n.condition || "").slice(0, 80),
+      };
+    }
+    case "IndustryBenchmark": {
+      return {
+        id, raw,
+        title: String(n.ratioName || n.name || ""),
+        subtitle: String(n.industryCode || ""),
+        content: "",
+        col1: String(n.ratioName || n.name || ""),
+        col2: String(n.industryCode || ""),
+        col3: `${n.minValue || ""}~${n.maxValue || ""} ${n.unit || ""}`,
+      };
+    }
+    case "TaxType": {
+      return {
+        id, raw,
+        title: String(n.name || ""),
+        subtitle: String(n.governingLaw || ""),
+        content: String(n.fullText || ""),
+        col1: String(n.name || ""),
+        col2: String(n.rateRange || ""),
+        col3: String(n.filingFrequency || "").replace("monthly", "月报").replace("quarterly", "季报").replace("annual", "年报"),
+      };
+    }
+    case "IssuingBody": {
+      return {
+        id, raw,
+        title: String(n.name || n._display_label || ""),
+        subtitle: "",
+        content: "",
+        col1: String(n.name || n._display_label || ""),
+        col2: String(n.level || ""),
+        col3: "",
       };
     }
     case "KnowledgeUnit": {
@@ -152,7 +250,7 @@ function mapNodeRow(n: Record<string, unknown>, type: string): NodeRow {
         id, raw,
         title: String(n.title || n.topic || ""),
         subtitle: String(n.type || ""),
-        content: String(n.content || ""),
+        content: String(n.content || n.fullText || ""),
         col1: String(n.title || n.topic || ""),
         col2: String(n.type || ""),
         col3: String(n.source || ""),
@@ -175,7 +273,7 @@ function mapNodeRow(n: Record<string, unknown>, type: string): NodeRow {
 
 export default function RulesPage() {
   const [stats, setStats] = useState<KGStats | null>(null);
-  const [activeType, setActiveType] = useState("LawOrRegulation");
+  const [activeType, setActiveType] = useState("ComplianceRule");
   const [nodes, setNodes] = useState<NodeRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -279,9 +377,9 @@ export default function RulesPage() {
         </div>
 
         {/* Group by layer */}
-        {["L1", "L3", "L2", "Shared"].map((layer) => {
+        {["L1 法规层", "L2 业务层", "L3 合规层", "L4 知识层"].map((layer) => {
           const types = BROWSABLE_TYPES.filter((t) => t.layer === layer);
-          const layerLabel = { L1: "L1 法规层", L3: "L3 合规层", L2: "L2 业务层", Shared: "共享层" }[layer];
+          const layerLabel = layer;
           return (
             <div key={layer}>
               <div style={{ padding: "10px 16px 4px", fontSize: 9, fontWeight: 700, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1.5px" }}>

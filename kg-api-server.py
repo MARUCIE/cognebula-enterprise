@@ -474,7 +474,17 @@ def query_nodes(
     if type not in valid_tables:
         raise HTTPException(404, f"Table '{type}' not found. Valid: {sorted(valid_tables)}")
 
-    cypher = f"MATCH (n:{type}) RETURN n SKIP {offset} LIMIT {limit}"
+    # Build query with optional text filter
+    if q:
+        safe_q = q.replace("\\", "\\\\").replace("'", "\\'")
+        cypher = (
+            f"MATCH (n:{type}) "
+            f"WHERE n.name CONTAINS '{safe_q}' OR n.title CONTAINS '{safe_q}' "
+            f"OR (n.fullText IS NOT NULL AND n.fullText CONTAINS '{safe_q}') "
+            f"RETURN n SKIP {offset} LIMIT {limit}"
+        )
+    else:
+        cypher = f"MATCH (n:{type}) RETURN n SKIP {offset} LIMIT {limit}"
     result = conn.execute(cypher)
     rows = []
     while result.has_next():

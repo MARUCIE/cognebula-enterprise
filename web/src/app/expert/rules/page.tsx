@@ -290,14 +290,16 @@ export default function RulesPage() {
   }, []);
 
   // Load nodes when type or page changes
-  const loadNodes = useCallback(async (type: string, pageNum: number) => {
+  const [serverQuery, setServerQuery] = useState("");
+
+  const loadNodes = useCallback(async (type: string, pageNum: number, q?: string) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await listNodes(type, PAGE_SIZE, pageNum * PAGE_SIZE);
+      const res = await listNodes(type, PAGE_SIZE, pageNum * PAGE_SIZE, q || undefined);
       const mapped = (res.results || []).map((n) => mapNodeRow(n, type));
       setNodes(mapped);
-      setTotal(stats?.nodes_by_type?.[type] || res.count || mapped.length);
+      setTotal(q ? res.count || mapped.length : stats?.nodes_by_type?.[type] || res.count || mapped.length);
 
       // For clause types, batch-resolve parent document names
       if (type === "LegalClause" || type === "RegulationClause") {
@@ -321,8 +323,8 @@ export default function RulesPage() {
   }, [stats]);
 
   useEffect(() => {
-    loadNodes(activeType, page);
-  }, [activeType, page, loadNodes]);
+    loadNodes(activeType, page, serverQuery || undefined);
+  }, [activeType, page, loadNodes, serverQuery]);
 
   // Change type
   const switchType = (type: string) => {
@@ -351,8 +353,8 @@ export default function RulesPage() {
     setDetailLoading(false);
   }, [activeType]);
 
-  // Filter by search
-  const filtered = search
+  // Filter: server-side when query submitted, client-side for live typing
+  const filtered = (search && !serverQuery)
     ? nodes.filter((n) => {
         const q = search.toLowerCase();
         return n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q) || n.id.toLowerCase().includes(q);
@@ -440,9 +442,32 @@ export default function RulesPage() {
           <span style={cnBadge(CN.blue, CN.blueBg)}>{total.toLocaleString()}</span>
           <input
             type="text" placeholder="搜索当前页..."
-            value={search} onChange={(e) => setSearch(e.target.value)}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && search.trim()) {
+                setServerQuery(search.trim());
+                setPage(0);
+              }
+            }}
             style={{ ...cnInput, flex: 1, maxWidth: 320 }}
           />
+          {search.trim() && (
+            <button
+              onClick={() => { setServerQuery(search.trim()); setPage(0); }}
+              style={{ ...cnBtnPrimary, padding: "5px 12px", fontSize: 12 }}
+            >
+              搜索全库
+            </button>
+          )}
+          {serverQuery && (
+            <button
+              onClick={() => { setServerQuery(""); setSearch(""); setPage(0); }}
+              style={{ ...cnBtn, padding: "5px 12px", fontSize: 12 }}
+            >
+              清除
+            </button>
+          )}
           {/* Pagination */}
           <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: CN.textMuted }}>
             <button onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0}

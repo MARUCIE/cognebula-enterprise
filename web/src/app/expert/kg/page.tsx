@@ -74,6 +74,7 @@ export default function KGExplorerPage() {
   const [viewMode, setViewMode] = useState<"sigma" | "cards" | "3d" | "2d">("cards");
   const [sigmaData, setSigmaData] = useState<SigmaGraphData>({ nodes: [], edges: [] });
   const [sigmaLoading, setSigmaLoading] = useState(false);
+  const [sigmaHighlightTypes, setSigmaHighlightTypes] = useState<string[]>([]);
   const [graph3DData, setGraph3DData] = useState<Graph3DData>({ nodes: [], links: [] });
   const [drillLayer, setDrillLayer] = useState<string | null>(null);
   const [cardType, setCardType] = useState("TaxType");
@@ -565,10 +566,17 @@ export default function KGExplorerPage() {
 
   // Browse a node type: load sample nodes and build graph
   const handleBrowseType = useCallback(async (nodeType: string) => {
-    // In card mode, switch card type instead of loading graph
+    // In card mode, switch card type
     if (viewMode === "cards") {
       setCardType(nodeType);
       setCardPage(0);
+      return;
+    }
+    // In sigma mode, highlight this type (toggle: click again to clear)
+    if (viewMode === "sigma") {
+      setSigmaHighlightTypes(prev =>
+        prev.length === 1 && prev[0] === nodeType ? [] : [nodeType]
+      );
       return;
     }
     setLoading(true);
@@ -694,7 +702,7 @@ export default function KGExplorerPage() {
 
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 16, fontSize: 12, color: CN.textMuted }}>
           {viewMode === "sigma" ? (
-            <span>星图: <strong style={{ color: CN.blue }}>{sigmaData.nodes.length}</strong> 节点 / <strong>{sigmaData.edges.length}</strong> 边</span>
+            <span>星图: <strong style={{ color: CN.blue }}>{sigmaData.nodes.length}</strong> 节点 / <strong>{sigmaData.edges.length}</strong> 边{sigmaHighlightTypes.length > 0 && <span style={{ color: CN.amber }}> -- 过滤中 <button onClick={() => setSigmaHighlightTypes([])} style={{ background: "none", border: "none", color: CN.blue, cursor: "pointer", fontSize: 11, textDecoration: "underline" }}>清除</button></span>}</span>
           ) : viewMode === "cards" ? (
             <span>{NODE_ZH[cardType]?.zh || cardType}: <strong style={{ color: CN.blue }}>{cardNodes.length}</strong> 条</span>
           ) : viewMode === "3d" ? (
@@ -734,6 +742,14 @@ export default function KGExplorerPage() {
                   else next.add(layerName);
                   return next;
                 });
+                // In sigma mode: highlight all types in this layer
+                if (viewMode === "sigma") {
+                  const layerTypeNames = layerInfo.nodes;
+                  setSigmaHighlightTypes(prev => {
+                    const isSame = prev.length === layerTypeNames.length && prev.every(t => layerTypeNames.includes(t));
+                    return isSame ? [] : layerTypeNames;
+                  });
+                }
               };
               // Get node types in this layer that exist in stats
               const layerNodes = layerInfo.nodes
@@ -811,12 +827,13 @@ export default function KGExplorerPage() {
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "#E5E7EB" }}>
                 <div style={{ textAlign: "center" }}>
                   <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>构建星图...</div>
-                  <div style={{ fontSize: 12, color: "#6B7280" }}>加载 {sigmaData.nodes.length} / ~500 节点</div>
+                  <div style={{ fontSize: 12, color: "#6B7280" }}>加载 {sigmaData.nodes.length} / ~1300 节点</div>
                 </div>
               </div>
             ) : sigmaData.nodes.length > 0 ? (
               <SigmaGraph
                 data={sigmaData}
+                highlightTypes={sigmaHighlightTypes.length > 0 ? sigmaHighlightTypes : undefined}
                 onNodeClick={(nodeId, nodeType) => {
                   const label = sigmaData.nodes.find(n => n.id === nodeId)?.label || nodeId;
                   setSelectedNode({ id: nodeId, label, type: nodeType, neighbors: [] });

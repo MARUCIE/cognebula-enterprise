@@ -456,37 +456,55 @@ def quality_audit():
 # === Constellation (single-call graph data for Sigma.js) ===
 @app.get("/api/v1/constellation")
 def constellation(limit: int = Query(500, ge=10, le=2000)):
-    """Return pre-computed graph data for large-scale visualization.
+    """Return dense graph data for Sigma.js constellation visualization.
 
-    Single API call replaces 50+ sequential frontend calls.
-    Returns nodes (sampled from all v4.1 types) + edges (from hub nodes).
+    Strategy:
+    1. Aggressive node sampling (all small tables, subset of large ones)
+    2. Iterate ALL backbone edge tables to discover connections between sampled nodes
+    3. Python-filter: keep only edges where both endpoints are sampled
     """
     conn = get_kuzu()
     nodes = []
     edges = []
     added_ids = set()
 
-    # Sample nodes from v4.1 types
+    # v4.1 types: (table, sample_limit, node_size, label_field)
+    # KuzuDB is schema-based: must use correct column names per table.
+    # Small tables (< 200): sample ALL for maximum density.
     TYPES = [
-        ("TaxType", 19, 8), ("TaxIncentive", 50, 4), ("ComplianceRule", 50, 4),
-        ("TaxRate", 25, 3), ("TaxAccountingGap", 50, 3), ("SocialInsuranceRule", 50, 3),
-        ("InvoiceRule", 40, 3), ("IndustryBenchmark", 45, 3), ("AuditTrigger", 25, 3),
-        ("Penalty", 25, 3), ("TaxEntity", 34, 3), ("BusinessActivity", 25, 3),
-        ("AccountingSubject", 25, 3), ("FilingForm", 25, 3), ("Region", 25, 3),
-        ("IssuingBody", 25, 3), ("RiskIndicator", 25, 3),
-        ("LegalDocument", 15, 2.5), ("LegalClause", 15, 2.5), ("KnowledgeUnit", 10, 2.5),
-        ("FAQEntry", 15, 2.5),
+        ("TaxType", 19, 10, "name"),
+        ("TaxIncentive", 109, 5, "name"),
+        ("ComplianceRule", 84, 5, "name"),
+        ("TaxRate", 80, 4, "name"),
+        ("TaxAccountingGap", 50, 4, "name"),
+        ("SocialInsuranceRule", 138, 4, "name"),
+        ("InvoiceRule", 40, 4, "name"),
+        ("IndustryBenchmark", 45, 4, "ratioName"),  # No `name` column
+        ("AuditTrigger", 100, 4, "name"),
+        ("Penalty", 127, 4, "name"),
+        ("TaxEntity", 34, 5, "name"),
+        ("BusinessActivity", 60, 4, "name"),
+        ("AccountingSubject", 80, 4, "name"),
+        ("FilingForm", 60, 4, "name"),
+        ("Region", 31, 5, "name"),
+        ("IssuingBody", 60, 4, "name"),
+        ("RiskIndicator", 100, 4, "name"),
+        ("LegalDocument", 40, 3, "name"),
+        ("LegalClause", 30, 2.5, "title"),         # Uses `title` not `name`
+        ("KnowledgeUnit", 20, 2.5, "topic"),        # Uses `topic`
+        ("FAQEntry", 20, 2.5, "question"),           # Uses `question`
+        ("Classification", 40, 3, "name"),
     ]
 
-    for table, sample, size in TYPES:
+    for table, sample, size, label_field in TYPES:
         try:
-            r = conn.execute(f"MATCH (n:{table}) RETURN n.id, n.name, n.title LIMIT {sample}")
+            r = conn.execute(f"MATCH (n:{table}) RETURN n.id, n.{label_field} LIMIT {sample}")
             while r.has_next():
                 row = r.get_next()
                 nid = str(row[0]) if row[0] else ""
                 if not nid or nid in added_ids:
                     continue
-                name = str(row[1] or row[2] or "")[:25]
+                name = str(row[1] or "")[:30]
                 if not name or name.startswith("...") or len(name) < 2:
                     continue
                 added_ids.add(nid)
@@ -494,32 +512,77 @@ def constellation(limit: int = Query(500, ge=10, le=2000)):
         except Exception:
             continue
 
-    # Load edges from hub nodes (TaxType) + some backbone types
-    hub_ids = [n["id"] for n in nodes if n["type"] == "TaxType"]
-    for hub_id in hub_ids[:19]:
-        safe_id = hub_id.replace("'", "\\'")
-        # Outgoing
+    # ── Edge discovery: iterate ALL known backbone edge tables ──
+    # For each edge table, query a batch and keep only edges between sampled nodes.
+    # This is O(E) queries where E = number of edge tables (~45), each LIMIT 500.
+    # Comprehensive edge table list — includes all known tables from the running DB.
+    # Non-existent tables are silently skipped (try/except per table).
+    ALL_EDGE_TABLES = [
+        # Structural (hierarchy, authorship)
+        "PART_OF", "CHILD_OF", "ISSUED_BY", "SUPERSEDES", "AMENDS",
+        "PARENT_CLAUSE", "PARENT_SUBJECT",
+        # Core backbone (verified in DB: TT_VAT has these)
+        "CLASSIFIED_UNDER_TAX", "FT_INCENTIVE_TAX", "FT_APPLIES_TO", "FT_GOVERNED_BY",
+        "APPLIES_TO_TAX", "CALCULATED_FROM", "SURCHARGE_OF", "RELATED_TAX",
+        "ENTITY_FOR_TAX",
+        # Backbone (may exist from build_backbone_edges.py)
+        "INCENTIVE_FOR_TAX", "RULE_FOR_TAX", "GAP_FOR_TAX",
+        "INVOICE_FOR_TAX", "AUDIT_FOR_TAX", "RISK_FOR_TAX", "FILING_FOR_TAX",
+        "BENCHMARK_FOR", "TRIGGERS_TAX", "KU_ABOUT_TAX",
+        # Cross-type semantic
+        "BASED_ON", "REFERENCES_CLAUSE", "GOVERNED_BY",
+        "INTERPRETS", "DESCRIBES_INCENTIVE", "EXPLAINS_RATE",
+        "WARNS_ABOUT", "GUIDES_FILING", "EXEMPLIFIED_BY",
+        # Compliance
+        "STACKS_WITH", "EXCLUDES", "CREATES_GAP", "HAS_GAP",
+        "INSURANCE_IN_REGION", "AUDIT_TRIGGERS", "OVERRIDES_IN",
+        "PENALIZED_BY", "TRIGGERED_BY", "RELATED_PARTY",
+        # Mapping
+        "MAPS_TO_SUBJECT", "MAPS_TO_ACCOUNT", "HAS_RATE",
+        # Legacy/extended
+        "APPLIES_TO_ENTITY", "APPLIES_IN_REGION", "APPLIES_TO_CLASS",
+        "REQUIRES_FILING", "RULE_FOR_INDUSTRY",
+        "INCENTIVE_BASED_ON",
+        # V2 edges
+        "DEBITS_V2", "CREDITS_V2",
+        # FT (FinancialTax) prefix edges
+        "FT_QUALIFIES_FOR",
+    ]
+
+    for edge_table in ALL_EDGE_TABLES:
         try:
             r = conn.execute(
-                f"MATCH (n:TaxType)-[e]->(m) WHERE n.id = '{safe_id}' "
-                f"RETURN n.id, label(e), m.id LIMIT 15"
+                f"MATCH (a)-[e:{edge_table}]->(b) RETURN a.id, b.id LIMIT 1000"
             )
             while r.has_next():
                 row = r.get_next()
-                if row[2] and str(row[2]) in added_ids:
-                    edges.append({"source": str(row[0]), "target": str(row[2]), "type": str(row[1])})
+                src = str(row[0] or "")
+                tgt = str(row[1] or "")
+                if src in added_ids and tgt in added_ids and src != tgt:
+                    edges.append({"source": src, "target": tgt, "type": edge_table})
         except Exception:
-            pass
-        # Incoming
+            continue
+
+    # ── Fallback: generic expansion for any isolated nodes ──
+    # If some nodes have zero edges after edge-table scan, expand them generically
+    nodes_with_edges = set()
+    for e in edges:
+        nodes_with_edges.add(e["source"])
+        nodes_with_edges.add(e["target"])
+    isolated = [n for n in nodes if n["id"] not in nodes_with_edges]
+    for iso_node in isolated[:50]:  # Cap to avoid too many queries
+        safe_id = iso_node["id"].replace("'", "\\'")
+        safe_type = iso_node["type"]
         try:
             r = conn.execute(
-                f"MATCH (m)-[e]->(n:TaxType) WHERE n.id = '{safe_id}' "
-                f"RETURN m.id, label(e), n.id LIMIT 15"
+                f"MATCH (n:{safe_type})-[e]->(m) WHERE n.id = '{safe_id}' "
+                f"RETURN n.id, label(e), m.id LIMIT 5"
             )
             while r.has_next():
                 row = r.get_next()
-                if row[0] and str(row[0]) in added_ids:
-                    edges.append({"source": str(row[0]), "target": str(row[2]), "type": str(row[1])})
+                tgt = str(row[2] or "")
+                if tgt in added_ids and tgt != iso_node["id"]:
+                    edges.append({"source": str(row[0]), "target": tgt, "type": str(row[1])})
         except Exception:
             pass
 

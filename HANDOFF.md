@@ -1,8 +1,8 @@
 # HANDOFF.md -- CogNebula / Lingque Desktop
 
-> Last updated: 2026-03-30T08:30Z
+> Last updated: 2026-03-30T09:30Z
 
-## Session 21 — KG Search + RAG Usability Fix
+## Session 21 — KG Real-World Usability Fix (7 commits)
 
 ### Problem Diagnosis
 System audit revealed 5 critical issues:
@@ -30,12 +30,30 @@ System audit revealed 5 critical issues:
 | 发票合规 | 26 lines | InvoiceRule (certification, deduction rules) |
 | Graph TaxType/增值税 | 100 neighbors | MAPS_TO_ACCOUNT, FT_INCENTIVE_TAX, etc. |
 
-### Remaining TODOs (not blockers)
-1. **Content enrichment**: TaxIncentive(109), ComplianceRule(84) need fullText (names exist, bodies empty)
-2. **Edge cleanup**: MAPS_TO_ACCOUNT noise (43 irrelevant accounting subjects for VAT)
-3. **Permanent tunnel**: Quick tunnel URL is temporary
-4. **Frontend visual audit**: 3-round polish not yet done
-5. **LanceDB rebuild**: After content enrichment, re-index all tables with real Gemini embeddings
+### Phase 2: Content Enrichment DONE (136 nodes)
+- TaxType (19): comprehensive descriptions with rates, legal basis (commit 46a1e10)
+- TaxIncentive (109): auto-generated from metadata (type, eligibility, law reference)
+- ComplianceRule (8 regulatory): detailed rule text with deadlines
+- Added fullText column to TaxIncentive + ComplianceRule via ALTER TABLE
+
+### Phase 3: RAG Quality Fix (commit adbb808 + 0f2af3c)
+- **Domain-aware tokenization**: 60+ tax/finance terms dictionary prevents bigram pollution
+  ("小规模纳税人" no longer matches "小规格木材")
+- **Readable fallback**: When Gemini 429, structured data formatted as Chinese text
+  (not raw pipes like "tiered | monthly")
+- **Result deduplication**: By name in fallback output
+
+### Phase 4: Rules Browser v4.1 (commit 8cbd4d2)
+- 14 legacy types → 21 v4.1 types, sidebar L1-L4 grouping
+- Default: ComplianceRule (real data) instead of LegalDocument (garbage)
+- New row mappers: TaxAccountingGap, SocialInsuranceRule, InvoiceRule, TaxType, etc.
+
+### Remaining TODOs
+1. **Edge cleanup**: MAPS_TO_ACCOUNT noise (43 irrelevant accounting subjects for VAT)
+2. **Permanent tunnel**: Quick tunnel URL is temporary (`cloudflared tunnel login` needed on VPS)
+3. **LegalDocument data cleanup**: 54K entries contain test/encyclopedia garbage
+4. **LanceDB rebuild**: Re-index all tables with real Gemini embeddings when quota resets
+5. **CF Pages production branch**: `master` vs `main` issue from Session 20
 
 ---
 

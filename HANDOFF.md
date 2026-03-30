@@ -1,8 +1,8 @@
 # HANDOFF.md -- CogNebula / Lingque Desktop
 
-> Last updated: 2026-03-30T10:30Z
+> Last updated: 2026-03-30T11:30Z
 
-## Session 21 — KG Real-World Usability Overhaul (13 commits)
+## Session 21 — KG Real-World Usability Overhaul (18 commits)
 
 ### Problem Diagnosis
 System audit revealed 5 critical issues:
@@ -57,11 +57,50 @@ System audit revealed 5 critical issues:
 ### Phase 6: Production Deployment Fix
 - CF Pages production branch: deployed with `--branch=master` → `lingque-desktop.pages.dev` now serves v4.1
 
+### Phase 5: Visual Polish (commits 0941c88, be85633, a74deeb)
+- 3D graph: curated 21 v4.1 types + label quality filter (no more hash IDs/numbers)
+- Edge cap: max 8 per type (stops MAPS_TO_ACCOUNT domination)
+- 4-layer color: L1 blue / L2 cyan / L3 amber / L4 gray (was 21-color rainbow)
+- Edge colors: 3 groups (structural/semantic/risk)
+
+### Phase 6: Production + Data Quality (commits e43594c, a54c186)
+- CF Pages production: `--branch=master` → lingque-desktop.pages.dev serves v4.1
+- LegalDocument: CASE WHEN sort → policy/law first, kuaiji textbook last
+- listNodes: q parameter fix (server-side CONTAINS search)
+- Test records ("Test", "V4 test") deleted via DETACH DELETE
+
+### Phase 7: Ontology Backbone (commits 3cd62ee, 3da82bd)
+- 284 backbone edges generated: TaxIncentive→TaxType (INCENTIVE_FOR_TAX 75), TaxAccountingGap→TaxType (GAP_FOR_TAX +106), InvoiceRule→TaxType (+80), AuditTrigger→TaxType (AUDIT_FOR_TAX 210), etc.
+- Graph API: backbone-first sorting (sort key: backbone=0, bulk=1)
+- Result: VAT MAPS_TO_ACCOUNT 43→6, AUDIT_FOR_TAX 0→4, FT_INCENTIVE_TAX 0→24
+
+### All 18 Commits
+```
+d74532e  fix: Cypher text search replaces broken vector search
+f071bcd  docs: HANDOFF
+46a1e10  feat: 136 node fullText enrichment
+adbb808  fix: domain-aware Chinese tokenization + readable fallback
+8cbd4d2  fix: Rules Browser v4.1 ontology types
+0f2af3c  fix: expand domain dictionary +24 terms
+b7714ed  docs: HANDOFF
+aee9bff  feat: server-side search + "搜索全库" button
+a54c186  fix: listNodes q parameter column-safe fallback
+0941c88  fix: curated 3D graph overview + label filter
+be85633  fix: cap neighbors per edge type (max 8)
+a74deeb  design: 4-layer color scheme
+5548cac  docs: HANDOFF
+e43594c  fix: LegalDocument policy-first sort
+0941c88  fix: curated 3D overview
+3cd62ee  feat: 284 backbone edges
+3da82bd  fix: graph API backbone-first sort
+```
+
 ### Remaining TODOs
-1. **Permanent tunnel**: Quick tunnel URL is temporary (`cloudflared tunnel login` needed interactively on VPS)
-2. **LegalDocument data cleanup**: 54K entries contain kuaiji(会计教材)/test garbage — search works, but browsing shows noise
-3. **LanceDB rebuild**: Re-index all tables with real Gemini embeddings when quota resets
-4. **Gemini API key**: Current key is rate-limited (429); need new key or quota increase for RAG AI answers
+1. **Permanent tunnel**: `cloudflared tunnel login` on VPS (interactive OAuth, user must run manually)
+2. **RAG answer rendering**: Frontend shows plain text (no markdown/bold), should render `[税率]` tags and section headers
+3. **V2 edge table migration**: FILING_FOR_TAX expects FilingFormV2 (legacy), not FilingForm (v4.1)
+4. **LanceDB rebuild**: Re-index all tables with Gemini embeddings when quota resets
+5. **Gemini API key**: Rate-limited (429); RAG uses structured fallback instead of AI generation
 
 ---
 

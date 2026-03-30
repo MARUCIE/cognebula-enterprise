@@ -152,7 +152,7 @@ function layoutNodes(nodes: CardGraphNode[], edges: CardGraphEdge[]): Node[] {
   const Dagre = require("@dagrejs/dagre");
   const g = new Dagre.graphlib.Graph();
   g.setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: "LR", nodesep: 40, ranksep: 200, marginx: 30, marginy: 30 });
+  g.setGraph({ rankdir: "LR", nodesep: 24, ranksep: 120, marginx: 20, marginy: 20 });
 
   const CARD_W = 220;
   const CARD_H = 90;
@@ -187,12 +187,12 @@ function layoutEdges(edges: CardGraphEdge[]): Edge[] {
     label: e.label,
     type: "smoothstep",
     animated: false,
-    style: { stroke: CN.textMuted, strokeWidth: 1.2 },
-    labelStyle: { fontSize: 9, fill: CN.textMuted },
-    labelBgStyle: { fill: CN.bg, fillOpacity: 0.8 },
-    labelBgPadding: [4, 2] as [number, number],
-    labelBgBorderRadius: 3,
-    markerEnd: { type: MarkerType.ArrowClosed, width: 10, height: 10, color: CN.textMuted },
+    style: { stroke: "#60A5FA", strokeWidth: 2 },
+    labelStyle: { fontSize: 10, fill: "#93C5FD", fontWeight: 600 },
+    labelBgStyle: { fill: "#1E293B", fillOpacity: 0.9 },
+    labelBgPadding: [6, 3] as [number, number],
+    labelBgBorderRadius: 4,
+    markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14, color: "#60A5FA" },
   }));
 }
 

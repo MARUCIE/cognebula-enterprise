@@ -202,6 +202,11 @@ export const EDGE_LABELS_ZH: Record<string, string> = {
   HAS_RATE: "适用税率", INSURANCE_IN_REGION: "社保地区",
   INVOICE_FOR_TAX: "发票税种", BENCHMARK_FOR: "行业基准",
   RULE_FOR_INDUSTRY: "行业规则", OVERRIDES_IN: "地方覆盖", AUDIT_TRIGGERS: "审计触发",
+  // Backbone edges (v4.1)
+  INCENTIVE_FOR_TAX: "优惠政策", RULE_FOR_TAX: "合规规则", AUDIT_FOR_TAX: "审计指标",
+  RISK_FOR_TAX: "风险指标", FILING_FOR_TAX: "申报表", CALCULATED_FROM: "计税基础",
+  SURCHARGE_OF: "附加税", RELATED_TAX: "关联税种", FT_INCENTIVE_TAX: "优惠",
+  FT_APPLIES_TO: "适用于", CLASSIFIED_UNDER_TAX: "归属法规", MAPS_TO_ACCOUNT: "会计科目",
 };
 
 // Quiet edge colors: only 3 semantic groups (not per-edge rainbow)

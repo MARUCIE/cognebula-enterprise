@@ -13,6 +13,8 @@ import { CN, cnInput, cnBtn, cnBtnPrimary, cnBadge } from "../../lib/cognebula-t
 
 const CytoscapeGraph = dynamic(() => import("../../components/CytoscapeGraph"), { ssr: false });
 const ForceGraph3D = dynamic(() => import("../../components/ForceGraph3D"), { ssr: false });
+const KnowledgeCardGraph = dynamic(() => import("../../components/KnowledgeCardGraph"), { ssr: false });
+import type { CardGraphNode, CardGraphEdge } from "../../components/KnowledgeCardGraph";
 
 const TAX_NAME_MAP: Record<string, string> = {
   "增值税": "TT_VAT", "企业所得税": "TT_CIT", "个人所得税": "TT_PIT", "消费税": "TT_CONSUMPTION",
@@ -72,6 +74,8 @@ export default function KGExplorerPage() {
   const [drillLayer, setDrillLayer] = useState<string | null>(null);
   const [cardType, setCardType] = useState("TaxType");
   const [cardNodes, setCardNodes] = useState<Record<string, unknown>[]>([]);
+  const [cardGraphNodes, setCardGraphNodes] = useState<CardGraphNode[]>([]);
+  const [cardGraphEdges, setCardGraphEdges] = useState<CardGraphEdge[]>([]);
   const [cardLoading, setCardLoading] = useState(false);
   const [cardPage, setCardPage] = useState(0);
   const CARD_PAGE_SIZE = 20;
@@ -338,13 +342,48 @@ export default function KGExplorerPage() {
     setLoading(false);
   }, []);
 
-  // Card view: load nodes when type or page changes
+  // Card view: load nodes + edges for card graph
   const loadCards = useCallback(async (type: string, page: number) => {
     setCardLoading(true);
     try {
       const res = await listNodes(type, CARD_PAGE_SIZE, page * CARD_PAGE_SIZE);
-      setCardNodes(res.results || []);
-    } catch { setCardNodes([]); }
+      const results = res.results || [];
+      setCardNodes(results);
+
+      // Build card graph: load neighbors for first N nodes to create edges
+      const gNodes: CardGraphNode[] = [];
+      const gEdges: CardGraphEdge[] = [];
+      const addedIds = new Set<string>();
+
+      for (const n of results) {
+        const nid = String(n.id || "");
+        if (!nid) continue;
+        gNodes.push({ id: nid, label: String(n.name || n.title || n._display_label || ""), type, raw: n });
+        addedIds.add(nid);
+      }
+
+      // Fetch edges for first 8 nodes
+      for (const n of results.slice(0, 8)) {
+        const nid = String(n.id || "");
+        if (!nid) continue;
+        try {
+          const gr = await getGraph(type, nid);
+          for (const nb of (gr.neighbors || []).slice(0, 5)) {
+            if (!nb.target_id) continue;
+            // Add neighbor as card if not already present
+            if (!addedIds.has(nb.target_id)) {
+              addedIds.add(nb.target_id);
+              gNodes.push({ id: nb.target_id, label: nb.target_label || nb.target_id, type: nb.target_type, raw: {} });
+            }
+            const src = nb.direction === "incoming" ? nb.target_id : nid;
+            const tgt = nb.direction === "incoming" ? nid : nb.target_id;
+            gEdges.push({ source: src, target: tgt, label: EDGE_LABELS_ZH[nb.edge_type] || nb.edge_type.slice(0, 8), edgeType: nb.edge_type });
+          }
+        } catch { /* skip */ }
+      }
+      setCardGraphNodes(gNodes);
+      setCardGraphEdges(gEdges);
+    } catch { setCardNodes([]); setCardGraphNodes([]); setCardGraphEdges([]); }
     setCardLoading(false);
   }, []);
 
@@ -765,53 +804,27 @@ export default function KGExplorerPage() {
                 )}
               </div>
 
-              {/* Card grid */}
+              {/* Card Graph: cards connected by edges, zoomable canvas */}
               {cardLoading ? (
                 <div style={{ textAlign: "center", padding: 40, color: CN.textMuted }}>加载中...</div>
-              ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 12 }}>
-                  {cardNodes.map((n, i) => {
-                    const nid = String(n.id || "");
-                    const name = String(n.name || n.title || n._display_label || "");
-                    const fields = renderCardFields(n, cardType);
-                    const ft = String(n.fullText || "");
-                    return (
-                      <div key={nid || i} onClick={() => {
-                        setSelectedNode({ id: nid, label: name, type: cardType, neighbors: [] });
-                      }} style={{
-                        background: CN.bgCard, border: `1px solid ${CN.border}`, borderRadius: 8,
-                        borderLeft: `3px solid ${NODE_COLORS[cardType] || "#94A3B8"}`,
-                        padding: 14, cursor: "pointer", transition: "box-shadow 0.15s",
-                      }}
-                      onMouseEnter={e => (e.currentTarget.style.boxShadow = `0 2px 12px ${NODE_COLORS[cardType]}22`)}
-                      onMouseLeave={e => (e.currentTarget.style.boxShadow = "none")}
-                      >
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-                          <div style={{ fontWeight: 700, fontSize: 14, color: CN.text, lineHeight: 1.4 }}>{name || nid}</div>
-                          <span style={{ fontSize: 9, fontWeight: 600, color: NODE_COLORS[cardType], background: NODE_COLORS[cardType] + "18", padding: "2px 6px", borderRadius: 3, flexShrink: 0 }}>
-                            {NODE_ZH[cardType]?.zh || cardType}
-                          </span>
-                        </div>
-                        {fields.map(([label, value]) => value ? (
-                          <div key={label} style={{ display: "flex", gap: 8, fontSize: 12, lineHeight: 1.6, color: CN.textSecondary }}>
-                            <span style={{ color: CN.textMuted, minWidth: 56, flexShrink: 0 }}>{label}</span>
-                            <span style={{ color: CN.text }}>{String(value).slice(0, 80)}</span>
-                          </div>
-                        ) : null)}
-                        {ft && ft.length > 10 && (
-                          <div style={{ marginTop: 8, fontSize: 12, color: CN.textMuted, lineHeight: 1.5, borderTop: `1px solid ${CN.border}`, paddingTop: 8 }}>
-                            {ft.slice(0, 120)}{ft.length > 120 ? "..." : ""}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+              ) : cardGraphNodes.length > 0 ? (
+                <div style={{ height: "calc(100vh - 180px)", border: `1px solid ${CN.border}`, borderRadius: 6, overflow: "hidden" }}>
+                  <KnowledgeCardGraph
+                    nodes={cardGraphNodes}
+                    edges={cardGraphEdges}
+                    onNodeSelect={(nodeId, nodeType) => {
+                      const name = cardGraphNodes.find(n => n.id === nodeId)?.label || nodeId;
+                      setSelectedNode({ id: nodeId, label: name, type: nodeType, neighbors: [] });
+                    }}
+                  />
                 </div>
+              ) : (
+                <div style={{ textAlign: "center", padding: 40, color: CN.textMuted }}>暂无数据</div>
               )}
 
               {/* Pagination */}
               {cardNodes.length >= CARD_PAGE_SIZE && (
-                <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 16 }}>
+                <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 12 }}>
                   <button disabled={cardPage === 0} onClick={() => setCardPage(p => p - 1)}
                     style={{ ...cnBtn, padding: "4px 12px", opacity: cardPage === 0 ? 0.3 : 1 }}>&lt; 上一页</button>
                   <span style={{ fontSize: 12, color: CN.textMuted, padding: "4px 8px" }}>第 {cardPage + 1} 页</span>

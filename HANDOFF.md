@@ -167,11 +167,45 @@
 
 **V1/V2 Bridge Fix**: 75 条新 CR 镜像到 ComplianceRuleV2 + 67 条 RULE_FOR_TAX/PENALIZED_BY 边创建成功
 
-**Final v4.2 Stats**: 540,659 nodes / 1,112,390 edges / 91 node tables / 115 edge tables
+### Session 26 — Frontend UX Overhaul (2026-03-31)
 
-### 未完成项（低优先级）
-1. V1/V2 表长期合并 (ComplianceRule + ComplianceRuleV2 列差异大, 短期用镜像方案绕过)
-2. Search API 中文 URL 编码修复 (验证脚本层面, 非 API bug)
+**Commits**: 80c4eb2 → b42db95 (10 commits)
+
+Done:
+- v4.2 类型中文化 (14 个 NODE_ZH)
+- 知识问答页: 去掉 broken Cytoscape, 改为摘要链接
+- 法规条款浏览器: +14 v4.2 类型 + 列定义
+- 大表分级菜单 (>1K 阈值): LegalClause(9组50+项) / LegalDocument(3组) / KnowledgeUnit(5组) / Classification(3组) / TaxRate(3组 NEW)
+- API 修复: LegalClause 搜索 500 → per-table SEARCH_FIELDS
+- API 修复: total count 字段 (COUNT query)
+- API 修复: SEARCH_FIELDS 必须匹配实际列 (Gotchas #12)
+- KG_GOTCHAS.md: 8→12 条
+
+**Final Stats**: 540,659 nodes / 1,112,390 edges
+
+### Next: Data Quality Swarm Audit (蜂群模式)
+
+**问题**: 法律文件 (54K) 搜索结果大量缺失关键字段:
+- effectiveDate: 绝大部分为 "--"
+- description: 空
+- level: 全是 0
+- type: 混杂 (shuiwu/kuaiji/tax_policy_announce/policy_law)
+
+**目标**: 系统性审计 540K 节点的数据完整度, 修复关键缺失, 提升内容可用性
+
+**建议蜂群配置**:
+- Expert 1: 数据完整度审计 (哪些表哪些字段缺失率最高)
+- Expert 2: 字段映射修复 (effectiveDate/description 从关联表或 fullText 提取)
+- Expert 3: 分类体系清洗 (type 字段标准化)
+- Expert 4: 数据去重 (V1/V2 表合并)
+- Expert 5: 质量门禁升级 (Quality Gate 检查点更新)
+
+**启动命令**: `/clear` → 新会话 → `ontology-audit-swarm` skill
+
+### 未完成项
+1. 数据质量审计 + 修复 (蜂群模式, 上述 5 路)
+2. V1/V2 表长期合并
+3. Classification 53K 分类导航需要改进 (HS编码搜索返回0, 因为内容是编码不是税种关键词)
 
 ### Key Commands
 ```bash

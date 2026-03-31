@@ -810,18 +810,22 @@ def query_nodes(
         raise HTTPException(404, f"Table '{type}' not found. Valid: {sorted(valid_tables)}")
 
     # Build query with optional text filter — per-table search fields
+    # Per-table search fields — MUST match actual KuzuDB columns (Gotchas #12)
     SEARCH_FIELDS = {
         "LegalClause": ["content", "title"],
-        "LegalDocument": ["name", "title", "fullText"],
-        "KnowledgeUnit": ["topic", "fullText"],
-        "FAQEntry": ["question", "fullText"],
-        "Classification": ["name", "code"],
+        "LegalDocument": ["name", "description"],
+        "KnowledgeUnit": ["content", "title"],
+        "Classification": ["name", "title", "fullText"],
+        "TaxRate": ["name", "title", "description", "fullText"],
+        "FAQEntry": ["question", "content"],
         "IndustryBenchmark": ["ratioName", "description"],
-        "FilingFormField": ["name", "formCode", "description"],
+        "FilingFormField": ["name", "description"],
+        "LawOrRegulation": ["title", "name"],
+        "CPAKnowledge": ["content", "title"],
     }
     if q:
         safe_q = q.replace("\\", "\\\\").replace("'", "\\'")
-        fields = SEARCH_FIELDS.get(type, ["name", "title", "fullText"])
+        fields = SEARCH_FIELDS.get(type, ["name"])
         # Build WHERE clause: try each field with CONTAINS
         conditions = []
         for f in fields:
@@ -876,7 +880,7 @@ def query_nodes(
     if q:
         try:
             safe_q2 = q.replace("\\", "\\\\").replace("'", "\\'")
-            fields2 = SEARCH_FIELDS.get(type, ["name", "title", "fullText"])
+            fields2 = SEARCH_FIELDS.get(type, ["name"])
             conds2 = [f"(n.{f} IS NOT NULL AND n.{f} CONTAINS '{safe_q2}')" for f in fields2]
             where2 = " OR ".join(conds2) if conds2 else f"n.id CONTAINS '{safe_q2}'"
             count_cypher = f"MATCH (n:{type}) WHERE {where2} RETURN count(n)"

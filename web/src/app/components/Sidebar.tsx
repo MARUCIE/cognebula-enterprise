@@ -9,9 +9,11 @@ import { useToast } from "./Toast";
    L1 代账工作台 | L2 数字员工 | L3 技能商店 | L4 知识引擎(不可见) */
 
 const coreNavItems = [
-  { href: "/workbench", label: "月度看板", icon: WorkbenchIcon },
+  { href: "/dashboard", label: "仪表盘", icon: DashboardIcon },
   { href: "/workbench/accounting", label: "核算工作台", icon: AccountingIcon },
-  { href: "/workbench/batch", label: "批量操作台", icon: DashboardIcon },
+  { href: "/workbench/tax", label: "税务工作台", icon: TaxIcon },
+  { href: "/workbench", label: "月度看板", icon: WorkbenchIcon },
+  { href: "/workbench/batch", label: "批量操作台", icon: BatchIcon },
   { href: "/workbench/exceptions", label: "异常中心", icon: OpsAlertsIcon },
   { href: "/workbench/calendar", label: "日历视图", icon: ClientIcon },
 ];
@@ -265,6 +267,30 @@ function AccountingIcon({ active }: { active: boolean }) {
   );
 }
 
+function TaxIcon({ active }: { active: boolean }) {
+  const c = active ? "var(--color-on-primary)" : "var(--color-sidebar-text)";
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <path d="M4 4h16v2H4V4z" fill={c} opacity="0.3" />
+      <path d="M4 4h16v16H4V4z" stroke={c} strokeWidth="1.8" />
+      <path d="M8 10h8M8 14h5" stroke={c} strokeWidth="1.2" strokeLinecap="round" />
+      <circle cx="17" cy="17" r="4" fill="var(--color-secondary)" stroke={c} strokeWidth="0" />
+      <path d="M15.5 17h3M17 15.5v3" stroke="#fff" strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function BatchIcon({ active }: { active: boolean }) {
+  const c = active ? "var(--color-on-primary)" : "var(--color-sidebar-text)";
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <rect x="3" y="5" width="18" height="4" stroke={c} strokeWidth="1.8" />
+      <rect x="3" y="11" width="18" height="4" stroke={c} strokeWidth="1.8" />
+      <rect x="3" y="17" width="18" height="4" stroke={c} strokeWidth="1.8" />
+    </svg>
+  );
+}
+
 function DashboardIcon({ active }: { active: boolean }) {
   const c = active ? "var(--color-on-primary)" : "var(--color-sidebar-text)";
   return (
@@ -295,16 +321,6 @@ function ClientIcon({ active }: { active: boolean }) {
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
       <rect x="2" y="4" width="20" height="16" rx="2" stroke={c} strokeWidth="1.8" />
       <path d="M8 10h8M8 14h5" stroke={c} strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function TaxIcon({ active }: { active: boolean }) {
-  const c = active ? "var(--color-on-primary)" : "var(--color-sidebar-text)";
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path d="M4 4h16v16H4z" stroke={c} strokeWidth="1.8" strokeLinejoin="round" />
-      <path d="M8 12l3 3 5-6" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

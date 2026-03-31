@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Heritage Monolith - 客户管理</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&amp;family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-fixed-dim": "#f6bc65",
+              "on-secondary": "#ffffff",
+              "surface-container": "#eeeeec",
+              "inverse-on-surface": "#f1f1ef",
+              "primary-container": "#003a70",
+              "error": "#ba1a1a",
+              "surface-dim": "#dadad8",
+              "error-container": "#ffdad6",
+              "secondary-container": "#b5d0ff",
+              "inverse-primary": "#a6c8ff",
+              "on-tertiary-fixed": "#291800",
+              "inverse-surface": "#2f3130",
+              "secondary-fixed": "#d5e3ff",
+              "surface-container-low": "#f4f4f2",
+              "on-secondary-fixed": "#001c3b",
+              "on-tertiary": "#ffffff",
+              "on-surface": "#1a1c1b",
+              "on-primary-fixed-variant": "#18477e",
+              "tertiary-fixed": "#ffddb1",
+              "secondary-fixed-dim": "#acc8f7",
+              "primary-fixed-dim": "#a6c8ff",
+              "on-secondary-container": "#3d5981",
+              "surface-container-high": "#e8e8e6",
+              "on-error": "#ffffff",
+              "surface-variant": "#e2e3e1",
+              "surface-container-lowest": "#ffffff",
+              "on-surface-variant": "#434750",
+              "on-primary": "#ffffff",
+              "on-primary-container": "#7ea5e2",
+              "on-primary-fixed": "#001c3b",
+              "surface-container-highest": "#e2e3e1",
+              "on-tertiary-fixed-variant": "#614000",
+              "secondary": "#445f88",
+              "background": "#f9f9f7",
+              "primary-fixed": "#d5e3ff",
+              "on-tertiary-container": "#cf9a46",
+              "on-error-container": "#93000a",
+              "tertiary": "#342000",
+              "surface": "#f9f9f7",
+              "surface-bright": "#f9f9f7",
+              "outline": "#737781",
+              "primary": "#00244a",
+              "on-background": "#1a1c1b",
+              "tertiary-container": "#503400",
+              "surface-tint": "#355f97",
+              "on-secondary-fixed-variant": "#2b476f",
+              "outline-variant": "#c3c6d1"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "0px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f9f9f7;
+      }
+      .tabular-nums {
+        font-variant-numeric: tabular-nums;
+      }
+      .line-height-zh {
+        line-height: 1.65;
+      }
+    </style>
+</head>
+<body class="bg-background text-on-surface antialiased overflow-hidden h-screen flex">
+<!-- SideNavBar Anchor -->
+<aside class="fixed left-0 top-0 h-full flex flex-col bg-[#F4F4F2] dark:bg-slate-900 text-[#00244A] dark:text-slate-100 font-['Manrope'] font-medium antialiased h-screen w-64 border-r-0 z-50">
+<div class="p-8 pb-12">
+<h1 class="text-xl font-bold tracking-tight text-[#00244A] dark:text-slate-50 uppercase">Heritage Monolith</h1>
+<p class="text-[10px] tracking-[0.2em] opacity-60 mt-1">传承基石</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center px-8 py-4 text-slate-500 dark:text-slate-400 hover:text-[#00244A] hover:bg-[#EEEEEC] transition-colors" href="#">
+<span class="material-symbols-outlined mr-4" data-icon="dashboard">dashboard</span>
+<span>总览</span>
+</a>
+<!-- Active Navigation Mapping: Client Management -> 客体台账/客户 -->
+<a class="flex items-center px-8 py-4 bg-[#FFFFFF] dark:bg-slate-800 text-[#00244A] dark:text-white font-bold" href="#">
+<span class="material-symbols-outlined mr-4" data-icon="account_balance_wallet">account_balance_wallet</span>
+<span>客户台账</span>
+</a>
+<a class="flex items-center px-8 py-4 text-slate-500 dark:text-slate-400 hover:text-[#00244A] hover:bg-[#EEEEEC] transition-colors" href="#">
+<span class="material-symbols-outlined mr-4" data-icon="description">description</span>
+<span>税务申报</span>
+</a>
+<a class="flex items-center px-8 py-4 text-slate-500 dark:text-slate-400 hover:text-[#00244A] hover:bg-[#EEEEEC] transition-colors" href="#">
+<span class="material-symbols-outlined mr-4" data-icon="psychology">psychology</span>
+<span>AI审计</span>
+</a>
+<a class="flex items-center px-8 py-4 text-slate-500 dark:text-slate-400 hover:text-[#00244A] hover:bg-[#EEEEEC] transition-colors" href="#">
+<span class="material-symbols-outlined mr-4" data-icon="folder_open">folder_open</span>
+<span>文档中心</span>
+</a>
+<a class="flex items-center px-8 py-4 text-slate-500 dark:text-slate-400 hover:text-[#00244A] hover:bg-[#EEEEEC] transition-colors" href="#">
+<span class="material-symbols-outlined mr-4" data-icon="settings">settings</span>
+<span>机构设置</span>
+</a>
+</nav>
+<div class="px-8 mb-8">
+<button class="w-full bg-[#00244A] text-white py-3 font-bold tracking-wider text-sm hover:opacity-90 active:scale-95 transition-all">
+                新建账套
+            </button>
+</div>
+<div class="border-t border-slate-200 dark:border-slate-800 p-8 space-y-4">
+<a class="flex items-center text-slate-500 hover:text-[#00244A]" href="#">
+<span class="material-symbols-outlined mr-4" data-icon="person">person</span>
+<span class="text-xs font-bold uppercase tracking-widest">个人中心</span>
+</a>
+<a class="flex items-center text-slate-500 hover:text-[#00244A]" href="#">
+<span class="material-symbols-outlined mr-4" data-icon="logout">logout</span>
+<span class="text-xs font-bold uppercase tracking-widest">安全退出</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 flex-1 flex flex-col h-full bg-background relative">
+<!-- TopNavBar Anchor -->
+<header class="flex items-center justify-between px-8 h-16 w-full bg-[#EEEEEC] dark:bg-slate-800 text-[#00244A] dark:text-slate-100 font-['Manrope'] font-bold text-sm tracking-widest uppercase transition-all">
+<div class="flex items-center gap-8">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-0 top-1/2 -translate-y-1/2 text-slate-400" data-icon="search">search</span>
+<input class="bg-transparent border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 pl-8 py-1 w-64 text-xs font-body tracking-normal normal-case" placeholder="搜索客户名称或纳税人识别号..." type="text"/>
+</div>
+<nav class="flex gap-8">
+<a class="text-slate-500 dark:text-slate-400 hover:text-[#00244A] dark:hover:text-white duration-75" href="#">首页</a>
+<a class="text-[#00244A] dark:text-white border-b-2 border-[#00244A] dark:border-white duration-75" href="#">客户</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-[#00244A] dark:hover:text-white duration-75" href="#">核算</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-[#00244A] dark:hover:text-white duration-75" href="#">设置</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<span class="material-symbols-outlined cursor-pointer" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined cursor-pointer" data-icon="history_edu">history_edu</span>
+<div class="w-8 h-8 bg-surface-container-highest">
+<img class="w-full h-full object-cover" data-alt="Professional portrait of a financial administrator in a corporate setting with neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjARQvOeBFngqY11qxWOs9EBiMDRJA1FEM9xQbCe0dZLvQrgMGjcqBgfj9UcN2pzoM69DjwnEOEiWUfVKneiR8eqiT814LI7JjfzbiusfixaOKcQxWWmwezH0DmWjvfBu-FaSxsxtuPT-H7M66U-CpcpDmUlt-b2uTzTJVY-4tQQy7IwP8koWUbeiRWrMfn7WyP6UctPwUB3_khjpHIntw6qxk6ABKDw7f271NPutoB7WgeV7S6YYu6sO50yGxllRIYDcBo7M2lcpt"/>
+</div>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="flex-1 overflow-y-auto pb-24">
+<!-- Header Section -->
+<section class="bg-background px-8 pt-10 pb-6 flex justify-between items-end">
+<div>
+<nav class="flex items-center text-[11px] text-primary font-bold tracking-[0.15em] mb-2">
+<span class="opacity-50 uppercase">Directory</span>
+<span class="mx-2 opacity-30">/</span>
+<span class="uppercase">CLIENTS</span>
+</nav>
+<h2 class="font-headline font-[800] text-[2.25rem] text-primary leading-none tracking-tight">客户管理</h2>
+</div>
+<button class="bg-gradient-to-tr from-[#00244A] to-[#003A70] text-white px-8 py-3.5 font-bold text-sm tracking-widest hover:brightness-110 active:scale-95 transition-all">
+                    新增客户
+                </button>
+</section>
+<!-- Filter Bar -->
+<section class="h-14 bg-white px-8 flex items-center justify-between sticky top-0 z-20">
+<div class="flex items-center gap-3">
+<button class="px-6 h-9 bg-primary text-white text-xs font-bold tracking-wider">全部 (128)</button>
+<button class="px-6 h-9 bg-surface-container text-primary text-xs font-bold tracking-wider hover:bg-surface-container-high transition-colors">一般纳税人 (86)</button>
+<button class="px-6 h-9 bg-surface-container text-primary text-xs font-bold tracking-wider hover:bg-surface-container-high transition-colors">小规模 (42)</button>
+<button class="px-6 h-9 bg-surface-container text-primary text-xs font-bold tracking-wider hover:bg-surface-container-high transition-colors text-error">异常 (3)</button>
+</div>
+<div class="flex items-center gap-2 cursor-pointer">
+<span class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">排序:</span>
+<span class="text-xs font-bold text-primary">最近活跃</span>
+<span class="material-symbols-outlined text-sm" data-icon="expand_more">expand_more</span>
+</div>
+</section>
+<!-- Client Table -->
+<section class="px-8 mt-6">
+<table class="w-full border-collapse">
+<thead>
+<tr class="bg-surface-container-low h-10">
+<th class="px-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">客户名称</th>
+<th class="px-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">统一社会信用代码</th>
+<th class="px-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">纳税类型</th>
+<th class="px-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">负责人</th>
+<th class="px-4 text-right text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">月代账费</th>
+<th class="px-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">状态</th>
+<th class="px-4 text-right text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">最后活跃</th>
+</tr>
+</thead>
+<tbody class="font-body text-sm">
+<!-- Row 1 -->
+<tr class="bg-white hover:bg-surface-container-low h-14 transition-colors">
+<td class="px-4 font-semibold text-primary">成都朋诚鑫盛商贸有限公司</td>
+<td class="px-4 text-slate-500 tabular-nums">91510100MA6...</td>
+<td class="px-4"><span class="bg-[#FDF6EB] text-[#C5913E] px-3 py-1 text-[10px] font-bold uppercase">一般纳税人</span></td>
+<td class="px-4 text-slate-600">李明</td>
+<td class="px-4 text-right font-bold text-[#C5913E] tabular-nums">¥2,800.00</td>
+<td class="px-4 text-center"><span class="bg-[#E6F4EA] text-[#1B7A4E] px-3 py-1 text-[10px] font-bold uppercase">正常</span></td>
+<td class="px-4 text-right text-slate-400 tabular-nums">2026-03-28</td>
+</tr>
+<!-- Row 2 -->
+<tr class="bg-background hover:bg-surface-container-low h-14 transition-colors">
+<td class="px-4 font-semibold text-primary">四川聚清诚建设工程有限公司</td>
+<td class="px-4 text-slate-500 tabular-nums">91510100...</td>
+<td class="px-4"><span class="bg-[#FDF6EB] text-[#C5913E] px-3 py-1 text-[10px] font-bold uppercase">一般纳税人</span></td>
+<td class="px-4 text-slate-600">王芳</td>
+<td class="px-4 text-right font-bold text-[#C5913E] tabular-nums">¥3,500.00</td>
+<td class="px-4 text-center"><span class="bg-[#E6F4EA] text-[#1B7A4E] px-3 py-1 text-[10px] font-bold uppercase">正常</span></td>
+<td class="px-4 text-right text-slate-400 tabular-nums">2026-03-27</td>
+</tr>
+<!-- Row 3 -->
+<tr class="bg-white hover:bg-surface-container-low h-14 transition-colors">
+<td class="px-4 font-semibold text-primary">简阳丰印象广告有限公司</td>
+<td class="px-4 text-slate-500 tabular-nums">91510100...</td>
+<td class="px-4"><span class="bg-[#E8E8E6] text-slate-600 px-3 py-1 text-[10px] font-bold uppercase">小规模</span></td>
+<td class="px-4 text-slate-600">张伟</td>
+<td class="px-4 text-right font-bold text-[#C5913E] tabular-nums">¥1,200.00</td>
+<td class="px-4 text-center"><span class="bg-[#E6F4EA] text-[#1B7A4E] px-3 py-1 text-[10px] font-bold uppercase">正常</span></td>
+<td class="px-4 text-right text-slate-400 tabular-nums">2026-03-25</td>
+</tr>
+<!-- Row 4 -->
+<tr class="bg-background hover:bg-surface-container-low h-14 transition-colors">
+<td class="px-4 font-semibold text-primary">中唯耘源建设集团有限公司</td>
+<td class="px-4 text-slate-500 tabular-nums">91510100...</td>
+<td class="px-4"><span class="bg-[#FDF6EB] text-[#C5913E] px-3 py-1 text-[10px] font-bold uppercase">一般纳税人</span></td>
+<td class="px-4 text-slate-600">刘洋</td>
+<td class="px-4 text-right font-bold text-[#C5913E] tabular-nums">¥4,200.00</td>
+<td class="px-4 text-center"><span class="bg-[#E6F4EA] text-[#1B7A4E] px-3 py-1 text-[10px] font-bold uppercase">正常</span></td>
+<td class="px-4 text-right text-slate-400 tabular-nums">2026-03-24</td>
+</tr>
+<!-- Row 5 -->
+<tr class="bg-white hover:bg-surface-container-low h-14 transition-colors">
+<td class="px-4 font-semibold text-primary">恒升投资管理有限公司</td>
+<td class="px-4 text-slate-500 tabular-nums">91510100...</td>
+<td class="px-4"><span class="bg-[#FDF6EB] text-[#C5913E] px-3 py-1 text-[10px] font-bold uppercase">一般纳税人</span></td>
+<td class="px-4 text-slate-600">陈静</td>
+<td class="px-4 text-right font-bold text-[#C5913E] tabular-nums">¥2,500.00</td>
+<td class="px-4 text-center"><span class="bg-amber-100 text-amber-700 px-3 py-1 text-[10px] font-bold uppercase">待审</span></td>
+<td class="px-4 text-right text-slate-400 tabular-nums">2026-03-20</td>
+</tr>
+<!-- Row 6 -->
+<tr class="bg-background hover:bg-surface-container-low h-14 transition-colors">
+<td class="px-4 font-semibold text-primary">时代传媒有限公司</td>
+<td class="px-4 text-slate-500 tabular-nums">91510100...</td>
+<td class="px-4"><span class="bg-[#E8E8E6] text-slate-600 px-3 py-1 text-[10px] font-bold uppercase">小规模</span></td>
+<td class="px-4 text-slate-600">赵敏</td>
+<td class="px-4 text-right font-bold text-[#C5913E] tabular-nums">¥800.00</td>
+<td class="px-4 text-center"><span class="bg-[#E6F4EA] text-[#1B7A4E] px-3 py-1 text-[10px] font-bold uppercase">正常</span></td>
+<td class="px-4 text-right text-slate-400 tabular-nums">2026-03-18</td>
+</tr>
+<!-- Row 7 -->
+<tr class="bg-white hover:bg-surface-container-low h-14 transition-colors">
+<td class="px-4 font-semibold text-primary">大唐信息技术有限公司</td>
+<td class="px-4 text-slate-500 tabular-nums">91510100...</td>
+<td class="px-4"><span class="bg-[#FDF6EB] text-[#C5913E] px-3 py-1 text-[10px] font-bold uppercase">一般纳税人</span></td>
+<td class="px-4 text-slate-600">周磊</td>
+<td class="px-4 text-right font-bold text-[#C5913E] tabular-nums">¥3,200.00</td>
+<td class="px-4 text-center"><span class="bg-red-100 text-error px-3 py-1 text-[10px] font-bold uppercase">异常</span></td>
+<td class="px-4 text-right text-slate-400 tabular-nums">2026-03-15</td>
+</tr>
+<!-- Row 8 -->
+<tr class="bg-background hover:bg-surface-container-low h-14 transition-colors">
+<td class="px-4 font-semibold text-primary">鑫海物流集团有限公司</td>
+<td class="px-4 text-slate-500 tabular-nums">91510100...</td>
+<td class="px-4"><span class="bg-[#FDF6EB] text-[#C5913E] px-3 py-1 text-[10px] font-bold uppercase">一般纳税人</span></td>
+<td class="px-4 text-slate-600">吴强</td>
+<td class="px-4 text-right font-bold text-[#C5913E] tabular-nums">¥2,000.00</td>
+<td class="px-4 text-center"><span class="bg-primary-container text-white px-3 py-1 text-[10px] font-bold uppercase">新建</span></td>
+<td class="px-4 text-right text-slate-400 tabular-nums">2026-03-30</td>
+</tr>
+</tbody>
+</table>
+</section>
+<!-- Pagination -->
+<section class="px-8 mt-12 flex justify-end items-center gap-6 pb-12">
+<div class="text-[11px] font-bold text-slate-400 tracking-widest uppercase">
+                    共 128 条 | 第 1/16 页
+                </div>
+<div class="flex gap-1">
+<button class="w-10 h-10 bg-surface-container flex items-center justify-center hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-primary" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="w-10 h-10 bg-primary flex items-center justify-center text-white">
+<span class="text-xs font-bold">1</span>
+</button>
+<button class="w-10 h-10 bg-surface-container flex items-center justify-center hover:bg-surface-container-high transition-colors">
+<span class="text-xs font-bold text-primary">2</span>
+</button>
+<button class="w-10 h-10 bg-surface-container flex items-center justify-center hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-primary" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</section>
+</div>
+<!-- BottomNavBar Anchor / Summary Strip -->
+<footer class="fixed bottom-0 left-64 right-0 z-50 h-12 bg-[#00244A] dark:bg-black text-[#C5913E] flex items-center justify-around font-['Inter'] tabular-nums text-xs font-semibold uppercase tracking-widest px-8">
+<div class="flex items-center gap-2">
+<span class="text-white/70">活跃客户:</span>
+<span class="text-white">125</span>
+</div>
+<div class="w-px h-4 bg-white/10"></div>
+<div class="flex items-center gap-2">
+<span class="text-white/70">本月新增:</span>
+<span class="text-white">3</span>
+</div>
+<div class="w-px h-4 bg-white/10"></div>
+<div class="flex items-center gap-2">
+<span class="text-white/70">月费收入:</span>
+<span class="text-[#C5913E]">¥458,320</span>
+</div>
+<div class="w-px h-4 bg-white/10"></div>
+<div class="flex items-center gap-2">
+<span class="text-white/70">异常客户:</span>
+<span class="text-error">3</span>
+</div>
+<!-- BottomNavBar Logic Integration -->
+<div class="flex gap-8 ml-auto border-l border-white/10 pl-8">
+<div class="flex items-center gap-1.5 cursor-pointer text-[#F4F4F2]/70 hover:bg-[#003A70] px-2 h-full">
+<span class="material-symbols-outlined text-base" data-icon="payments">payments</span>
+<span>账户余额</span>
+</div>
+<div class="flex items-center gap-1.5 cursor-pointer text-white bg-[#003A70] px-3 h-full">
+<span class="material-symbols-outlined text-base" data-icon="pending_actions">pending_actions</span>
+<span>待处理</span>
+</div>
+<div class="flex items-center gap-1.5 cursor-pointer text-[#F4F4F2]/70 hover:bg-[#003A70] px-2 h-full">
+<span class="material-symbols-outlined text-base" data-icon="verified">verified</span>
+<span>黄金标准</span>
+</div>
+</div>
+</footer>
+</main>
+</body></html>

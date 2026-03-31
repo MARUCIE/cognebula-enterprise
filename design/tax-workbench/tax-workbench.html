@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>中方智账 | 税务工作台</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&amp;family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "secondary-fixed": "#d5e3ff",
+              "inverse-surface": "#2f3130",
+              "surface-container-highest": "#e2e3e1",
+              "surface-bright": "#f9f9f7",
+              "on-error-container": "#93000a",
+              "tertiary-fixed": "#ffddb1",
+              "tertiary": "#342000",
+              "on-secondary-fixed": "#001c3b",
+              "secondary": "#445f88",
+              "inverse-on-surface": "#f1f1ef",
+              "on-surface-variant": "#434750",
+              "on-surface": "#1a1c1b",
+              "secondary-container": "#b5d0ff",
+              "on-tertiary-fixed-variant": "#614000",
+              "on-secondary-fixed-variant": "#2b476f",
+              "on-background": "#1a1c1b",
+              "on-primary-container": "#7ea5e2",
+              "background": "#f9f9f7",
+              "on-tertiary-fixed": "#291800",
+              "outline": "#737781",
+              "on-primary-fixed": "#001c3b",
+              "on-error": "#ffffff",
+              "on-tertiary": "#ffffff",
+              "error": "#ba1a1a",
+              "primary": "#00244a",
+              "tertiary-fixed-dim": "#f6bc65",
+              "primary-container": "#003a70",
+              "on-primary": "#ffffff",
+              "inverse-primary": "#a6c8ff",
+              "secondary-fixed-dim": "#acc8f7",
+              "primary-fixed-dim": "#a6c8ff",
+              "tertiary-container": "#503400",
+              "on-secondary-container": "#3d5981",
+              "outline-variant": "#c3c6d1",
+              "on-primary-fixed-variant": "#18477e",
+              "error-container": "#ffdad6",
+              "surface-variant": "#e2e3e1",
+              "surface-container-high": "#e8e8e6",
+              "on-tertiary-container": "#cf9a46",
+              "surface-dim": "#dadad8",
+              "primary-fixed": "#d5e3ff",
+              "surface-tint": "#355f97",
+              "on-secondary": "#ffffff",
+              "surface-container-lowest": "#ffffff",
+              "surface-container": "#eeeeec",
+              "surface-container-low": "#f4f4f2"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .tabular-nums { font-variant-numeric: tabular-nums; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #F9F9F7; }
+        ::-webkit-scrollbar-thumb { background: #EEEEEC; }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-tertiary-fixed selection:text-on-tertiary-fixed min-w-[1440px]">
+<!-- Sidebar Navigation Shell -->
+<aside class="fixed left-0 top-0 h-full flex flex-col py-4 bg-[#F4F4F2] w-64 z-50">
+<div class="px-6 mb-8">
+<h1 class="text-lg font-black text-[#00244A] tracking-tighter font-headline">智账 AI</h1>
+<p class="text-[10px] text-slate-500 font-semibold tracking-widest uppercase mt-1">高级簿记员</p>
+</div>
+<nav class="flex-1 px-3 space-y-1">
+<a class="flex items-center gap-3 px-3 py-3 text-slate-600 font-semibold text-sm hover:bg-[#EEEEEC] transition-all duration-75" href="#">
+<span class="material-symbols-outlined text-lg">dashboard</span>
+<span>总览</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 text-slate-600 font-semibold text-sm hover:bg-[#EEEEEC] transition-all duration-75" href="#">
+<span class="material-symbols-outlined text-lg">receipt_long</span>
+<span>记账清单</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 bg-[#FFFFFF] text-[#00244A] font-bold text-sm" href="#">
+<span class="material-symbols-outlined text-lg">account_balance</span>
+<span>税务申报</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 text-slate-600 font-semibold text-sm hover:bg-[#EEEEEC] transition-all duration-75" href="#">
+<span class="material-symbols-outlined text-lg">description</span>
+<span>凭证管理</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 text-slate-600 font-semibold text-sm hover:bg-[#EEEEEC] transition-all duration-75" href="#">
+<span class="material-symbols-outlined text-lg">fact_check</span>
+<span>智能核对</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 text-slate-600 font-semibold text-sm hover:bg-[#EEEEEC] transition-all duration-75" href="#">
+<span class="material-symbols-outlined text-lg">account_circle</span>
+<span>账户管理</span>
+</a>
+</nav>
+<div class="px-3 pt-4 border-t border-slate-200 mt-4">
+<button class="w-full bg-[#00244A] text-white py-3 text-sm font-bold flex items-center justify-center gap-2 hover:bg-[#003A70] active:scale-[0.99] transition-all">
+                开始核对
+            </button>
+</div>
+<footer class="px-3 mt-auto space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 text-sm hover:bg-[#EEEEEC]" href="#">
+<span class="material-symbols-outlined text-lg">help</span>
+<span>帮助中心</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 text-sm hover:bg-[#EEEEEC]" href="#">
+<span class="material-symbols-outlined text-lg">logout</span>
+<span>退出系统</span>
+</a>
+</footer>
+</aside>
+<!-- Main Workspace -->
+<main class="ml-64 min-h-screen flex flex-col pb-12">
+<!-- Top Navigation Bar -->
+<header class="flex justify-between items-center w-full px-10 h-16 bg-[#EEEEEC] sticky top-0 z-40">
+<div class="flex items-center gap-8">
+<span class="text-xl font-extrabold text-[#00244A] tracking-tighter font-headline">中方智账</span>
+<nav class="flex gap-6">
+<a class="text-slate-500 font-medium text-sm hover:text-[#00244A] transition-colors" href="#">控制面板</a>
+<a class="text-slate-500 font-medium text-sm hover:text-[#00244A] transition-colors" href="#">待办任务</a>
+<a class="text-[#00244A] border-b-2 border-[#00244A] pb-1 font-bold text-sm" href="#">税务申报</a>
+<a class="text-slate-500 font-medium text-sm hover:text-[#00244A] transition-colors" href="#">历史账单</a>
+<a class="text-slate-500 font-medium text-sm hover:text-[#00244A] transition-colors" href="#">系统配置</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="px-4 py-1.5 bg-[#EEEEEC] text-[#00244A] text-sm font-bold hover:bg-[#F4F4F2] transition-colors">导出报表</button>
+<button class="px-6 py-1.5 bg-gradient-to-br from-[#00244A] to-[#003A70] text-white text-sm font-bold active:opacity-80 transition-all">立即报税</button>
+<img alt="管理员头像" class="w-8 h-8 object-cover grayscale" data-alt="Professional male accountant headshot, sharp corporate attire, neutral studio background, high-end financial professional look" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAC6eMvDtcoQWPHqxbPhLCIU-g8MAjRyxWaT9bTR_bfhsPPO8XyLiD1a5y5uTjuafU3FtXZNqxXvyaWgQ-HeemOgKb2e7kyleqPR5CCfxy6kE1mGFzK3UdLevSM4WCYIct5ljfDdyArHwmgnsdWXrWBXGWRbAf-bYysZP-bKJDawXJd5n-ZcPGDs30zD-lklKPpqUkkSVHHGyb187NjvQBJCZS74eJRz4Ct7sgqzTUbz4uoQ5OixjJi1KqvN7JWV_6QyELexvqXHdK2"/>
+</div>
+</header>
+<!-- Page Header Section -->
+<section class="bg-[#F9F9F7] px-10 pt-10 pb-6">
+<nav class="text-[10px] font-bold tracking-[0.2em] text-slate-400 mb-2 font-label">WORKBENCH / TAX</nav>
+<div class="flex justify-between items-end">
+<h2 class="text-4xl font-extrabold text-[#00244A] font-headline">税务工作台</h2>
+<div class="flex gap-1">
+<button class="bg-[#EEEEEC] px-6 py-3 text-sm font-bold text-[#00244A] hover:bg-[#F4F4F2]">税种总览</button>
+<button class="bg-[#EEEEEC] px-6 py-3 text-sm font-bold text-[#00244A] hover:bg-[#F4F4F2]">税率表</button>
+<button class="bg-[#EEEEEC] px-6 py-3 text-sm font-bold text-[#00244A] hover:bg-[#F4F4F2]">申报日历</button>
+<button class="bg-gradient-to-br from-[#00244A] to-[#003A70] px-8 py-3 text-sm font-bold text-white">开始申报</button>
+</div>
+</div>
+</section>
+<!-- Tax Period Bar -->
+<section class="h-14 bg-white px-10 flex justify-between items-center border-none">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[#00244A]">calendar_month</span>
+<span class="font-bold text-[#00244A]">申报期: 2026年3月</span>
+</div>
+<div class="flex gap-4">
+<div class="flex items-center gap-2 px-3 py-1 bg-[#1B7A4E]/10">
+<span class="w-2 h-2 bg-[#1B7A4E]"></span>
+<span class="text-xs font-bold text-[#1B7A4E]">已申报: 4</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 bg-[#003A70]/10">
+<span class="w-2 h-2 bg-[#003A70]"></span>
+<span class="text-xs font-bold text-[#003A70]">待申报: 3</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 bg-[#C44536]/10">
+<span class="w-2 h-2 bg-[#C44536]"></span>
+<span class="text-xs font-bold text-[#C44536]">逾期: 1</span>
+</div>
+</div>
+</div>
+<div class="text-sm font-bold text-slate-500 tabular-nums">
+                截止日: <span class="text-[#00244A]">2026-04-15</span> | 剩余 <span class="text-[#C44536]">15</span> 天
+            </div>
+</section>
+<!-- Main Content: Three Column Ledger -->
+<section class="flex flex-1 gap-0">
+<!-- Col 1: VAT -->
+<div class="flex-1 bg-[#F4F4F2] p-10">
+<div class="flex justify-between items-start mb-10">
+<div>
+<h3 class="text-2xl font-extrabold text-[#00244A] font-headline">增值税 (VAT)</h3>
+<p class="text-xs text-slate-500 mt-1 font-semibold uppercase tracking-wider">Value Added Tax Registry</p>
+</div>
+<span class="bg-[#003A70] text-white px-4 py-1 text-[10px] font-bold">待申报</span>
+</div>
+<div class="space-y-6">
+<div class="group">
+<div class="flex justify-between items-end border-b-2 border-slate-200 pb-2 group-hover:border-[#00244A] transition-colors">
+<span class="text-xs font-bold text-slate-500 uppercase">销项税额 (Output)</span>
+<span class="text-xl font-bold tabular-nums text-[#00244A]">1,240,500.00</span>
+</div>
+</div>
+<div class="group">
+<div class="flex justify-between items-end border-b-2 border-slate-200 pb-2 group-hover:border-[#00244A] transition-colors">
+<span class="text-xs font-bold text-slate-500 uppercase">进项税额 (Input)</span>
+<span class="text-xl font-bold tabular-nums text-[#00244A]">856,200.00</span>
+</div>
+</div>
+<div class="group">
+<div class="flex justify-between items-end border-b-2 border-slate-200 pb-2 group-hover:border-[#00244A] transition-colors">
+<span class="text-xs font-bold text-slate-500 uppercase">进项转出 (Reversal)</span>
+<span class="text-xl font-bold tabular-nums text-[#00244A]">12,400.00</span>
+</div>
+</div>
+<div class="pt-8 mt-4">
+<div class="bg-white p-6 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-16 h-16 bg-[#C5913E]/10 translate-x-8 -translate-y-8 rotate-45"></div>
+<span class="text-[10px] font-black text-[#C5913E] uppercase tracking-widest block mb-2">Final Settlement</span>
+<div class="flex justify-between items-baseline">
+<span class="text-lg font-bold text-[#00244A]">应纳税额</span>
+<span class="text-3xl font-black tabular-nums text-[#C5913E]">396,700.00</span>
+</div>
+</div>
+</div>
+<div class="bg-[#C44536]/5 p-4 flex items-start gap-3 mt-6">
+<span class="material-symbols-outlined text-[#C44536] text-lg">warning</span>
+<div>
+<p class="text-sm font-bold text-[#C44536]">2张异常发票</p>
+<p class="text-[11px] text-[#C44536]/80 leading-relaxed mt-1">检测到发票代码不匹配，请在提交申报前完成人工核对。</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Col 2: CIT -->
+<div class="flex-1 bg-[#EEEEEC] p-10">
+<div class="flex justify-between items-start mb-10">
+<div>
+<h3 class="text-2xl font-extrabold text-[#00244A] font-headline">企业所得税 (CIT)</h3>
+<p class="text-xs text-slate-500 mt-1 font-semibold uppercase tracking-wider">Corporate Income Tax</p>
+</div>
+<span class="bg-[#1B7A4E] text-white px-4 py-1 text-[10px] font-bold">已申报</span>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between text-sm py-2 border-b border-slate-300">
+<span class="font-bold text-slate-600">营业收入</span>
+<span class="tabular-nums font-bold text-[#00244A]">8,450,000.00</span>
+</div>
+<div class="flex justify-between text-sm py-2 border-b border-slate-300">
+<span class="font-bold text-slate-600">营业成本</span>
+<span class="tabular-nums font-bold text-[#00244A]">5,120,000.00</span>
+</div>
+<div class="flex justify-between text-sm py-2 border-b border-slate-300">
+<span class="font-bold text-slate-600">利润总额</span>
+<span class="tabular-nums font-bold text-[#00244A]">3,330,000.00</span>
+</div>
+<div class="flex justify-between text-sm py-2 border-b border-slate-300 italic">
+<span class="font-medium text-slate-500">纳税调增/减</span>
+<span class="tabular-nums font-bold text-[#1B7A4E]">+45,000.00</span>
+</div>
+<div class="pt-6 space-y-4">
+<div class="bg-[#F4F4F2] p-4">
+<span class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Taxable Income</span>
+<div class="flex justify-between items-baseline">
+<span class="font-bold text-[#00244A]">应纳所得额</span>
+<span class="text-xl font-bold tabular-nums text-[#00244A]">3,375,000.00</span>
+</div>
+</div>
+<div class="bg-white p-5 border-l-4 border-[#C5913E]">
+<span class="text-[10px] font-bold text-[#C5913E] uppercase mb-1 block">Final Liability</span>
+<div class="flex justify-between items-baseline">
+<span class="text-lg font-bold text-[#00244A]">应纳税额</span>
+<span class="text-2xl font-black tabular-nums text-[#C5913E]">843,750.00</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Col 3: PIT & Add-ons -->
+<div class="flex-1 bg-[#F9F9F7] p-10">
+<div class="flex justify-between items-start mb-10">
+<div>
+<h3 class="text-2xl font-extrabold text-[#00244A] font-headline">附加及其他</h3>
+<p class="text-xs text-slate-500 mt-1 font-semibold uppercase tracking-wider">Payroll &amp; Surcharge</p>
+</div>
+</div>
+<div class="space-y-10">
+<!-- PIT Section -->
+<section>
+<div class="flex items-center gap-2 mb-4">
+<span class="w-1 h-4 bg-[#00244A]"></span>
+<h4 class="text-sm font-black text-[#00244A]">个人所得税 (PIT)</h4>
+</div>
+<div class="bg-white p-4">
+<div class="flex justify-between items-baseline">
+<span class="text-xs font-bold text-slate-500">代扣代缴总额</span>
+<span class="text-xl font-black tabular-nums text-[#C5913E]">45,820.50</span>
+</div>
+</div>
+</section>
+<!-- Surcharges Section -->
+<section>
+<div class="flex items-center gap-2 mb-4">
+<span class="w-1 h-4 bg-[#00244A]"></span>
+<h4 class="text-sm font-black text-[#00244A]">附加税费</h4>
+</div>
+<div class="bg-white divide-y divide-slate-100">
+<div class="flex justify-between p-3">
+<span class="text-xs font-medium text-slate-600">城建税 (7%)</span>
+<span class="text-xs font-bold tabular-nums text-[#00244A]">27,769.00</span>
+</div>
+<div class="flex justify-between p-3">
+<span class="text-xs font-medium text-slate-600">教育费附加 (3%)</span>
+<span class="text-xs font-bold tabular-nums text-[#00244A]">11,901.00</span>
+</div>
+<div class="flex justify-between p-3 bg-[#F4F4F2]">
+<span class="text-xs font-black text-[#00244A]">小计</span>
+<span class="text-sm font-black tabular-nums text-[#C5913E]">39,670.00</span>
+</div>
+</div>
+</section>
+<!-- Stamp Duty -->
+<section>
+<div class="flex items-center gap-2 mb-4">
+<span class="w-1 h-4 bg-[#00244A]"></span>
+<h4 class="text-sm font-black text-[#00244A]">印花税</h4>
+</div>
+<div class="bg-white p-4">
+<div class="flex justify-between items-baseline">
+<span class="text-xs font-bold text-slate-500">本期合计</span>
+<span class="text-xl font-black tabular-nums text-[#C5913E]">4,225.00</span>
+</div>
+</div>
+</section>
+</div>
+</div>
+</section>
+<!-- Bottom Summary Strip -->
+<footer class="fixed bottom-0 left-64 right-0 h-12 bg-[#00244A] flex justify-around items-center px-10 z-50">
+<div class="flex items-center gap-2 text-slate-300">
+<span class="material-symbols-outlined text-sm">payments</span>
+<span class="font-['Inter'] tabular-nums text-xs font-bold uppercase">合计金额: <span class="text-[#C5913E] ml-2">¥ 1,330,165.50</span></span>
+</div>
+<div class="flex items-center gap-2 text-slate-300">
+<span class="material-symbols-outlined text-sm">percent</span>
+<span class="font-['Inter'] tabular-nums text-xs font-bold uppercase">税额小计: <span class="text-[#C5913E] ml-2">¥ 396,700.00</span></span>
+</div>
+<div class="flex items-center gap-2 text-slate-300">
+<span class="material-symbols-outlined text-sm">pending_actions</span>
+<span class="font-['Inter'] tabular-nums text-xs font-bold uppercase">待核销: <span class="text-[#C5913E] ml-2">12 项</span></span>
+</div>
+<div class="flex items-center gap-2 text-[#C5913E]">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="font-['Inter'] tabular-nums text-xs font-bold uppercase">状态: 实时数据核对中</span>
+</div>
+</footer>
+</main>
+</body></html>

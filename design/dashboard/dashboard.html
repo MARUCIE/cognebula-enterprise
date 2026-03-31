@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+
+<html class="light" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>中枢账簿 (The Ledger Hub) - 月度仪表盘</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "secondary-fixed": "#d5e3ff",
+              "on-tertiary-fixed": "#291800",
+              "on-error-container": "#93000a",
+              "tertiary-fixed": "#ffddb1",
+              "on-surface": "#1a1c1b",
+              "surface-bright": "#f9f9f7",
+              "primary-fixed": "#d5e3ff",
+              "primary": "#00244a",
+              "on-secondary-fixed-variant": "#2b476f",
+              "on-primary-fixed": "#001c3b",
+              "inverse-surface": "#2f3130",
+              "secondary-container": "#b5d0ff",
+              "tertiary-fixed-dim": "#f6bc65",
+              "surface-container-high": "#e8e8e6",
+              "tertiary": "#342000",
+              "secondary-fixed-dim": "#acc8f7",
+              "primary-container": "#003a70",
+              "on-primary-container": "#7ea5e2",
+              "background": "#f9f9f7",
+              "on-error": "#ffffff",
+              "surface-dim": "#dadad8",
+              "on-tertiary-container": "#cf9a46",
+              "on-secondary": "#ffffff",
+              "on-background": "#1a1c1b",
+              "surface-tint": "#355f97",
+              "on-tertiary": "#ffffff",
+              "inverse-on-surface": "#f1f1ef",
+              "surface-container-highest": "#e2e3e1",
+              "surface-variant": "#e2e3e1",
+              "surface-container-lowest": "#ffffff",
+              "error-container": "#ffdad6",
+              "on-secondary-fixed": "#001c3b",
+              "on-secondary-container": "#3d5981",
+              "surface": "#f9f9f7",
+              "error": "#ba1a1a",
+              "outline-variant": "#c3c6d1",
+              "outline": "#737781",
+              "surface-container-low": "#f4f4f2",
+              "secondary": "#445f88",
+              "on-tertiary-fixed-variant": "#614000",
+              "on-surface-variant": "#434750",
+              "primary-fixed-dim": "#a6c8ff",
+              "inverse-primary": "#a6c8ff",
+              "tertiary-container": "#503400",
+              "on-primary": "#ffffff",
+              "surface-container": "#eeeeec",
+              "on-primary-fixed-variant": "#18477e",
+              "status-green": "#1B7A4E",
+              "status-gold": "#C5913E",
+              "status-red": "#C44536"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        .font-headline { font-family: 'Manrope', sans-serif; }
+        .tabular-nums { font-variant-numeric: tabular-nums; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #F9F9F7; }
+        ::-webkit-scrollbar-thumb { background: #EEEEEC; }
+    </style>
+</head>
+<body class="bg-background text-on-surface selection:bg-secondary-container selection:text-on-secondary-container">
+<!-- TopNavBar (Shared Component) -->
+<header class="bg-[#EEEEEC] dark:bg-slate-900 text-[#00244A] dark:text-slate-100 font-['Manrope'] font-bold text-sm tracking-tight flex justify-between items-center w-full px-6 h-14 fixed top-0 z-40 border-none">
+<div class="flex items-center gap-8">
+<span class="text-lg font-extrabold text-[#00244A] dark:text-white uppercase tracking-wider">中枢账簿 (THE LEDGER HUB)</span>
+<nav class="hidden md:flex gap-6 items-center">
+<a class="text-[#00244A] border-b-2 border-[#00244A] pb-1" href="#">仪表盘</a>
+<a class="text-slate-500 hover:text-[#00244A] transition-colors" href="#">分类账</a>
+<a class="text-slate-500 hover:text-[#00244A] transition-colors" href="#">报表</a>
+<a class="text-slate-500 hover:text-[#00244A] transition-colors" href="#">审计</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden sm:block">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 material-symbols-outlined text-[18px]">search</span>
+<input class="bg-[#F4F4F2] border-none text-xs w-64 pl-10 h-8 focus:ring-1 focus:ring-primary" placeholder="搜索账目或凭证..." type="text"/>
+</div>
+<button class="material-symbols-outlined p-2 hover:bg-[#F4F4F2] transition-colors">notifications</button>
+<button class="material-symbols-outlined p-2 hover:bg-[#F4F4F2] transition-colors">settings</button>
+<img alt="管理员头像" class="w-8 h-8 object-cover" data-alt="professional portrait of a senior financial executive in a crisp white shirt and navy blazer with a neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA3LinX7UO-pXJJef745sFEPEJ_ThaoyO4B1TQwqPY7WlQW4IRanGEhCi0cyXQQ5typhQbiqvXfX5f3-R-NQF6p-EwTy4R5hWMYVRxiKXxvNGv0iRIf_6g1w2x1JpatDzZdsn6fLF8m7UStRDkKFgfo6KQlB0-RlYW9VeJ23kGpE157TboEh2w_YbqSl7cflHpiYx_0uvwat1qotOn_b_eUWsaCt22J2MPnBHtbXRlwapd6brq3vj4pJ56RfI3UFjKgycNvI3ApH2A9"/>
+</div>
+</header>
+<!-- SideNavBar (Shared Component) -->
+<aside class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 pt-14 bg-[#F4F4F2] dark:bg-slate-950 border-r-0 z-30 font-['Manrope'] font-medium text-sm">
+<div class="p-6">
+<div class="flex items-center gap-3 mb-8">
+<div class="w-10 h-10 bg-primary flex items-center justify-center">
+<span class="text-white material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">account_balance</span>
+</div>
+<div>
+<h2 class="text-[#00244A] font-black leading-tight">智算会计</h2>
+<p class="text-[10px] text-slate-500 uppercase tracking-widest">AI-Staffed Ledger</p>
+</div>
+</div>
+<nav class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 bg-[#FFFFFF] text-[#00244A] font-bold" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>主页</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-[#EEEEEC] transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span>客户管理</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-[#EEEEEC] transition-colors" href="#">
+<span class="material-symbols-outlined">memory</span>
+<span>AI 进程</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-[#EEEEEC] transition-colors" href="#">
+<span class="material-symbols-outlined">verified_user</span>
+<span>合规性</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-[#EEEEEC] transition-colors" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span>财务归档</span>
+</a>
+</nav>
+</div>
+<div class="mt-auto p-6 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-[#EEEEEC] transition-colors" href="#">
+<span class="material-symbols-outlined">help</span>
+<span>帮助中心</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-[#EEEEEC] transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span>退出登录</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:pl-64 pt-14 pb-10 min-h-screen bg-background">
+<!-- Header Section -->
+<section class="px-8 py-8 bg-[#F9F9F7]">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<span class="text-[11px] font-bold text-[#003A70] tracking-[0.2em] uppercase block mb-2 font-body">DASHBOARD</span>
+<h1 class="text-[1.5rem] font-extrabold font-headline leading-none text-primary">月度仪表盘</h1>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center bg-surface-container h-10 px-1">
+<button class="p-2 hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-[18px]">chevron_left</span></button>
+<span class="px-4 text-sm font-bold font-headline">2026年3月</span>
+<button class="p-2 hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-[18px]">chevron_right</span></button>
+</div>
+<button class="bg-gradient-to-br from-primary to-primary-container text-white px-6 h-10 text-sm font-bold tracking-tight hover:opacity-90 transition-opacity">
+                        导出报告
+                    </button>
+</div>
+</div>
+</section>
+<!-- KPI Strip -->
+<section class="px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+<div class="bg-surface-container-lowest p-6 border-none">
+<p class="text-xs text-slate-500 font-bold mb-4">服务客户</p>
+<div class="flex items-baseline gap-3">
+<span class="text-[2.5rem] font-extrabold font-headline text-primary leading-none">128</span>
+<span class="text-[12px] font-bold text-status-green font-body">较上月 +5</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 border-none">
+<p class="text-xs text-slate-500 font-bold mb-4">本月收入</p>
+<div class="flex items-baseline gap-3">
+<span class="text-[2rem] font-extrabold font-headline text-status-gold leading-none tabular-nums">¥458,320.00</span>
+<span class="text-[12px] font-bold text-status-green font-body">+12.3%</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 border-none">
+<p class="text-xs text-slate-500 font-bold mb-4">待处理发票</p>
+<div class="flex items-baseline gap-3">
+<span class="text-[2rem] font-extrabold font-headline text-primary leading-none tabular-nums">342<span class="text-base font-medium ml-1">张</span></span>
+<span class="text-[12px] font-bold text-status-green font-body">-8%</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 border-none">
+<p class="text-xs text-slate-500 font-bold mb-4">合规风险</p>
+<div class="flex items-baseline gap-3">
+<span class="text-[2rem] font-extrabold font-headline text-status-red leading-none tabular-nums">3<span class="text-base font-medium ml-1">项</span></span>
+<span class="text-[12px] font-bold text-status-red font-body">+1</span>
+</div>
+</div>
+</section>
+<!-- Layout Grid 60/40 -->
+<div class="px-8 grid grid-cols-1 lg:grid-cols-10 gap-8">
+<!-- Left Side (60%) -->
+<div class="lg:col-span-6 space-y-8">
+<!-- Bar Chart Section -->
+<div class="bg-surface-container-lowest p-8">
+<h3 class="text-sm font-bold font-headline mb-8 uppercase tracking-widest text-slate-500">月度收入趋势 (Revenue Trend)</h3>
+<div class="h-64 flex items-end justify-between gap-2">
+<!-- Chart Bars -->
+<div class="flex-1 flex flex-col items-center gap-4 group">
+<span class="text-[10px] font-bold tabular-nums text-primary opacity-0 group-hover:opacity-100 transition-opacity">320k</span>
+<div class="w-full bg-surface-container h-32 hover:bg-primary transition-colors cursor-pointer"></div>
+<span class="text-[11px] font-bold text-slate-400">10月</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-4 group">
+<span class="text-[10px] font-bold tabular-nums text-primary opacity-0 group-hover:opacity-100 transition-opacity">355k</span>
+<div class="w-full bg-surface-container h-36 hover:bg-primary transition-colors cursor-pointer"></div>
+<span class="text-[11px] font-bold text-slate-400">11月</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-4 group">
+<span class="text-[10px] font-bold tabular-nums text-primary opacity-0 group-hover:opacity-100 transition-opacity">310k</span>
+<div class="w-full bg-surface-container h-28 hover:bg-primary transition-colors cursor-pointer"></div>
+<span class="text-[11px] font-bold text-slate-400">12月</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-4 group">
+<span class="text-[10px] font-bold tabular-nums text-primary opacity-0 group-hover:opacity-100 transition-opacity">390k</span>
+<div class="w-full bg-surface-container h-44 hover:bg-primary transition-colors cursor-pointer"></div>
+<span class="text-[11px] font-bold text-slate-400">1月</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-4 group">
+<span class="text-[10px] font-bold tabular-nums text-primary opacity-0 group-hover:opacity-100 transition-opacity">408k</span>
+<div class="w-full bg-surface-container h-48 hover:bg-primary transition-colors cursor-pointer"></div>
+<span class="text-[11px] font-bold text-slate-400">2月</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-4 group">
+<span class="text-[10px] font-bold tabular-nums text-status-gold">458k</span>
+<div class="w-full bg-status-gold h-56"></div>
+<span class="text-[11px] font-bold text-primary">3月</span>
+</div>
+</div>
+</div>
+<!-- Customer Type Table -->
+<div class="bg-surface-container-lowest overflow-hidden">
+<div class="px-8 py-6 bg-surface-container">
+<h3 class="text-sm font-bold font-headline uppercase tracking-widest text-primary">客户类型分布</h3>
+</div>
+<div class="p-8">
+<div class="space-y-8">
+<div>
+<div class="flex justify-between items-center mb-4">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 bg-primary"></div>
+<span class="text-sm font-bold">一般纳税人</span>
+</div>
+<span class="text-sm tabular-nums font-bold">86家 <span class="text-slate-400 ml-2">67.2%</span></span>
+</div>
+<div class="w-full bg-surface-container h-2">
+<div class="bg-primary h-full" style="width: 67.2%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center mb-4">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 bg-status-gold"></div>
+<span class="text-sm font-bold">小规模纳税人</span>
+</div>
+<span class="text-sm tabular-nums font-bold">42家 <span class="text-slate-400 ml-2">32.8%</span></span>
+</div>
+<div class="w-full bg-surface-container h-2">
+<div class="bg-status-gold h-full" style="width: 32.8%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Side (40%) -->
+<div class="lg:col-span-4 space-y-8">
+<!-- To-Do List -->
+<div class="bg-surface-container-lowest">
+<div class="px-8 py-6 border-b border-surface-container-low">
+<h3 class="text-sm font-bold font-headline uppercase tracking-widest text-primary">待办事项</h3>
+</div>
+<div class="divide-y divide-surface-container-low">
+<div class="px-8 py-4 flex items-center gap-4 hover:bg-surface-container-low transition-colors">
+<div class="w-2 h-2 bg-status-red shrink-0"></div>
+<span class="text-sm font-medium">3月增值税申报</span>
+<span class="ml-auto text-[10px] font-bold text-status-red uppercase">紧急</span>
+</div>
+<div class="px-8 py-4 flex items-center gap-4 hover:bg-surface-container-low transition-colors">
+<div class="w-2 h-2 bg-status-red shrink-0"></div>
+<span class="text-sm font-medium">企业所得税季报</span>
+<span class="ml-auto text-[10px] font-bold text-status-red uppercase">紧急</span>
+</div>
+<div class="px-8 py-4 flex items-center gap-4 hover:bg-surface-container-low transition-colors">
+<div class="w-2 h-2 bg-[#F6BC65] shrink-0"></div>
+<span class="text-sm font-medium">社保基数年审</span>
+<span class="ml-auto text-[10px] font-bold text-[#614000] uppercase">处理中</span>
+</div>
+<div class="px-8 py-4 flex items-center gap-4 hover:bg-surface-container-low transition-colors">
+<div class="w-2 h-2 bg-secondary shrink-0"></div>
+<span class="text-sm font-medium">新客户建账</span>
+<span class="ml-auto text-[10px] font-bold text-secondary uppercase">排队</span>
+</div>
+<div class="px-8 py-4 flex items-center gap-4 hover:bg-surface-container-low transition-colors">
+<div class="w-2 h-2 bg-status-green shrink-0"></div>
+<span class="text-sm font-medium text-slate-400 line-through">2月凭证复核</span>
+<span class="ml-auto text-[10px] font-bold text-status-green uppercase">已完成</span>
+</div>
+</div>
+</div>
+<!-- AI Processing Overview -->
+<div class="bg-surface-container-low p-8">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary">memory</span>
+<h3 class="text-sm font-bold font-headline uppercase tracking-widest text-primary">AI 处理概览</h3>
+</div>
+<div class="space-y-6">
+<div class="flex justify-between items-end border-b-2 border-outline-variant/10 pb-4">
+<div>
+<p class="text-[10px] text-slate-500 font-bold uppercase mb-1">今日自动生成凭证</p>
+<p class="text-2xl font-black font-headline tabular-nums">45<span class="text-sm font-medium ml-1">笔</span></p>
+</div>
+<div class="w-16 h-8 flex items-end gap-1">
+<div class="bg-primary/20 w-full h-[40%]"></div>
+<div class="bg-primary/20 w-full h-[60%]"></div>
+<div class="bg-primary/20 w-full h-[30%]"></div>
+<div class="bg-primary w-full h-[90%]"></div>
+</div>
+</div>
+<div class="flex justify-between items-end">
+<div>
+<p class="text-[10px] text-slate-500 font-bold uppercase mb-1">AI 准确率</p>
+<p class="text-2xl font-black font-headline tabular-nums text-status-green">97.8%</p>
+</div>
+<span class="text-[10px] font-bold text-status-green border border-status-green px-2 py-1">稳健</span>
+</div>
+<div class="pt-4">
+<p class="text-[10px] leading-relaxed text-slate-500 font-medium">AI 审计节点正常运行。系统已自动识别 12 笔潜在的重复报销，正在等待人工二次确认。</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Shared Component) -->
+<footer class="bg-[#00244A] dark:bg-black text-[#C5913E] dark:text-[#C5913E] font-['Inter'] tabular-nums text-[11px] font-semibold uppercase tracking-widest fixed bottom-0 left-0 w-full flex justify-between items-center px-10 border-t-0 h-10 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-2 text-white">
+<span class="material-symbols-outlined text-[16px]">person</span>
+<span>活跃客户: 128</span>
+</div>
+<div class="flex items-center gap-2 text-white">
+<span class="material-symbols-outlined text-[16px]">speed</span>
+<span>本月凭证: 1,247笔</span>
+</div>
+</div>
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-2 text-status-gold">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span>收入合计: ¥458,320.00</span>
+</div>
+<div class="flex items-center gap-2 text-status-gold">
+<span class="material-symbols-outlined text-[16px]">memory</span>
+<span>AI 处理率: 96.2%</span>
+</div>
+</div>
+</footer>
+</body></html>

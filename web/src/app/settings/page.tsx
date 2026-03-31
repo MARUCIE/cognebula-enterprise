@@ -1,714 +1,490 @@
 "use client";
 
-/* System Settings -- "系统设置"
-   Layout reference: design/stitch-export/stitch/system_settings/screen.png
-   Firm profile + AI behavior + team RBAC + subscription */
+// Design: design/settings/settings.html (Stitch Heritage Monolith)
+// Architecture: .stitch/DESIGN.md — Zero-Radius, Zero-Shadow, Tonal Layering
+// Route: /settings
 
 import { useState } from "react";
-import { ToastButton } from "../components/ToastButton";
-import { useToast } from "../components/Toast";
 
-const TEAM_MEMBERS = [
-  {
-    initials: "LZ",
-    name: "林昭",
-    email: "lin.zhao@lingque.ai",
-    role: "超级管理员",
-    roleAccent: true,
-    lastActive: "2 分钟前",
-  },
-  {
-    initials: "WM",
-    name: "王美龄",
-    email: "meiling.w@lingque.ai",
-    role: "审计主管",
-    roleAccent: false,
-    lastActive: "1 小时前",
-  },
-  {
-    initials: "KJ",
-    name: "孔杰",
-    email: "jie.kong@lingque.ai",
-    role: "初级审计师",
-    roleAccent: false,
-    lastActive: "昨天 18:42",
-  },
-  {
-    initials: "ZQ",
-    name: "张琦",
-    email: "qi.zhang@lingque.ai",
-    role: "税务专员",
-    roleAccent: false,
-    lastActive: "3 天前",
-  },
+// ── Settings nav sections ──────────────────────────────────────────────────
+
+type SettingsSection =
+  | "chart-of-accounts"
+  | "voucher-templates"
+  | "tax-rates"
+  | "filing-calendar"
+  | "team"
+  | "ai-engine"
+  | "backup";
+
+interface NavItem {
+  id: SettingsSection;
+  label: string;
+  icon: React.ReactNode;
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { id: "chart-of-accounts", label: "科目表管理", icon: <WalletIcon /> },
+  { id: "voucher-templates", label: "凭证模板", icon: <ReceiptIcon /> },
+  { id: "tax-rates", label: "税率配置", icon: <PercentIcon /> },
+  { id: "filing-calendar", label: "申报日历", icon: <CalendarIcon /> },
+  { id: "team", label: "团队管理", icon: <PeopleIcon /> },
+  { id: "ai-engine", label: "AI 引擎", icon: <AiIcon /> },
+  { id: "backup", label: "数据备份", icon: <BackupIcon /> },
 ];
 
-const INITIAL_TOGGLE_STATES: Record<string, boolean> = {
-  "ai-auto-compliance": true,
+// ── Chart of Accounts data (demo) ──────────────────────────────────────────
+
+type AccountCategory = "asset" | "liability" | "pnl";
+
+interface Account {
+  code: string;
+  name: string;
+  category: AccountCategory;
+  direction: string;
+  enabled: boolean;
+  indent: boolean;
+}
+
+const ACCOUNTS: Account[] = [
+  { code: "1001", name: "库存现金", category: "asset", direction: "借", enabled: true, indent: false },
+  { code: "1002", name: "银行存款", category: "asset", direction: "借", enabled: true, indent: false },
+  { code: "1002001", name: "工商银行", category: "asset", direction: "借", enabled: true, indent: true },
+  { code: "1002002", name: "建设银行", category: "asset", direction: "借", enabled: true, indent: true },
+  { code: "1122", name: "应收账款", category: "asset", direction: "借", enabled: true, indent: false },
+  { code: "2001", name: "短期借款", category: "liability", direction: "贷", enabled: true, indent: false },
+  { code: "5001", name: "主营业务收入", category: "pnl", direction: "贷", enabled: true, indent: false },
+  { code: "6001", name: "管理费用", category: "pnl", direction: "借", enabled: true, indent: false },
+];
+
+const CATEGORY_STYLE: Record<AccountCategory, { bg: string; color: string; label: string }> = {
+  asset: { bg: "#FDF6EB", color: "#8C6D1F", label: "资产" },
+  liability: { bg: "var(--color-surface-container)", color: "var(--color-text-secondary)", label: "负债" },
+  pnl: { bg: "#D5E3FF", color: "#3D5981", label: "损益" },
 };
 
+// ── Component ──────────────────────────────────────────────────────────────
+
 export default function SettingsPage() {
-  const [toggleStates, setToggleStates] = useState<Record<string, boolean>>(INITIAL_TOGGLE_STATES);
-  const toast = useToast();
-
-  const handleToggle = (id: string) => {
-    setToggleStates((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  const handleSave = () => {
-    toast("所有设置已保存并生效", "success");
-  };
-
-  const handleCancel = () => {
-    setToggleStates(INITIAL_TOGGLE_STATES);
-    toast("已恢复为默认设置", "info");
-  };
+  const [activeSection, setActiveSection] = useState<SettingsSection>("chart-of-accounts");
+  const [searchQuery, setSearchQuery] = useState("");
 
   return (
-    <div style={{ paddingBottom: "var(--space-8)" }}>
-      {/* ── Section 1: Firm Profile ── */}
-      <SettingsSection
-        title="事务所概况"
-        description="管理您的机构基本信息，这些信息将出现在所有生成的财务报告与审计声明中。"
-      >
-        <div
-          style={{
-            padding: "var(--space-8)",
-            borderRadius: "var(--radius-md)",
-            background: "var(--color-surface-container-lowest)",
-            boxShadow: "var(--shadow-sm)",
-          }}
-        >
-          {/* Logo + brand row */}
-          <div
-            className="flex items-center gap-6"
-            style={{ marginBottom: "var(--space-6)" }}
-          >
-            <div
-              className="flex items-center justify-center shrink-0 font-display font-bold"
-              style={{
-                width: 80,
-                height: 80,
-                borderRadius: "var(--radius-md)",
-                background: "var(--color-surface-container-low)",
-                color: "var(--color-primary)",
-                fontSize: 28,
-              }}
-            >
-              灵
-            </div>
-            <div>
-              <h3
-                className="font-display font-bold"
-                style={{ fontSize: 14, color: "var(--color-primary)" }}
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "calc(100vh - var(--topbar-height))" }}>
+      {/* Page Header */}
+      <section style={{ background: "var(--color-surface)", padding: "var(--space-6) var(--space-8)" }}>
+        <div style={{ marginBottom: "var(--space-2)" }}>
+          <span style={{
+            fontSize: 11,
+            color: "var(--color-primary)",
+            fontWeight: 700,
+            letterSpacing: "2px",
+            textTransform: "uppercase" as const,
+            fontFamily: "var(--font-body)",
+          }}>
+            SETTINGS
+          </span>
+        </div>
+        <h1 style={{
+          fontSize: "1.5rem",
+          fontWeight: 800,
+          color: "var(--color-text-primary)",
+          fontFamily: "var(--font-display)",
+        }}>
+          系统设置
+        </h1>
+      </section>
+
+      {/* Main Content: 25/75 split */}
+      <section style={{ display: "flex", flex: 1, padding: "0 var(--space-8) var(--space-8)", gap: 0 }}>
+        {/* LEFT: Settings Nav (25%) */}
+        <div style={{
+          width: "25%",
+          background: "var(--color-surface-container-low)",
+          display: "flex",
+          flexDirection: "column",
+        }}>
+          {NAV_ITEMS.map((item) => {
+            const isActive = item.id === activeSection;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveSection(item.id)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "var(--space-4) var(--space-6)",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  border: "none",
+                  cursor: "pointer",
+                  textAlign: "left" as const,
+                  background: isActive ? "var(--color-primary)" : "transparent",
+                  color: isActive ? "#fff" : "var(--color-primary)",
+                  transition: "background 0.15s, color 0.15s",
+                }}
               >
-                品牌标识
-              </h3>
-              <p style={{ fontSize: 11, color: "var(--color-text-tertiary)", marginTop: 4 }}>
-                建议上传 500x500px PNG 或 SVG 文件
-              </p>
-            </div>
-          </div>
-
-          {/* Form fields in 2-column grid */}
-          <div
-            className="grid gap-6"
-            style={{ gridTemplateColumns: "1fr 1fr" }}
-          >
-            <FormField label="机构全称" value="灵阙财税科技有限公司" />
-            <FormField label="法定代表人" value="张明远" />
-            <FormField label="统一社会信用代码" value="91310115MA1K4R8X2U" />
-            <FormField label="注册地址" value="上海市浦东新区金融大道 88 号 22 层" />
-          </div>
-        </div>
-      </SettingsSection>
-
-      {/* ── Section 2: AI Behavior Config ── */}
-      <SettingsSection
-        title="AI 行为配置"
-        description="自定义 AI 助手的审计严谨度与自动化程度。这些设置将直接影响初稿生成的逻辑。"
-        aiGlow
-      >
-        <div
-          style={{
-            padding: "var(--space-8)",
-            borderRadius: "var(--radius-md)",
-            background: "var(--glass-bg)",
-            backdropFilter: "blur(var(--glass-blur))",
-            boxShadow: "var(--shadow-sm)",
-            position: "relative",
-            overflow: "hidden",
-          }}
-        >
-          {/* Top gradient accent */}
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: 2,
-              background: "linear-gradient(90deg, var(--color-secondary), var(--color-primary))",
-            }}
-          />
-
-          <div className="flex flex-col gap-8" style={{ paddingTop: "var(--space-2)" }}>
-            {/* Risk Sensitivity slider */}
-            <SliderControl
-              label="风险敏感度 (Risk Sensitivity)"
-              value={85}
-              valueLabel="85% - 极其严格"
-              description="高敏感度将捕捉所有微小的财报差异，并自动标记为待核查项。"
-              accentColor="var(--color-primary)"
-            />
-
-            {/* Automation Level slider */}
-            <SliderControl
-              label="全自动化水平 (Automation Level)"
-              value={60}
-              valueLabel="60% - 协作模式"
-              description="中等自动化下，AI 将完成 80% 的凭证比对，但最终合并报表需人工点击确认。"
-              accentColor="var(--color-secondary)"
-            />
-
-            {/* Toggle: AI auto compliance */}
-            <div
-              className="flex items-center justify-between"
-              style={{
-                padding: "var(--space-4)",
-                borderRadius: "var(--radius-sm)",
-                background: "var(--color-surface-container-low)",
-              }}
-            >
-              <div className="flex items-center gap-3">
-                <AiSparkIcon />
-                <span className="font-medium" style={{ fontSize: 13 }}>
-                  开启 AI 自动合规性纠错
+                <span style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+                  {item.icon}
+                  {item.label}
                 </span>
+                {isActive && <ChevronRightIcon />}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* RIGHT: Content Area (75%) */}
+        <div style={{
+          width: "75%",
+          background: "var(--color-surface-container-lowest)",
+          display: "flex",
+          flexDirection: "column",
+        }}>
+          {/* Content Header */}
+          <div style={{ padding: "var(--space-6)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "var(--space-6)" }}>
+              <div>
+                <h2 style={{
+                  fontSize: "1.25rem",
+                  fontWeight: 700,
+                  fontFamily: "var(--font-display)",
+                  color: "var(--color-primary)",
+                  marginBottom: "var(--space-1)",
+                }}>
+                  科目表管理
+                </h2>
+                <p style={{ fontSize: 12, color: "var(--color-text-tertiary)", fontFamily: "var(--font-body)" }}>
+                  一级科目: <b style={{ fontVariantNumeric: "tabular-nums" }}>68</b> | 明细科目: <b style={{ fontVariantNumeric: "tabular-nums" }}>284</b>
+                </p>
               </div>
-              <ToggleSwitch id="ai-auto-compliance" on={!!toggleStates["ai-auto-compliance"]} onToggle={handleToggle} />
+              <div style={{ display: "flex", gap: "var(--space-3)" }}>
+                <button style={{
+                  background: "var(--color-surface-container)",
+                  color: "var(--color-primary)",
+                  padding: "var(--space-2) var(--space-6)",
+                  fontWeight: 700,
+                  fontSize: 12,
+                  fontFamily: "var(--font-display)",
+                  border: "none",
+                  cursor: "pointer",
+                }}>
+                  导入
+                </button>
+                <button style={{
+                  background: "var(--gradient-cta)",
+                  color: "#fff",
+                  padding: "var(--space-2) var(--space-6)",
+                  fontWeight: 700,
+                  fontSize: 12,
+                  fontFamily: "var(--font-display)",
+                  border: "none",
+                  cursor: "pointer",
+                }}>
+                  新增科目
+                </button>
+              </div>
+            </div>
+
+            {/* Search */}
+            <div style={{ position: "relative", marginBottom: "var(--space-8)" }}>
+              <label style={{
+                display: "block",
+                fontSize: 10,
+                fontWeight: 700,
+                color: "var(--color-text-tertiary)",
+                textTransform: "uppercase" as const,
+                marginBottom: "var(--space-1)",
+                paddingLeft: "var(--space-1)",
+              }}>
+                Search Database
+              </label>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="搜索科目编码或名称..."
+                style={{
+                  width: "100%",
+                  background: "transparent",
+                  border: "none",
+                  borderBottom: "2px solid var(--color-surface-container)",
+                  padding: "var(--space-2) var(--space-1)",
+                  fontSize: 13,
+                  fontFamily: "var(--font-body)",
+                  color: "var(--color-text-primary)",
+                  outline: "none",
+                }}
+              />
+              <div style={{ position: "absolute", right: "var(--space-2)", bottom: "var(--space-2)" }}>
+                <SearchIcon />
+              </div>
+            </div>
+
+            {/* Table */}
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", textAlign: "left", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr style={{ background: "var(--color-surface-container)" }}>
+                    {["科目编码", "科目名称", "类别", "余额方向", "状态", "操作"].map((h, i) => (
+                      <th key={h} style={{
+                        padding: "var(--space-4)",
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: "var(--color-primary)",
+                        letterSpacing: "1.5px",
+                        textTransform: "uppercase" as const,
+                        fontFamily: "var(--font-display)",
+                        textAlign: i === 5 ? "right" as const : "left" as const,
+                        ...(i === 0 ? { width: 128 } : {}),
+                      }}>
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody style={{ fontSize: 13, fontFamily: "var(--font-body)" }}>
+                  {ACCOUNTS.filter((a) => {
+                    if (!searchQuery) return true;
+                    const q = searchQuery.toLowerCase();
+                    return a.code.includes(q) || a.name.toLowerCase().includes(q);
+                  }).map((account, i) => {
+                    const cat = CATEGORY_STYLE[account.category];
+                    const isEven = i % 2 === 0;
+                    return (
+                      <tr
+                        key={account.code}
+                        style={{
+                          height: 48,
+                          background: isEven
+                            ? "var(--color-surface-container-lowest)"
+                            : "var(--color-surface-container-low)",
+                          transition: "background 0.15s",
+                        }}
+                      >
+                        {/* Code */}
+                        <td style={{
+                          padding: "0 var(--space-4)",
+                          fontVariantNumeric: "tabular-nums",
+                          fontWeight: account.indent ? 500 : 600,
+                          color: account.indent ? "var(--color-text-tertiary)" : "var(--color-text-primary)",
+                          paddingLeft: account.indent ? "var(--space-8)" : "var(--space-4)",
+                        }}>
+                          {account.code}
+                        </td>
+                        {/* Name */}
+                        <td style={{
+                          padding: "0 var(--space-4)",
+                          color: account.indent ? "var(--color-text-secondary)" : "var(--color-text-primary)",
+                          paddingLeft: account.indent ? "var(--space-12)" : "var(--space-4)",
+                        }}>
+                          {account.name}
+                        </td>
+                        {/* Category Badge */}
+                        <td style={{ padding: "0 var(--space-4)" }}>
+                          <span style={{
+                            background: cat.bg,
+                            color: cat.color,
+                            padding: "2px 8px",
+                            fontSize: 11,
+                            fontWeight: 700,
+                          }}>
+                            {cat.label}
+                          </span>
+                        </td>
+                        {/* Direction */}
+                        <td style={{ padding: "0 var(--space-4)" }}>
+                          {account.direction}
+                        </td>
+                        {/* Status */}
+                        <td style={{ padding: "0 var(--space-4)" }}>
+                          <span style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "var(--space-1)",
+                            fontWeight: 700,
+                            color: "#1B7A4E",
+                          }}>
+                            <span style={{
+                              width: 6,
+                              height: 6,
+                              background: "#1B7A4E",
+                              display: "inline-block",
+                              flexShrink: 0,
+                            }} />
+                            启用
+                          </span>
+                        </td>
+                        {/* Actions */}
+                        <td style={{ padding: "0 var(--space-4)", textAlign: "right" }}>
+                          <button style={{
+                            color: "var(--color-primary)",
+                            fontWeight: 700,
+                            textDecoration: "underline",
+                            textUnderlineOffset: 4,
+                            textDecorationThickness: 2,
+                            fontSize: 12,
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                          }}>
+                            编辑
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
-        </div>
-      </SettingsSection>
 
-      {/* ── Section 3: Team & Permissions ── */}
-      <SettingsSection
-        title="团队与权限"
-        description="管理机构成员及其在平台内的操作权限。使用角色预设来快速分配职责。"
-        action={
-          <ToastButton
-            message="成员邀请功能即将上线"
-            type="info"
-            className="flex items-center gap-2 font-bold"
-            style={{
-              marginTop: "var(--space-4)",
-              fontSize: 13,
-              color: "var(--color-primary)",
-            }}
-          >
-            <PersonAddIcon /> 邀请新成员
-          </ToastButton>
-        }
-      >
-        <div
-          style={{
-            borderRadius: "var(--radius-md)",
-            overflow: "hidden",
-            boxShadow: "var(--shadow-sm)",
-          }}
-        >
-          {/* Table header -- No-Line Rule: background color shift */}
-          <div
-            className="grid items-center"
-            style={{
-              gridTemplateColumns: "1.5fr 1fr 1fr 80px",
-              padding: "12px 20px",
-              background: "var(--color-surface-container-low)",
+          {/* Statistics Footer (tonal shift) */}
+          <div style={{
+            marginTop: "auto",
+            background: "var(--color-surface-container-low)",
+            padding: "var(--space-6)",
+            display: "flex",
+            gap: "var(--space-12)",
+            fontSize: 12,
+            fontWeight: 600,
+            fontFamily: "var(--font-body)",
+            color: "var(--color-text-secondary)",
+          }}>
+            {[
+              { color: "#FDF6EB", label: "资产类", count: "32" },
+              { color: "var(--color-surface-container)", label: "负债类", count: "12" },
+              { color: "#D5E3FF", label: "权益类", count: "6" },
+              { color: "#D5E3FF", label: "损益类", count: "18" },
+            ].map((stat) => (
+              <div key={stat.label} style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+                <span style={{ width: 8, height: 8, background: stat.color, display: "inline-block", flexShrink: 0 }} />
+                {stat.label}: <span style={{ color: "var(--color-primary)", fontWeight: 700, fontVariantNumeric: "tabular-nums", marginLeft: "var(--space-1)" }}>{stat.count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Bottom Status Strip */}
+      <footer style={{
+        height: 48,
+        background: "var(--color-primary-deep)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: "0 var(--space-8)",
+      }}>
+        <div style={{ display: "flex", gap: "var(--space-8)" }}>
+          {[
+            { label: "科目总数:", value: "284", accent: false },
+            { label: "启用:", value: "276", accent: false },
+            { label: "停用:", value: "8", accent: true },
+          ].map((item) => (
+            <div key={item.label} style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "var(--space-2)",
               fontSize: 11,
               fontWeight: 700,
-              color: "var(--color-text-secondary)",
-            }}
-          >
-            <span>成员</span>
-            <span>当前角色</span>
-            <span>最后活跃</span>
-            <span style={{ textAlign: "right" }}>操作</span>
-          </div>
-
-          {/* Table rows */}
-          {TEAM_MEMBERS.map((member, i) => (
-            <div
-              key={member.email}
-              className="grid items-center table-row-hover"
-              style={{
-                gridTemplateColumns: "1.5fr 1fr 1fr 80px",
-                padding: "14px 20px",
-                background: i % 2 === 0
-                  ? "var(--color-surface-container-lowest)"
-                  : "var(--color-surface)",
-                fontSize: 13,
-              }}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className="flex items-center justify-center shrink-0 font-bold"
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: "50%",
-                    background: "var(--color-surface-container)",
-                    color: member.roleAccent ? "var(--color-primary)" : "var(--color-text-secondary)",
-                    fontSize: 11,
-                  }}
-                >
-                  {member.initials}
-                </div>
-                <div>
-                  <span
-                    className="font-semibold"
-                    style={{ fontSize: 13, color: "var(--color-text-primary)", display: "block" }}
-                  >
-                    {member.name}
-                  </span>
-                  <span style={{ fontSize: 10, color: "var(--color-text-tertiary)" }}>
-                    {member.email}
-                  </span>
-                </div>
-              </div>
-              <span>
-                <span
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 700,
-                    padding: "3px 8px",
-                    borderRadius: "var(--radius-sm)",
-                    background: member.roleAccent
-                      ? "var(--color-primary-fixed)"
-                      : "var(--color-surface-container)",
-                    color: member.roleAccent
-                      ? "var(--color-primary-deep)"
-                      : "var(--color-text-secondary)",
-                  }}
-                >
-                  {member.role}
-                </span>
-              </span>
-              <span style={{ fontSize: 12, color: "var(--color-text-tertiary)" }}>
-                {member.lastActive}
-              </span>
-              <span style={{ textAlign: "right" }}>
-                <MoreIcon />
-              </span>
+              letterSpacing: "1.5px",
+              fontFamily: "var(--font-display)",
+              color: item.accent ? "var(--color-secondary)" : "#fff",
+            }}>
+              <span style={{ opacity: item.accent ? 1 : 0.5 }}>{item.label}</span>
+              <span style={{ fontVariantNumeric: "tabular-nums" }}>{item.value}</span>
             </div>
           ))}
         </div>
-      </SettingsSection>
-
-      {/* ── Section 4: Subscription ── */}
-      <SettingsSection
-        title="服务订阅"
-        description="管理您的 AI 算力额度与订阅方案。订阅将在 2024 年 12 月 31 日到期。"
-      >
-        <div
-          className="flex items-center justify-between"
-          style={{
-            padding: "var(--space-8)",
-            borderRadius: "var(--radius-md)",
-            background: "var(--color-primary)",
-            color: "var(--color-on-primary)",
-            boxShadow: "var(--shadow-ambient)",
-          }}
-        >
-          {/* Left: plan info */}
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-3">
-              <CrownIcon />
-              <span
-                className="font-display font-bold"
-                style={{ fontSize: 16 }}
-              >
-                企业尊享版 (Pro Plus)
-              </span>
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span
-                className="font-display font-extrabold"
-                style={{ fontSize: 28, color: "var(--color-secondary)" }}
-              >
-                &yen;2,999
-              </span>
-              <span style={{ fontSize: 12, opacity: 0.6 }}>/ 月</span>
-            </div>
-            <div className="flex gap-4">
-              <div
-                style={{
-                  padding: "var(--space-2) var(--space-3)",
-                  borderRadius: "var(--radius-sm)",
-                  background: "rgba(255, 255, 255, 0.1)",
-                }}
-              >
-                <div style={{ fontSize: 10, opacity: 0.6, marginBottom: 2 }}>剩余算力</div>
-                <div className="font-bold tabular-nums" style={{ fontSize: 13 }}>
-                  1,240,000 Tokens
-                </div>
-              </div>
-              <div
-                style={{
-                  padding: "var(--space-2) var(--space-3)",
-                  borderRadius: "var(--radius-sm)",
-                  background: "rgba(255, 255, 255, 0.1)",
-                }}
-              >
-                <div style={{ fontSize: 10, opacity: 0.6, marginBottom: 2 }}>审计席位</div>
-                <div className="font-bold tabular-nums" style={{ fontSize: 13 }}>
-                  12 / 20 个
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right: action buttons */}
-          <div className="flex flex-col gap-3">
-            <ToastButton
-              message="续费流程即将上线"
-              type="info"
-              className="font-bold"
-              style={{
-                fontSize: 13,
-                padding: "10px 28px",
-                borderRadius: "var(--radius-sm)",
-                background: "var(--color-secondary)",
-                color: "var(--color-text-primary)",
-              }}
-            >
-              立即续费
-            </ToastButton>
-            <ToastButton
-              message="账单历史即将上线"
-              type="info"
-              className="font-medium"
-              style={{
-                fontSize: 13,
-                padding: "10px 28px",
-                borderRadius: "var(--radius-sm)",
-                background: "transparent",
-                color: "var(--color-on-primary)",
-                border: "1px solid rgba(255, 255, 255, 0.2)",
-              }}
-            >
-              账单历史
-            </ToastButton>
-          </div>
+        <div style={{
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: "1.5px",
+          fontFamily: "var(--font-display)",
+          color: "#fff",
+          display: "flex",
+          alignItems: "center",
+          gap: "var(--space-2)",
+        }}>
+          <span style={{ opacity: 0.5, textTransform: "uppercase" as const }}>Last Synchronization:</span>
+          <span style={{ fontVariantNumeric: "tabular-nums" }}>2026-03-28 14:30:12</span>
         </div>
-      </SettingsSection>
-
-      {/* ── Footer actions ── */}
-      <div
-        className="flex justify-end gap-4"
-        style={{ paddingTop: "var(--space-8)" }}
-      >
-        <button
-          className="font-bold"
-          style={{
-            fontSize: 13,
-            padding: "10px 24px",
-            borderRadius: "var(--radius-sm)",
-            color: "var(--color-text-secondary)",
-            background: "transparent",
-          }}
-          onClick={handleCancel}
-        >
-          取消更改
-        </button>
-        <button
-          className="font-bold"
-          style={{
-            fontSize: 13,
-            padding: "10px 28px",
-            borderRadius: "var(--radius-sm)",
-            background: "var(--color-primary)",
-            color: "var(--color-on-primary)",
-            boxShadow: "var(--shadow-sm)",
-          }}
-          onClick={handleSave}
-        >
-          保存并应用所有设置
-        </button>
-      </div>
-
-      {/* Footer */}
-      <footer
-        className="text-center"
-        style={{
-          padding: "var(--space-12) 0 var(--space-8)",
-          color: "var(--color-text-tertiary)",
-          fontSize: 12,
-        }}
-      >
-        <p>安全加密数据环境 -- 灵阙 AI 引擎 V2.4</p>
-        <p style={{ marginTop: 4, opacity: 0.7 }}>&copy; 2024 灵阙财税科技. All rights reserved.</p>
       </footer>
     </div>
   );
 }
 
-/* ================================================================
-   Sub-components (co-located, settings-specific)
-   ================================================================ */
+// ── Inline SVG icons (no external dependency) ─────────────────────────────
 
-function SettingsSection({
-  title,
-  description,
-  children,
-  aiGlow,
-  action,
-}: {
-  title: string;
-  description: string;
-  children: React.ReactNode;
-  aiGlow?: boolean;
-  action?: React.ReactNode;
-}) {
+function WalletIcon() {
   return (
-    <section
-      className="grid gap-6"
-      style={{
-        gridTemplateColumns: "280px 1fr",
-        marginBottom: "var(--space-8)",
-        alignItems: "start",
-      }}
-    >
-      <div>
-        <div className="flex items-center gap-2" style={{ marginBottom: "var(--space-2)" }}>
-          <h2
-            className="font-display font-bold"
-            style={{ fontSize: 20, color: "var(--color-text-primary)" }}
-          >
-            {title}
-          </h2>
-          {aiGlow && (
-            <span
-              className="ai-glow"
-              style={{
-                display: "inline-block",
-                width: 7,
-                height: 7,
-                borderRadius: "50%",
-                background: "var(--color-primary-fixed)",
-              }}
-            />
-          )}
-        </div>
-        <p
-          style={{
-            fontSize: 13,
-            color: "var(--color-text-secondary)",
-            lineHeight: 1.75,
-          }}
-        >
-          {description}
-        </p>
-        {action}
-      </div>
-      <div>{children}</div>
-    </section>
-  );
-}
-
-function FormField({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <label
-        style={{
-          display: "block",
-          fontSize: 11,
-          fontWeight: 700,
-          color: "var(--color-text-secondary)",
-          marginBottom: "var(--space-1)",
-        }}
-      >
-        {label}
-      </label>
-      <input
-        type="text"
-        defaultValue={value}
-        className="font-body"
-        style={{
-          width: "100%",
-          fontSize: 13,
-          padding: "8px 0",
-          color: "var(--color-text-primary)",
-          background: "transparent",
-          border: "none",
-          borderBottom: "1.5px solid var(--color-surface-container)",
-          outline: "none",
-        }}
-      />
-    </div>
-  );
-}
-
-function SliderControl({
-  label,
-  value,
-  valueLabel,
-  description,
-  accentColor,
-}: {
-  label: string;
-  value: number;
-  valueLabel: string;
-  description: string;
-  accentColor: string;
-}) {
-  return (
-    <div>
-      <div
-        className="flex items-center justify-between"
-        style={{ marginBottom: "var(--space-3)" }}
-      >
-        <label className="font-bold flex items-center gap-2" style={{ fontSize: 13 }}>
-          {label}
-          {accentColor === "var(--color-primary)" && (
-            <VerifiedIcon />
-          )}
-        </label>
-        <span className="font-bold" style={{ fontSize: 13, color: "var(--color-primary)" }}>
-          {valueLabel}
-        </span>
-      </div>
-      {/* Slider track */}
-      <div
-        style={{
-          position: "relative",
-          height: 6,
-          borderRadius: 3,
-          background: "var(--color-surface-container)",
-          marginBottom: "var(--space-2)",
-        }}
-      >
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            height: "100%",
-            width: `${value}%`,
-            borderRadius: 3,
-            background: accentColor,
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: `${value}%`,
-            transform: "translate(-50%, -50%)",
-            width: 14,
-            height: 14,
-            borderRadius: "50%",
-            background: "var(--color-surface-container-lowest)",
-            boxShadow: `0 0 0 3px ${accentColor}`,
-          }}
-        />
-      </div>
-      <p style={{ fontSize: 12, color: "var(--color-text-tertiary)", lineHeight: 1.75, margin: 0 }}>
-        {description}
-      </p>
-    </div>
-  );
-}
-
-function ToggleSwitch({ id, on, onToggle }: { id: string; on: boolean; onToggle: (id: string) => void }) {
-  return (
-    <button
-      onClick={() => onToggle(id)}
-      style={{
-        width: 44,
-        height: 24,
-        borderRadius: 12,
-        background: on ? "var(--color-primary)" : "var(--color-surface-container)",
-        position: "relative",
-        cursor: "pointer",
-        flexShrink: 0,
-        border: "none",
-        padding: 0,
-        transition: "background 0.2s ease",
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          top: 3,
-          left: on ? 23 : 3,
-          width: 18,
-          height: 18,
-          borderRadius: "50%",
-          background: "var(--color-surface-container-lowest)",
-          transition: "left 0.2s ease",
-        }}
-      />
-    </button>
-  );
-}
-
-/* ── Inline SVG icons ── */
-
-function AiSparkIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M12 2l2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5L12 2z"
-        fill="var(--color-primary)"
-        stroke="var(--color-primary)"
-        strokeWidth="1"
-        strokeLinejoin="round"
-      />
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M21 7H3c-1.1 0-2 .9-2 2v6c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zm0 8H3V9h18v6zm-2-3c0 .55-.45 1-1 1s-1-.45-1-1 .45-1 1-1 1 .45 1 1zM4 5h16V3H4v2z" />
     </svg>
   );
 }
 
-function VerifiedIcon() {
+function ReceiptIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M9 12l2 2 4-4M12 2l2.09 2.91L17.5 4l1.09 3.41L22 9.5l-2.91 2.09L20 15l-3.41 1.09L14.5 20l-2.5-2.91L9.5 20 7.41 16.09 4 15l2.91-2.09L4 9.5l3.41-1.09L8.5 5l2.5 2.91L12 2z"
-        fill="var(--color-secondary)"
-      />
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M19.5 3.5L18 2l-1.5 1.5L15 2l-1.5 1.5L12 2l-1.5 1.5L9 2 7.5 3.5 6 2 4.5 3.5 3 2v20l1.5-1.5L6 22l1.5-1.5L9 22l1.5-1.5L12 22l1.5-1.5L15 22l1.5-1.5L18 22l1.5-1.5L21 22V2l-1.5 1.5zM19 19.09H5V4.91h14v14.18zM6 15h12v2H6v-2zm0-4h12v2H6v-2zm0-4h12v2H6V7z" />
     </svg>
   );
 }
 
-function PersonAddIcon() {
+function PercentIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-      <circle cx="10" cy="8" r="4" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M2 20c0-3.3 3-6 8-6s8 2.7 8 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      <path d="M19 8v6M22 11h-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M7.5 11C9.43 11 11 9.43 11 7.5S9.43 4 7.5 4 4 5.57 4 7.5 5.57 11 7.5 11zm0-5C8.33 6 9 6.67 9 7.5S8.33 9 7.5 9 6 8.33 6 7.5 6.67 6 7.5 6zm9 7c-1.93 0-3.5 1.57-3.5 3.5S14.57 20 16.5 20s3.5-1.57 3.5-3.5S18.43 13 16.5 13zm0 5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5.41 20L4 18.59 18.59 4 20 5.41 5.41 20z" />
     </svg>
   );
 }
 
-function MoreIcon() {
+function CalendarIcon() {
   return (
-    <ToastButton message="成员操作菜单即将上线" type="info" style={{ cursor: "pointer", padding: 0, lineHeight: 0 }}>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-        <circle cx="6" cy="12" r="1.5" fill="var(--color-text-tertiary)" />
-        <circle cx="12" cy="12" r="1.5" fill="var(--color-text-tertiary)" />
-        <circle cx="18" cy="12" r="1.5" fill="var(--color-text-tertiary)" />
-      </svg>
-    </ToastButton>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7v-5z" />
+    </svg>
   );
 }
 
-function CrownIcon() {
+function PeopleIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M3 18h18v2H3v-2zM5 10l3 6h8l3-6-4 3-4-7-4 7-2-3z"
-        fill="var(--color-secondary)"
-      />
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
+    </svg>
+  );
+}
+
+function AiIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M21 10.12h-6.78l2.74-2.82-2.2-2.2L12 7.94V1H10v6.94L7.24 5.1 5.04 7.3l2.74 2.82H1v2h6.78l-2.74 2.82 2.2 2.2L10 14.3V21h2v-6.7l2.76 2.84 2.2-2.2-2.74-2.82H21z" />
+    </svg>
+  );
+}
+
+function BackupIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z" />
+    </svg>
+  );
+}
+
+function ChevronRightIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
+    </svg>
+  );
+}
+
+function SearchIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="var(--color-text-tertiary)">
+      <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
     </svg>
   );
 }

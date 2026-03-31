@@ -473,28 +473,44 @@ def constellation(limit: int = Query(500, ge=10, le=2000)):
     # Small tables (< 200): sample ALL for maximum density.
     TYPES = [
         ("TaxType", 19, 10, "name"),
-        ("TaxIncentive", 109, 5, "name"),
+        ("TaxIncentive", 112, 5, "name"),
         ("ComplianceRule", 84, 5, "name"),
         ("TaxRate", 80, 4, "name"),
         ("TaxAccountingGap", 50, 4, "name"),
         ("SocialInsuranceRule", 138, 4, "name"),
         ("InvoiceRule", 40, 4, "name"),
-        ("IndustryBenchmark", 45, 4, "ratioName"),  # No `name` column
-        # AuditTrigger: SKIP — 463 nodes are 100% textbook fragments, not real triggers
-        # RiskIndicator: SKIP — 463 nodes are 100% textbook fragments, not real indicators
+        ("IndustryBenchmark", 200, 4, "ratioName"),  # No `name` column; expanded in v4.2
+        ("RiskIndicator", 49, 5, "name"),   # v4.2 rebuilt: 6-module Golden Tax IV indicators
+        ("AuditTrigger", 20, 5, "name"),    # v4.2 rebuilt: 3-level structured triggers
         ("Penalty", 127, 4, "name"),
         ("TaxEntity", 34, 5, "name"),
         ("BusinessActivity", 60, 4, "name"),
-        ("AccountingSubject", 80, 4, "name"),
+        ("AccountingSubject", 284, 4, "name"),  # v4.2 expanded: +61 L2/L3 detail accounts
         ("FilingForm", 60, 4, "name"),
         ("Region", 31, 5, "name"),
         ("IssuingBody", 60, 4, "name"),
-        # RiskIndicator: excluded (see note above)
         ("LegalDocument", 40, 3, "name"),
         ("LegalClause", 30, 2.5, "title"),         # Uses `title` not `name`
         ("KnowledgeUnit", 20, 2.5, "topic"),        # Uses `topic`
         ("FAQEntry", 20, 2.5, "question"),           # Uses `question`
         ("Classification", 40, 3, "name"),
+        # v4.2 P0 — Core chain completion
+        ("JournalEntryTemplate", 30, 5, "name"),
+        ("FinancialStatementItem", 40, 5, "name"),
+        ("TaxCalculationRule", 10, 5, "name"),
+        ("FilingFormField", 50, 3, "name"),
+        ("FinancialIndicator", 17, 5, "name"),
+        ("AccountingStandard", 12, 5, "name"),
+        ("TaxTreaty", 20, 5, "name"),
+        # v4.2 P1 — Tax law completeness
+        ("TaxItem", 42, 4, "name"),
+        ("TaxBasis", 12, 4, "name"),
+        ("TaxLiabilityTrigger", 13, 4, "name"),
+        ("DeductionRule", 14, 4, "name"),
+        ("TaxMilestoneEvent", 10, 4, "name"),
+        # v4.2 P2 — Operations & risk
+        ("ResponseStrategy", 40, 4, "name"),
+        ("PolicyChange", 30, 4, "name"),
     ]
 
     # Quality filter for node labels (shared with constellation_by_type)
@@ -563,6 +579,17 @@ def constellation(limit: int = Query(500, ge=10, le=2000)):
         "DEBITS_V2", "CREDITS_V2",
         # FT (FinancialTax) prefix edges
         "FT_QUALIFIES_FOR",
+        # v4.2 P0 edges — core chain
+        "HAS_ENTRY_TEMPLATE", "ENTRY_DEBITS", "ENTRY_CREDITS",
+        "POPULATES", "FIELD_OF", "DERIVES_FROM",
+        "CALCULATION_FOR_TAX", "DECOMPOSES_INTO", "COMPUTED_FROM",
+        "HAS_BENCHMARK", "PARTY_TO", "OVERRIDES_RATE",
+        # v4.2 P1 edges — tax law
+        "HAS_ITEM", "COMPUTED_BY", "LIABILITY_TRIGGERED_BY",
+        "INDICATES_RISK", "PENALIZED_FOR", "ESCALATES_TO",
+        "SPLITS_INTO", "DEDUCTS_FROM",
+        # v4.2 P2 edges — operations
+        "RESPONDS_TO", "TRIGGERED_BY_CHANGE", "SUPERSEDES_POLICY",
     ]
 
     for edge_table in ALL_EDGE_TABLES:
@@ -734,7 +761,10 @@ def constellation_by_type(
         nodes.append({"id": nid, "label": label, "type": ntype, "size": size})
 
     # 4. Find internal edges (between sampled nodes of the same type)
-    INTERNAL_EDGES = ["PART_OF", "CHILD_OF", "PARENT_CLAUSE", "PARENT_SUBJECT", "SUPERSEDES", "AMENDS"]
+    INTERNAL_EDGES = [
+        "PART_OF", "CHILD_OF", "PARENT_CLAUSE", "PARENT_SUBJECT", "SUPERSEDES", "AMENDS",
+        "DECOMPOSES_INTO", "DERIVES_FROM", "ESCALATES_TO",  # v4.2 self-referential edges
+    ]
     for edge_table in INTERNAL_EDGES:
         try:
             r = conn.execute(f"MATCH (a:{type})-[e:{edge_table}]->(b) RETURN a.id, b.id LIMIT 500")
@@ -849,6 +879,13 @@ def _cypher_text_search(conn, query: str, limit: int = 10, table_filter: str = N
         "TaxAccountingGap", "SocialInsuranceRule", "InvoiceRule", "IndustryBenchmark",
         "AuditTrigger", "Penalty", "FilingForm", "TaxEntity", "BusinessActivity",
         "AccountingSubject", "Classification", "Region", "IssuingBody",
+        # v4.2 P0 — Core chain completion
+        "JournalEntryTemplate", "FinancialStatementItem", "TaxCalculationRule",
+        "FilingFormField", "FinancialIndicator", "AccountingStandard", "TaxTreaty",
+        # v4.2 P1 — Tax law completeness
+        "TaxItem", "TaxBasis", "TaxLiabilityTrigger", "DeductionRule", "TaxMilestoneEvent",
+        # v4.2 P2 — Operations & risk
+        "ResponseStrategy", "PolicyChange",
         # Large content tables
         "LegalDocument", "LegalClause", "KnowledgeUnit",
         # Legacy tables with rich Q&A content

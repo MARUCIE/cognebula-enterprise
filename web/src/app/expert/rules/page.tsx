@@ -117,89 +117,191 @@ interface CategoryGroup { title: string; icon: string; items: CategoryItem[] }
 
 const LARGE_TABLE_CATEGORIES: Record<string, CategoryGroup[]> = {
   LegalClause: [
-    { title: "流转税", icon: "💰", items: [
-      { label: "增值税法", query: "增值税法", desc: "含实施条例" },
-      { label: "消费税", query: "消费税", desc: "暂行条例+实施细则" },
-      { label: "关税", query: "关税", desc: "关税法+进出口条例" },
+    { title: "流转税", icon: "O", items: [
+      { label: "增值税", query: "增值税" },
+      { label: "消费税", query: "消费税" },
+      { label: "关税", query: "关税" },
+      { label: "出口退税", query: "出口退税" },
     ]},
-    { title: "所得税", icon: "📊", items: [
-      { label: "企业所得税法", query: "企业所得税法", desc: "含实施条例" },
-      { label: "个人所得税法", query: "个人所得税法", desc: "含实施条例+专项扣除" },
+    { title: "所得税", icon: "O", items: [
+      { label: "企业所得税", query: "企业所得税" },
+      { label: "个人所得税", query: "个人所得税" },
+      { label: "预缴/汇缴", query: "预缴" },
+      { label: "纳税调整", query: "纳税调整" },
     ]},
-    { title: "财产行为税", icon: "🏠", items: [
-      { label: "印花税", query: "印花税", desc: "2022年新法" },
+    { title: "财产行为税", icon: "O", items: [
+      { label: "印花税", query: "印花税" },
       { label: "土地增值税", query: "土地增值税" },
       { label: "房产税", query: "房产税" },
       { label: "契税", query: "契税" },
       { label: "车船税", query: "车船税" },
       { label: "城镇土地使用税", query: "城镇土地使用税" },
+      { label: "耕地占用税", query: "耕地占用税" },
+      { label: "资源税", query: "资源税" },
+      { label: "环境保护税", query: "环境保护税" },
     ]},
-    { title: "征管与程序", icon: "📋", items: [
-      { label: "税收征管法", query: "税收征管法", desc: "含实施细则" },
-      { label: "发票管理", query: "发票管理", desc: "发票管理办法+数电票" },
-      { label: "行政处罚", query: "行政处罚" },
-      { label: "行政复议", query: "行政复议" },
+    { title: "征管与程序", icon: "O", items: [
+      { label: "税收征管", query: "征管" },
+      { label: "纳税申报", query: "申报" },
+      { label: "发票管理", query: "发票" },
+      { label: "税务登记", query: "税务登记" },
+      { label: "税务检查", query: "检查" },
+      { label: "行政处罚", query: "处罚" },
+      { label: "行政复议", query: "复议" },
     ]},
-    { title: "社保与附加", icon: "🏥", items: [
+    { title: "优惠与减免", icon: "O", items: [
+      { label: "税收优惠", query: "优惠" },
+      { label: "减免税", query: "减免" },
+      { label: "加计扣除", query: "加计扣除" },
+      { label: "小微企业", query: "小微" },
+      { label: "高新技术", query: "高新" },
+      { label: "即征即退", query: "即征即退" },
+    ]},
+    { title: "社保与人力", icon: "O", items: [
       { label: "社会保险", query: "社会保险" },
       { label: "住房公积金", query: "住房公积金" },
+      { label: "工资薪金", query: "工资" },
+      { label: "劳动合同", query: "劳动" },
+    ]},
+    { title: "附加税费", icon: "O", items: [
       { label: "城市维护建设税", query: "城市维护建设税" },
       { label: "教育费附加", query: "教育费附加" },
+      { label: "残疾人保障金", query: "残疾" },
+      { label: "水利建设基金", query: "水利" },
     ]},
-    { title: "会计准则", icon: "📖", items: [
-      { label: "企业会计准则", query: "企业会计准则" },
-      { label: "小企业会计准则", query: "小企业会计准则" },
+    { title: "会计与核算", icon: "O", items: [
+      { label: "会计准则", query: "会计准则" },
+      { label: "收入", query: "收入" },
+      { label: "成本费用", query: "成本" },
+      { label: "折旧", query: "折旧" },
+      { label: "资产", query: "资产" },
+      { label: "负债", query: "负债" },
+    ]},
+    { title: "特殊业务", icon: "O", items: [
+      { label: "关联交易", query: "关联" },
+      { label: "股权转让", query: "股权" },
+      { label: "并购重组", query: "并购" },
+      { label: "清算注销", query: "清算" },
+      { label: "跨境交易", query: "跨境" },
+      { label: "电子商务", query: "电子商务" },
     ]},
   ],
   LegalDocument: [
-    { title: "按税种", icon: "📑", items: [
-      { label: "增值税相关", query: "增值税" },
-      { label: "企业所得税相关", query: "企业所得税" },
-      { label: "个人所得税相关", query: "个人所得税" },
-      { label: "印花税相关", query: "印花税" },
-      { label: "土地增值税相关", query: "土地增值税" },
+    { title: "按税种", icon: "O", items: [
+      { label: "增值税", query: "增值税" },
+      { label: "企业所得税", query: "企业所得税" },
+      { label: "个人所得税", query: "个人所得税" },
+      { label: "印花税", query: "印花税" },
+      { label: "土地增值税", query: "土地增值税" },
+      { label: "消费税", query: "消费税" },
+      { label: "关税", query: "关税" },
+      { label: "房产税", query: "房产税" },
     ]},
-    { title: "按主题", icon: "🏷️", items: [
+    { title: "按主题", icon: "O", items: [
       { label: "税收优惠", query: "优惠" },
       { label: "征管程序", query: "征管" },
       { label: "发票管理", query: "发票" },
       { label: "出口退税", query: "出口退税" },
       { label: "社会保险", query: "社保" },
       { label: "反避税", query: "避税" },
+      { label: "纳税信用", query: "信用" },
+      { label: "电子税务", query: "电子" },
+    ]},
+    { title: "按发文机关", icon: "O", items: [
+      { label: "财政部", query: "财政部" },
+      { label: "税务总局", query: "税务总局" },
+      { label: "国务院", query: "国务院" },
+      { label: "人社部", query: "人社" },
+      { label: "海关总署", query: "海关" },
     ]},
   ],
   KnowledgeUnit: [
-    { title: "纳税申报", icon: "📝", items: [
+    { title: "纳税申报", icon: "O", items: [
       { label: "增值税申报", query: "增值税申报" },
       { label: "企业所得税申报", query: "企业所得税申报" },
       { label: "个税申报", query: "个税申报" },
       { label: "汇算清缴", query: "汇算清缴" },
+      { label: "预缴申报", query: "预缴" },
     ]},
-    { title: "税务实务", icon: "⚙️", items: [
+    { title: "税务实务", icon: "O", items: [
       { label: "税务登记", query: "税务登记" },
-      { label: "发票开具", query: "发票" },
+      { label: "发票", query: "发票" },
       { label: "纳税调整", query: "纳税调整" },
       { label: "加计扣除", query: "加计扣除" },
-      { label: "小微企业", query: "小微企业" },
+      { label: "小微企业", query: "小微" },
+      { label: "出口退税", query: "出口退税" },
+      { label: "税收筹划", query: "筹划" },
     ]},
-    { title: "会计核算", icon: "📐", items: [
-      { label: "收入确认", query: "收入确认" },
-      { label: "成本核算", query: "成本核算" },
+    { title: "会计核算", icon: "O", items: [
+      { label: "收入确认", query: "收入" },
+      { label: "成本核算", query: "成本" },
       { label: "折旧摊销", query: "折旧" },
-      { label: "资产减值", query: "减值" },
+      { label: "减值准备", query: "减值" },
+      { label: "合并报表", query: "合并" },
+      { label: "财务报表", query: "报表" },
+    ]},
+    { title: "行业专题", icon: "O", items: [
+      { label: "房地产", query: "房地产" },
+      { label: "建筑业", query: "建筑" },
+      { label: "金融", query: "金融" },
+      { label: "电子商务", query: "电商" },
+      { label: "制造业", query: "制造" },
+      { label: "服务业", query: "服务" },
+    ]},
+    { title: "合规与风险", icon: "O", items: [
+      { label: "税务风险", query: "风险" },
+      { label: "稽查应对", query: "稽查" },
+      { label: "反避税", query: "避税" },
+      { label: "关联交易", query: "关联" },
+      { label: "处罚案例", query: "处罚" },
     ]},
   ],
   Classification: [
-    { title: "编码体系", icon: "🔢", items: [
+    { title: "编码体系", icon: "O", items: [
       { label: "HS 海关编码", query: "HS" },
       { label: "税收分类编码", query: "税收分类" },
       { label: "行业分类", query: "行业" },
+      { label: "国民经济行业", query: "国民经济" },
     ]},
-    { title: "按品类", icon: "📦", items: [
+    { title: "货物与劳务", icon: "O", items: [
       { label: "货物", query: "货物" },
+      { label: "加工", query: "加工" },
+      { label: "修理修配", query: "修理" },
+      { label: "农产品", query: "农产品" },
+      { label: "矿产品", query: "矿产" },
+    ]},
+    { title: "服务与权益", icon: "O", items: [
       { label: "服务", query: "服务" },
       { label: "不动产", query: "不动产" },
       { label: "无形资产", query: "无形资产" },
+      { label: "金融", query: "金融" },
+      { label: "建筑", query: "建筑" },
+      { label: "运输", query: "运输" },
+    ]},
+  ],
+  TaxRate: [
+    { title: "增值税税率", icon: "O", items: [
+      { label: "13%税率", query: "13" },
+      { label: "9%税率", query: "9" },
+      { label: "6%税率", query: "6" },
+      { label: "零税率", query: "零税率" },
+      { label: "简易征收", query: "简易" },
+      { label: "小规模", query: "小规模" },
+    ]},
+    { title: "所得税税率", icon: "O", items: [
+      { label: "企业所得税", query: "企业所得税" },
+      { label: "个人所得税", query: "个人所得税" },
+      { label: "预提所得税", query: "预提" },
+      { label: "协定税率", query: "协定" },
+    ]},
+    { title: "其他税种", icon: "O", items: [
+      { label: "消费税", query: "消费税" },
+      { label: "印花税", query: "印花税" },
+      { label: "契税", query: "契税" },
+      { label: "房产税", query: "房产税" },
+      { label: "土地增值税", query: "土地增值税" },
+      { label: "资源税", query: "资源税" },
+      { label: "城建税", query: "城建" },
     ]},
   ],
 };

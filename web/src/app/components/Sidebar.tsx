@@ -10,6 +10,7 @@ import { useToast } from "./Toast";
 
 const coreNavItems = [
   { href: "/workbench", label: "月度看板", icon: WorkbenchIcon },
+  { href: "/workbench/accounting", label: "核算工作台", icon: AccountingIcon },
   { href: "/workbench/batch", label: "批量操作台", icon: DashboardIcon },
   { href: "/workbench/exceptions", label: "异常中心", icon: OpsAlertsIcon },
   { href: "/workbench/calendar", label: "日历视图", icon: ClientIcon },
@@ -247,6 +248,19 @@ function WorkbenchIcon({ active }: { active: boolean }) {
       <rect x="9" y="3" width="4" height="18" stroke={c} strokeWidth="1.8" />
       <rect x="15" y="3" width="4" height="18" stroke={c} strokeWidth="1.8" />
       <line x1="3" y1="9" x2="21" y2="9" stroke={c} strokeWidth="1" opacity="0.5" />
+    </svg>
+  );
+}
+
+function AccountingIcon({ active }: { active: boolean }) {
+  const c = active ? "var(--color-on-primary)" : "var(--color-sidebar-text)";
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <path d="M4 4h16v16H4V4z" stroke={c} strokeWidth="1.8" />
+      <line x1="4" y1="9" x2="20" y2="9" stroke={c} strokeWidth="1.2" />
+      <line x1="4" y1="14" x2="20" y2="14" stroke={c} strokeWidth="1.2" />
+      <line x1="12" y1="9" x2="12" y2="20" stroke={c} strokeWidth="1.2" />
+      <path d="M7 6.5h10" stroke="var(--color-secondary)" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );
 }

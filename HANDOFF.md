@@ -1,41 +1,73 @@
 # HANDOFF.md -- CogNebula / Lingque Desktop
 
-> Last updated: 2026-03-31T14:50Z
+> Last updated: 2026-03-31T19:30Z
 
-## Session 25 — Accounting Workbench Stitch Loop (continued)
+## Session 27 — Ontology Audit + Search Fix (2026-03-31)
 
-### Status: READY — Stitch MCP fixed, awaiting session restart
+### Status: DONE
 
-### What was fixed (Session 24b)
-- Root cause: Stitch MCP v0.5.2 requires `STITCH_API_KEY` (Google API Key), old gcloud ADC auth no longer works
-- Fix: Created restricted API key via `gcloud services api-keys create` (stitch.googleapis.com only)
-- Config: Updated both `~/.claude.json` and `~/.claude/settings.json` with `STITCH_API_KEY`
-- Verified: `npx stitch-mcp proxy` connects successfully, discovers 12 tools
+### What was done
+1. **17-Expert 3-Round Swarm Audit** (ontology-audit-swarm)
+   - Round 1: 6 strategic advisors (Hickey/Drucker/Munger/Brooks/Meadows/Research)
+   - Round 2: 5 domain experts (Tax Law/CAS/Practice/KG Design/Tax Risk) → score 4.4/10
+   - Round 3: 6 business deep-dive (CPA/Planning/Lifecycle/Finance/Cross-border/Payroll) → NOT READY
+   - Report: `doc/ONTOLOGY_AUDIT_REPORT_2026-03-31.md`
 
-### What to do
-1. Verify Stitch MCP: `/mcp` → stitch should show as connected
-2. Run `继续核算工作台 stitch-loop`
-3. Stitch MCP tools should be available (`mcp__stitch__*`)
-4. Follow stitch-loop protocol with baton `.stitch/next-prompt.md`
+2. **Phase 0 Remediation (local DB)**
+   - TaxType.code: 0% → 89.5% (17/19 filled with Golden Tax IV codes)
+   - AccountingStandard.effectiveDate: 0% → 88.4% (38/43 filled with CAS dates)
+   - SocialInsuranceRule: 0 → 138 nodes (created table + imported seed JSON)
+   - IndustryBenchmark: 0 → 45 nodes (created table + imported seed JSON)
+   - Script: `scripts/fix_audit_phase0.py`
 
-### Baton Ready
-- Page: `accounting-workbench`
-- Prompt: `.stitch/next-prompt.md` (complete, 125 lines, Heritage Monolith design system)
-- Design spec: `.stitch/DESIGN.md` + `design/accounting-workbench/DESIGN.md`
-- No Stitch project yet — needs `create_project` first
-- No `metadata.json` yet — create on first generation
+3. **Classification Search Fix (VPS production)**
+   - Root cause: Classification (53K nodes) all have system="HS编码" but SEARCH_FIELDS didn't include system
+   - API fix: Added system to Classification SEARCH_FIELDS; added TaxClassificationCode + HSCode to SEARCH_TABLES
+   - Frontend fix: Split Classification (HS codes) from TaxClassificationCode (tax codes) as separate browsable types
+   - Deployed: API restarted on 100.75.77.112:8400; frontend pushed to GitHub (CF Pages auto-deploy)
+   - Commit: 8052957
 
-### Stitch Loop Steps (resume from Step 3)
+### Key findings
+- **Local DB (100K) ≠ VPS DB (540K)**: v2 migration tables only exist on VPS
+- **Seed data gap**: social_insurance(138), industry_benchmarks(45), tax_accounting_gap(50), invoice_rules(40) were sitting in JSON files, never imported to local DB
+- **Content coverage only 29.1%** on VPS (quality endpoint)
+- **LegalDocument fields broken**: effectiveDate ~0% ("--"), level ~0% (all 0), type mixed
+
+### Next steps (Phase 1-3 from audit report)
+- P1: LegalDocument.effectiveDate LLM batch extraction (Gemini Flash, ~$2-5)
+- P1: HAS_ENTRY_TEMPLATE edge creation (30+ edges)
+- P1: CIT/PIT TaxItem ~60 items
+- P2: JournalEntryTemplate expansion to 60+
+- P2: V1/V2 table cleanup
+
+---
+
+## Session 25 — Accounting Workbench Stitch Loop DONE
+
+### Status: COMPLETE
+
+### Stitch MCP OAuth Fix
+- Root cause: Stitch API dropped API Key support, only accepts OAuth2 Bearer tokens
+- But `stitch-mcp proxy` only supports API Key auth (hardcoded `X-Goog-Api-Key`)
+- Fix: Built `bin/stitch-oauth-proxy` (Node.js stdio MCP proxy, gcloud OAuth, 50min auto-refresh)
+- Patched npx cache entry point to delegate `proxy` to our OAuth proxy
+- Account: `alphameta010@gmail.com`, project: `gen-lang-client-0070301879`
+
+### Stitch Loop Steps (ALL DONE)
 1. ~~Read baton~~ DONE
 2. ~~Read context files~~ DONE
-3. **Generate with Stitch** — create project → generate screen → download HTML+PNG
-4. Integrate into site (web/ directory, Next.js)
-5. Update SITE.md
-6. Prepare next baton (税务工作台 or 仪表盘)
+3. ~~Generate with Stitch~~ DONE — Project `12770423165646112515`, Screen `fe19a2be7ace4b3fb732c8f6e1275de5`
+4. ~~Integrate into web/~~ DONE — `web/src/app/workbench/accounting/page.tsx` + Sidebar nav
+5. ~~Update SITE.md~~ DONE
+6. Next baton: 税务工作台 (pending)
 
-### HARD RULE
-- **MCP down = fix MCP, never bypass** (feedback memory `feedback_stitch_pipeline_mandatory.md`)
-- Never fall back to hand-crafting HTML when Stitch is specified
+### Artifacts
+- Stitch project: `12770423165646112515`
+- Design system: Heritage Monolith (auto-generated)
+- HTML: `design/accounting-workbench/accounting-workbench.html`
+- Screenshot: `design/accounting-workbench/screenshot.png`
+- React: `web/src/app/workbench/accounting/page.tsx`
+- Build: `npx next build` PASS
 
 ---
 

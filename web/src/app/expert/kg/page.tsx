@@ -23,28 +23,42 @@ const TAX_NAME_MAP: Record<string, string> = {
 /* ── Node type Chinese names + descriptions ── */
 /* v4.1 Ontology — 21 node types */
 const NODE_ZH: Record<string, { zh: string; desc: string }> = {
-  // L1 法规层 (3)
+  // L1 法规层 (5)
   LegalDocument: { zh: "法律文件", desc: "法律、法规、规章、会计准则的完整文档" },
   LegalClause: { zh: "法规条款", desc: "从法律文件中提取的逐条条款" },
   IssuingBody: { zh: "发布机构", desc: "法规的颁布机关 (财政部、税务总局等)" },
-  // L2 业务层 (7)
+  AccountingStandard: { zh: "会计准则", desc: "CAS 1-42 企业会计准则体系" },
+  TaxTreaty: { zh: "税收协定", desc: "中国与20+国家/地区的双边税收协定" },
+  // L2 业务层 (14)
   TaxRate: { zh: "税率", desc: "各税种的适用税率及计算规则" },
-  AccountingSubject: { zh: "会计科目", desc: "企业会计核算的科目体系" },
+  AccountingSubject: { zh: "会计科目", desc: "企业会计核算的科目体系 (284个)" },
   Classification: { zh: "分类体系", desc: "HS编码/税收分类编码/行业分类" },
   TaxEntity: { zh: "纳税主体", desc: "纳税人类型 (一般纳税人/小规模等)" },
   Region: { zh: "行政区划", desc: "省/市/区/国际地区" },
   FilingForm: { zh: "申报表", desc: "纳税申报使用的表单模板" },
   BusinessActivity: { zh: "经营活动", desc: "企业经营行为分类 (销售/服务/投资等)" },
-  // L3 合规层 (9)
+  JournalEntryTemplate: { zh: "分录模板", desc: "常见业务的标准会计分录 (30个)" },
+  FinancialStatementItem: { zh: "报表项目", desc: "资产负债表/利润表/现金流量表项目" },
+  FilingFormField: { zh: "申报栏次", desc: "申报表具体栏次的填报规则和公式" },
+  TaxItem: { zh: "税目", desc: "消费税15目/印花税17目等税种细分" },
+  TaxBasis: { zh: "计税依据", desc: "从价/从量/复合/收入型等计税方式" },
+  TaxLiabilityTrigger: { zh: "纳税义务时点", desc: "增值税9项/所得税/个税等纳税义务发生时间" },
+  TaxMilestoneEvent: { zh: "生命周期事件", desc: "企业设立→经营→并购→清算的税务节点" },
+  // L3 合规层 (14)
   ComplianceRule: { zh: "合规规则", desc: "企业必须遵守的财税合规条件" },
-  RiskIndicator: { zh: "风险指标", desc: "数据质量不足，暂不可用" },
+  RiskIndicator: { zh: "风险指标", desc: "金税四期6模块49项风险监控指标" },
   TaxIncentive: { zh: "税收优惠", desc: "减免税、加计扣除等优惠政策" },
   Penalty: { zh: "处罚规定", desc: "违规行为对应的罚则和处罚标准" },
-  AuditTrigger: { zh: "审计触发", desc: "数据质量不足，暂不可用" },
+  AuditTrigger: { zh: "审计触发", desc: "3级20项税务稽查触发条件" },
   TaxAccountingGap: { zh: "税会差异", desc: "会计处理与税务处理的差异项 (50项)" },
   SocialInsuranceRule: { zh: "社保公积金", desc: "各城市社保/公积金费率规则" },
   InvoiceRule: { zh: "发票规则", desc: "增值税发票管理的认证/抵扣/红冲规则" },
   IndustryBenchmark: { zh: "行业基准", desc: "各行业税负率/利润率预警基准" },
+  TaxCalculationRule: { zh: "计算规则", desc: "增值税/所得税/个税等税额计算公式" },
+  FinancialIndicator: { zh: "财务指标", desc: "杜邦分析+流动性+偿债+效率+税负指标" },
+  DeductionRule: { zh: "扣除限额", desc: "企业所得税/个税各项扣除标准" },
+  ResponseStrategy: { zh: "应对策略", desc: "风险预警触发后的标准化应对方案" },
+  PolicyChange: { zh: "政策变动", desc: "2022-2026年重大税收政策变更事件" },
   // L4 知识层 (2)
   TaxType: { zh: "税种", desc: "中国现行 18 个税种 (增值税/所得税等)" },
   KnowledgeUnit: { zh: "知识单元", desc: "从教材/指南/FAQ提取的知识点" },
@@ -636,6 +650,70 @@ export default function KGExplorerPage() {
                     type: "类型", abolishDate: "废止日期",
                     // LegalClause / KnowledgeUnit
                     topic: "主题", question: "问题", answer: "回答",
+                    // v4.2 — JournalEntryTemplate
+                    chineseName: "中文名", businessActivity: "触发业务",
+                    debitAccounts: "借方科目", creditAccounts: "贷方科目",
+                    frequency: "频率", example: "示例",
+                    // v4.2 — FinancialStatementItem
+                    statementType: "报表类型", itemCode: "行次编号", parentItem: "上级项目",
+                    calculationFormula: "计算公式", direction: "方向", isSubtotal: "是否小计",
+                    reportingStandard: "准则",
+                    // v4.2 — TaxCalculationRule
+                    formula: "公式", formulaSteps: "计算步骤", inputFields: "输入字段",
+                    outputField: "输出字段", applicableScenario: "适用场景",
+                    exampleCalculation: "计算示例",
+                    // v4.2 — FilingFormField
+                    formId: "表单ID", fieldNumber: "栏次号", fieldType: "字段类型",
+                    dataSource: "数据来源", derivesFrom: "来源于", validationRule: "校验规则",
+                    isMandatory: "是否必填",
+                    // v4.2 — FinancialIndicator
+                    indicatorType: "指标类型", decomposesInto: "分解为",
+                    normalRange: "正常范围", warningThreshold: "预警阈值",
+                    benchmarkIndustry: "基准行业",
+                    // v4.2 — TaxTreaty
+                    treatyPartner: "缔约方", signDate: "签署日期",
+                    dividendRate: "股息预提税率", interestRate: "利息预提税率",
+                    royaltyRate: "特许权使用费率", capitalGainsRule: "资本利得规则",
+                    permanentEstablishmentDays: "常设机构天数",
+                    tieBreaker: "居民判定规则", beneficialOwnerTest: "受益所有人测试",
+                    // v4.2 — AccountingStandard
+                    casNumber: "准则编号", ifrsEquivalent: "IFRS对应",
+                    scope: "适用范围", differenceFromIfrs: "与IFRS差异",
+                    // AccountingSubject hierarchy
+                    parentCode: "上级科目", balanceDirection: "余额方向",
+                    isLeaf: "是否末级", monetaryType: "货币类型", standardSource: "准则来源",
+                    // TaxIncentive stacking
+                    stackingGroup: "叠加分组", effectiveFrom: "生效起", effectiveUntil: "生效止",
+                    expiryDate: "到期日",
+                    // v4.2 P1 — TaxItem (parentItem already defined in P0)
+                    taxBasis: "计税依据", exemptions: "免税情形",
+                    // v4.2 P1 — TaxBasis
+                    basisType: "计税方式", applicableTaxType: "适用税种",
+                    adjustmentRules: "调整规则",
+                    // v4.2 P1 — TaxLiabilityTrigger
+                    triggerEvent: "触发事件", triggerCondition: "触发条件",
+                    liabilityDate: "纳税义务日期", documentBasis: "文件依据",
+                    // v4.2 P1 — DeductionRule (ruleType already defined)
+                    deductionType: "扣除类型", limitAmount: "限额金额",
+                    carryForward: "结转规则", documentRequirement: "凭证要求", applicableEntity: "适用主体",
+                    // v4.2 P1 — TaxMilestoneEvent
+                    eventType: "事件类型", lifecycle: "生命周期阶段",
+                    taxImplications: "税务影响", requiredActions: "必须动作",
+                    deadline: "截止日", penalties: "逾期处罚",
+                    // v4.2 P1 — RiskIndicator (rebuilt)
+                    module: "监控模块", warningRule: "预警规则",
+                    monitoringFrequency: "监控频率", falsePositiveRate: "误报率",
+                    recommendedAction: "建议措施", confidence: "置信度",
+                    // v4.2 P1 — AuditTrigger (rebuilt)
+                    auditType: "审计类型", typicalOutcome: "典型结果",
+                    preventionMeasure: "预防措施", lookbackPeriodMonths: "追溯月数",
+                    // v4.2 P2 — ResponseStrategy
+                    strategyType: "策略类型", targetRisk: "目标风险",
+                    actionSteps: "操作步骤", estimatedCost: "预估成本",
+                    timeframe: "时间周期", effectivenessScore: "有效性评分",
+                    // v4.2 P2 — PolicyChange
+                    changeType: "变更类型", previousPolicy: "旧政策", newPolicy: "新政策",
+                    impactScope: "影响范围", impactedTaxTypes: "影响税种", transitionRule: "过渡规则",
                   };
 
                   const props = Object.entries(nodeDetail)

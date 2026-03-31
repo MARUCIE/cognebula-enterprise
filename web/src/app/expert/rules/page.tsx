@@ -210,6 +210,21 @@ function LargeTableGuide({ type, total, label, onSearch, onBrowse, pageSize }: {
   onSearch: (kw: string) => void; onBrowse: () => void; pageSize: number;
 }) {
   const categories = LARGE_TABLE_CATEGORIES[type];
+  const [counts, setCounts] = useState<Record<string, number>>({});
+
+  // Async fetch counts for each category item
+  useEffect(() => {
+    if (!categories) return;
+    const queries = categories.flatMap((g) => g.items.map((i) => i.query));
+    const unique = [...new Set(queries)];
+    // Batch: fetch count for each query (limit=1 just to get count header)
+    unique.forEach(async (q) => {
+      try {
+        const res = await listNodes(type, 1, 0, q);
+        setCounts((prev) => ({ ...prev, [q]: res.count || 0 }));
+      } catch { /* skip */ }
+    });
+  }, [type, categories]);
 
   return (
     <div style={{ padding: "32px 40px", overflowY: "auto" }}>
@@ -249,7 +264,14 @@ function LargeTableGuide({ type, total, label, onSearch, onBrowse, pageSize }: {
                     onMouseLeave={(e) => { e.currentTarget.style.borderColor = "transparent"; e.currentTarget.style.background = CN.bgElevated; }}
                   >
                     <span>{item.label}</span>
-                    {item.desc && <span style={{ fontSize: 10, color: CN.textMuted }}>{item.desc}</span>}
+                    <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      {item.desc && <span style={{ fontSize: 10, color: CN.textMuted }}>{item.desc}</span>}
+                      {counts[item.query] !== undefined && (
+                        <span style={{ fontSize: 10, color: CN.blue, fontVariantNumeric: "tabular-nums", minWidth: 28, textAlign: "right" }}>
+                          {counts[item.query].toLocaleString()}
+                        </span>
+                      )}
+                    </span>
                   </button>
                 ))}
               </div>

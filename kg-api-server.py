@@ -809,20 +809,30 @@ def query_nodes(
     if type not in valid_tables:
         raise HTTPException(404, f"Table '{type}' not found. Valid: {sorted(valid_tables)}")
 
-    # Build query with optional text filter (column-safe: tries name+title+fullText, falls back)
+    # Build query with optional text filter — per-table search fields
+    SEARCH_FIELDS = {
+        "LegalClause": ["content", "title"],
+        "LegalDocument": ["name", "title", "fullText"],
+        "KnowledgeUnit": ["topic", "fullText"],
+        "FAQEntry": ["question", "fullText"],
+        "Classification": ["name", "code"],
+        "IndustryBenchmark": ["ratioName", "description"],
+        "FilingFormField": ["name", "formCode", "description"],
+    }
     if q:
         safe_q = q.replace("\\", "\\\\").replace("'", "\\'")
+        fields = SEARCH_FIELDS.get(type, ["name", "title", "fullText"])
+        # Build WHERE clause: try each field with CONTAINS
+        conditions = []
+        for f in fields:
+            conditions.append(f"(n.{f} IS NOT NULL AND n.{f} CONTAINS '{safe_q}')")
+        where = " OR ".join(conditions) if conditions else f"n.id CONTAINS '{safe_q}'"
+        cypher = f"MATCH (n:{type}) WHERE {where} RETURN n SKIP {offset} LIMIT {limit}"
         try:
-            cypher = (
-                f"MATCH (n:{type}) "
-                f"WHERE n.name CONTAINS '{safe_q}' OR n.title CONTAINS '{safe_q}' "
-                f"OR (n.fullText IS NOT NULL AND n.fullText CONTAINS '{safe_q}') "
-                f"RETURN n SKIP {offset} LIMIT {limit}"
-            )
             result = conn.execute(cypher)
         except Exception:
-            # Fallback: table may lack title or fullText columns
-            cypher = f"MATCH (n:{type}) WHERE n.name CONTAINS '{safe_q}' RETURN n SKIP {offset} LIMIT {limit}"
+            # Ultimate fallback: scan all and filter by id
+            cypher = f"MATCH (n:{type}) WHERE n.id CONTAINS '{safe_q}' RETURN n SKIP {offset} LIMIT {limit}"
             result = conn.execute(cypher)
     else:
         # For LegalDocument: prioritize policy content over kuaiji textbook

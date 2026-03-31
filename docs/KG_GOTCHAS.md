@@ -138,6 +138,18 @@ ssh root@VPS "fuser -k 8400/tcp; sleep 2; rm -rf /home/kg/cognebula-enterprise/_
 
 ---
 
+## 12. SEARCH_FIELDS 必须与 KuzuDB 实际列名精确匹配
+
+**现象**: LegalDocument 搜索"增值税"返回 0 结果，但数据库里有 3,580 条匹配。
+
+**根因**: `SEARCH_FIELDS` 定义了 `["name", "title", "fullText"]`，但 LegalDocument 表没有 `title` 列。KuzuDB 在 Binder 阶段（不是运行时）检查列是否存在，`IS NOT NULL` 保护无效——整个 WHERE 子句因为引用了不存在的列而编译失败。
+
+**解法**: 每个表的搜索字段必须来自实际 `table_info` 或 API `/nodes?limit=1` 返回的列集合。不能假设所有表都有 `name`/`title`/`fullText`。
+
+**验证方法**: `curl API/nodes?type=X&limit=1&q=关键词` 检查 `total` 字段是否 >0。
+
+---
+
 ## Checklist: 新增节点类型发布前检查
 
 ```

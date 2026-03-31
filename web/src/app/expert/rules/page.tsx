@@ -5,12 +5,14 @@ import Link from "next/link";
 import { listNodes, getGraph, getStats, type KGNeighbor, type KGStats, LAYER_GROUPS, NODE_COLORS, EDGE_LABELS_ZH, EDGE_COLORS } from "../../lib/kg-api";
 import { CN, cnCard, cnBadge, cnInput, cnBtn, cnBtnPrimary } from "../../lib/cognebula-theme";
 
-/* ── v4.1 ontology: 21 node types across 4 layers ── */
+/* ── v4.2 ontology: 35 node types across 4 layers ── */
 const BROWSABLE_TYPES = [
   // L1 法规层
   { table: "LegalClause", label: "法规条款", layer: "L1 法规层" },
   { table: "LegalDocument", label: "法律文件", layer: "L1 法规层" },
   { table: "IssuingBody", label: "发布机构", layer: "L1 法规层" },
+  { table: "AccountingStandard", label: "会计准则", layer: "L1 法规层" },
+  { table: "TaxTreaty", label: "税收协定", layer: "L1 法规层" },
   // L2 业务层
   { table: "TaxRate", label: "税率", layer: "L2 业务层" },
   { table: "AccountingSubject", label: "会计科目", layer: "L2 业务层" },
@@ -19,6 +21,13 @@ const BROWSABLE_TYPES = [
   { table: "Region", label: "行政区域", layer: "L2 业务层" },
   { table: "FilingForm", label: "申报表", layer: "L2 业务层" },
   { table: "BusinessActivity", label: "业务活动", layer: "L2 业务层" },
+  { table: "JournalEntryTemplate", label: "分录模板", layer: "L2 业务层" },
+  { table: "FinancialStatementItem", label: "报表项目", layer: "L2 业务层" },
+  { table: "FilingFormField", label: "申报栏次", layer: "L2 业务层" },
+  { table: "TaxItem", label: "税目", layer: "L2 业务层" },
+  { table: "TaxBasis", label: "计税依据", layer: "L2 业务层" },
+  { table: "TaxLiabilityTrigger", label: "纳税义务时点", layer: "L2 业务层" },
+  { table: "TaxMilestoneEvent", label: "生命周期事件", layer: "L2 业务层" },
   // L3 合规层
   { table: "ComplianceRule", label: "合规规则", layer: "L3 合规层" },
   { table: "RiskIndicator", label: "风险指标", layer: "L3 合规层" },
@@ -29,6 +38,11 @@ const BROWSABLE_TYPES = [
   { table: "SocialInsuranceRule", label: "社保公积金", layer: "L3 合规层" },
   { table: "InvoiceRule", label: "发票规则", layer: "L3 合规层" },
   { table: "IndustryBenchmark", label: "行业基准", layer: "L3 合规层" },
+  { table: "TaxCalculationRule", label: "计算规则", layer: "L3 合规层" },
+  { table: "FinancialIndicator", label: "财务指标", layer: "L3 合规层" },
+  { table: "DeductionRule", label: "扣除限额", layer: "L3 合规层" },
+  { table: "ResponseStrategy", label: "应对策略", layer: "L3 合规层" },
+  { table: "PolicyChange", label: "政策变动", layer: "L3 合规层" },
   // L4 知识层
   { table: "TaxType", label: "税种", layer: "L4 知识层" },
   { table: "KnowledgeUnit", label: "知识单元", layer: "L4 知识层" },
@@ -78,6 +92,21 @@ const TYPE_COLUMNS: Record<string, { c1: string; c2: string; c3: string }> = {
   // L4
   TaxType: { c1: "税种名称", c2: "税率范围", c3: "申报周期" },
   KnowledgeUnit: { c1: "知识主题", c2: "类型", c3: "来源" },
+  // v4.2 types
+  AccountingStandard: { c1: "准则名称", c2: "CAS编号", c3: "适用范围" },
+  TaxTreaty: { c1: "协定名称", c2: "签约方", c3: "生效日期" },
+  JournalEntryTemplate: { c1: "分录名称", c2: "借方科目", c3: "贷方科目" },
+  FinancialStatementItem: { c1: "项目名称", c2: "所属报表", c3: "计算公式" },
+  FilingFormField: { c1: "栏次名称", c2: "所属表单", c3: "填报规则" },
+  TaxItem: { c1: "税目名称", c2: "所属税种", c3: "税率" },
+  TaxBasis: { c1: "计税依据", c2: "计税方式", c3: "说明" },
+  TaxLiabilityTrigger: { c1: "触发条件", c2: "适用税种", c3: "时点规则" },
+  TaxMilestoneEvent: { c1: "事件名称", c2: "阶段", c3: "税务影响" },
+  TaxCalculationRule: { c1: "规则名称", c2: "适用税种", c3: "公式" },
+  FinancialIndicator: { c1: "指标名称", c2: "指标类型", c3: "计算公式" },
+  DeductionRule: { c1: "扣除项目", c2: "限额标准", c3: "超限处理" },
+  ResponseStrategy: { c1: "策略名称", c2: "策略类型", c3: "操作步骤" },
+  PolicyChange: { c1: "政策名称", c2: "变更类型", c3: "影响范围" },
 };
 
 const DEFAULT_COLUMNS = { c1: "名称", c2: "分类", c3: "说明" };

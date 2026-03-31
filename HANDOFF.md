@@ -46,11 +46,32 @@
 1. **V2 tables not dropped**: edge table definitions (GOVERNED_BY, TRIGGERED_BY, etc.) reference V2 types. DETACH DELETE zeros data; schemas remain as frozen legacy.
 2. **LegalDocument not migrated**: Reclassifying 37K nodes across tables too risky (edge cascades). Classification via API `_contentCategory` field is the pragmatic path.
 
-### Remaining items (Phase 4)
-- LegalDocument triage: actually migrate qa→FAQEntry, knowledge→KnowledgeUnit (large scope)
-- LawOrRegulation.effectiveDate: need original crawl PDFs or web lookup (AI summaries lack dates)
+### Phase 4 (same session, continued)
+
+**5. LawOrRegulation.effectiveDate Extraction (0% → 61.1%)**
+- Extracted dates from AI-generated summaries using 4-strategy regex pipeline:
+  - Priority 1: "施行" context ("自YYYY年M月D日起施行")
+  - Priority 2: "生效/执行/实施" context
+  - Priority 3: Any full date (YYYY年M月D日) in summary
+  - Priority 4: Year from title (fallback, YYYY-01-01)
+- Result: 15,333 nodes updated out of 39,182 (61.1% fill rate)
+- Gotcha: effectiveDate is DATE type, requires `date('2021-01-01')` not string literal
+- Script: `/tmp/extract_lor_dates_vps.py` (ran on VPS)
+
+**6. KnowledgeUnit Content Backfill (93 nodes)**
+- Applied prepared backfill from `data/backfill/cicpa_content.jsonl`
+- 93/93 KnowledgeUnit nodes got content (CICPA 审计准则体系)
+
+### VPS Final Stats (Phase 4)
+- 540,426 nodes / 1,111,507 edges
+- LawOrRegulation.effectiveDate: 0% → 61.1%
+- KnowledgeUnit content: +93 nodes backfilled
+
+### Remaining items (Phase 5+)
+- LawOrRegulation.effectiveDate: 38.9% still unfilled (need web scraping from sourceUrl)
+- LegalDocument triage: migrate qa→FAQEntry, knowledge→KnowledgeUnit (large scope)
+- CPAKnowledge heading nodes: 58% empty content (PDF ToC entries, need NLP alignment)
 - V1/V2 edge migration: create parallel V1-targeting edge tables, then DROP V2 schemas
-- CPA content backfill: 7,729 nodes still have 44% empty content (heading-only nodes)
 - Local←→VPS data sync mechanism
 
 ---

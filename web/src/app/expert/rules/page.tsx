@@ -16,7 +16,8 @@ const BROWSABLE_TYPES = [
   // L2 业务层
   { table: "TaxRate", label: "税率", layer: "L2 业务层" },
   { table: "AccountingSubject", label: "会计科目", layer: "L2 业务层" },
-  { table: "Classification", label: "税收分类", layer: "L2 业务层" },
+  { table: "Classification", label: "HS海关编码", layer: "L2 业务层" },
+  { table: "TaxClassificationCode", label: "税收分类编码", layer: "L2 业务层" },
   { table: "TaxEntity", label: "纳税主体", layer: "L2 业务层" },
   { table: "Region", label: "行政区域", layer: "L2 业务层" },
   { table: "FilingForm", label: "申报表", layer: "L2 业务层" },
@@ -74,7 +75,8 @@ const TYPE_COLUMNS: Record<string, { c1: string; c2: string; c3: string }> = {
   // L2
   TaxRate: { c1: "税率名称", c2: "税率范围", c3: "适用条件" },
   AccountingSubject: { c1: "科目名称", c2: "科目编号", c3: "方向" },
-  Classification: { c1: "分类名称", c2: "编码", c3: "说明" },
+  Classification: { c1: "分类名称", c2: "编码体系", c3: "说明" },
+  TaxClassificationCode: { c1: "税收编码", c2: "品类", c3: "说明" },
   TaxEntity: { c1: "纳税主体", c2: "类型", c3: "适用税种" },
   Region: { c1: "地区名称", c2: "级别", c3: "适用政策" },
   FilingForm: { c1: "表单名称", c2: "所属税种", c3: "申报周期" },
@@ -258,25 +260,37 @@ const LARGE_TABLE_CATEGORIES: Record<string, CategoryGroup[]> = {
   ],
   Classification: [
     { title: "编码体系", icon: "O", items: [
-      { label: "HS 海关编码", query: "HS" },
-      { label: "税收分类编码", query: "税收分类" },
+      { label: "HS 海关编码", query: "HS编码" },
       { label: "行业分类", query: "行业" },
       { label: "国民经济行业", query: "国民经济" },
     ]},
-    { title: "货物与劳务", icon: "O", items: [
-      { label: "货物", query: "货物" },
-      { label: "加工", query: "加工" },
-      { label: "修理修配", query: "修理" },
-      { label: "农产品", query: "农产品" },
-      { label: "矿产品", query: "矿产" },
+    { title: "按商品类型", icon: "O", items: [
+      { label: "电子产品", query: "电子" },
+      { label: "机械设备", query: "机械" },
+      { label: "化工产品", query: "化工" },
+      { label: "纺织品", query: "纺织" },
+      { label: "农产品", query: "农产" },
+      { label: "金属矿产", query: "金属" },
     ]},
-    { title: "服务与权益", icon: "O", items: [
+  ],
+  TaxClassificationCode: [
+    { title: "按品类", icon: "O", items: [
+      { label: "货物", query: "货物" },
       { label: "服务", query: "服务" },
       { label: "不动产", query: "不动产" },
       { label: "无形资产", query: "无形资产" },
+    ]},
+    { title: "货物细分", icon: "O", items: [
+      { label: "农产品", query: "农产品" },
+      { label: "矿产品", query: "矿产" },
+      { label: "加工", query: "加工" },
+      { label: "修理修配", query: "修理" },
+    ]},
+    { title: "服务细分", icon: "O", items: [
       { label: "金融", query: "金融" },
       { label: "建筑", query: "建筑" },
       { label: "运输", query: "运输" },
+      { label: "信息技术", query: "信息" },
     ]},
   ],
   TaxRate: [

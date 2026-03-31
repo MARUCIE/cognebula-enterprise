@@ -815,7 +815,9 @@ def query_nodes(
         "LegalClause": ["content", "title"],
         "LegalDocument": ["name", "description"],
         "KnowledgeUnit": ["content", "title"],
-        "Classification": ["name", "title", "fullText"],
+        "Classification": ["name", "title", "fullText", "system"],
+        "TaxClassificationCode": ["item_name", "code", "category_abbr", "description"],
+        "HSCode": ["name", "title", "code"],
         "TaxRate": ["name", "title", "description", "fullText"],
         "FAQEntry": ["question", "content"],
         "IndustryBenchmark": ["ratioName", "description"],
@@ -919,6 +921,8 @@ def _cypher_text_search(conn, query: str, limit: int = 10, table_filter: str = N
         "LegalDocument", "LegalClause", "KnowledgeUnit",
         # Legacy tables with rich Q&A content
         "FAQEntry", "CPAKnowledge",
+        # Coding systems (HS + tax classification)
+        "TaxClassificationCode", "HSCode",
     ]
 
     if table_filter:

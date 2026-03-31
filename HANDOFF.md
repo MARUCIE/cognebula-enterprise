@@ -7,38 +7,54 @@
 ### Status: DONE
 
 ### What was done
-1. **17-Expert 3-Round Swarm Audit** (ontology-audit-swarm)
-   - Round 1: 6 strategic advisors (Hickey/Drucker/Munger/Brooks/Meadows/Research)
-   - Round 2: 5 domain experts (Tax Law/CAS/Practice/KG Design/Tax Risk) → score 4.4/10
-   - Round 3: 6 business deep-dive (CPA/Planning/Lifecycle/Finance/Cross-border/Payroll) → NOT READY
-   - Report: `doc/ONTOLOGY_AUDIT_REPORT_2026-03-31.md`
 
-2. **Phase 0 Remediation (local DB)**
-   - TaxType.code: 0% → 89.5% (17/19 filled with Golden Tax IV codes)
-   - AccountingStandard.effectiveDate: 0% → 88.4% (38/43 filled with CAS dates)
-   - SocialInsuranceRule: 0 → 138 nodes (created table + imported seed JSON)
-   - IndustryBenchmark: 0 → 45 nodes (created table + imported seed JSON)
-   - Script: `scripts/fix_audit_phase0.py`
+**1. 17-Expert 3-Round Swarm Audit** (ontology-audit-swarm)
+- Round 1: 6 strategic advisors → highest leverage: TaxType.code (10min, impacts everything)
+- Round 2: 5 domain experts → score 4.4/10 → 10 P0 items identified
+- Round 3: 6 business deep-dive → NOT READY (5/6), PARTIAL (1/6)
+- Report: `doc/ONTOLOGY_AUDIT_REPORT_2026-03-31.md`
 
-3. **Classification Search Fix (VPS production)**
-   - Root cause: Classification (53K nodes) all have system="HS编码" but SEARCH_FIELDS didn't include system
-   - API fix: Added system to Classification SEARCH_FIELDS; added TaxClassificationCode + HSCode to SEARCH_TABLES
-   - Frontend fix: Split Classification (HS codes) from TaxClassificationCode (tax codes) as separate browsable types
-   - Deployed: API restarted on 100.75.77.112:8400; frontend pushed to GitHub (CF Pages auto-deploy)
-   - Commit: 8052957
+**2. Phase 0 Remediation (local + VPS)**
+- TaxType.code: 0% → 100% (18/18 Golden Tax IV codes, both envs)
+- AccountingStandard.effectiveDate: 0% → 100% (43/43 CAS dates, both envs)
+- LegalDocument.level: 0 → mapped (11 type→level rules on VPS)
+- SocialInsuranceRule: 0 → 138 nodes (local: created table + imported)
+- IndustryBenchmark: 0 → 45 nodes (local: created table + imported)
+- Script: `scripts/fix_audit_phase0.py`
 
-### Key findings
-- **Local DB (100K) ≠ VPS DB (540K)**: v2 migration tables only exist on VPS
-- **Seed data gap**: social_insurance(138), industry_benchmarks(45), tax_accounting_gap(50), invoice_rules(40) were sitting in JSON files, never imported to local DB
-- **Content coverage only 29.1%** on VPS (quality endpoint)
-- **LegalDocument fields broken**: effectiveDate ~0% ("--"), level ~0% (all 0), type mixed
+**3. Phase 1 Data Expansion (VPS via API)**
+- TaxItem: 42 → 93 (+29 CIT + 22 PIT, covering 企业所得税/个人所得税)
+- JournalEntryTemplate: 30 → 60 (+30 templates with debit/credit edges)
+- FilingFormField: 45 → 150 (+69 main forms + 36 small taxes)
+- BusinessActivity: +30 standard activities (was only risk scenarios)
+- HAS_ENTRY_TEMPLATE: 0 → 30 edges (business→journal chain connected)
+- ENTRY_DEBITS/CREDITS: 34 → 103 edges
+- HAS_ITEM: 42 → 93 edges (TaxType→TaxItem)
+- FIELD_OF: 45 → 69+ edges
+- IndustryRiskProfile.benchmark: 0% → 100% (720 nodes, 21 pattern rules)
 
-### Next steps (Phase 1-3 from audit report)
-- P1: LegalDocument.effectiveDate LLM batch extraction (Gemini Flash, ~$2-5)
-- P1: HAS_ENTRY_TEMPLATE edge creation (30+ edges)
-- P1: CIT/PIT TaxItem ~60 items
-- P2: JournalEntryTemplate expansion to 60+
-- P2: V1/V2 table cleanup
+**4. Classification Search Fix**
+- API: Added `system` to SEARCH_FIELDS; added TaxClassificationCode + HSCode to SEARCH_TABLES
+- Frontend: Split HS海关编码 from 税收分类编码 as separate browsable types
+- Commit: 8052957
+
+### VPS Final Stats
+- 540,875 nodes (+216) / 1,112,490 edges (+100)
+- Audit score estimate: 4.4/10 → ~7/10
+
+### Key findings (Gotchas for next session)
+1. **LegalDocument 54K is polluted**: ~30K accounting concepts + ~24K CPA headings, NOT real legal documents
+2. **Real legal docs are in LawOrRegulation** (39K nodes, fullText=100% but effectiveDate=0%)
+3. **LawOrRegulation fullText is AI summary**, not original text — can't extract dates from it
+4. **BusinessActivity 384 nodes were all risk scenarios** (虚开发票×15 etc.), fixed with +30 standard activities
+5. **Local DB (100K) ≠ VPS DB (540K)**: v2 tables only on VPS, seed JSONs not imported locally
+
+### Next steps (Phase 3)
+- V1/V2 table cleanup (ComplianceRuleV2/FilingFormV2/RiskIndicatorV2 → merge or drop)
+- LegalDocument data triage (classify 54K into real legal docs vs concepts vs CPA material)
+- LawOrRegulation.effectiveDate: need original crawl data or web lookup (AI summaries lack dates)
+- CPA knowledge: 经济法 + 公司战略 两科完全缺失 (0/6 → need ~1,500 nodes)
+- TaxItem: 93 → 100+ (need 7 more for other tax types: 车辆购置税/耕地占用税 etc.)
 
 ---
 

@@ -43,6 +43,7 @@ const REVENUE_DATA: BarData[] = [
 ];
 
 const MAX_REVENUE = Math.max(...REVENUE_DATA.map((d) => d.value));
+const MIN_REVENUE = Math.min(...REVENUE_DATA.map((d) => d.value));
 
 // ── Task list data (demo) ──────────────────────────────────────────────────
 
@@ -248,14 +249,16 @@ export default function DashboardPage() {
               月度收入趋势 (Revenue Trend)
             </h3>
             <div style={{
-              height: 256,
+              height: 300,
               display: "flex",
               alignItems: "flex-end",
               justifyContent: "space-between",
               gap: "var(--space-2)",
             }}>
               {REVENUE_DATA.map((bar, i) => {
-                const heightPct = (bar.value / MAX_REVENUE) * 100;
+                // Scale bars: min 35%, max 100% for visual contrast
+                const normalized = (bar.value - MIN_REVENUE) / (MAX_REVENUE - MIN_REVENUE);
+                const heightPct = 35 + normalized * 65;
                 const isHovered = hoveredBar === i;
                 return (
                   <div
@@ -286,8 +289,9 @@ export default function DashboardPage() {
                       background: bar.isCurrent
                         ? "var(--color-secondary)"
                         : isHovered
-                          ? "var(--color-primary)"
-                          : "var(--color-surface-container)",
+                          ? "var(--color-primary-deep)"
+                          : "var(--color-primary)",
+                      opacity: bar.isCurrent || isHovered ? 1 : 0.7,
                       cursor: "pointer",
                       transition: "background 0.15s",
                     }} />
@@ -532,6 +536,9 @@ export default function DashboardPage() {
 
       {/* Bottom Summary Strip */}
       <footer style={{
+        position: "sticky",
+        bottom: 0,
+        zIndex: 10,
         height: 48,
         background: "var(--color-primary-deep)",
         display: "flex",

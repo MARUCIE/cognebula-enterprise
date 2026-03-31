@@ -431,6 +431,9 @@ export default function AccountingWorkbenchPage() {
 
       {/* Bottom Summary Strip */}
       <footer style={{
+        position: "sticky",
+        bottom: 0,
+        zIndex: 10,
         height: 48,
         background: "var(--color-primary-deep)",
         display: "flex",

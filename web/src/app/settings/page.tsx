@@ -369,6 +369,9 @@ export default function SettingsPage() {
 
       {/* Bottom Status Strip */}
       <footer style={{
+        position: "sticky",
+        bottom: 0,
+        zIndex: 10,
         height: 48,
         background: "var(--color-primary-deep)",
         display: "flex",

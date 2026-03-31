@@ -11,7 +11,10 @@ import { TopBar } from "./TopBar";
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isExpert = pathname.startsWith("/expert");
-  const isWorkbench = pathname.startsWith("/workbench");
+  const isWorkbench = pathname.startsWith("/workbench")
+    || pathname.startsWith("/dashboard")
+    || pathname.startsWith("/clients")
+    || pathname.startsWith("/settings");
 
   // System A (Expert/CogNebula) — skip System B chrome entirely
   if (isExpert) {

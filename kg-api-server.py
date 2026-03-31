@@ -871,7 +871,22 @@ def query_nodes(
             )
             rows.append(d)
 
-    return {"type": type, "count": len(rows), "offset": offset, "results": rows}
+    # Count total matches (for search queries, not full table scans)
+    total_count = len(rows)
+    if q:
+        try:
+            safe_q2 = q.replace("\\", "\\\\").replace("'", "\\'")
+            fields2 = SEARCH_FIELDS.get(type, ["name", "title", "fullText"])
+            conds2 = [f"(n.{f} IS NOT NULL AND n.{f} CONTAINS '{safe_q2}')" for f in fields2]
+            where2 = " OR ".join(conds2) if conds2 else f"n.id CONTAINS '{safe_q2}'"
+            count_cypher = f"MATCH (n:{type}) WHERE {where2} RETURN count(n)"
+            cr = conn.execute(count_cypher)
+            if cr.has_next():
+                total_count = cr.get_next()[0]
+        except Exception:
+            total_count = len(rows)
+
+    return {"type": type, "count": len(rows), "total": total_count, "offset": offset, "results": rows}
 
 
 # === Text-based KG Search (Cypher CONTAINS) ===

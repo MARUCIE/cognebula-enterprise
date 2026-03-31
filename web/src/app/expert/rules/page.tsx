@@ -221,7 +221,7 @@ function LargeTableGuide({ type, total, label, onSearch, onBrowse, pageSize }: {
     unique.forEach(async (q) => {
       try {
         const res = await listNodes(type, 1, 0, q);
-        setCounts((prev) => ({ ...prev, [q]: res.count || 0 }));
+        setCounts((prev) => ({ ...prev, [q]: (res as Record<string, unknown>).total as number || res.count || 0 }));
       } catch { /* skip */ }
     });
   }, [type, categories]);

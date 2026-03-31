@@ -88,6 +88,39 @@ def _get_node_label(node_id, title=None, name=None, question=None,
     return nid or "未命名"
 
 
+def _classify_legal_doc_type(doc_type: str) -> str:
+    """Classify LegalDocument.type into content categories.
+
+    ~70% of LegalDocument nodes are NOT actual legal documents (audit finding 2026-03-31).
+    This function maps the raw type field to one of: legal, qa, knowledge, template, other.
+    """
+    if not doc_type:
+        return "other"
+    t = doc_type.lower().strip()
+    # Real legal documents
+    if any(t.startswith(p) for p in (
+        "policy/", "provincial/", "local_", "tax_policy_", "announcement",
+        "notice", "crawl", "shuiwu",
+    )):
+        return "legal"
+    # Q&A content (belongs in FAQEntry)
+    if any(t.startswith(p) for p in ("qa/", "12366_qa_", "derived_qa")):
+        return "qa"
+    # Knowledge/education content (belongs in KnowledgeUnit/CPAKnowledge)
+    if t in ("kuaiji", "doctax_knowledge", "chinaacc_accounting", "chinaacc_cpa") or t.startswith("pdf_cpa") or t.startswith("chinaacc_"):
+        return "knowledge"
+    # Templates (belongs in FormTemplate)
+    if t in ("report_template",) or t.startswith("工具/"):
+        return "template"
+    # Compliance/invoice (borderline legal)
+    if t in ("compliance_obligation",) or t.startswith("发票"):
+        return "legal"
+    # Reference materials
+    if t.startswith("pdf_"):
+        return "knowledge"
+    return "other"
+
+
 app = FastAPI(
     title="CogNebula KG API",
     version="1.0.0",
@@ -286,6 +319,8 @@ def quality_audit():
         "TaxIncentiveV2", "KnowledgeUnit", "Classification", "AccountingSubject",
         "TaxType", "TaxEntity", "Region", "FilingFormV2", "BusinessActivity",
         "IssuingBody", "Penalty", "AuditTrigger",
+        # V1 counterparts (richer data, now primary)
+        "ComplianceRule", "RiskIndicator", "TaxIncentive", "FilingForm",
     }
 
     V2_EDGES = {
@@ -648,7 +683,8 @@ def constellation_by_type(
 ):
     """Return a type-focused subgraph: sample nodes of this type + their neighbors."""
     # Guard: types with 100% garbage data (textbook imports)
-    DIRTY_TYPES = {"RiskIndicator", "AuditTrigger", "RiskIndicatorV2"}
+    # V2 tables are frozen legacy; V1 curated data is now clean
+    DIRTY_TYPES = {"RiskIndicatorV2"}
     if type in DIRTY_TYPES:
         return {"nodes": [], "edges": [], "total_nodes": 0, "total_edges": 0,
                 "focus_type": type, "error": f"{type} 数据质量不足（教材导入数据），暂不可用"}
@@ -875,6 +911,9 @@ def query_nodes(
                 table=type, node_text=d.get("node_text"), topic=d.get("topic"),
                 item_name=d.get("item_name"), productCategory=d.get("productCategory"),
             )
+            # LegalDocument content category (triage: 70% of nodes are not real legal docs)
+            if type == "LegalDocument":
+                d["_contentCategory"] = _classify_legal_doc_type(d.get("type", ""))
             rows.append(d)
 
     # Count total matches (for search queries, not full table scans)
@@ -1673,6 +1712,8 @@ def ingest(payload: dict):
         "TaxEntity", "IssuingBody", "FilingFormV2", "BusinessActivity",
         "ComplianceRuleV2", "RiskIndicatorV2", "Penalty", "AuditTrigger",
         "AccountingSubject", "Classification",
+        # V1 counterparts (richer data)
+        "ComplianceRule", "RiskIndicator", "TaxIncentive", "FilingForm",
     }
 
     for i, node in enumerate(nodes):

@@ -1,6 +1,59 @@
 # HANDOFF.md -- CogNebula / Lingque Desktop
 
-> Last updated: 2026-03-31T19:30Z
+> Last updated: 2026-03-31T21:15Z
+
+## Session 28 — Ontology Phase 3: TaxItem + V1/V2 Cleanup + CPA (2026-03-31)
+
+### Status: DONE
+
+### What was done
+
+**1. TaxItem 19/19 Tax Type Coverage (93 → 138)**
+- Added 45 TaxItem nodes for 14 previously empty tax types
+- Coverage: all 19 tax types + 2 surcharges now have TaxItem detail
+- Includes: 房产税(2), 土地增值税(4), 城镇土地使用税(4), 车船税(7), 契税(5), 关税(2), 资源税(5), 烟叶税(1), 船舶吨税(2), 耕地占用税(4), 环境保护税(4), 城建税(3), 教育费附加(1), 地方教育附加(1)
+- All 45 HAS_ITEM edges created (TaxType → TaxItem)
+
+**2. V1/V2 Table Cleanup**
+- Analysis: 4 pairs (ComplianceRule/V2, RiskIndicator/V2, TaxIncentive/V2, FilingForm/V2)
+- Decision: V1 data is richer in all cases; V2 are stripped-down duplicates or noise
+- Action: DETACH DELETE all V2 data (852 nodes, 1,645 edges removed)
+- API: SEARCH_TABLES already pointed to V1; updated V2_TABLES/metadata_tables
+- DIRTY_TYPES: removed "RiskIndicator" and "AuditTrigger" (now curated, not dirty)
+- V2 table schemas preserved (edge table dependencies prevent DROP)
+
+**3. LegalDocument 54K Triage**
+- Discovery: ~70% of LegalDocument nodes are NOT legal documents
+  - ~31% real legal docs (policy/local/announcement)
+  - ~21% Q&A (tax hotline, 12366)
+  - ~22% knowledge/education (kuaiji, doctax, chinaacc, CPA)
+  - ~7% templates (report/contract/finance)
+- Action: Added `_contentCategory` classification to API (legal/qa/knowledge/template/other)
+- Function: `_classify_legal_doc_type()` in kg-api-server.py
+- Deployed to VPS, verified working
+
+**4. CPA Knowledge Gap Fill (7,371 → 7,729)**
+- Imported 358 CPAKnowledge nodes: 经济法 (5 exam files) + 公司战略 (4 exam files)
+- Content: exam questions with answers/analysis + knowledge points
+- CPA subject coverage: 4/6 → 6/6 (added economic_law + strategy)
+
+### VPS Final Stats
+- 540,426 nodes / 1,111,507 edges
+- 91 node tables (4 V2 tables now empty), 115 rel tables
+- Audit score estimate: ~7.0/10 → ~7.5/10
+
+### Key decisions
+1. **V2 tables not dropped**: edge table definitions (GOVERNED_BY, TRIGGERED_BY, etc.) reference V2 types. DETACH DELETE zeros data; schemas remain as frozen legacy.
+2. **LegalDocument not migrated**: Reclassifying 37K nodes across tables too risky (edge cascades). Classification via API `_contentCategory` field is the pragmatic path.
+
+### Remaining items (Phase 4)
+- LegalDocument triage: actually migrate qa→FAQEntry, knowledge→KnowledgeUnit (large scope)
+- LawOrRegulation.effectiveDate: need original crawl PDFs or web lookup (AI summaries lack dates)
+- V1/V2 edge migration: create parallel V1-targeting edge tables, then DROP V2 schemas
+- CPA content backfill: 7,729 nodes still have 44% empty content (heading-only nodes)
+- Local←→VPS data sync mechanism
+
+---
 
 ## Session 27 — Ontology Audit + Search Fix (2026-03-31)
 

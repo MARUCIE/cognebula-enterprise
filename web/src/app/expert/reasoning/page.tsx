@@ -1,16 +1,13 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import dynamic from "next/dynamic";
 import {
   chatRAG, getGraph, searchNodes,
   NODE_COLORS, EDGE_LABELS_ZH, EDGE_COLORS, LAYER_GROUPS, getNodeLayer,
   type ChatResponse, type ChatSource, type KGNeighbor,
 } from "../../lib/kg-api";
-import type { GraphData, SelectedNode, CytoscapeGraphHandle } from "../../components/CytoscapeGraph";
+import type { GraphData, SelectedNode } from "../../components/CytoscapeGraph";
 import { CN, cnCard, cnInput, cnBtnPrimary, cnBadge } from "../../lib/cognebula-theme";
-
-const CytoscapeGraph = dynamic(() => import("../../components/CytoscapeGraph"), { ssr: false });
 
 interface QAEntry {
   id: string;
@@ -140,7 +137,7 @@ export default function ReasoningPage() {
   const [selectedEntry, setSelectedEntry] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<SelectedNode | null>(null);
   const [expandedSources, setExpandedSources] = useState(false);
-  const graphRef = useRef<CytoscapeGraphHandle>(null);
+  // graphRef removed: graph visualization moved to /expert/kg
   const answerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -385,22 +382,20 @@ export default function ReasoningPage() {
                 )}
               </div>
 
-              {/* Knowledge Graph Visualization */}
-              <div style={{ flex: 1, position: "relative", minHeight: 200, background: CN.bgCanvas }}>
+              {/* Graph summary (visualization moved to /expert/kg) */}
+              {currentEntry.graphData.nodes.length > 0 && (
                 <div style={{
-                  position: "absolute", top: 8, left: 12, zIndex: 10,
-                  fontSize: 10, fontWeight: 700, color: "#8B949E", letterSpacing: "1px",
-                  background: "rgba(13,17,23,0.8)", padding: "4px 10px", borderRadius: 4,
+                  margin: "16px 0 0", padding: "10px 14px",
+                  background: CN.bgElevated, borderRadius: 6, border: `1px solid ${CN.border}`,
+                  fontSize: 11, color: CN.textMuted,
                 }}>
-                  KNOWLEDGE GRAPH -- {currentEntry.graphData.nodes.length} 节点 / {currentEntry.graphData.edges.length} 边
+                  关联图谱: {currentEntry.graphData.nodes.length} 节点 / {currentEntry.graphData.edges.length} 边
+                  <span style={{ marginLeft: 12, color: CN.blue, cursor: "pointer" }}
+                    onClick={() => window.open("/expert/kg", "_blank")}>
+                    在图谱浏览器中查看 →
+                  </span>
                 </div>
-                <CytoscapeGraph
-                  ref={graphRef}
-                  data={currentEntry.graphData}
-                  onNodeSelect={setSelectedNode}
-                  onNodeDblClick={() => {}}
-                />
-              </div>
+              )}
             </>
           )}
         </div>

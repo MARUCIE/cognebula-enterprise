@@ -111,6 +111,183 @@ const TYPE_COLUMNS: Record<string, { c1: string; c2: string; c3: string }> = {
 
 const DEFAULT_COLUMNS = { c1: "名称", c2: "分类", c3: "说明" };
 
+/* ── Hierarchical category menus for large tables ── */
+interface CategoryItem { label: string; query: string; desc?: string }
+interface CategoryGroup { title: string; icon: string; items: CategoryItem[] }
+
+const LARGE_TABLE_CATEGORIES: Record<string, CategoryGroup[]> = {
+  LegalClause: [
+    { title: "流转税", icon: "💰", items: [
+      { label: "增值税法", query: "增值税法", desc: "含实施条例" },
+      { label: "消费税", query: "消费税", desc: "暂行条例+实施细则" },
+      { label: "关税", query: "关税", desc: "关税法+进出口条例" },
+    ]},
+    { title: "所得税", icon: "📊", items: [
+      { label: "企业所得税法", query: "企业所得税法", desc: "含实施条例" },
+      { label: "个人所得税法", query: "个人所得税法", desc: "含实施条例+专项扣除" },
+    ]},
+    { title: "财产行为税", icon: "🏠", items: [
+      { label: "印花税", query: "印花税", desc: "2022年新法" },
+      { label: "土地增值税", query: "土地增值税" },
+      { label: "房产税", query: "房产税" },
+      { label: "契税", query: "契税" },
+      { label: "车船税", query: "车船税" },
+      { label: "城镇土地使用税", query: "城镇土地使用税" },
+    ]},
+    { title: "征管与程序", icon: "📋", items: [
+      { label: "税收征管法", query: "税收征管法", desc: "含实施细则" },
+      { label: "发票管理", query: "发票管理", desc: "发票管理办法+数电票" },
+      { label: "行政处罚", query: "行政处罚" },
+      { label: "行政复议", query: "行政复议" },
+    ]},
+    { title: "社保与附加", icon: "🏥", items: [
+      { label: "社会保险", query: "社会保险" },
+      { label: "住房公积金", query: "住房公积金" },
+      { label: "城市维护建设税", query: "城市维护建设税" },
+      { label: "教育费附加", query: "教育费附加" },
+    ]},
+    { title: "会计准则", icon: "📖", items: [
+      { label: "企业会计准则", query: "企业会计准则" },
+      { label: "小企业会计准则", query: "小企业会计准则" },
+    ]},
+  ],
+  LegalDocument: [
+    { title: "按税种", icon: "📑", items: [
+      { label: "增值税相关", query: "增值税" },
+      { label: "企业所得税相关", query: "企业所得税" },
+      { label: "个人所得税相关", query: "个人所得税" },
+      { label: "印花税相关", query: "印花税" },
+      { label: "土地增值税相关", query: "土地增值税" },
+    ]},
+    { title: "按主题", icon: "🏷️", items: [
+      { label: "税收优惠", query: "优惠" },
+      { label: "征管程序", query: "征管" },
+      { label: "发票管理", query: "发票" },
+      { label: "出口退税", query: "出口退税" },
+      { label: "社会保险", query: "社保" },
+      { label: "反避税", query: "避税" },
+    ]},
+  ],
+  KnowledgeUnit: [
+    { title: "纳税申报", icon: "📝", items: [
+      { label: "增值税申报", query: "增值税申报" },
+      { label: "企业所得税申报", query: "企业所得税申报" },
+      { label: "个税申报", query: "个税申报" },
+      { label: "汇算清缴", query: "汇算清缴" },
+    ]},
+    { title: "税务实务", icon: "⚙️", items: [
+      { label: "税务登记", query: "税务登记" },
+      { label: "发票开具", query: "发票" },
+      { label: "纳税调整", query: "纳税调整" },
+      { label: "加计扣除", query: "加计扣除" },
+      { label: "小微企业", query: "小微企业" },
+    ]},
+    { title: "会计核算", icon: "📐", items: [
+      { label: "收入确认", query: "收入确认" },
+      { label: "成本核算", query: "成本核算" },
+      { label: "折旧摊销", query: "折旧" },
+      { label: "资产减值", query: "减值" },
+    ]},
+  ],
+  Classification: [
+    { title: "编码体系", icon: "🔢", items: [
+      { label: "HS 海关编码", query: "HS" },
+      { label: "税收分类编码", query: "税收分类" },
+      { label: "行业分类", query: "行业" },
+    ]},
+    { title: "按品类", icon: "📦", items: [
+      { label: "货物", query: "货物" },
+      { label: "服务", query: "服务" },
+      { label: "不动产", query: "不动产" },
+      { label: "无形资产", query: "无形资产" },
+    ]},
+  ],
+};
+
+/* ── Large table guide component ── */
+function LargeTableGuide({ type, total, label, onSearch, onBrowse, pageSize }: {
+  type: string; total: number; label: string;
+  onSearch: (kw: string) => void; onBrowse: () => void; pageSize: number;
+}) {
+  const categories = LARGE_TABLE_CATEGORIES[type];
+
+  return (
+    <div style={{ padding: "32px 40px", overflowY: "auto" }}>
+      {/* Header */}
+      <div style={{ marginBottom: 28, textAlign: "center" }}>
+        <div style={{ fontSize: 15, fontWeight: 700, color: CN.text, marginBottom: 6 }}>
+          {label} 共 {total.toLocaleString()} 条
+        </div>
+        <div style={{ fontSize: 12, color: CN.textMuted }}>
+          按分类浏览，或使用上方搜索框精确查找
+        </div>
+      </div>
+
+      {/* Category grid */}
+      {categories ? (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16, maxWidth: 960, margin: "0 auto" }}>
+          {categories.map((group) => (
+            <div key={group.title} style={{
+              background: CN.bgCard, border: `1px solid ${CN.border}`, borderRadius: 8,
+              padding: "16px 18px", transition: "box-shadow 0.15s",
+            }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: CN.text, marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+                <span>{group.icon}</span> {group.title}
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                {group.items.map((item) => (
+                  <button key={item.query}
+                    onClick={() => onSearch(item.query)}
+                    style={{
+                      display: "flex", alignItems: "center", justifyContent: "space-between",
+                      width: "100%", padding: "7px 10px", fontSize: 12,
+                      color: CN.text, background: CN.bgElevated, border: `1px solid transparent`,
+                      borderRadius: 6, cursor: "pointer", textAlign: "left",
+                      transition: "all 0.12s",
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = CN.blue; e.currentTarget.style.background = CN.blueBg; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = "transparent"; e.currentTarget.style.background = CN.bgElevated; }}
+                  >
+                    <span>{item.label}</span>
+                    {item.desc && <span style={{ fontSize: 10, color: CN.textMuted }}>{item.desc}</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        /* Fallback for tables without curated categories */
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", maxWidth: 500, margin: "0 auto" }}>
+          {["增值税", "企业所得税", "个人所得税", "发票", "合规", "优惠"].map((kw) => (
+            <button key={kw}
+              onClick={() => onSearch(kw)}
+              style={{
+                padding: "8px 18px", fontSize: 12, borderRadius: 20,
+                border: `1px solid ${CN.border}`, background: CN.bgElevated,
+                color: CN.text, cursor: "pointer",
+              }}
+            >
+              {kw}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Browse all link */}
+      <div style={{ textAlign: "center", marginTop: 24, fontSize: 11, color: CN.textMuted }}>
+        或{" "}
+        <button
+          onClick={onBrowse}
+          style={{ background: "none", border: "none", color: CN.blue, cursor: "pointer", fontSize: 11, textDecoration: "underline" }}
+        >
+          直接浏览前 {pageSize} 条
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /* ── Document name cache (documentId → name) ── */
 const docNameCache: Record<string, string> = {};
 
@@ -325,7 +502,7 @@ export default function RulesPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await listNodes(type, PAGE_SIZE, pageNum * PAGE_SIZE, q || undefined);
+      const res = await listNodes(type, PAGE_SIZE, pageNum * PAGE_SIZE, (q && q !== "__BROWSE__") ? q : undefined);
       const mapped = (res.results || []).map((n) => mapNodeRow(n, type));
       setNodes(mapped);
       setTotal(q ? res.count || mapped.length : stats?.nodes_by_type?.[type] || res.count || mapped.length);
@@ -351,9 +528,24 @@ export default function RulesPage() {
     setLoading(false);
   }, [stats]);
 
+  // Large tables (>1000 nodes) require explicit search or "browse" action
+  const LARGE_TABLE_THRESHOLD = 1000;
+  const isLargeTable = (type: string) => (stats?.nodes_by_type?.[type] || 0) > LARGE_TABLE_THRESHOLD;
+  const [browseConfirmed, setBrowseConfirmed] = useState(false);
+
   useEffect(() => {
-    loadNodes(activeType, page, serverQuery || undefined);
-  }, [activeType, page, loadNodes, serverQuery]);
+    // Wait for stats before deciding load strategy
+    if (!stats) return;
+    // Skip auto-load for large tables unless user confirmed browsing or has a search query
+    if (isLargeTable(activeType) && !serverQuery && !browseConfirmed) {
+      setNodes([]);
+      setTotal(stats?.nodes_by_type?.[activeType] || 0);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+    loadNodes(activeType, page, (serverQuery && serverQuery !== "__BROWSE__") ? serverQuery : undefined);
+  }, [activeType, page, loadNodes, serverQuery, browseConfirmed, stats]);
 
   // Change type
   const switchType = (type: string) => {
@@ -361,6 +553,8 @@ export default function RulesPage() {
     setPage(0);
     setDetail(null);
     setSearch("");
+    setServerQuery("");
+    setBrowseConfirmed(false);
   };
 
   // Open detail panel with parent doc resolution
@@ -519,7 +713,17 @@ export default function RulesPage() {
 
         {/* Node table */}
         <div style={{ flex: 1, overflowY: "auto" }}>
-          {loading ? (
+          {/* Large-table guide: hierarchical category navigation */}
+          {!loading && isLargeTable(activeType) && !serverQuery && !browseConfirmed ? (
+            <LargeTableGuide
+              type={activeType}
+              total={total}
+              label={BROWSABLE_TYPES.find((t) => t.table === activeType)?.label || activeType}
+              onSearch={(kw) => { setSearch(kw); setServerQuery(kw); setPage(0); }}
+              onBrowse={() => { setBrowseConfirmed(true); setPage(0); }}
+              pageSize={PAGE_SIZE}
+            />
+          ) : loading ? (
             <div style={{ padding: 40, textAlign: "center", color: CN.textMuted }}>加载中...</div>
           ) : filtered.length === 0 ? (
             <div style={{ padding: 40, textAlign: "center", color: CN.textMuted }}>

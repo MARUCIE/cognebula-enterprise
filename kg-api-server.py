@@ -1824,7 +1824,7 @@ class ChatResponse(_BaseModel):
     tokens_used: int = 0
 
 
-def _gemini_generate(prompt: str, system: str = "", model: str = "gemini-2.5-flash") -> str:
+def _gemini_generate(prompt: str, system: str = "", model: str = "gemini-3.1-pro-preview") -> str:
     """Call LLM via Poe API (OpenAI-compatible) for text generation.
 
     Falls back to Google Gemini API if POE_API_KEY is not set.

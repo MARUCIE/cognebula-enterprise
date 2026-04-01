@@ -1,6 +1,6 @@
 # HANDOFF.md -- CogNebula / Lingque Desktop
 
-> Last updated: 2026-03-31T21:15Z
+> Last updated: 2026-04-01T15:30Z
 
 ## Session 28 — Ontology Phase 3: TaxItem + V1/V2 Cleanup + CPA (2026-03-31)
 
@@ -67,10 +67,28 @@
 - LawOrRegulation.effectiveDate: 0% → 61.1%
 - KnowledgeUnit content: +93 nodes backfilled
 
-### Remaining items (Phase 5+)
-- LawOrRegulation.effectiveDate: 38.9% still unfilled (need web scraping from sourceUrl)
+### Phase 5 (Session 29, 2026-04-01)
+
+**7. Gemini API Key Upgrade**
+- New key: Google Cloud $300 credit project (replacing expired AI Studio key)
+- Generation model: gemini-2.5-flash → `gemini-3.1-pro-preview` (latest)
+- Embedding model: already `gemini-embedding-2-preview` (3072 dim)
+- Deployed to VPS .env.kg-api + kg-api-server.py
+
+**8. LawOrRegulation.effectiveDate Round 2 (61.1% → 77.8%)**
+- Round 2 strategies (no web scraping needed):
+  - URL path extraction: `/art/YYYY/M/D/` → 4,214 nodes
+  - Regulation number year: `〔2020〕` or `公告2020年第` → 2,867 nodes
+- Combined: +7,081 nodes fixed, total ~30,503 / 39,182 (77.8%)
+
+**9. CPAKnowledge Content Generation (Gemini 3.1 Pro)**
+- 4,129 empty heading nodes → Gemini batch summary generation
+- 15 headings per API call, ~275 calls total
+- Status: RUNNING
+
+### Remaining items (Phase 6+)
+- LawOrRegulation.effectiveDate: 22.2% still unfilled (chinatax.gov.cn dynamic pages, need browser scraping)
 - LegalDocument triage: migrate qa→FAQEntry, knowledge→KnowledgeUnit (large scope)
-- CPAKnowledge heading nodes: 58% empty content (PDF ToC entries, need NLP alignment)
 - V1/V2 edge migration: create parallel V1-targeting edge tables, then DROP V2 schemas
 - Local←→VPS data sync mechanism
 

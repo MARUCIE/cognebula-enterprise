@@ -36,13 +36,13 @@ CSV_DIR = "/home/kg/cognebula-enterprise/data/edge_csv/m3_edges"
 os.makedirs(CSV_DIR, exist_ok=True)
 
 
-from llm_client import llm_generate
+GEMINI_MODEL = "gemini-2.5-flash"
+GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
 
 
 def _strip_markdown(text: str) -> str:
     """Strip markdown code block wrappers from LLM response."""
     import re
-    # Remove ```json ... ``` or ``` ... ```
     m = re.search(r'```(?:json)?\s*\n?(.*?)```', text, re.DOTALL)
     if m:
         return m.group(1).strip()
@@ -50,9 +50,31 @@ def _strip_markdown(text: str) -> str:
 
 
 def _call_gemini(prompt: str, api_key: str = "") -> str:
-    """Call LLM via Poe API and return response text (markdown stripped)."""
-    raw = llm_generate(prompt, temperature=0.1, max_tokens=2000)
-    return _strip_markdown(raw)
+    """Call Gemini API directly and return response text (markdown stripped)."""
+    import json as _json
+    body = _json.dumps({
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"temperature": 0.1, "maxOutputTokens": 2000},
+    }).encode()
+    for attempt in range(3):
+        try:
+            req = Request(f"{GEMINI_URL}?key={api_key}",
+                          data=body, headers={"Content-Type": "application/json"})
+            with urlopen(req, timeout=30) as resp:
+                data = _json.loads(resp.read())
+                raw = data["candidates"][0]["content"]["parts"][0]["text"]
+                return _strip_markdown(raw)
+        except HTTPError as e:
+            if e.code == 429:
+                time.sleep(2 ** attempt + 1)
+                continue
+            return f"[ERROR] Gemini HTTP {e.code}"
+        except Exception as e:
+            if attempt < 2:
+                time.sleep(2 ** attempt)
+                continue
+            return f"[ERROR] {e}"
+    return "[ERROR] max retries"
 
 
 def discover_supersedes(conn, api_key: str, batch_size: int = 50, max_batches: int = 20) -> int:
@@ -171,10 +193,16 @@ def main():
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
-    # LLM calls now go through llm_client.py (Poe API), no separate key needed
-    api_key = os.environ.get("POE_API_KEY", os.environ.get("GEMINI_API_KEY", ""))
+    api_key = os.environ.get("GEMINI_API_KEY", "")
+    if not api_key:
+        for p in [".env", "/home/kg/.env.kg-api"]:
+            if os.path.exists(p):
+                for line in open(p):
+                    if line.startswith("GEMINI_API_KEY="):
+                        api_key = line.split("=", 1)[1].strip()
+                        break
     if not api_key and not args.dry_run:
-        print("ERROR: POE_API_KEY not set (check .env.kg-api)")
+        print("ERROR: GEMINI_API_KEY not set")
         sys.exit(1)
 
     print("=" * 60)

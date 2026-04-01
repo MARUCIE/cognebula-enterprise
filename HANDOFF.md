@@ -1,6 +1,51 @@
 # HANDOFF.md -- CogNebula / Lingque Desktop
 
-> Last updated: 2026-04-01T17:30Z
+> Last updated: 2026-04-01T12:40Z
+
+## Session 30 — Pipeline Health Fix + M3 Readiness (2026-04-01)
+
+### Status: DONE (embedding still running)
+
+### What was done
+
+**12. Pipeline Bug Fixes (3 fetcher fixes)**
+- fetch_flk_npc: SyntaxError (f-string backslash) + TypeError (`int + str`) → fixed with `str(code_id)` → 1,579 items
+- fetch_customs: JSL cookies defined but never called → rewrote as stub (VPS IP blocked by JSL CDN)
+- fetch_npc: dead API (405) → added to skip list in daily_pipeline.sh (replaced by fetch_flk_npc)
+- rebuild_embeddings.py: `len(embedded)` NameError → fixed to `total_written`
+
+**13. M3 Orchestrator Ready for First Run**
+- Root cause: 4 depth scripts existed locally but never deployed to VPS
+- Deployed: generate_lr_qa.py, ku_content_backfill.py, generate_edges_ai.py, enrich_edges_batch.py
+- Fixed generate_edges_ai.py: removed `llm_client` Poe dependency → direct Gemini API
+- M3 first run: 2026-04-02 02:00 UTC
+
+**14. Crontab Cleanup**
+- M3 cron: added `>> m3-cron.log 2>&1` (was silently dropping errors)
+- Removed stale commented-out entries
+- Verified: Daily 10:00 + M3 02:00 + M2 14:00 + Backup Sunday 06:00
+
+### Embedding rebuild progress
+- Script: `scripts/rebuild_embeddings.py --batch-size 50 --resume`
+- Progress: 55K/278K total (20%), 14 vectors/sec, ETA ~16:50 UTC
+- LanceDB: 700 MB at `/home/kg/data/lancedb/kg_nodes.lance/`
+- After completion: API server will auto-pick up new table; IVF_PQ index needs manual creation
+
+### Known blockers
+- customs.gov.cn: JSL CDN blocks VPS IP at network level (not just browser fingerprint)
+- fetch_safe: intermittent timeout (non-critical, data partially collected)
+
+### Remaining items (Phase 6+)
+- **Embedding rebuild**: 278K vectors at 3072 dim (running, ETA ~4h)
+- Post-embedding: restart API + verify search + create IVF_PQ index
+- LawOrRegulation.effectiveDate: 22.2% unfilled (chinatax.gov.cn dynamic pages)
+- LegalDocument triage: migrate qa→FAQEntry, knowledge→KnowledgeUnit (large scope)
+- V1/V2 edge migration: create parallel V1-targeting edge tables, then DROP V2 schemas
+- Local←→VPS data sync mechanism
+- Provincial crawlers: 10 provinces blocked by VPS IP (need residential proxy)
+- customs.gov.cn: blocked by JSL CDN (need residential proxy)
+
+---
 
 ## Session 28 — Ontology Phase 3: TaxItem + V1/V2 Cleanup + CPA (2026-03-31)
 
@@ -88,11 +133,13 @@
 
 **10. LanceDB Vector Index Full Rebuild (RUNNING)**
 - Model: gemini-embedding-2-preview (3072 dim, native)
-- Batch API: batchEmbedContents, 80 texts/call
-- Scope: 31 tables, 277,843 texts
-- Old index: 37,329 vectors / 768 dim → New: 277,843 / 3072 dim (7.5x coverage)
-- Script: `scripts/rebuild_embeddings.py`
-- Status: ~80K/278K done, ETA ~2h
+- Batch API: batchEmbedContents, 50 texts/call, 2s sleep (conservative rate)
+- Scope: 31 tables, 278,499 texts
+- Old index: 37,329 vectors / 768 dim → New: 278K / 3072 dim (7.5x coverage)
+- Script: `scripts/rebuild_embeddings.py --batch-size 50 --resume`
+- Bug fixed: `len(embedded)` → `total_written` (NameError at end)
+- OOM fixed: incremental LanceDB writes every 5K vectors (FLUSH_SIZE = 5000)
+- Status: 55K/278K (20%), 14/sec, ETA ~16:50 UTC Apr 1
 
 **11. Crawl Pipeline Full Restoration**
 - Root cause: 3-layer cascade failure (chmod + missing scripts + disabled crontab)
@@ -100,14 +147,15 @@
 - Fixes applied:
   - daily_pipeline.sh: chmod +x + timeout 2x for all fetchers
   - fetch_flk_npc: rewritten as Playwright adapter (old API dead, Vue SPA)
-  - fetch_customs: Playwright JSL cookie bypass (412 anti-bot)
+  - fetch_customs: JSL CDN blocks VPS IP → stub (returns empty until proxy available)
   - fetch_samr: new Playwright fetcher (was CF Browser only) → 42 items
   - fetch_miit: new Playwright fetcher (was CF Browser only) → 10 items
   - fetch_casc: URL double-domain bug fixed (urljoin)
+  - fetch_npc: dead API (405) → skip (replaced by fetch_flk_npc)
   - fetch_cf_browser: skipped (replaced by Playwright fetchers)
   - M3 orchestrator: 4 depth scripts deployed + crontab re-enabled (02:00 UTC)
   - M2 pipeline: re-enabled at 14:00 UTC, inject_chinaacc_data.py deployed
-- Fetcher status: 13/15 working, 1 skipped (cf_browser), 1 dead domain (ctax)
+- Fetcher status: 12/16 working, 2 skipped (cf_browser, npc), 1 dead (ctax), 1 blocked (customs/JSL)
 
 ### Crontab (active)
 ```

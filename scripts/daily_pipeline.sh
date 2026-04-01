@@ -42,8 +42,8 @@ for fetcher in src/fetchers/fetch_*.py; do
         fetch_pbc)         FLAGS=""                ; TIMEOUT=300 ;;
         fetch_safe)        FLAGS=""                ; TIMEOUT=300 ;;
         fetch_stats)       FLAGS=""                ; TIMEOUT=300 ;;
-        fetch_npc)         FLAGS=""                ; TIMEOUT=300 ;;
-        fetch_customs)     FLAGS=""                ; TIMEOUT=300 ;;
+        fetch_npc)         continue ;;  # dead API (405), replaced by fetch_flk_npc
+        fetch_customs)     FLAGS=""                ; TIMEOUT=180 ;;  # Playwright JSL cookies
         fetch_ctax)        FLAGS=""                ; TIMEOUT=120 ;;  # domain dead, quick fail
         fetch_flk_npc)     FLAGS=""                ; TIMEOUT=30  ;;  # reads Playwright cache
         fetch_samr)        FLAGS=""                ; TIMEOUT=60  ;;  # Playwright

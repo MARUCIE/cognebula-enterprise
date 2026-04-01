@@ -283,14 +283,14 @@ def main():
     try:
         tbl.create_index(
             metric="cosine",
-            num_partitions=min(256, max(1, len(embedded) // 1000)),
+            num_partitions=min(256, max(1, total_written // 1000)),
             num_sub_vectors=min(96, args.dim // 32),
         )
         log.info("Index created")
     except Exception as e:
         log.warning("Index creation failed (will use brute force): %s", e)
 
-    log.info("=== DONE: %d vectors, %d dim, %.1f min ===", len(embedded), args.dim, elapsed / 60)
+    log.info("=== DONE: %d vectors, %d dim, %.1f min ===", total_written, args.dim, elapsed / 60)
 
 
 if __name__ == "__main__":

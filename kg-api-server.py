@@ -1116,7 +1116,7 @@ def search(
         _api_key = os.environ.get("GEMINI_API_KEY", "")
         if _api_key:
             _url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2-preview:embedContent?key={_api_key}"
-            _payload = json.dumps({"model": "models/gemini-embedding-2-preview", "content": {"parts": [{"text": q[:2048]}]}, "taskType": "RETRIEVAL_QUERY", "outputDimensionality": 768}).encode()
+            _payload = json.dumps({"model": "models/gemini-embedding-2-preview", "content": {"parts": [{"text": q[:2048]}]}, "taskType": "RETRIEVAL_QUERY"}).encode()
             _req = _urlreq.Request(_url, data=_payload, headers={"Content-Type": "application/json"})
             with _urlreq.urlopen(_req, timeout=5) as _resp:
                 query_vec = json.loads(_resp.read())["embedding"]["values"]
@@ -1891,7 +1891,6 @@ def _embed_query(text: str) -> list:
         "model": "models/gemini-embedding-2-preview",
         "content": {"parts": [{"text": text[:2048]}]},
         "taskType": "RETRIEVAL_QUERY",
-        "outputDimensionality": 768,
     }).encode()
     req = _urlreq.Request(url, data=payload, headers={"Content-Type": "application/json"})
     try:

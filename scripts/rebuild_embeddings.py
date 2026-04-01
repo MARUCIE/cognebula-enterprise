@@ -137,7 +137,8 @@ def batch_embed(texts: list, api_key: str, dim: int) -> list:
 def main():
     parser = argparse.ArgumentParser(description="Rebuild LanceDB embeddings")
     parser.add_argument("--dim", type=int, default=3072, help="Embedding dimension (768 or 3072)")
-    parser.add_argument("--batch-size", type=int, default=80, help="Texts per embed API call (max 100)")
+    parser.add_argument("--batch-size", type=int, default=50, help="Texts per embed API call (max 100)")
+    parser.add_argument("--resume", action="store_true", help="Resume from existing LanceDB data (skip already embedded IDs)")
     parser.add_argument("--tables", type=str, default="", help="Comma-separated table names (empty=all)")
     parser.add_argument("--dry-run", action="store_true", help="Count nodes only")
     parser.add_argument("--lance-path", default=LANCE_PATH)
@@ -195,12 +196,23 @@ def main():
 
     db = lancedb.connect(args.lance_path)
 
-    # Drop old table if exists
-    try:
-        db.drop_table("kg_nodes")
-        log.info("Dropped old kg_nodes table")
-    except Exception:
-        pass
+    # Resume mode: skip already embedded IDs
+    existing_ids = set()
+    if args.resume:
+        try:
+            tbl_existing = db.open_table("kg_nodes")
+            existing_ids = set(tbl_existing.to_pandas()["id"].tolist())
+            log.info("Resume mode: %d existing vectors, skipping", len(existing_ids))
+            all_records = [(nid, t, tbl, c) for nid, t, tbl, c in all_records if nid not in existing_ids]
+            log.info("Remaining to embed: %d texts", len(all_records))
+        except Exception:
+            log.info("Resume mode: no existing table, starting fresh")
+    else:
+        try:
+            db.drop_table("kg_nodes")
+            log.info("Dropped old kg_nodes table")
+        except Exception:
+            pass
 
     schema = pa.schema([
         pa.field("id", pa.string()),
@@ -211,6 +223,12 @@ def main():
     ])
 
     tbl = None
+    if args.resume and existing_ids:
+        try:
+            tbl = db.open_table("kg_nodes")
+            log.info("Opened existing table for resume (appending)")
+        except Exception:
+            pass
     flush_buffer = []
     FLUSH_SIZE = 5000  # Write to LanceDB every 5K vectors (keep memory ~75MB)
     start = time.time()
@@ -247,7 +265,7 @@ def main():
             log.info("  %d/%d (%.0f/sec, ETA %.0f min, written: %d)",
                      done, len(all_records), rate, eta / 60, total_written)
 
-        time.sleep(0.1)
+        time.sleep(2)  # Conservative: ~25 batches/min × 50 texts = 1250 RPM (under 1500 limit)
 
     # Final flush
     if flush_buffer:

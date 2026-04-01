@@ -1,6 +1,6 @@
 # HANDOFF.md -- CogNebula / Lingque Desktop
 
-> Last updated: 2026-04-01T15:30Z
+> Last updated: 2026-04-01T17:30Z
 
 ## Session 28 — Ontology Phase 3: TaxItem + V1/V2 Cleanup + CPA (2026-03-31)
 
@@ -81,16 +81,49 @@
   - Regulation number year: `〔2020〕` or `公告2020年第` → 2,867 nodes
 - Combined: +7,081 nodes fixed, total ~30,503 / 39,182 (77.8%)
 
-**9. CPAKnowledge Content Generation (Gemini 3.1 Pro)**
-- 4,129 empty heading nodes → Gemini batch summary generation
-- 15 headings per API call, ~275 calls total
-- Status: RUNNING
+**9. CPAKnowledge Content Generation (Gemini Flash)**
+- 3,515 empty heading nodes → Gemini per-heading summary generation
+- Result: 2,246 updated (73.9% content fill rate, up from 42%)
+- 1,269 failed (titles too short for meaningful generation)
+
+**10. LanceDB Vector Index Full Rebuild (RUNNING)**
+- Model: gemini-embedding-2-preview (3072 dim, native)
+- Batch API: batchEmbedContents, 80 texts/call
+- Scope: 31 tables, 277,843 texts
+- Old index: 37,329 vectors / 768 dim → New: 277,843 / 3072 dim (7.5x coverage)
+- Script: `scripts/rebuild_embeddings.py`
+- Status: ~80K/278K done, ETA ~2h
+
+**11. Crawl Pipeline Full Restoration**
+- Root cause: 3-layer cascade failure (chmod + missing scripts + disabled crontab)
+- Pipeline dead for 14 days (since 2026-03-18)
+- Fixes applied:
+  - daily_pipeline.sh: chmod +x + timeout 2x for all fetchers
+  - fetch_flk_npc: rewritten as Playwright adapter (old API dead, Vue SPA)
+  - fetch_customs: Playwright JSL cookie bypass (412 anti-bot)
+  - fetch_samr: new Playwright fetcher (was CF Browser only) → 42 items
+  - fetch_miit: new Playwright fetcher (was CF Browser only) → 10 items
+  - fetch_casc: URL double-domain bug fixed (urljoin)
+  - fetch_cf_browser: skipped (replaced by Playwright fetchers)
+  - M3 orchestrator: 4 depth scripts deployed + crontab re-enabled (02:00 UTC)
+  - M2 pipeline: re-enabled at 14:00 UTC, inject_chinaacc_data.py deployed
+- Fetcher status: 13/15 working, 1 skipped (cf_browser), 1 dead domain (ctax)
+
+### Crontab (active)
+```
+0 2  * * *   M3 orchestrator (QA gen + content backfill + edge engine + crawl)
+0 10 * * *   Daily crawl pipeline (15 fetchers + inject + health check)
+0 14 * * *   M2 pipeline (clause split + source expansion + AI synthesis)
+0 6  * * 0   Weekly backup (VPS → Mac)
+```
 
 ### Remaining items (Phase 6+)
-- LawOrRegulation.effectiveDate: 22.2% still unfilled (chinatax.gov.cn dynamic pages, need browser scraping)
+- **Embedding rebuild**: 277K vectors at 3072 dim, running (~2h remaining)
+- LawOrRegulation.effectiveDate: 22.2% still unfilled (chinatax.gov.cn dynamic pages)
 - LegalDocument triage: migrate qa→FAQEntry, knowledge→KnowledgeUnit (large scope)
 - V1/V2 edge migration: create parallel V1-targeting edge tables, then DROP V2 schemas
 - Local←→VPS data sync mechanism
+- Provincial crawlers: 10 provinces blocked by VPS IP (need residential proxy)
 
 ---
 

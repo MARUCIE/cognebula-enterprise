@@ -41,7 +41,9 @@ for fetcher in src/fetchers/fetch_*.py; do
         fetch_chinatax)    FLAGS=""                ; TIMEOUT=600 ;;
         fetch_chinatax_api) FLAGS=""               ; TIMEOUT=600 ;;
         fetch_cctaa)       FLAGS=""                ; TIMEOUT=300 ;;
-        fetch_cf_browser)  continue ;;  # incompatible CLI, skip until fixed
+        fetch_cf_browser)  continue ;;  # uses CF Browser Rendering API, replaced by Playwright fetchers
+        fetch_samr)        FLAGS=""                ; TIMEOUT=60  ;;  # Playwright
+        fetch_miit)        FLAGS=""                ; TIMEOUT=60  ;;  # Playwright
         *)                 FLAGS=""                ; TIMEOUT=300 ;;
     esac
     echo "  $name (timeout=${TIMEOUT}s)..."

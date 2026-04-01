@@ -29,19 +29,23 @@ for fetcher in src/fetchers/fetch_*.py; do
     # Enable full content fetching for crawlers that support it
     FLAGS=""
     case "$name" in
-        fetch_chinaacc)    FLAGS="--fetch-content" ; TIMEOUT=600 ;;
-        fetch_provincial)  FLAGS=""                ; TIMEOUT=300 ;;
-        fetch_casc)        FLAGS=""                ; TIMEOUT=180 ;;
-        fetch_ctax)        FLAGS=""                ; TIMEOUT=180 ;;
-        fetch_customs)     FLAGS=""                ; TIMEOUT=180 ;;
-        fetch_stats)       FLAGS=""                ; TIMEOUT=180 ;;
-        fetch_baike_kuaiji) FLAGS=""               ; TIMEOUT=600 ;;
-        fetch_12366)       FLAGS=""                ; TIMEOUT=300 ;;
-        fetch_tax_cases)   FLAGS=""                ; TIMEOUT=600 ;;
-        *)                 FLAGS=""                ; TIMEOUT=120 ;;
+        fetch_chinaacc)    FLAGS="--fetch-content" ; TIMEOUT=900 ;;
+        fetch_provincial)  FLAGS=""                ; TIMEOUT=600 ;;
+        fetch_casc)        FLAGS=""                ; TIMEOUT=300 ;;
+        fetch_ctax)        FLAGS=""                ; TIMEOUT=300 ;;
+        fetch_customs)     FLAGS=""                ; TIMEOUT=300 ;;
+        fetch_stats)       FLAGS=""                ; TIMEOUT=300 ;;
+        fetch_baike_kuaiji) FLAGS=""               ; TIMEOUT=900 ;;
+        fetch_12366)       FLAGS=""                ; TIMEOUT=600 ;;
+        fetch_tax_cases)   FLAGS=""                ; TIMEOUT=900 ;;
+        fetch_chinatax)    FLAGS=""                ; TIMEOUT=600 ;;
+        fetch_chinatax_api) FLAGS=""               ; TIMEOUT=600 ;;
+        fetch_cctaa)       FLAGS=""                ; TIMEOUT=300 ;;
+        fetch_cf_browser)  continue ;;  # incompatible CLI, skip until fixed
+        *)                 FLAGS=""                ; TIMEOUT=300 ;;
     esac
     echo "  $name (timeout=${TIMEOUT}s)..."
-    timeout $TIMEOUT $VENV "$fetcher" --output "$RAW_DIR" $FLAGS 2>&1 | tail -3 || echo "  WARN: $name failed"
+    timeout $TIMEOUT $VENV "$fetcher" --output "$RAW_DIR" $FLAGS 2>&1 | tail -5 || echo "  WARN: $name failed"
 done
 
 # Step 2: Dedup + Inject new records

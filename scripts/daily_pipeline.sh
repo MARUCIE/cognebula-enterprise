@@ -29,21 +29,31 @@ for fetcher in src/fetchers/fetch_*.py; do
     # Enable full content fetching for crawlers that support it
     FLAGS=""
     case "$name" in
-        fetch_chinaacc)    FLAGS="--fetch-content" ; TIMEOUT=900 ;;
-        fetch_provincial)  FLAGS=""                ; TIMEOUT=600 ;;
-        fetch_casc)        FLAGS=""                ; TIMEOUT=300 ;;
-        fetch_ctax)        FLAGS=""                ; TIMEOUT=300 ;;
-        fetch_customs)     FLAGS=""                ; TIMEOUT=300 ;;
-        fetch_stats)       FLAGS=""                ; TIMEOUT=300 ;;
-        fetch_baike_kuaiji) FLAGS=""               ; TIMEOUT=900 ;;
-        fetch_12366)       FLAGS=""                ; TIMEOUT=600 ;;
-        fetch_tax_cases)   FLAGS=""                ; TIMEOUT=900 ;;
-        fetch_chinatax)    FLAGS=""                ; TIMEOUT=600 ;;
+        # ── Fast fetchers (listing only, <5 min) ──
         fetch_chinatax_api) FLAGS=""               ; TIMEOUT=600 ;;
+        fetch_provincial)  FLAGS=""                ; TIMEOUT=600 ;;
+        fetch_chinatax)    FLAGS=""                ; TIMEOUT=600 ;;
         fetch_cctaa)       FLAGS=""                ; TIMEOUT=300 ;;
-        fetch_cf_browser)  continue ;;  # uses CF Browser Rendering API, replaced by Playwright fetchers
+        fetch_casc)        FLAGS=""                ; TIMEOUT=300 ;;
+        fetch_cicpa)       FLAGS=""                ; TIMEOUT=300 ;;
+        fetch_csrc)        FLAGS=""                ; TIMEOUT=300 ;;
+        fetch_mof)         FLAGS=""                ; TIMEOUT=300 ;;
+        fetch_ndrc)        FLAGS=""                ; TIMEOUT=300 ;;
+        fetch_pbc)         FLAGS=""                ; TIMEOUT=300 ;;
+        fetch_safe)        FLAGS=""                ; TIMEOUT=300 ;;
+        fetch_stats)       FLAGS=""                ; TIMEOUT=300 ;;
+        fetch_npc)         FLAGS=""                ; TIMEOUT=300 ;;
+        fetch_customs)     FLAGS=""                ; TIMEOUT=300 ;;
+        fetch_ctax)        FLAGS=""                ; TIMEOUT=120 ;;  # domain dead, quick fail
+        fetch_flk_npc)     FLAGS=""                ; TIMEOUT=30  ;;  # reads Playwright cache
         fetch_samr)        FLAGS=""                ; TIMEOUT=60  ;;  # Playwright
         fetch_miit)        FLAGS=""                ; TIMEOUT=60  ;;  # Playwright
+        fetch_hs_codes)    FLAGS=""                ; TIMEOUT=300 ;;
+        # ── Deep fetchers (detail pages, 10-30 min each) ── skip in daily pipeline
+        fetch_chinaacc|fetch_baike_kuaiji|fetch_12366|fetch_tax_cases)
+            echo "    SKIP (deep fetcher, runs via M3 orchestrator)"
+            continue ;;
+        fetch_cf_browser)  continue ;;  # replaced by Playwright fetchers
         *)                 FLAGS=""                ; TIMEOUT=300 ;;
     esac
     echo "  $name (timeout=${TIMEOUT}s)..."

@@ -189,43 +189,9 @@ def main():
         log.info("[DRY RUN] Would embed %d texts at %d dim", len(all_records), args.dim)
         return
 
-    # Phase 2: Batch embed
-    log.info("Phase 2: Embedding %d texts (dim=%d, batch=%d)...",
+    # Phase 2+3: Batch embed + incremental write to LanceDB
+    log.info("Phase 2: Embedding %d texts (dim=%d, batch=%d) with incremental LanceDB writes...",
              len(all_records), args.dim, args.batch_size)
-
-    embedded = []
-    start = time.time()
-
-    for i in range(0, len(all_records), args.batch_size):
-        batch = all_records[i:i + args.batch_size]
-        texts = [r[1] for r in batch]
-        vectors = batch_embed(texts, GEMINI_KEY, args.dim)
-
-        for (nid, text, table, cat), vec in zip(batch, vectors):
-            embedded.append({
-                "id": nid,
-                "text": text[:500],  # Store truncated text for display
-                "table": table,
-                "category": cat[:100],
-                "vector": vec,
-            })
-
-        done = min(i + args.batch_size, len(all_records))
-        if done % 5000 < args.batch_size:
-            elapsed = time.time() - start
-            rate = done / elapsed if elapsed > 0 else 0
-            eta = (len(all_records) - done) / rate if rate > 0 else 0
-            log.info("  %d/%d (%.0f/sec, ETA %.0f min)",
-                     done, len(all_records), rate, eta / 60)
-
-        # Light rate limiting (batch API is generous)
-        time.sleep(0.1)
-
-    elapsed = time.time() - start
-    log.info("Embedding complete: %d vectors in %.1f min", len(embedded), elapsed / 60)
-
-    # Phase 3: Write to LanceDB
-    log.info("Phase 3: Writing to LanceDB at %s...", args.lance_path)
 
     db = lancedb.connect(args.lance_path)
 
@@ -236,7 +202,6 @@ def main():
     except Exception:
         pass
 
-    # Create new table
     schema = pa.schema([
         pa.field("id", pa.string()),
         pa.field("text", pa.string()),
@@ -245,17 +210,55 @@ def main():
         pa.field("vector", pa.list_(pa.float32(), args.dim)),
     ])
 
-    # Write in chunks to avoid memory issues
-    CHUNK = 50_000
     tbl = None
-    for i in range(0, len(embedded), CHUNK):
-        chunk = embedded[i:i + CHUNK]
+    flush_buffer = []
+    FLUSH_SIZE = 5000  # Write to LanceDB every 5K vectors (keep memory ~75MB)
+    start = time.time()
+    total_written = 0
+
+    for i in range(0, len(all_records), args.batch_size):
+        batch = all_records[i:i + args.batch_size]
+        texts = [r[1] for r in batch]
+        vectors = batch_embed(texts, GEMINI_KEY, args.dim)
+
+        for (nid, text, table, cat), vec in zip(batch, vectors):
+            flush_buffer.append({
+                "id": nid,
+                "text": text[:500],
+                "table": table,
+                "category": cat[:100],
+                "vector": vec,
+            })
+
+        # Flush to LanceDB periodically
+        if len(flush_buffer) >= FLUSH_SIZE:
+            if tbl is None:
+                tbl = db.create_table("kg_nodes", flush_buffer, schema=schema)
+            else:
+                tbl.add(flush_buffer)
+            total_written += len(flush_buffer)
+            flush_buffer = []
+
+        done = min(i + args.batch_size, len(all_records))
+        if done % 5000 < args.batch_size:
+            elapsed = time.time() - start
+            rate = done / elapsed if elapsed > 0 else 0
+            eta = (len(all_records) - done) / rate if rate > 0 else 0
+            log.info("  %d/%d (%.0f/sec, ETA %.0f min, written: %d)",
+                     done, len(all_records), rate, eta / 60, total_written)
+
+        time.sleep(0.1)
+
+    # Final flush
+    if flush_buffer:
         if tbl is None:
-            tbl = db.create_table("kg_nodes", chunk, schema=schema)
-            log.info("Created table with %d rows", len(chunk))
+            tbl = db.create_table("kg_nodes", flush_buffer, schema=schema)
         else:
-            tbl.add(chunk)
-            log.info("Added %d rows (total: %d)", len(chunk), i + len(chunk))
+            tbl.add(flush_buffer)
+        total_written += len(flush_buffer)
+
+    elapsed = time.time() - start
+    log.info("Embedding complete: %d vectors written in %.1f min", total_written, elapsed / 60)
 
     # Create IVF_PQ index for fast search
     log.info("Creating vector index...")

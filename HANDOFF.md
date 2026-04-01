@@ -1,49 +1,56 @@
 # HANDOFF.md -- CogNebula / Lingque Desktop
 
-> Last updated: 2026-04-01T12:40Z
+> Last updated: 2026-04-02T00:44Z
 
-## Session 30 — Pipeline Health Fix + M3 Readiness (2026-04-01)
+## Session 30 — Embedding Complete + Pipeline Health (2026-04-01 → 04-02)
 
-### Status: DONE (embedding still running)
+### Status: DONE
 
 ### What was done
 
-**12. Pipeline Bug Fixes (3 fetcher fixes)**
-- fetch_flk_npc: SyntaxError (f-string backslash) + TypeError (`int + str`) → fixed with `str(code_id)` → 1,579 items
-- fetch_customs: JSL cookies defined but never called → rewrote as stub (VPS IP blocked by JSL CDN)
-- fetch_npc: dead API (405) → added to skip list in daily_pipeline.sh (replaced by fetch_flk_npc)
-- rebuild_embeddings.py: `len(embedded)` NameError → fixed to `total_written`
+**12. LanceDB Vector Index Rebuild — COMPLETE**
+- 263,688 vectors at 3072-dim (gemini-embedding-2-preview native)
+- Old: 37,329 vectors / 768-dim → New: 263K / 3072-dim (7x coverage, 4x dim)
+- IVF_PQ index created: 256 partitions, 96 sub-vectors, cosine metric
+- Total embed time: 275.6 min (4.6h), 15 vectors/sec
+- LanceDB size: 3.2 GB
+- Search verified working: "企业所得税研发费加计扣除" → TaxType/TaxRate/TaxIncentive hits
 
-**13. M3 Orchestrator Ready for First Run**
-- Root cause: 4 depth scripts existed locally but never deployed to VPS
-- Deployed: generate_lr_qa.py, ku_content_backfill.py, generate_edges_ai.py, enrich_edges_batch.py
-- Fixed generate_edges_ai.py: removed `llm_client` Poe dependency → direct Gemini API
-- M3 first run: 2026-04-02 02:00 UTC
+**13. API Server Symlink Fix**
+- Root cause: systemd loaded `/home/kg/kg-api-server.py` (Mar 21 stale copy) not `/home/kg/cognebula-enterprise/kg-api-server.py` (updated)
+- Stale copy had `outputDimensionality: 768` → query dim mismatch with 3072-dim index
+- Fix: symlink `/home/kg/kg-api-server.py → cognebula-enterprise/kg-api-server.py`
+- Cleared `__pycache__/*.pyc` to prevent bytecode drift
 
-**14. Crontab Cleanup**
-- M3 cron: added `>> m3-cron.log 2>&1` (was silently dropping errors)
-- Removed stale commented-out entries
-- Verified: Daily 10:00 + M3 02:00 + M2 14:00 + Backup Sunday 06:00
+**14. M2 Pipeline Fix (API was dead 12+ hours)**
+- M2 14:00 UTC Apr 1: stopped API → file not found error → `set -euo pipefail` exit → API never restarted
+- Root cause: `cd "$(dirname "$0")/.."` went to `/home/kg` instead of `/home/kg/cognebula-enterprise`
+- Fix: `cd "$(dirname "$0")"` (script is at project root)
+- Added `trap "systemctl start kg-api" EXIT` to both M2 and M3 (safety net)
 
-### Embedding rebuild progress
-- Script: `scripts/rebuild_embeddings.py --batch-size 50 --resume`
-- Progress: 55K/278K total (20%), 14 vectors/sec, ETA ~16:50 UTC
-- LanceDB: 700 MB at `/home/kg/data/lancedb/kg_nodes.lance/`
-- After completion: API server will auto-pick up new table; IVF_PQ index needs manual creation
+**15. Pipeline Bug Fixes (3 fetcher fixes)**
+- fetch_flk_npc: SyntaxError (f-string backslash) + TypeError (`int + str`) → fixed → 1,579 items
+- fetch_customs: JSL CDN blocks VPS IP → stub
+- fetch_npc: dead API (405) → skip in daily pipeline
 
-### Known blockers
-- customs.gov.cn: JSL CDN blocks VPS IP at network level (not just browser fingerprint)
-- fetch_safe: intermittent timeout (non-critical, data partially collected)
+**16. M3 Orchestrator Ready**
+- 4 depth scripts deployed: generate_lr_qa.py, ku_content_backfill.py, generate_edges_ai.py, enrich_edges_batch.py
+- generate_edges_ai.py: removed llm_client Poe dep → direct Gemini API
+- M3 cron: added log redirect
+- M3 first run: 2026-04-02 02:00 UTC (pending verification)
+
+### Gotchas discovered
+1. **systemd WorkingDirectory ≠ git repo**: `/home/kg/kg-api-server.py` was a COPY not symlink. All scp deploys went to `cognebula-enterprise/` but systemd read from `~`. Fix: symlink.
+2. **M2 cd path**: root-level `m2_pipeline.sh` + `cd $(dirname $0)/..` = wrong parent. Scripts in `scripts/` work fine.
+3. **No cleanup trap**: `set -euo pipefail` + no trap = API stays dead on ANY step failure. Both M2 and M3 now have EXIT traps.
+4. **__pycache__ bytecode drift**: Python serves stale `.pyc` even when `.py` is updated via scp. Always `rm __pycache__/*.pyc` after deploy.
 
 ### Remaining items (Phase 6+)
-- **Embedding rebuild**: 278K vectors at 3072 dim (running, ETA ~4h)
-- Post-embedding: restart API + verify search + create IVF_PQ index
+- Verify M3 02:00 UTC run tomorrow
 - LawOrRegulation.effectiveDate: 22.2% unfilled (chinatax.gov.cn dynamic pages)
-- LegalDocument triage: migrate qa→FAQEntry, knowledge→KnowledgeUnit (large scope)
-- V1/V2 edge migration: create parallel V1-targeting edge tables, then DROP V2 schemas
-- Local←→VPS data sync mechanism
-- Provincial crawlers: 10 provinces blocked by VPS IP (need residential proxy)
-- customs.gov.cn: blocked by JSL CDN (need residential proxy)
+- LegalDocument triage: migrate qa→FAQEntry, knowledge→KnowledgeUnit
+- V1/V2 edge migration
+- Provincial crawlers + customs: blocked by VPS IP (need residential proxy)
 
 ---
 

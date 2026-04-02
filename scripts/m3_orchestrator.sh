@@ -18,7 +18,7 @@ mkdir -p "$LOG_DIR"
 LOG="$LOG_DIR/m3-orchestrator-$(date +%Y%m%d-%H%M).log"
 exec &> >(tee -a "$LOG")
 
-QA_BATCHES="${1:-50}"
+QA_BATCHES="${1:-10}"
 QA_BATCH_SIZE="${2:-100}"
 STEPS=8
 
@@ -55,23 +55,24 @@ del conn; del db
 " 2>/dev/null || echo "0")
 echo "  Existing QA nodes: $OFFSET (will offset query)"
 
-$VENV scripts/generate_lr_qa.py \
+# Max 2h for QA gen — must finish before daily pipeline at 10:00 UTC
+timeout 7200 $VENV scripts/generate_lr_qa.py \
     --batch-size "$QA_BATCH_SIZE" \
     --max-batches "$QA_BATCHES" \
-    --offset "$OFFSET" 2>&1 || echo "  WARN: QA generation had errors"
+    --offset "$OFFSET" 2>&1 || echo "  WARN: QA generation had errors (or timeout)"
 
 # Step 2: KU Content Backfill (Gemini → fill empty KU content)
 echo "[2/$STEPS] Running KU Content Backfill..."
 if [[ -f scripts/ku_content_backfill.py ]]; then
-    $VENV scripts/ku_content_backfill.py \
-        --batch-size 20 --max-batches 500 2>&1 || echo "  WARN: KU backfill had errors"
+    timeout 3600 $VENV scripts/ku_content_backfill.py \
+        --batch-size 20 --max-batches 100 2>&1 || echo "  WARN: KU backfill had errors (or timeout)"
 else
     echo "  SKIP: ku_content_backfill.py not found"
 fi
 
 # Step 3: Edge Engine (AI relationship discovery — Meadows: L3 = edge engine)
 echo "[3/$STEPS] Running Edge Engine..."
-$VENV scripts/generate_edges_ai.py --batch-size 50 --max-batches 10 2>&1 || echo "  WARN: Edge engine had errors"
+timeout 3600 $VENV scripts/generate_edges_ai.py --batch-size 50 --max-batches 10 2>&1 || echo "  WARN: Edge engine had errors (or timeout)"
 
 # Step 4: Batch edge enrichment (keyword-based, no LLM, fast)
 echo "[4/$STEPS] Running batch edge enrichment..."

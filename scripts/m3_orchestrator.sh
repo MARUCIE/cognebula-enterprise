@@ -70,6 +70,14 @@ else
     echo "  SKIP: ku_content_backfill.py not found"
 fi
 
+# Step 2b: FAQ Content Fill (Gemini → answer empty FAQ-type KUs)
+echo "[2b/$STEPS] Running FAQ Content Fill..."
+if [[ -f scripts/fill_faq_content.py ]]; then
+    timeout 3600 $VENV scripts/fill_faq_content.py --max 2000 2>&1 || echo "  WARN: FAQ fill had errors (or timeout)"
+else
+    echo "  SKIP: fill_faq_content.py not found"
+fi
+
 # Step 3: Edge Engine (AI relationship discovery — Meadows: L3 = edge engine)
 echo "[3/$STEPS] Running Edge Engine..."
 timeout 3600 $VENV scripts/generate_edges_ai.py --batch-size 50 --max-batches 10 2>&1 || echo "  WARN: Edge engine had errors (or timeout)"

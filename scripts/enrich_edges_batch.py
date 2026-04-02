@@ -36,111 +36,103 @@ TAX_KEYWORDS = {
     "个税": "TT_PIT", "所得税": "TT_CIT",
 }
 
-ISSUING_BODY_KEYWORDS = {
-    "国家税务总局": "IB_SAT",
-    "财政部": "IB_MOF",
-    "国务院": "IB_SC",
-    "全国人民代表大会": "IB_NPC",
-    "全国人大常委会": "IB_NPC_SC",
-    "中国人民银行": "IB_PBC",
-    "海关总署": "IB_GAC",
-    "国家统计局": "IB_NBS",
-    "证监会": "IB_CSRC",
-    "银保监会": "IB_CBIRC",
-}
+def _build_issuing_body_map(conn):
+    """Build keyword→ID map from actual IssuingBody table."""
+    r = conn.execute("MATCH (b:IssuingBody) RETURN b.id, b.name")
+    body_map = {}
+    while r.has_next():
+        bid, name = r.get_next()
+        if name and len(name) >= 2:
+            body_map[name] = bid
+    return body_map
 
 
 def enrich_ku_about_tax(conn) -> int:
-    """Create KU_ABOUT_TAX edges for new sub-clauses and QA nodes."""
-    csv_path = f"{CSV_DIR}/ku_about_tax_enrich.csv"
-
-    # Find KnowledgeUnit and LegalClause nodes without KU_ABOUT_TAX edges
-    # Focus on new sub-clauses (id contains _p) and QA nodes (id starts with QA_)
-    r = conn.execute("""
-        MATCH (k:LegalClause)
-        WHERE k.id CONTAINS '_p' AND k.content IS NOT NULL
-        RETURN k.id, k.title, k.content
-        LIMIT 15000
-    """)
-
-    pairs = set()
-    while r.has_next():
-        row = r.get_next()
-        kid = str(row[0] or "")
-        text = f"{row[1] or ''} {row[2] or ''}"
-        for kw, tid in TAX_KEYWORDS.items():
-            if kw in text:
-                pairs.add((kid, tid))
-
-    # Also do KnowledgeUnit QA nodes
+    """Create KU_ABOUT_TAX edges for KnowledgeUnit nodes without tax type links."""
+    # Only KnowledgeUnit → TaxType (edge table definition)
+    # Find KU nodes that have tax keywords but no existing KU_ABOUT_TAX edge
     r = conn.execute("""
         MATCH (k:KnowledgeUnit)
-        WHERE k.id STARTS WITH 'QA_'
+        WHERE (k.id STARTS WITH 'QA_' OR k.type = 'FAQ')
+        AND NOT EXISTS { MATCH (k)-[:KU_ABOUT_TAX]->() }
         RETURN k.id, k.title, k.content
-        LIMIT 50000
+        LIMIT 20000
     """)
+
+    pairs = []
+    seen = set()
     while r.has_next():
         row = r.get_next()
         kid = str(row[0] or "")
         text = f"{row[1] or ''} {row[2] or ''}"
         for kw, tid in TAX_KEYWORDS.items():
-            if kw in text:
-                pairs.add((kid, tid))
-                break  # one per KU
+            if kw in text and (kid, tid) not in seen:
+                pairs.append((kid, tid))
+                seen.add((kid, tid))
+                break  # one tax type per KU
 
     if not pairs:
         return 0
 
-    with open(csv_path, "w", newline="") as f:
-        for kid, tid in pairs:
-            csv.writer(f).writerow([kid, tid])
-
-    try:
-        conn.execute(f'COPY KU_ABOUT_TAX FROM "{csv_path}" (header=false)')
-        return len(pairs)
-    except Exception as e:
-        print(f"  KU_ABOUT_TAX ERROR: {str(e)[:80]}")
-        return 0
+    # Use parameterized INSERT (safer than COPY for dedup)
+    created = 0
+    for kid, tid in pairs:
+        try:
+            conn.execute(
+                f"MATCH (k:KnowledgeUnit), (t:TaxType) "
+                f"WHERE k.id = '{kid}' AND t.id = '{tid}' "
+                f"CREATE (k)-[:KU_ABOUT_TAX]->(t)"
+            )
+            created += 1
+        except:
+            pass
+    return created
 
 
 def enrich_issued_by(conn) -> int:
-    """Create ISSUED_BY edges for LawOrRegulation without issuing body links."""
-    csv_path = f"{CSV_DIR}/issued_by_enrich.csv"
+    """Create ISSUED_BY edges using dynamic IssuingBody ID resolution."""
+    body_map = _build_issuing_body_map(conn)
+    if not body_map:
+        print("  No IssuingBody entries found")
+        return 0
+    print(f"  Loaded {len(body_map)} IssuingBody entries")
 
-    # Find LawOrRegulation nodes that have issuingAuthority text but no ISSUED_BY edge
+    # Check what table ISSUED_BY connects FROM
+    # It might be LegalDocument, not LawOrRegulation
     r = conn.execute("""
         MATCH (d:LawOrRegulation)
         WHERE d.issuingAuthority IS NOT NULL AND size(d.issuingAuthority) >= 2
         AND NOT EXISTS { MATCH (d)-[:ISSUED_BY]->() }
-        RETURN d.id, d.issuingAuthority, d.title
-        LIMIT 50000
+        RETURN d.id, d.issuingAuthority
+        LIMIT 10000
     """)
 
-    pairs = set()
+    created = 0
     while r.has_next():
         row = r.get_next()
         did = str(row[0] or "")
         authority = str(row[1] or "")
-        title = str(row[2] or "")
-        text = f"{authority} {title}"
-        for kw, bid in ISSUING_BODY_KEYWORDS.items():
-            if kw in text:
-                pairs.add((did, bid))
-                break
 
-    if not pairs:
-        return 0
+        # Find best matching IssuingBody by name substring
+        best_bid = None
+        best_len = 0
+        for name, bid in body_map.items():
+            if name in authority and len(name) > best_len:
+                best_bid = bid
+                best_len = len(name)
 
-    with open(csv_path, "w", newline="") as f:
-        for did, bid in pairs:
-            csv.writer(f).writerow([did, bid])
+        if best_bid:
+            try:
+                conn.execute(
+                    f"MATCH (d:LawOrRegulation), (b:IssuingBody) "
+                    f"WHERE d.id = '{did}' AND b.id = '{best_bid}' "
+                    f"CREATE (d)-[:ISSUED_BY]->(b)"
+                )
+                created += 1
+            except:
+                pass
 
-    try:
-        conn.execute(f'COPY ISSUED_BY FROM "{csv_path}" (header=false)')
-        return len(pairs)
-    except Exception as e:
-        print(f"  ISSUED_BY ERROR: {str(e)[:80]}")
-        return 0
+    return created
 
 
 def main():

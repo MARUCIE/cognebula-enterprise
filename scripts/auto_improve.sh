@@ -20,6 +20,18 @@ exec > >(tee -a "$LOG") 2>&1
 
 echo "=== Auto-Improve $(date -u) ==="
 
+# Time guard: skip heavy work near core pipeline windows
+HOUR=$(date -u +%H)
+HEAVY_OK=true
+if [[ $HOUR -ge 1 && $HOUR -le 7 ]]; then
+    HEAVY_OK=false
+    echo "  Time guard: 01-07 UTC is M3 window — skip API-stop operations"
+fi
+if [[ $HOUR -ge 13 && $HOUR -le 15 ]]; then
+    HEAVY_OK=false
+    echo "  Time guard: 13-15 UTC is M2 window — skip API-stop operations"
+fi
+
 # Pre-check: API must be up
 if ! curl -sf "$API/api/v1/health" > /dev/null 2>&1; then
     echo "API is down — skipping (M3 or M2 may be running)"
@@ -53,29 +65,31 @@ if [[ -n "$M3_LOG" ]] && grep -q "FAQ Content Fill" "$M3_LOG" 2>/dev/null; then
     FAQ_DONE=true
 fi
 
-if ! $FAQ_DONE; then
+if ! $FAQ_DONE && $HEAVY_OK; then
     echo "  M3 didn't run FAQ fill today — running standalone batch..."
-    # Stop API briefly for KuzuDB access
     sudo systemctl stop kg-api || true
     sleep 2
     timeout 3600 $VENV scripts/fill_faq_content.py --max 1000 2>&1 | tail -5
     sudo systemctl start kg-api
     sleep 3
     echo "  FAQ fill batch done, API restarted"
+elif ! $HEAVY_OK; then
+    echo "  Skipped (time guard — near core pipeline window)"
 else
     echo "  M3 already ran FAQ fill today — skip"
 fi
 
 # ── 3. Edge Enrichment ───────────────────────────────────────────────
 echo "[3/4] Edge Enrichment..."
-# Only run if API is up (we need it for the health check after)
-if curl -sf "$API/api/v1/health" > /dev/null 2>&1; then
+if $HEAVY_OK && curl -sf "$API/api/v1/health" > /dev/null 2>&1; then
     sudo systemctl stop kg-api || true
     sleep 2
     timeout 120 $VENV scripts/enrich_edges_batch.py 2>&1 | tail -5
     sudo systemctl start kg-api
     sleep 3
     echo "  Edge enrichment done, API restarted"
+elif ! $HEAVY_OK; then
+    echo "  Skipped (time guard)"
 else
     echo "  API not available — skip"
 fi

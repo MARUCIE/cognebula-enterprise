@@ -80,12 +80,21 @@ def llm_generate(
     Returns:
         Generated text string. On error, returns "[ERROR] ..." string.
     """
-    key = api_key or POE_API_KEY
-    if not key:
-        return "[ERROR] POE_API_KEY not set"
+    poe_key = api_key or POE_API_KEY
+    gemini_key = os.environ.get("GEMINI_API_KEY", "")
 
+    # Route: Poe if available, else Gemini direct
+    if poe_key:
+        return _call_poe(prompt, system, model, temperature, max_tokens, poe_key)
+    elif gemini_key:
+        return _call_gemini_direct(prompt, system, temperature, max_tokens, gemini_key)
+    else:
+        return "[ERROR] No API key (POE_API_KEY or GEMINI_API_KEY)"
+
+
+def _call_poe(prompt, system, model, temperature, max_tokens, key):
+    """Call Poe API (OpenAI-compatible)."""
     resolved_model = _resolve_model(model)
-
     messages = []
     if system:
         messages.append({"role": "system", "content": system})
@@ -112,9 +121,7 @@ def llm_generate(
         except urllib.error.HTTPError as e:
             body = e.read().decode("utf-8", errors="replace")[:300]
             if e.code == 429:
-                # Rate limited — back off
-                wait = RETRY_DELAY_S * (attempt + 1)
-                time.sleep(wait)
+                time.sleep(RETRY_DELAY_S * (attempt + 1))
                 continue
             return f"[ERROR] Poe API HTTP {e.code}: {body}"
         except Exception as e:
@@ -124,6 +131,39 @@ def llm_generate(
             return f"[ERROR] Poe API failed after {MAX_RETRIES} retries: {str(e)[:200]}"
 
     return "[ERROR] Poe API max retries exceeded"
+
+
+def _call_gemini_direct(prompt, system, temperature, max_tokens, key):
+    """Call Gemini API directly (fallback when Poe is unavailable)."""
+    GEMINI_MODEL = "gemini-2.5-flash"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={key}"
+
+    contents = [{"parts": [{"text": prompt}]}]
+    body = {"contents": contents, "generationConfig": {"temperature": temperature, "maxOutputTokens": max_tokens}}
+    if system:
+        body["systemInstruction"] = {"parts": [{"text": system}]}
+
+    payload = json.dumps(body).encode()
+
+    for attempt in range(MAX_RETRIES):
+        try:
+            req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                data = json.loads(resp.read())
+                return data["candidates"][0]["content"]["parts"][0]["text"]
+        except urllib.error.HTTPError as e:
+            if e.code == 429:
+                time.sleep(RETRY_DELAY_S * (attempt + 1))
+                continue
+            body_text = e.read().decode("utf-8", errors="replace")[:300]
+            return f"[ERROR] Gemini HTTP {e.code}: {body_text}"
+        except Exception as e:
+            if attempt < MAX_RETRIES - 1:
+                time.sleep(RETRY_DELAY_S)
+                continue
+            return f"[ERROR] Gemini failed after {MAX_RETRIES} retries: {str(e)[:200]}"
+
+    return "[ERROR] Gemini max retries exceeded"
 
 
 def llm_generate_json(

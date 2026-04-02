@@ -60,14 +60,21 @@
 - Final: 30,996/39,386 = **78.7%** (was 76.3%)
 - Remaining 8,390: no extractable date from any local field
 
-### KG Stats (post-M3)
+**19. Edge Density Improvements**
+- CLASSIFIED_UNDER_TAX: +3,433 LR→TaxType edges via fullText keyword matching
+- KU_ABOUT_TAX: +25 edges for new FAQ/QA nodes
+- PART_OF: +95 LegalClause→LegalDocument edges
+- Edge table discovery: CLAUSE_OF connects RegulationClause (not LegalClause)
+- Orphan analysis: 44K LegalClause orphans are plain hash IDs without parent encoding
+
+### KG Stats (final)
 ```
-Nodes: 540,635 (+5 QA)
-Edges: 1,111,531 (+24)
+Nodes: 540,635
+Edges: 1,115,084 (+3,553 this session)
 LanceDB: 263,688 vectors @ 3072-dim (IVF_PQ indexed)
-effectiveDate: 78.7% filled
-content_coverage: ~30% (240 nodes backfilled this run)
-edge_density: 2.056
+effectiveDate: 78.7%
+content_coverage: 29.3% (+1,941 FAQ, auto-growing 2K/day)
+edge_density: 2.063
 ```
 
 ### Remaining items (Phase 6+)

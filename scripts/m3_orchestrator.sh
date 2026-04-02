@@ -20,7 +20,7 @@ exec &> >(tee -a "$LOG")
 
 QA_BATCHES="${1:-10}"
 QA_BATCH_SIZE="${2:-100}"
-STEPS=8
+STEPS=9
 
 echo "================================================================"
 echo "  M3 Orchestrator — $(date)"
@@ -110,12 +110,20 @@ if density < 2.0:
     print('  ALERT: Density below 2.0! Dilution detected.')
 " || echo "  WARN: Quality check failed"
 
-# Step 7: Daily Crawl (file output only, no DB lock needed)
-echo "[7/$STEPS] Running Daily Crawl..."
+# Step 7: Daily Crawl — fast fetchers (file output only, no DB lock needed)
+echo "[7/$STEPS] Running Daily Crawl (fast)..."
 if [[ -x scripts/daily_pipeline.sh ]]; then
     timeout 1800 bash scripts/daily_pipeline.sh 2>&1 || echo "  WARN: Daily crawl had errors"
 else
     echo "  SKIP: daily_pipeline.sh not executable"
+fi
+
+# Step 8: Deep Crawl — detail-page fetchers (12366, chinaacc, baike, tax_cases)
+echo "[8/$STEPS] Running Deep Crawl..."
+if [[ -x scripts/deep_crawl.sh ]]; then
+    timeout 5400 bash scripts/deep_crawl.sh 2>&1 || echo "  WARN: Deep crawl had errors"
+else
+    echo "  SKIP: deep_crawl.sh not found"
 fi
 
 echo "================================================================"

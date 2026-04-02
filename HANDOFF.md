@@ -1,10 +1,10 @@
 # HANDOFF.md -- CogNebula / Lingque Desktop
 
-> Last updated: 2026-04-02T00:44Z
+> Last updated: 2026-04-02T03:50Z
 
-## Session 30 — Embedding Complete + Pipeline Health (2026-04-01 → 04-02)
+## Session 30 — Full System Restoration (2026-04-01 → 04-02)
 
-### Status: DONE
+### Status: DONE — All pipelines verified autonomous
 
 ### What was done
 
@@ -45,12 +45,37 @@
 3. **No cleanup trap**: `set -euo pipefail` + no trap = API stays dead on ANY step failure. Both M2 and M3 now have EXIT traps.
 4. **__pycache__ bytecode drift**: Python serves stale `.pyc` even when `.py` is updated via scp. Always `rm __pycache__/*.pyc` after deploy.
 
+**17. M3 First Autonomous Run — VERIFIED (02:00-03:38 UTC Apr 2)**
+- Step 1 QA: +178 QA pairs from 100 articles (1 batch, manually capped to avoid 15h block)
+- Step 2 KU Backfill: +240 content nodes, +12 edges (30 min)
+- Step 3 Edge Engine: +7 SUPERSEDES edges via Gemini AI
+- Step 4 Enrichment: 0 new (missing PKs — non-critical)
+- Step 5 API Restart: healthy ✓
+- Step 7 Crawl: flk_npc 1,579 items (fix verified), chinatax 1,590 items
+- Total time: 1h38min. Tomorrow's run: ~5h (10 batches with timeouts)
+
+**18. effectiveDate Round 3+3b**
+- R3 (title extraction): +71
+- R3b (aggressive fullText): +962
+- Final: 30,996/39,386 = **78.7%** (was 76.3%)
+- Remaining 8,390: no extractable date from any local field
+
+### KG Stats (post-M3)
+```
+Nodes: 540,635 (+5 QA)
+Edges: 1,111,531 (+24)
+LanceDB: 263,688 vectors @ 3072-dim (IVF_PQ indexed)
+effectiveDate: 78.7% filled
+content_coverage: ~30% (240 nodes backfilled this run)
+edge_density: 2.056
+```
+
 ### Remaining items (Phase 6+)
-- Verify M3 02:00 UTC run tomorrow
-- LawOrRegulation.effectiveDate: 22.2% unfilled (chinatax.gov.cn dynamic pages)
+- LawOrRegulation.effectiveDate: 21.3% unfilled (need web scraping or residential proxy)
 - LegalDocument triage: migrate qa→FAQEntry, knowledge→KnowledgeUnit
 - V1/V2 edge migration
 - Provincial crawlers + customs: blocked by VPS IP (need residential proxy)
+- enrich_edges_batch: missing PK references (CL_*/CT_* IDs not found)
 
 ---
 

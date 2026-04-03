@@ -23,13 +23,15 @@ echo "=== Auto-Improve $(date -u) ==="
 # Time guard: skip heavy work near core pipeline windows
 HOUR=$(date -u +%H)
 HEAVY_OK=true
-if [[ $HOUR -ge 1 && $HOUR -le 7 ]]; then
+# M3 runs 02:00-07:00, but auto_improve at 00:30 can run into M3 window
+# M2 runs 14:00-15:00, auto_improve at 12:30 can run into M2 window
+if [[ $HOUR -ge 0 && $HOUR -le 7 ]]; then
     HEAVY_OK=false
-    echo "  Time guard: 01-07 UTC is M3 window — skip API-stop operations"
+    echo "  Time guard: 00-07 UTC (M3 window) — skip API-stop operations"
 fi
-if [[ $HOUR -ge 13 && $HOUR -le 15 ]]; then
+if [[ $HOUR -ge 12 && $HOUR -le 15 ]]; then
     HEAVY_OK=false
-    echo "  Time guard: 13-15 UTC is M2 window — skip API-stop operations"
+    echo "  Time guard: 12-15 UTC (M2 window) — skip API-stop operations"
 fi
 
 # Pre-check: API must be up
@@ -38,22 +40,14 @@ if ! curl -sf "$API/api/v1/health" > /dev/null 2>&1; then
     exit 0
 fi
 
-# ── 1. Incremental Embedding ─────────────────────────────────────────
-echo "[1/4] Checking embedding gap..."
-STATS=$(curl -sf "$API/api/v1/stats" 2>/dev/null)
-NODES=$(echo "$STATS" | python3 -c "import json,sys; print(json.load(sys.stdin)['total_nodes'])" 2>/dev/null || echo 0)
-HEALTH=$(curl -sf "$API/api/v1/health" 2>/dev/null)
-VECTORS=$(echo "$HEALTH" | python3 -c "import json,sys; print(json.load(sys.stdin).get('lancedb_rows',0))" 2>/dev/null || echo 0)
-GAP=$((NODES - VECTORS))
-echo "  Nodes: $NODES, Vectors: $VECTORS, Gap: $GAP"
-
-if [[ $GAP -gt 5000 ]]; then
-    echo "  Gap > 5000 — triggering incremental embedding..."
-    # Run incremental embed for new nodes only (tables with new data)
-    timeout 3600 $VENV scripts/rebuild_embeddings.py --batch-size 50 --resume 2>&1 | tail -5
-    echo "  Incremental embedding done"
-elif [[ $GAP -gt 0 ]]; then
-    echo "  Gap $GAP — within tolerance, skip"
+# ── 1. Embedding Status (read-only check, no rebuild) ────────────────
+echo "[1/4] Embedding status..."
+if $API_OK; then
+    HEALTH=$(curl -sf "$API/api/v1/health" 2>/dev/null)
+    VECTORS=$(echo "$HEALTH" | python3 -c "import json,sys; print(json.load(sys.stdin).get('lancedb_rows',0))" 2>/dev/null || echo 0)
+    # 31 EMBED_TABLES cover ~278K nodes; don't compare against 540K total
+    echo "  Vectors: $VECTORS / ~278K embeddable"
+    echo "  NOTE: full rebuild takes 5h — run manually or via weekly cron"
 fi
 
 # ── 2. FAQ Content Fill (daily quota: 2000) ──────────────────────────

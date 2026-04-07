@@ -1,6 +1,81 @@
 # HANDOFF.md -- CogNebula / Lingque Desktop
 
-> Last updated: 2026-04-02T03:50Z
+> Last updated: 2026-04-06T17:30Z
+
+## Session 31 — Pipeline Recovery: Gemini Key + auto_improve Fix (2026-04-06)
+
+### Status: DONE — All 3 pipelines verified working
+
+### Problem
+All 3 autonomous pipelines were degraded for ~4 days (04-02→04-06):
+- M2/M3 LLM steps: 403 Forbidden (Gemini API key deprecated 04-06)
+- auto_improve.sh: crash every run (2 bash bugs)
+- Result: pipelines "looked alive" (cron firing, logs writing DONE) but produced zero AI-generated content
+
+### Fixes Applied
+
+**1. Gemini API Key Rotation**
+- Old key: `AIzaSyBu...` (deprecated 2026-04-06)
+- New key: `AIzaSyCv...` (maoyuan.wen@proton.me Developer Program, valid to 2027-01-10)
+- Updated: `/home/kg/cognebula-enterprise/.env` + `/home/kg/.env.kg-api`
+- Verified: direct Google API + CF Worker proxy + httpx from VPS = all 200 OK
+
+**2. auto_improve.sh Bug Fixes (3 issues)**
+- `date +%H` → `date +%-H`: octal parse error on hours 08/09 (bash treats 08 as invalid octal)
+- `$API_OK` undefined variable → replaced with proper `$HEALTH` curl check
+- Embedding node count: read from `/api/v1/stats` instead of missing field in `/api/v1/health`
+
+**3. KuzuDB Lock Conflict Guard**
+- Problem: auto_improve at 16:30 UTC overlaps M2 (14:00-17:30), both write KuzuDB → lock error
+- Fix: added `pgrep -f "m2_pipeline.sh|m3_orchestrator.sh"` check before any DB writes
+- Replaces fragile time-window guard with process detection
+
+### Verification
+
+**M2 Manual Trigger (15:41→17:29 UTC)**
+- Phase 1 QA: 2000/2000 clauses → **+4,547 QA nodes + 4,547 edges**, 0 errors
+- All Gemini calls: 200 OK (occasional 503 rate-limit, auto-retried)
+- Phase 2: crawlers ran (normal mix of success/timeout)
+- Phase 3: quality gate PASS
+- Final: 578,456 nodes / 1,152,995 edges (+4,547 / +4,547)
+
+**auto_improve Manual Trigger**
+- 4/4 steps executed successfully, no crashes
+- Edge enrichment: +0 (already saturated), API restarted cleanly
+
+### KG Stats
+```
+Nodes: 578,456 (+4,547 from M2 QA)
+Edges: 1,152,995 (+4,547)
+Density: ~2.0
+LanceDB: 263,688 vectors (gap: 314,768 — rebuild needed)
+content_coverage: 29.3%
+title_coverage: 99.6%
+```
+
+### Remaining Items
+- **Embedding rebuild**: 314K node gap (263K indexed vs 578K total). ~5h run, manual trigger
+- **content_coverage 29.3%**: needs LLM-driven content backfill (M3 QA + KU backfill)
+- **Crawler failures**: casc/mof/ndrc/provincial/samr timeout or blocked. Not critical
+- **fetch_cf_browser**: broken CLI arg parsing (passes output dir as command)
+
+### Crontab (unchanged)
+```
+0 2  * * *   M3 orchestrator
+0 10 * * *   Daily crawl
+0 14 * * *   M2 pipeline
+0 */4 * * *  Progress patrol
+30 */4 * * * Auto-improve (now with process lock guard)
+0 6  * * 0   Weekly backup
+```
+
+### Gotchas
+1. **API key rotation is a silent killer**: pipelines log `DONE` even when all LLM calls 403. Only `content_coverage` metric (stuck at 29.3%) reveals the problem. Consider adding 403 alerting to patrol
+2. **`date +%H` in bash**: zero-padded hours are octal. Use `%-H` or `10#$HOUR`
+3. **Python pipe buffering**: `tail -20` on subprocess = no intermediate output. Add `-u` flag to Python calls for observability
+4. **CF Worker blocks `urllib` User-Agent**: `Python-urllib/3.12` gets 403, `httpx` passes. Production scripts use httpx so not affected, but test scripts can be misleading
+
+---
 
 ## Session 30 — Full System Restoration (2026-04-01 → 04-02)
 

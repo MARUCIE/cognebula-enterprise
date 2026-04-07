@@ -21,7 +21,7 @@ exec > >(tee -a "$LOG") 2>&1
 echo "=== Auto-Improve $(date -u) ==="
 
 # Time guard: skip heavy work near core pipeline windows
-HOUR=$(date -u +%H)
+HOUR=$(date -u +%-H)
 HEAVY_OK=true
 # M3 runs 02:00-07:00, but auto_improve at 00:30 can run into M3 window
 # M2 runs 14:00-15:00, auto_improve at 12:30 can run into M2 window
@@ -34,6 +34,12 @@ if [[ $HOUR -ge 12 && $HOUR -le 15 ]]; then
     echo "  Time guard: 12-15 UTC (M2 window) — skip API-stop operations"
 fi
 
+# Pre-check: no competing pipelines running
+if pgrep -f "m2_pipeline.sh|m3_orchestrator.sh" > /dev/null 2>&1; then
+    echo "M2 or M3 pipeline running — skip to avoid KuzuDB lock conflict"
+    exit 0
+fi
+
 # Pre-check: API must be up
 if ! curl -sf "$API/api/v1/health" > /dev/null 2>&1; then
     echo "API is down — skipping (M3 or M2 may be running)"
@@ -42,12 +48,18 @@ fi
 
 # ── 1. Embedding Status (read-only check, no rebuild) ────────────────
 echo "[1/4] Embedding status..."
-if $API_OK; then
-    HEALTH=$(curl -sf "$API/api/v1/health" 2>/dev/null)
+HEALTH=$(curl -sf "$API/api/v1/health" 2>/dev/null)
+if [[ -n "$HEALTH" ]]; then
     VECTORS=$(echo "$HEALTH" | python3 -c "import json,sys; print(json.load(sys.stdin).get('lancedb_rows',0))" 2>/dev/null || echo 0)
-    # 31 EMBED_TABLES cover ~278K nodes; don't compare against 540K total
-    echo "  Vectors: $VECTORS / ~278K embeddable"
-    echo "  NOTE: full rebuild takes 5h — run manually or via weekly cron"
+    STATS=$(curl -sf "$API/api/v1/stats" 2>/dev/null)
+    NODES=$(echo "$STATS" | python3 -c "import json,sys; print(json.load(sys.stdin).get('total_nodes',0))" 2>/dev/null || echo 0)
+    GAP=$((NODES - VECTORS))
+    echo "  Vectors: $VECTORS / Nodes: $NODES (gap: $GAP)"
+    if [[ $GAP -gt 5000 ]]; then
+        echo "  NOTE: ${GAP} nodes not in vector index (rebuild needed when gap > 5000)"
+    fi
+else
+    echo "  API health check failed — skip"
 fi
 
 # ── 2. FAQ Content Fill (daily quota: 2000) ──────────────────────────

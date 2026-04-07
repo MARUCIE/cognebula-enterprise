@@ -111,6 +111,24 @@ else
     echo "  Deep crawl data already exists ($DEEP_FILES files) — skip"
 fi
 
+# ── 5. Content Quality Gate ─────────────────────────────────────────
+echo "[5/5] Content Quality Audit..."
+if curl -sf "$API/api/v1/health" > /dev/null 2>&1; then
+    AUDIT=$($VENV scripts/kg_quality_gate.py --audit --json 2>/dev/null)
+    if [[ -n "$AUDIT" ]]; then
+        SCORE=$(echo "$AUDIT" | python3 -c "import json,sys; print(json.load(sys.stdin).get('overall_score',0))" 2>/dev/null || echo 0)
+        GATE=$(echo "$AUDIT" | python3 -c "import json,sys; print(json.load(sys.stdin).get('gate','?'))" 2>/dev/null || echo "?")
+        PASSING=$(echo "$AUDIT" | python3 -c "import json,sys; print(json.load(sys.stdin).get('types_passing',0))" 2>/dev/null || echo 0)
+        FAILING=$(echo "$AUDIT" | python3 -c "import json,sys; print(json.load(sys.stdin).get('types_failing',0))" 2>/dev/null || echo 0)
+        echo "  Quality Gate: $GATE (Score: $SCORE / 70)"
+        echo "  Types: $PASSING PASS / $FAILING FAIL"
+    else
+        echo "  Audit failed to run"
+    fi
+else
+    echo "  Skipped (API down)"
+fi
+
 # ── Final Stats ──────────────────────────────────────────────────────
 echo ""
 if curl -sf "$API/api/v1/health" > /dev/null 2>&1; then

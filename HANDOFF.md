@@ -1,6 +1,82 @@
 # HANDOFF.md -- CogNebula / Lingque Desktop
 
-> Last updated: 2026-04-06T17:30Z
+> Last updated: 2026-04-07T09:30Z
+
+## Session 32 — Full Pipeline Run + Management Report (2026-04-07)
+
+### Status: DONE — All 3 pipelines completed (01:24→09:44 UTC, 8h20m)
+
+### What was done
+
+**1. Full Pipeline Trigger (01:24 UTC)**
+- Triggered all 3 pipelines sequentially: M3 -> Daily -> M2
+- M3 Orchestrator: 01:24-07:10 UTC (5h46m) — 9/9 steps complete
+  - QA gen: +1,700 pairs (10 batches x 100 articles, Gemini 2.5 Flash Lite)
+  - KU backfill: +482 nodes, +22 edges
+  - FAQ fill: 1,000 entries
+  - Edge enrichment: +2 edges (near saturation)
+  - Deep crawl: 3/3 timed out (12366/chinaacc/baike_kuaiji, 30min each)
+- Daily Crawl: 07:10-08:13 UTC (1h3m)
+  - Crawled 2,875 records, deduped -> inserted 7 (0.24% — sources saturated)
+- M2 Pipeline: 08:13 UTC -> RUNNING
+  - Phase 1 clause split: +6 clauses (44K already split)
+  - Phase 1.2 QA gen: +3,516 pairs, 0 errors
+  - Phase 2 source expansion: running (fetchers near completion)
+
+**2. Management Reports**
+- Full report: `doc/CogNebula_Pipeline_Status_Report_20260407.html` (McKinsey Blue, 8 sections)
+- Dashboard: `doc/CogNebula_Pipeline_Dashboard_20260407.html` (one-screen, 3-track view)
+- Screenshot: `doc/CogNebula_Pipeline_Dashboard_20260407.png` (4320x2700 @3x DPI)
+- Content: KPI overview + milestone bar + node composition chart + 3-track milestones + source matrix (12 sources with historical totals)
+
+**3. 2-Hour Cron Monitor**
+- CronCreate job active: checks pipeline progress every 2 hours at :17
+
+### KG Stats (final)
+```
+Nodes: 581,985 (+3,529 today)
+Edges: 1,156,541 (+3,522 today)
+Density: 1.987
+Quality: 100/100 PASS
+LanceDB: 283,604 vectors
+Total entities: 1,738,526 (nodes + edges)
+```
+
+### Source Totals (historical, all-time)
+```
+National Tax Bureau:    26,631
+Tax Advisors Assoc:      6,927
+Accounting School:       6,895
+Accounting Wiki:         4,000
+NPC Legislation DB:      9,474
+NDRC + MOF:              5,611
+CPA Association:           694
+Stats Bureau:              355
+12366 Tax Service:         420
+Accounting Society:        318
+HS Codes (Customs):     55,673
+```
+
+### Key Finding: Data Source Saturation
+- Daily crawl dedup rate 99.76% (7/2,875) — existing 22 crawlers exhausted
+- Deep crawl 3/3 timeout — target sites hardening anti-crawl
+- Growth now depends on: (1) new P0 sources (NPC 17K, court 100K), (2) edge density engine
+
+### Pipeline Completion
+```
+M3 Orchestrator:  01:24 → 07:10 UTC (5h46m)  QA +1700, KU +482, FAQ +1000
+Daily Crawl:      07:10 → 08:13 UTC (1h03m)  +7 new records (sources saturated)
+M2 Pipeline:      08:13 → 09:44 UTC (1h31m)  QA +3516, clause +6
+Quality Gates:    Phase 1 PASS, Phase 3 PASS, M2 500K PASS
+```
+
+### Remaining
+- Push local commit `c0bc20b` to GitHub
+- Content coverage still 29.3% (KU backfill + FAQ fill improving this daily)
+- Deep crawl 3/3 timeout — need Browser Proxy or batch strategy
+- New P0 sources needed for growth beyond 600K (NPC 17K, court 100K)
+
+---
 
 ## Session 31 — Pipeline Recovery: Gemini Key + auto_improve Fix (2026-04-06)
 

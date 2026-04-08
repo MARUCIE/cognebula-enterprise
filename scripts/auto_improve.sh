@@ -101,7 +101,7 @@ if ! $KU_DONE && $HEAVY_OK; then
         sleep 2
     fi
     timeout 3600 $VENV scripts/ku_content_backfill.py \
-        --batch-size 20 --max-batches 250 2>&1 | tail -10
+        --batch-size 50 --max-batches 100 2>&1 | tail -10
     sudo systemctl start kg-api
     sleep 3
     echo "  KU backfill batch done, API restarted"

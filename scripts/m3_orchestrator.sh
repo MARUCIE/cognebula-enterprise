@@ -65,7 +65,7 @@ timeout 7200 $VENV scripts/generate_lr_qa.py \
 echo "[2/$STEPS] Running KU Content Backfill..."
 if [[ -f scripts/ku_content_backfill.py ]]; then
     timeout 3600 $VENV scripts/ku_content_backfill.py \
-        --batch-size 20 --max-batches 500 2>&1 || echo "  WARN: KU backfill had errors (or timeout)"
+        --batch-size 50 --max-batches 200 2>&1 || echo "  WARN: KU backfill had errors (or timeout)"
 else
     echo "  SKIP: ku_content_backfill.py not found"
 fi

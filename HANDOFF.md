@@ -74,12 +74,26 @@ FAIL: KnowledgeUnit 65.9 (llm_client broken), LegalDocument 60.6 (needs crawl)
 ```
 
 ### Remaining
-- KnowledgeUnit (152K): auto-fixing via M3+auto_improve pipeline (~5 days at 30K/day)
-- LegalClause (83K): may PASS after domain term expansion (verify after M3)
-- LegalDocument (55K): needs original source crawl (0→~35 with name field fix)
-- RegionalTaxPolicy (620): needs original policy text crawl (56.5/70)
-- Embedding rebuild: 298K gap, M3 Step 9 will run incremental rebuild
+- KnowledgeUnit (117K empty): KU Backfill FIXED (Poe→direct Gemini API), batch=50, ~10 days
+- LegalDocument (55K): field assembly partial (19K/55K WAL rollback), needs small-batch retry
+- Embedding rebuild: 298K→253K gap, M3 Step 9 running daily
 - VPS disk: 69% (49G free), KuzuDB 65GB
+
+### Full Text Coverage Audit (2026-04-08)
+```
+Source              Daily  FullText  Status
+国家税务总局         75    100%     OK
+中华会计网校        418    100%     OK (deep crawl)
+证监会              36    100%     OK
+人民银行            37    100%     OK
+统计局              30    100%     OK
+税务师协会         748      0%     FIXED: --fetch-content enabled
+注会协会            69      0%     FIXED: --fetch-content enabled
+全国人大法规库    1,579      0%     BLOCKED: flk_crawl.py Vue SPA render failure
+工信部              10      0%     Needs investigation
+海关总署             0      —      VPS IP blocked by JSL anti-bot
+```
+CF Worker Gemini Proxy: 403 Forbidden (2026-04-08), ku_content_backfill switched to direct Google API
 
 ### Commits (Session 33)
 ```

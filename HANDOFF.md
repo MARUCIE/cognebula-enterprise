@@ -65,12 +65,12 @@ FAIL (5): KnowledgeUnit 63.4(auto-fixing), LegalClause 60.7, SocialInsuranceRule
 - LegalClause domain coverage estimated 35% → 55-70% (may reach PASS at 70 gate)
 - Added LegalDocument 'name' field to content check list (was checking non-existent fullText/title)
 
-### Final Quality Audit (01:35 UTC Apr 8)
+### Final Quality Audit (09:29 UTC Apr 8, post-M3)
 ```
-Overall: 78.1/70 PASS | 20/24 types | 4 FAIL
-After domain term expansion (pending M3 completion for verification):
-  LegalClause: 60.8 → estimated ~72+ (may PASS)
-  LegalDocument: 0 → estimated ~35 (still FAIL)
+Overall: 79.1/70 PASS | 22/24 types | 2 FAIL
+Domain term expansion CONFIRMED: LegalClause + RegionalTaxPolicy → PASS
+Embedding rebuild: 283,604 → 328,604 vectors (+45,000)
+FAIL: KnowledgeUnit 65.9 (llm_client broken), LegalDocument 60.6 (needs crawl)
 ```
 
 ### Remaining

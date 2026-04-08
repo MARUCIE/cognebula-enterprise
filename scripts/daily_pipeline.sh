@@ -31,11 +31,11 @@ for fetcher in src/fetchers/fetch_*.py; do
     case "$name" in
         # ── Fast fetchers (listing only, <5 min) ──
         fetch_chinatax_api) FLAGS=""               ; TIMEOUT=600 ;;
-        fetch_provincial)  FLAGS=""                ; TIMEOUT=600 ;;
+        fetch_provincial)  FLAGS=""                ; TIMEOUT=120 ;;  # most provinces blocked by VPS IP
         fetch_chinatax)    FLAGS=""                ; TIMEOUT=600 ;;
-        fetch_cctaa)       FLAGS=""                ; TIMEOUT=300 ;;
+        fetch_cctaa)       FLAGS="--fetch-content" ; TIMEOUT=1200 ;;
         fetch_casc)        FLAGS=""                ; TIMEOUT=300 ;;
-        fetch_cicpa)       FLAGS=""                ; TIMEOUT=300 ;;
+        fetch_cicpa)       FLAGS="--fetch-content" ; TIMEOUT=900 ;;
         fetch_csrc)        FLAGS=""                ; TIMEOUT=300 ;;
         fetch_mof)         FLAGS=""                ; TIMEOUT=300 ;;
         fetch_ndrc)        FLAGS=""                ; TIMEOUT=300 ;;

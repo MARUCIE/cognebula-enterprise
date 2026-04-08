@@ -47,7 +47,7 @@ if ! curl -sf "$API/api/v1/health" > /dev/null 2>&1; then
 fi
 
 # ── 1. Embedding Status (read-only check, no rebuild) ────────────────
-echo "[1/4] Embedding status..."
+echo "[1/6] Embedding status..."
 HEALTH=$(curl -sf "$API/api/v1/health" 2>/dev/null)
 if [[ -n "$HEALTH" ]]; then
     VECTORS=$(echo "$HEALTH" | python3 -c "import json,sys; print(json.load(sys.stdin).get('lancedb_rows',0))" 2>/dev/null || echo 0)
@@ -63,7 +63,7 @@ else
 fi
 
 # ── 2. FAQ Content Fill (daily quota: 2000) ──────────────────────────
-echo "[2/4] FAQ Content Fill..."
+echo "[2/6] FAQ Content Fill..."
 # Check if M3 already did FAQ fill today (Step 2b)
 M3_LOG=$(ls -t data/logs/m3-orchestrator-$(date -u +%Y%m%d)*.log 2>/dev/null | head -1)
 FAQ_DONE=false
@@ -85,8 +85,34 @@ else
     echo "  M3 already ran FAQ fill today — skip"
 fi
 
+# ── 2b. KU Content Backfill (if M3 didn't run today) ────────────────
+echo "[2b/6] KU Content Backfill..."
+KU_DONE=false
+if [[ -n "$M3_LOG" ]] && grep -q "KU Content Backfill" "$M3_LOG" 2>/dev/null; then
+    KU_DONE=true
+fi
+
+if ! $KU_DONE && $HEAVY_OK; then
+    echo "  M3 didn't run KU backfill today — running standalone batch..."
+    if ! curl -sf "$API/api/v1/health" > /dev/null 2>&1; then
+        echo "  API already stopped, proceeding..."
+    else
+        sudo systemctl stop kg-api || true
+        sleep 2
+    fi
+    timeout 3600 $VENV scripts/ku_content_backfill.py \
+        --batch-size 20 --max-batches 250 2>&1 | tail -10
+    sudo systemctl start kg-api
+    sleep 3
+    echo "  KU backfill batch done, API restarted"
+elif ! $HEAVY_OK; then
+    echo "  Skipped (time guard — near core pipeline window)"
+else
+    echo "  M3 already ran KU backfill today — skip"
+fi
+
 # ── 3. Edge Enrichment ───────────────────────────────────────────────
-echo "[3/4] Edge Enrichment..."
+echo "[3/6] Edge Enrichment..."
 if $HEAVY_OK && curl -sf "$API/api/v1/health" > /dev/null 2>&1; then
     sudo systemctl stop kg-api || true
     sleep 2
@@ -101,7 +127,7 @@ else
 fi
 
 # ── 4. Deep Crawl (if M3 didn't crawl today) ─────────────────────────
-echo "[4/4] Deep Crawl Check..."
+echo "[4/6] Deep Crawl Check..."
 RAW_DIR="data/raw/$(date -u +%Y-%m-%d)"
 DEEP_FILES=$(find "$RAW_DIR" -name "12366*" -o -name "chinaacc*" -o -name "baike*" -o -name "tax_cases*" 2>/dev/null | wc -l)
 if [[ $DEEP_FILES -eq 0 ]]; then
@@ -112,7 +138,7 @@ else
 fi
 
 # ── 5. Content Quality Gate ─────────────────────────────────────────
-echo "[5/5] Content Quality Audit..."
+echo "[5/6] Content Quality Audit..."
 if curl -sf "$API/api/v1/health" > /dev/null 2>&1; then
     AUDIT=$($VENV scripts/kg_quality_gate.py --audit --json 2>/dev/null)
     if [[ -n "$AUDIT" ]]; then

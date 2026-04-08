@@ -72,6 +72,12 @@ EMBED_TABLES = [
     ("Classification", ["name", "fullText", "title"], "system"),
     # Knowledge
     ("KnowledgeUnit", ["content", "title", "topic"], "category"),
+    # Large tables previously missing from index
+    ("RegulationClause", ["fullText", "title"], "category"),
+    ("DocumentSection", ["content", "title"], "category"),
+    ("LegalClause", ["content", "fullText", "title"], "category"),
+    ("MindmapNode", ["content", "node_text", "parent_text"], "category"),
+    ("HSCode", ["name", "chineseName", "description", "code"], "category"),
 ]
 
 

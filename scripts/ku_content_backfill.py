@@ -43,16 +43,15 @@ TAX_KEYWORDS = {
 def call_gemini(titles: list[str], api_key: str = "") -> list[str]:
     """Generate content for a batch of KU titles via Poe API."""
     prompt = (
-        "You are a Chinese finance and tax knowledge expert. "
-        "For each title below, write a concise Chinese explanation (50-150 chars). "
-        "Cover: definition, key points, practical relevance. "
-        "Return a JSON array of strings, one per title, in the same order.\n\n"
-        "Titles:\n"
+        "你是中国财税知识专家。对以下每个标题，写一段200-400字的中文详细说明。"
+        "包含：概念定义、关键要点、适用场景、注意事项。使用专业准确的表述。"
+        "返回一个JSON数组，每个元素是对应标题的说明文字，保持顺序一致。\n\n"
+        "标题列表:\n"
     )
     for i, t in enumerate(titles):
         prompt += f"{i+1}. {t}\n"
 
-    result = llm_generate_json(prompt, temperature=0.3, max_tokens=4096)
+    result = llm_generate_json(prompt, temperature=0.3, max_tokens=8192)
     if isinstance(result, list):
         return result
     return []

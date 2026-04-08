@@ -20,7 +20,7 @@ exec &> >(tee -a "$LOG")
 
 QA_BATCHES="${1:-10}"
 QA_BATCH_SIZE="${2:-100}"
-STEPS=9
+STEPS=10
 
 echo "================================================================"
 echo "  M3 Orchestrator — $(date)"
@@ -65,7 +65,7 @@ timeout 7200 $VENV scripts/generate_lr_qa.py \
 echo "[2/$STEPS] Running KU Content Backfill..."
 if [[ -f scripts/ku_content_backfill.py ]]; then
     timeout 3600 $VENV scripts/ku_content_backfill.py \
-        --batch-size 20 --max-batches 100 2>&1 || echo "  WARN: KU backfill had errors (or timeout)"
+        --batch-size 20 --max-batches 500 2>&1 || echo "  WARN: KU backfill had errors (or timeout)"
 else
     echo "  SKIP: ku_content_backfill.py not found"
 fi
@@ -124,6 +124,25 @@ if [[ -x scripts/deep_crawl.sh ]]; then
     timeout 5400 bash scripts/deep_crawl.sh 2>&1 || echo "  WARN: Deep crawl had errors"
 else
     echo "  SKIP: deep_crawl.sh not found"
+fi
+
+# Step 9: Incremental Embedding Rebuild (API must be running)
+echo "[9/$STEPS] Incremental Embedding Rebuild..."
+if curl -sf http://localhost:8400/api/v1/health > /dev/null 2>&1; then
+    HEALTH=$(curl -sf http://localhost:8400/api/v1/health 2>/dev/null)
+    VECTORS=$(echo "$HEALTH" | python3 -c "import json,sys; print(json.load(sys.stdin).get('lancedb_rows',0))" 2>/dev/null || echo 0)
+    STATS=$(curl -sf http://localhost:8400/api/v1/stats 2>/dev/null)
+    NODES=$(echo "$STATS" | python3 -c "import json,sys; print(json.load(sys.stdin).get('total_nodes',0))" 2>/dev/null || echo 0)
+    GAP=$((NODES - VECTORS))
+    echo "  Vector gap: $GAP (vectors: $VECTORS / nodes: $NODES)"
+    if [[ $GAP -gt 1000 ]]; then
+        echo "  Running incremental rebuild (--resume)..."
+        timeout 3600 $VENV scripts/rebuild_embeddings.py --resume 2>&1 | tail -20
+    else
+        echo "  Gap small enough, skip"
+    fi
+else
+    echo "  API not available — skip"
 fi
 
 echo "================================================================"

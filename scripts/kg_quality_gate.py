@@ -199,7 +199,7 @@ NODE_CONTENT_FIELDS = {
     "LegalDocument":        ["fullText", "description", "title"],
     "Classification":       ["fullText", "description", "name"],
     "DocumentSection":      ["content", "title"],
-    "MindmapNode":          ["topic", "title"],
+    "MindmapNode":          ["content", "topic", "title"],
     "HSCode":               ["description", "chineseName", "name"],
     "CPAKnowledge":         ["content", "title"],
     "TaxRate":              ["fullText", "description", "name"],

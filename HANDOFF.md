@@ -1,6 +1,56 @@
 # HANDOFF.md -- CogNebula / Lingque Desktop
 
-> Last updated: 2026-04-07T09:30Z
+> Last updated: 2026-04-07T17:45Z
+
+## Session 33 — Content Quality Gate + Backfill Phases 1-3b (2026-04-07)
+
+### Status: DONE — Quality gate 77.3/70 PASS, 18/24 types passing
+
+### What was done
+
+**1. 5-Dimension Quality Gate** (`scripts/kg_quality_gate.py`)
+- Built from scratch: Length(40) + Domain(30) + Unique(20) + Fill(10) = composite 0-100
+- 3 scoring methods: DOC/QA (text metrics), STRC (field completeness), META (name fill)
+- Content Source Policy: authoritative(no AI) / structured(assemble) / ai_expandable(Gemini)
+- Integrated into auto_improve.sh as step [5/6]
+
+**2. Content Backfill Phases**
+- Phase 1: content inheritance from parent nodes (CLAUSE_OF edges)
+- Phase 1b: fixed escaping (multi-layer), LegalClause documentId join (OOM on 8GB)
+- Phase 2: structured type scoring redesign (field completeness, not text length)
+- Phase 3: Gemini AI expansion — TaxIncentive(14) + Penalty(164) + BusinessActivity + AccountingEntry + TaxRiskScenario + CPAKnowledge
+- Phase 3b: MindmapNode(487/500) + IndustryRiskProfile(704/720)
+- Quality improvement: 57.2 → 77.3 overall, 4 → 18 types passing
+
+**3. Pipeline Acceleration**
+- M3 KU batch: 100→500 batches (2K→10K nodes/day)
+- auto_improve.sh: added KU backfill step [2b/6] (5K nodes/run)
+- KU prompt: 50-150 chars → 200-400 chars (better quality gate scores)
+- Estimated KU gap closure: ~5 days (152K at 30K/day)
+
+### Quality Audit (17:33 UTC)
+```
+Overall: 77.3/70 PASS | 578,811 nodes | 24 types | 18 PASS / 6 FAIL
+
+PASS (18): Classification 100.0, HSCode 100.0, TaxClassificationCode 100.0,
+  TaxCodeDetail 100.0, TaxCodeIndustryMap 100.0, BusinessActivity 99.5,
+  CPAKnowledge 99.2, IndustryRiskProfile 98.7, MindmapNode 98.6,
+  AccountingEntry 98.6, TaxRiskScenario 97.8, LawOrRegulation 95.0,
+  Penalty 93.7, ComplianceRule 82.5, RegulationClause 79.2,
+  DocumentSection 76.3, FAQEntry 75.3, TaxIncentive 72.4
+
+FAIL (6): KnowledgeUnit 63.4 (QA→pipeline fixing),
+  LegalClause 60.7, TaxRate 56.7, SocialInsuranceRule 41.2,
+  LegalDocument 0, RegionalTaxPolicy 0 (DOC→need crawl)
+```
+
+### Remaining
+- KnowledgeUnit (152K): auto-fixing via M3+auto_improve pipeline (~5 days)
+- DOC types (139K): LegalClause+LegalDocument+RegionalTaxPolicy+SocialInsuranceRule need original source crawl
+- TaxRate (9K): field completeness 40%, needs investigation
+- Scripts committed locally, pushed to GitHub as ada3b33; Phase 3b scripts synced via scp
+
+---
 
 ## Session 32 — Full Pipeline Run + Management Report (2026-04-07)
 

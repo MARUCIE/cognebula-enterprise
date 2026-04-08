@@ -24,7 +24,11 @@ from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 
 DB_PATH = "/home/kg/cognebula-enterprise/data/finance-tax-graph"
-from llm_client import llm_generate, llm_generate_json
+
+# Gemini API config (direct call, no llm_client/Poe dependency)
+GEMINI_BASE = os.environ.get("GEMINI_BASE",
+    "https://generativelanguage.googleapis.com")
+GEMINI_MODEL = "gemini-2.5-flash-lite"
 
 TAX_KEYWORDS = {
     "增值税": "TT_VAT", "企业所得税": "TT_CIT", "个人所得税": "TT_PIT",
@@ -41,19 +45,66 @@ TAX_KEYWORDS = {
 
 
 def call_gemini(titles: list[str], api_key: str = "") -> list[str]:
-    """Generate content for a batch of KU titles via Poe API."""
+    """Generate content for a batch of KU titles via Gemini API directly."""
     prompt = (
         "你是中国财税知识专家。对以下每个标题，写一段200-400字的中文详细说明。"
         "包含：概念定义、关键要点、适用场景、注意事项。使用专业准确的表述。"
-        "返回一个JSON数组，每个元素是对应标题的说明文字，保持顺序一致。\n\n"
+        "返回一个JSON数组，每个元素是对应标题的说明文字，保持顺序一致。"
+        "只输出JSON数组，不要加任何markdown标记。\n\n"
         "标题列表:\n"
     )
     for i, t in enumerate(titles):
         prompt += f"{i+1}. {t}\n"
 
-    result = llm_generate_json(prompt, temperature=0.3, max_tokens=8192)
-    if isinstance(result, list):
-        return result
+    url = f"{GEMINI_BASE}/v1beta/models/{GEMINI_MODEL}:generateContent"
+    payload = json.dumps({
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {
+            "maxOutputTokens": 8192,
+            "temperature": 0.3,
+            "responseMimeType": "application/json",
+        },
+    }).encode()
+
+    for attempt in range(3):
+        try:
+            req = Request(
+                f"{url}?key={api_key}",
+                data=payload,
+                headers={"Content-Type": "application/json"},
+            )
+            with urlopen(req, timeout=60) as resp:
+                data = json.loads(resp.read())
+            candidates = data.get("candidates", [])
+            if not candidates:
+                return []
+            text = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+            text = text.strip()
+            # Remove markdown code fences if present
+            if text.startswith("```"):
+                text = text.split("\n", 1)[1] if "\n" in text else text[3:]
+            if text.endswith("```"):
+                text = text[:-3]
+            text = text.strip()
+            result = json.loads(text)
+            if isinstance(result, list):
+                out = []
+                for r in result:
+                    if isinstance(r, dict):
+                        # Extract explanation/content/text from dict
+                        val = (r.get("explanation") or r.get("content")
+                               or r.get("text") or r.get("说明") or "")
+                        if not val:
+                            val = " ".join(str(v) for v in r.values()
+                                           if isinstance(v, str) and len(v) > 20)
+                        out.append(str(val))
+                    else:
+                        out.append(str(r))
+                return out
+            return []
+        except Exception as e:
+            if attempt < 2:
+                time.sleep(2 ** attempt)
     return []
 
 

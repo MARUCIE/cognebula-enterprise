@@ -44,11 +44,27 @@ FAIL (6): KnowledgeUnit 63.4 (QA→pipeline fixing),
   LegalDocument 0, RegionalTaxPolicy 0 (DOC→need crawl)
 ```
 
+**4. TaxRate Field Fix**
+- 8,960/9,160 nodes had missing `description` field
+- Assembled from name+valueExpression+calculationBasis: "{name}，税率{rate}，计税基础：{basis}"
+- Score: 56.7 → 100.0 (PASS)
+
+**5. Pipeline Acceleration**
+- M3 Step 9: incremental embedding rebuild (298K vector gap)
+- 5 missing tables added to rebuild_embeddings.py (RegulationClause, DocumentSection, LegalClause, MindmapNode, HSCode = 239K nodes)
+
+### Final Quality Audit (01:35 UTC Apr 8)
+```
+Overall: 78.0/70 PASS | 19/24 types | 5 FAIL
+PASS (19): all STRC 100.0, QA types 72-99, DOC: LawOrRegulation 95, RegulationClause 79, DocumentSection 76
+FAIL (5): KnowledgeUnit 63.4(auto-fixing), LegalClause 60.7, SocialInsuranceRule 41.2, LegalDocument 0, RegionalTaxPolicy 0
+```
+
 ### Remaining
-- KnowledgeUnit (152K): auto-fixing via M3+auto_improve pipeline (~5 days)
+- KnowledgeUnit (152K): auto-fixing via M3+auto_improve pipeline (~5 days at 30K/day)
 - DOC types (139K): LegalClause+LegalDocument+RegionalTaxPolicy+SocialInsuranceRule need original source crawl
-- TaxRate (9K): field completeness 40%, needs investigation
-- Scripts committed locally, pushed to GitHub as ada3b33; Phase 3b scripts synced via scp
+- Embedding rebuild: 298K gap, M3 Step 9 will run incremental rebuild daily
+- Commits: ada3b33 (quality gate), 104a488 (pipeline accel + TaxRate fix)
 
 ---
 

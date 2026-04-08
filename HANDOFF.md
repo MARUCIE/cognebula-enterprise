@@ -60,11 +60,35 @@ PASS (19): all STRC 100.0, QA types 72-99, DOC: LawOrRegulation 95, RegulationCl
 FAIL (5): KnowledgeUnit 63.4(auto-fixing), LegalClause 60.7, SocialInsuranceRule 41.2, LegalDocument 0, RegionalTaxPolicy 0
 ```
 
+**6. Domain Vocabulary Expansion**
+- Added 25 legal/tax-admin terms (法律/规定/税务机关/滞纳金 etc.)
+- LegalClause domain coverage estimated 35% → 55-70% (may reach PASS at 70 gate)
+- Added LegalDocument 'name' field to content check list (was checking non-existent fullText/title)
+
+### Final Quality Audit (01:35 UTC Apr 8)
+```
+Overall: 78.1/70 PASS | 20/24 types | 4 FAIL
+After domain term expansion (pending M3 completion for verification):
+  LegalClause: 60.8 → estimated ~72+ (may PASS)
+  LegalDocument: 0 → estimated ~35 (still FAIL)
+```
+
 ### Remaining
 - KnowledgeUnit (152K): auto-fixing via M3+auto_improve pipeline (~5 days at 30K/day)
-- DOC types (139K): LegalClause+LegalDocument+RegionalTaxPolicy+SocialInsuranceRule need original source crawl
-- Embedding rebuild: 298K gap, M3 Step 9 will run incremental rebuild daily
-- Commits: ada3b33 (quality gate), 104a488 (pipeline accel + TaxRate fix)
+- LegalClause (83K): may PASS after domain term expansion (verify after M3)
+- LegalDocument (55K): needs original source crawl (0→~35 with name field fix)
+- RegionalTaxPolicy (620): needs original policy text crawl (56.5/70)
+- Embedding rebuild: 298K gap, M3 Step 9 will run incremental rebuild
+- VPS disk: 69% (49G free), KuzuDB 65GB
+
+### Commits (Session 33)
+```
+ada3b33  feat(quality): 5-dimension quality gate + 4-phase backfill
+104a488  feat(pipeline): accelerate KU backfill + TaxRate fix + embedding rebuild
+5c05681  fix(quality): SocialInsuranceRule 41→73 PASS
+fa98ab5  fix(quality): RegionalTaxPolicy 0→56.5 (partial)
+cceae9e  fix(quality): expand domain terms + fix LegalDocument field list
+```
 
 ---
 

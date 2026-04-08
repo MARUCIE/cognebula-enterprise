@@ -126,7 +126,11 @@ DOMAIN_TERMS = frozenset(
     "关联交易 税收协定 预约定价 同期资料 反避税 CRS BEPS "
     "社保 公积金 工伤 生育 医疗 养老 失业 残保金 保险 缴费 费率 基数 "
     "单位缴费 个人缴费 缴费比例 补充医疗 大病保险 灵活就业 参保 断缴 转移接续 "
-    "资产负债表 利润表 现金流量表 所有者权益变动表 财务报表附注".split()
+    "资产负债表 利润表 现金流量表 所有者权益变动表 财务报表附注 "
+    "法律 法规 条例 规章 办法 通知 公告 规定 实施 依照 依据 适用 "
+    "税务机关 税务局 主管税务 登记 备案 征管 稽查 "
+    "违反 处罚 罚款 滞纳金 补缴 追征 纳税期限 申报期 "
+    "应纳税所得额 应纳税额 计税依据 税款 欠税".split()
 )
 
 # ── Content Source Policy ───────────────────────────────────────────────
@@ -197,7 +201,7 @@ NODE_CONTENT_FIELDS = {
     "KnowledgeUnit":        ["content", "answer", "question"],
     "LegalClause":          ["content", "fullText", "title"],
     "RegulationClause":     ["fullText", "title"],
-    "LegalDocument":        ["fullText", "description", "title"],
+    "LegalDocument":        ["fullText", "description", "name", "title"],
     "Classification":       ["fullText", "description", "name"],
     "DocumentSection":      ["content", "title"],
     "MindmapNode":          ["content", "topic", "title"],

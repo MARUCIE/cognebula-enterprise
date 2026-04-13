@@ -24,8 +24,8 @@ import lancedb
 import numpy as np
 
 # Config
-DB_PATH = "/home/kg/cognebula-enterprise/data/finance-tax-graph"
-LANCE_PATH = "/home/kg/data/lancedb"
+DB_PATH = os.path.join(os.path.dirname(__file__), "data", "finance-tax-graph")
+LANCE_PATH = os.path.join(os.path.dirname(__file__), "data", "lancedb-build")
 HOST = "0.0.0.0"
 PORT = 8400
 
@@ -156,6 +156,41 @@ class PrivateNetworkMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(PrivateNetworkMiddleware)
 
+
+# API Key authentication middleware
+# Set KG_API_KEY env var to enable. Unauthenticated requests get 401.
+# Health endpoint is exempt to allow monitoring.
+_KG_API_KEY = os.environ.get("KG_API_KEY", "")
+
+
+class APIKeyMiddleware(BaseHTTPMiddleware):
+    EXEMPT_PATHS = {"/api/v1/health", "/docs", "/openapi.json", "/ui"}
+
+    async def dispatch(self, request: Request, call_next):
+        if not _KG_API_KEY:
+            return await call_next(request)  # auth disabled
+
+        path = request.url.path
+        if any(path.startswith(p) for p in self.EXEMPT_PATHS):
+            return await call_next(request)
+
+        if request.method == "OPTIONS":
+            return await call_next(request)  # CORS preflight
+
+        key = request.headers.get("X-API-Key") or request.query_params.get("api_key")
+        if key != _KG_API_KEY:
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "Invalid or missing API key"},
+            )
+        return await call_next(request)
+
+
+if _KG_API_KEY:
+    app.add_middleware(APIKeyMiddleware)
+    print(f"API key auth enabled (key prefix: {_KG_API_KEY[:8]}...)")
+
+
 # ---------------------------------------------------------------------------
 # Know-Arc Expert Workbench integration (mounted at /api/v1/ka/*)
 # ---------------------------------------------------------------------------
@@ -200,16 +235,16 @@ def get_lance():
 
 
 # === Web UI ===
-WEB_DIR = _Path("/home/kg/cognebula-enterprise/src/web")
+WEB_DIR = _Path("/Users/mauricewen/Projects/27-cognebula-enterprise/src/web")
 
 
 @app.get("/")
 def web_ui():
-    html_path = WEB_DIR / "unified.html"
+    html_path = WEB_DIR / "unified.html"; print(f"CHECKING: {html_path} (exists: {html_path.exists()})")
     if html_path.exists():
         return FileResponse(html_path, media_type="text/html",
                             headers={"Cache-Control": "no-cache, no-store, must-revalidate"})
-    return JSONResponse({"error": "Web UI not found"}, status_code=404)
+    return JSONResponse({"error": f"Web UI not found at {html_path}"}, status_code=404)
 
 
 @app.get("/kg_explorer.html")
@@ -233,6 +268,10 @@ def kg_explorer_v2():
 
 
 # === Health ===
+@app.get("/api/v1/debug/paths") 
+def debug_paths(): 
+    return {"WEB_DIR": str(WEB_DIR), "DB_PATH": str(DB_PATH), "LANCE_PATH": str(LANCE_PATH)} 
+
 @app.get("/api/v1/health")
 def health():
     try:
@@ -269,6 +308,7 @@ def stats():
 
     node_counts = {}
     total_nodes = 0
+    errors = []
     for t in tables:
         if t[2] == "NODE":
             try:
@@ -277,8 +317,9 @@ def stats():
                     c = r.get_next()[0]
                     node_counts[t[1]] = c
                     total_nodes += c
-            except:
-                node_counts[t[1]] = -1
+            except Exception as e:
+                node_counts[t[1]] = 0
+                errors.append(f"NODE {t[1]}: {str(e)[:100]}")
 
     total_edges = 0
     edge_counts = {}
@@ -290,18 +331,22 @@ def stats():
                     c = r.get_next()[0]
                     edge_counts[t[1]] = c
                     total_edges += c
-            except:
-                edge_counts[t[1]] = -1
+            except Exception as e:
+                edge_counts[t[1]] = 0
+                errors.append(f"REL {t[1]}: {str(e)[:100]}")
 
-    return {
+    resp = {
         "total_nodes": total_nodes,
         "total_edges": total_edges,
         "total_entities": total_nodes + total_edges,
-        "node_tables": len(node_counts),
-        "rel_tables": len(edge_counts),
+        "node_tables": sum(1 for v in node_counts.values() if v > 0),
+        "rel_tables": sum(1 for v in edge_counts.values() if v > 0),
         "nodes_by_type": {k: v for k, v in sorted(node_counts.items(), key=lambda x: -x[1]) if v > 0},
         "edges_by_type": {k: v for k, v in sorted(edge_counts.items(), key=lambda x: -x[1]) if v > 0},
     }
+    if errors:
+        resp["_errors"] = errors[:20]
+    return resp
 
 
 # === Quality Audit ===

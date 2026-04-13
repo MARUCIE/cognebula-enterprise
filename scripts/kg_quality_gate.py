@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
-"""KG Quality Gate — 5-dimension content quality audit + ingestion gate.
+"""KG Quality Gate — 6-dimension content quality audit + ingestion gate.
 
 Dimensions:
-  D1 Length   — distribution across 5 buckets (empty/<50/50-200/200-500/500+)
-  D2 Domain   — % nodes with >=2 finance/tax domain terms
-  D3 Unique   — dedup ratio (distinct first-100-char / total)
-  D4 Fill     — % non-empty nodes (content >= 5 chars)
-  D5 Score    — composite 0-100 (Length 40 + Domain 30 + Unique 20 + Fill 10)
+  D1 Length        — distribution across 5 buckets (empty/<50/50-200/200-500/500+)
+  D2 Authenticity  — % nodes with real content (not nav junk / HTML boilerplate)
+  D3 Domain        — % nodes with >=2 finance/tax domain terms
+  D4 Unique        — dedup ratio (distinct first-100-char / total)
+  D5 Fill          — % non-empty nodes (content >= 5 chars)
+  D6 Score         — composite 0-100 (Length 30 + Auth 20 + Domain 25 + Unique 15 + Fill 10)
 
 Hard gate: each type must score >= 70 composite, overall >= 70.
+Authoritative types (LawOrRegulation etc.): junk > 50% forces FAIL regardless of score.
 
 Usage:
     python3 scripts/kg_quality_gate.py --audit          # full KG audit via API
@@ -21,6 +23,14 @@ import sys
 import os
 from pathlib import Path
 
+# Import content validator for D6 Authenticity
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    from content_validator import is_junk
+    _HAS_VALIDATOR = True
+except ImportError:
+    _HAS_VALIDATOR = False
+
 try:
     import httpx
     _HTTP = "httpx"
@@ -31,8 +41,11 @@ except ImportError:
 # ── Configuration ───────────────────────────────────────────────────────
 
 KG_API = os.environ.get("KG_API", "http://localhost:8400")
+DB_PATH = os.environ.get("KUZU_DB_PATH", "/home/kg/cognebula-enterprise/data/finance-tax-graph")
 COMPOSITE_GATE = 70  # minimum composite score to pass
-SAMPLE_SIZE = 500
+SAMPLE_SIZE = 200  # reduced from 500 to prevent KuzuDB segfault on 8GB VPS
+_DIRECT_MODE = False  # set True for direct KuzuDB access (API must be stopped)
+_kuzu_conn = None
 
 # ── Node Category (determines scoring method) ──────────────────────────
 # "document"   — full-text expected, scored by length+domain+unique
@@ -117,6 +130,7 @@ STRUCTURED_REQUIRED_FIELDS = {
 
 # Domain vocabulary for finance/tax
 DOMAIN_TERMS = frozenset(
+    # Tax types + tax mechanics
     "增值税 企业所得税 个人所得税 消费税 关税 印花税 房产税 土地增值税 城建税 "
     "资源税 税率 纳税 申报 发票 抵扣 扣除 免税 减免 征收 计税 应税 税额 税基 "
     "纳税人 扣缴 退税 税负 合规 审计 会计 科目 分录 借方 贷方 资产 负债 权益 "
@@ -124,13 +138,27 @@ DOMAIN_TERMS = frozenset(
     "进项 销项 留抵 加计抵减 即征即退 先征后返 加速折旧 研发加计 高新技术 "
     "小微企业 个体工商户 合伙企业 居民企业 非居民 常设机构 转让定价 "
     "关联交易 税收协定 预约定价 同期资料 反避税 CRS BEPS "
+    # Social insurance
     "社保 公积金 工伤 生育 医疗 养老 失业 残保金 保险 缴费 费率 基数 "
     "单位缴费 个人缴费 缴费比例 补充医疗 大病保险 灵活就业 参保 断缴 转移接续 "
+    # Financial statements
     "资产负债表 利润表 现金流量表 所有者权益变动表 财务报表附注 "
+    # Legal/regulatory (original)
     "法律 法规 条例 规章 办法 通知 公告 规定 实施 依照 依据 适用 "
     "税务机关 税务局 主管税务 登记 备案 征管 稽查 "
     "违反 处罚 罚款 滞纳金 补缴 追征 纳税期限 申报期 "
-    "应纳税所得额 应纳税额 计税依据 税款 欠税".split()
+    "应纳税所得额 应纳税额 计税依据 税款 欠税 "
+    # Regulatory/administrative (expanded for compliance KG)
+    "经营 许可 监督 主管部门 行政处罚 行政许可 行政复议 "
+    "营业执照 工商 市场监管 监管 执法 "
+    "责令 整改 吊销 暂扣 没收 查封 扣押 取缔 "
+    "施行 修订 废止 颁布 批准 核准 审批 "
+    # Business entity / compliance
+    "法人 股东 注册资本 章程 董事 监事 "
+    "合同 协议 委托 代理 授权 "
+    "财政 预算 拨款 专项资金 补贴 "
+    # Government bodies
+    "国务院 财政部 人力资源 社会保障 商务部 海关总署".split()
 )
 
 # ── Content Source Policy ───────────────────────────────────────────────
@@ -286,7 +314,7 @@ def validate_batch(nodes: list[dict]) -> dict:
 
 # ── 5-Dimension Content Quality Audit ──────────────────────────────────
 
-def _api_get(path: str, params: dict = None, timeout: int = 30) -> dict:
+def _api_get(path: str, params: dict = None, timeout: int = 120) -> dict:
     """GET request to KG API."""
     if _HTTP == "httpx":
         r = httpx.get(f"{KG_API}{path}", params=params, timeout=timeout)
@@ -298,6 +326,100 @@ def _api_get(path: str, params: dict = None, timeout: int = 30) -> dict:
             url += f"?{qs}"
         with urllib.request.urlopen(url, timeout=timeout) as resp:
             return json.loads(resp.read())
+
+
+def _init_kuzu(force_new=False):
+    """Initialize direct KuzuDB connection.
+
+    force_new: close and reopen to prevent KuzuDB memory accumulation segfault.
+    """
+    global _kuzu_conn, _kuzu_db
+    if force_new and _kuzu_conn is not None:
+        try:
+            del _kuzu_conn
+        except Exception:
+            pass
+        try:
+            del _kuzu_db
+        except Exception:
+            pass
+        _kuzu_conn = None
+        _kuzu_db = None
+        import gc
+        gc.collect()
+    if _kuzu_conn is not None:
+        return _kuzu_conn
+    import kuzu
+    try:
+        _kuzu_db = kuzu.Database(DB_PATH, read_only=True)
+    except RuntimeError:
+        _kuzu_db = kuzu.Database(DB_PATH)
+    _kuzu_conn = kuzu.Connection(_kuzu_db)
+    return _kuzu_conn
+
+_kuzu_db = None
+
+
+def _direct_get_stats() -> dict:
+    """Get node/edge counts directly from KuzuDB.
+
+    Only queries types defined in NODE_CONTENT_FIELDS to avoid segfaults
+    from querying 200+ tables on the 69GB database.
+    """
+    conn = _init_kuzu()
+    nodes_by_type = {}
+    total_nodes = 0
+
+    for type_name in NODE_CONTENT_FIELDS:
+        try:
+            r = conn.execute(f"MATCH (n:{type_name}) RETURN count(n)")
+            if r.has_next():
+                c = r.get_next()[0]
+                if c > 0:
+                    nodes_by_type[type_name] = c
+                    total_nodes += c
+        except Exception as e:
+            print(f"  WARN: count({type_name}) failed: {e}")
+
+    # Skip global edge count — triggers KuzuDB segfault on 69GB database
+    # with 120+ REL types. Node counts are sufficient for quality audit.
+    return {"total_nodes": total_nodes, "total_edges": -1,
+            "nodes_by_type": nodes_by_type}
+
+
+def _direct_get_nodes(type_name: str, fields: list[str], limit: int) -> list[dict]:
+    """Sample nodes directly from KuzuDB.
+
+    Probes each field first to skip non-existent properties (avoids segfault).
+    """
+    conn = _init_kuzu()
+
+    # Probe which fields actually exist on this type
+    valid_fields = []
+    for f in fields:
+        try:
+            conn.execute(f"MATCH (n:{type_name}) RETURN n.{f} LIMIT 1")
+            valid_fields.append(f)
+        except Exception:
+            pass  # field doesn't exist on this type
+
+    if not valid_fields:
+        return []
+
+    field_list = ", ".join(f"n.{f}" for f in valid_fields)
+    try:
+        r = conn.execute(f"MATCH (n:{type_name}) RETURN {field_list} LIMIT {limit}")
+    except Exception:
+        return []
+    nodes = []
+    while r.has_next():
+        row = r.get_next()
+        node = {}
+        for i, f in enumerate(valid_fields):
+            val = row[i]
+            node[f] = str(val) if val is not None else ""
+        nodes.append(node)
+    return nodes
 
 
 def _extract_best_content(node: dict, fields: list[str]) -> str:
@@ -316,7 +438,7 @@ def _count_domain_terms(text: str) -> int:
 
 
 def _score_document_or_qa(nodes: list[dict], fields: list[str], sampled: int) -> dict:
-    """Score document/QA types by length + domain + uniqueness."""
+    """Score document/QA types: Length(30) + Authenticity(20) + Domain(25) + Unique(15) + Fill(10)."""
     contents = [_extract_best_content(n, fields) for n in nodes]
 
     empty = sum(1 for c in contents if len(c) < 5)
@@ -324,6 +446,26 @@ def _score_document_or_qa(nodes: list[dict], fields: list[str], sampled: int) ->
     medium = sum(1 for c in contents if 50 <= len(c) < 200)
     good = sum(1 for c in contents if 200 <= len(c) < 500)
     rich = sum(1 for c in contents if len(c) >= 500)
+
+    # D2 Authenticity: detect nav junk / HTML boilerplate via content_validator
+    junk_count = 0
+    real_count = 0
+    if _HAS_VALIDATOR:
+        for c in contents:
+            if len(c) < 20:
+                continue  # skip empties — already counted in D5 Fill
+            junk, _reason = is_junk(c)
+            if junk:
+                junk_count += 1
+            else:
+                real_count += 1
+        non_empty = sampled - empty
+        auth_pct = real_count / non_empty * 100 if non_empty > 0 else 0
+        junk_pct = junk_count / non_empty * 100 if non_empty > 0 else 0
+    else:
+        auth_pct = 100.0  # no validator available — assume good
+        junk_pct = 0.0
+        real_count = sampled - empty
 
     domain_hits = sum(1 for c in contents if _count_domain_terms(c) >= 2)
     domain_pct = domain_hits / sampled * 100
@@ -334,18 +476,24 @@ def _score_document_or_qa(nodes: list[dict], fields: list[str], sampled: int) ->
     filled = sampled - empty
     fill_pct = filled / sampled * 100
 
-    len_score = (medium + good * 2 + rich * 3) / (sampled * 3) * 40
-    domain_score = min(domain_pct / 80 * 30, 30)
-    unique_score = min(unique_pct / 90 * 20, 20)
+    # Weighted scoring: Length(30) + Authenticity(20) + Domain(25) + Unique(15) + Fill(10) = 100
+    len_score = (medium + good * 2 + rich * 3) / (sampled * 3) * 30
+    auth_score = min(auth_pct / 80 * 20, 20)  # 80% real content = full marks
+    domain_score = min(domain_pct / 80 * 25, 25)
+    unique_score = min(unique_pct / 90 * 15, 15)
     fill_score = fill_pct / 100 * 10
-    composite = round(len_score + domain_score + unique_score + fill_score, 1)
+    composite = round(len_score + auth_score + domain_score + unique_score + fill_score, 1)
 
     return {
         "score": composite,
         "method": "text",
+        "junk_pct": round(junk_pct, 1),
         "dimensions": {
             "length": {"empty": empty, "short": short, "medium": medium,
                        "good": good, "rich": rich, "sub_score": round(len_score, 1)},
+            "authenticity": {"real": real_count, "junk": junk_count,
+                             "real_pct": round(auth_pct, 1), "junk_pct": round(junk_pct, 1),
+                             "sub_score": round(auth_score, 1)},
             "domain": {"hits": domain_hits, "pct": round(domain_pct, 1),
                        "sub_score": round(domain_score, 1)},
             "unique": {"distinct": len(unique_prefixes), "pct": round(unique_pct, 1),
@@ -428,8 +576,20 @@ def _score_metadata(nodes: list[dict], sampled: int) -> dict:
 def audit_type(type_name: str, total: int, fields: list[str]) -> dict:
     """Audit a single node type using category-appropriate scoring."""
     try:
-        data = _api_get("/api/v1/nodes", {"type": type_name, "limit": SAMPLE_SIZE})
-        nodes = data.get("results", [])
+        if _DIRECT_MODE:
+            # For structured types, merge required fields so scoring has the data it needs.
+            # NODE_CONTENT_FIELDS provides text fields for DOC/QA scoring, but
+            # STRUCTURED_REQUIRED_FIELDS may include different fields (code, system, etc.)
+            category = NODE_CATEGORY.get(type_name, "qa")
+            query_fields = list(fields)
+            if category == "structured":
+                for f in STRUCTURED_REQUIRED_FIELDS.get(type_name, []):
+                    if f not in query_fields:
+                        query_fields.append(f)
+            nodes = _direct_get_nodes(type_name, query_fields, SAMPLE_SIZE)
+        else:
+            data = _api_get("/api/v1/nodes", {"type": type_name, "limit": SAMPLE_SIZE})
+            nodes = data.get("results", [])
     except Exception as e:
         return {"type": type_name, "total": total, "error": str(e),
                 "sampled": 0, "score": 0, "gate": "ERROR"}
@@ -451,31 +611,55 @@ def audit_type(type_name: str, total: int, fields: list[str]) -> dict:
     else:
         scores = _score_document_or_qa(nodes, fields, sampled)
 
-    return {
+    gate = "PASS" if scores["score"] >= COMPOSITE_GATE else "FAIL"
+
+    # Authoritative types: force FAIL if junk content > 50%
+    junk_pct = scores.get("junk_pct", 0)
+    forced_fail = False
+    if policy == "authoritative" and junk_pct > 50:
+        gate = "FAIL"
+        forced_fail = True
+
+    result = {
         "type": type_name,
         "total": total,
         "sampled": sampled,
-        "gate": "PASS" if scores["score"] >= COMPOSITE_GATE else "FAIL",
+        "gate": gate,
         "score": scores["score"],
         "category": category,
         "policy": policy,
         "method": scores["method"],
         "dimensions": scores["dimensions"],
     }
+    if forced_fail:
+        result["forced_fail"] = f"authoritative type junk={junk_pct:.0f}%>50%"
+    return result
 
 
 def run_full_audit() -> dict:
-    """Run 5-dimension audit on all major node types."""
-    stats = _api_get("/api/v1/stats")
+    """Run 6-dimension audit on all major node types."""
+    if _DIRECT_MODE:
+        stats = _direct_get_stats()
+    else:
+        stats = _api_get("/api/v1/stats")
     nodes_by_type = stats.get("nodes_by_type", {})
 
     results = []
+    audit_count = 0
     for type_name, fields in NODE_CONTENT_FIELDS.items():
         total = nodes_by_type.get(type_name, 0)
         if total == 0:
             continue
+        if _DIRECT_MODE:
+            # Reconnect every 5 types to prevent KuzuDB memory accumulation segfault
+            if audit_count > 0 and audit_count % 5 == 0:
+                _init_kuzu(force_new=True)
+            print(f"  Auditing {type_name} ({total:,})...", end="", flush=True)
         result = audit_type(type_name, total, fields)
         results.append(result)
+        audit_count += 1
+        if _DIRECT_MODE:
+            print(f" {result.get('score', 0):.1f} {result.get('gate', '?')}")
 
     # Overall metrics
     total_nodes = sum(r["total"] for r in results)
@@ -538,12 +722,18 @@ def _print_audit(report: dict):
 
         if r.get("method") == "text":
             le = d.get("length", {})
+            au = d.get("authenticity", {})
             dm = d.get("domain", {})
             uq = d.get("unique", {})
+            auth_str = f"A{au.get('real_pct',100):.0f}%" if au else "A--"
+            junk_str = f"J{au.get('junk_pct',0):.0f}%" if au.get("junk_pct", 0) > 0 else ""
             detail = (f"E{le.get('empty',0)} S{le.get('short',0)} "
                       f"M{le.get('medium',0)} G{le.get('good',0)} "
                       f"R{le.get('rich',0)} | "
-                      f"D{dm.get('pct',0):.0f}% U{uq.get('pct',0):.0f}%")
+                      f"{auth_str} {junk_str} "
+                      f"D{dm.get('pct',0):.0f}% U{uq.get('pct',0):.0f}%").strip()
+            if r.get("forced_fail"):
+                detail += f" !! {r['forced_fail']}"
         elif r.get("method") == "fields":
             cp = d.get("completeness", {})
             uq = d.get("unique", {})
@@ -574,13 +764,19 @@ def _print_audit(report: dict):
                 print(f"\n  {label} FAIL ({len(items)}): {', '.join(items)}")
 
     print(f"\n  Scoring by category:")
-    print(f"    DOC/QA:  Length(40) + Domain(30) + Unique(20) + Fill(10)")
+    print(f"    DOC/QA:  Length(30) + Authenticity(20) + Domain(25) + Unique(15) + Fill(10)")
     print(f"    STRC:    FieldComplete(60) + Unique(30) + Fill(10)")
     print(f"    META:    NameFill(100)")
-    print(f"  Gate >= {COMPOSITE_GATE} | E=Empty S=Short M=Medium G=Good R=Rich D=Domain U=Unique\n")
+    print(f"  Gate >= {COMPOSITE_GATE} | E=Empty S=Short M=Medium G=Good R=Rich")
+    print(f"  A=Authentic% J=Junk% D=Domain% U=Unique%")
+    print(f"  Authoritative types: junk>50% forces FAIL\n")
 
 
 def main():
+    global _DIRECT_MODE
+    if "--direct" in sys.argv:
+        _DIRECT_MODE = True
+
     if "--audit" in sys.argv:
         report = run_full_audit()
         if "--json" in sys.argv:

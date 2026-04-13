@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install python dependencies
 COPY requirements.txt .
 RUN pip install -r requirements.txt
-RUN pip install fastapi uvicorn kuzu lancedb pydantic
+RUN pip install fastapi uvicorn kuzu lancedb pydantic numpy
 
 # Copy backend server
 COPY kg-api-server.py .
@@ -26,8 +26,8 @@ COPY design/ ./design/
 # Default environment variables
 ENV HOST=0.0.0.0
 ENV PORT=8400
-ENV DB_PATH=/data/finance-tax-graph
-ENV LANCE_PATH=/data/lancedb
+ENV DB_PATH=/app/data/finance-tax-graph
+ENV LANCE_PATH=/app/data/lancedb-build
 
 EXPOSE 8400
 

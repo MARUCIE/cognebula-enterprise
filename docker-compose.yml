@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   cognebula-api:
     build:
@@ -9,12 +7,17 @@ services:
     ports:
       - "8400:8400"
     volumes:
-      # Mount data directories for KuzuDB and LanceDB persistence
-      - ./data/finance-tax-graph:/data/finance-tax-graph
-      - ./data/lancedb:/data/lancedb
+      - ./data/finance-tax-graph:/app/data/finance-tax-graph
+      - ./data/lancedb-build:/app/data/lancedb-build
     environment:
       - HOST=0.0.0.0
       - PORT=8400
-      - DB_PATH=/data/finance-tax-graph
-      - LANCE_PATH=/data/lancedb
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - KG_API_KEY=${KG_API_KEY}
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8400/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s

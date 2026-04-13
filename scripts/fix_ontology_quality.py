@@ -11,7 +11,7 @@ Run against the KG API server (not directly against KuzuDB).
 import json
 import urllib.request
 
-API = "http://100.75.77.112:8400/api/v1"
+API = "http://localhost:8400/api/v1"
 
 def api_get(path: str):
     resp = urllib.request.urlopen(f"{API}{path}")

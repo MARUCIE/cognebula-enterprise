@@ -48,10 +48,16 @@
 - **Disk**: 106GB free (32% used)
 - **Backups**: baseline-156k (166MB) + full-801k-20260413 (285MB)
 
+### Phase D Progress
+1. **API key auth**: DONE — X-API-Key middleware in kg-api-server.py, env KG_API_KEY in .env.kg-api
+2. **Docker Compose**: DONE — updated port 8400, healthcheck, env vars
+3. **Hybrid RAG**: DONE — `/api/v1/hybrid-search` with RRF fusion (Cypher text + LanceDB vector) + 1-hop graph expansion; `_rag_search_context()` upgraded to hybrid
+
 ### Remaining work
-1. MindmapNode content: 1934/28K filled (7%), remaining 26K can be batch-processed via cron
+1. MindmapNode content: ~16K/28K filled (batch running, ETA ~1h), remaining via cron
 2. IndustryRiskProfile: 698/720 (97%), 22 missing from JSON parse failures
-3. Phase D: API key auth + Docker Compose + Hybrid RAG
+3. Verify hybrid-search + API key auth after API restart
+4. Embedding rebuild for new content (MindmapNode, IndustryRiskProfile, etc.)
 
 ---
 

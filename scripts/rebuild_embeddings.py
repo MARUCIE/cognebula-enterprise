@@ -30,6 +30,7 @@ GEMINI_KEY = os.environ.get("GEMINI_API_KEY", "")
 MODEL = "gemini-embedding-2-preview"
 BATCH_EMBED_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:batchEmbedContents"
 KG_API = os.environ.get("KG_API", "http://localhost:8400")
+KG_API_KEY = os.environ.get("KG_API_KEY", "")
 LANCE_PATH = os.environ.get("LANCE_PATH", "/home/kg/data/lancedb")
 
 # Tables to embed with their text-building logic
@@ -95,9 +96,13 @@ def build_text(node: dict, text_fields: list) -> str:
 
 def fetch_nodes(table: str, limit: int = 100, offset: int = 0) -> list:
     """Fetch nodes from KG API."""
+    headers = {}
+    if KG_API_KEY:
+        headers["X-API-Key"] = KG_API_KEY
     resp = http_requests.get(
         f"{KG_API}/api/v1/nodes",
         params={"type": table, "limit": limit, "offset": offset},
+        headers=headers,
         timeout=15,
     )
     return resp.json().get("results", [])

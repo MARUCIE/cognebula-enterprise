@@ -53,11 +53,18 @@
 2. **Docker Compose**: DONE — updated port 8400, healthcheck, env vars
 3. **Hybrid RAG**: DONE — `/api/v1/hybrid-search` with RRF fusion (Cypher text + LanceDB vector) + 1-hop graph expansion; `_rag_search_context()` upgraded to hybrid
 
+### Post-batch verification (Session 44b)
+- MindmapNode batch: 13/13 runs complete, **27,038/28,526 filled (94.8%)**
+- API key auth: verified — unauthenticated requests get 401, health endpoint exempt
+- Hybrid search: verified — `/api/v1/hybrid-search` returns RRF-fused results + graph expansion
+- Embedding rebuild: running in background (28,145 new vectors, ~1-2h ETA)
+- systemd path fix: `~/kg-api-server.py` synced from `~/cognebula-enterprise/kg-api-server.py`
+- LanceDB symlink: `/home/kg/data/lancedb-build` → `/home/kg/data/lancedb`
+
 ### Remaining work
-1. MindmapNode content: ~16K/28K filled (batch running, ETA ~1h), remaining via cron
-2. IndustryRiskProfile: 698/720 (97%), 22 missing from JSON parse failures
-3. Verify hybrid-search + API key auth after API restart
-4. Embedding rebuild for new content (MindmapNode, IndustryRiskProfile, etc.)
+1. MindmapNode: 1,488 unfilled (5.2%), diminishing returns — skip or low-priority cron
+2. Embedding rebuild: 28K vectors in progress, auto-completes
+3. Run full 6D audit post-embedding to confirm final score
 
 ---
 

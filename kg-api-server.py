@@ -1203,6 +1203,155 @@ def search(
     }
 
 
+# === Hybrid Search (RRF fusion: Cypher text + LanceDB vector + graph expand) ===
+
+def _rrf_merge(text_results: list, vec_results: list, k: int = 60) -> list:
+    """Reciprocal Rank Fusion: merge two ranked lists into one."""
+    scores = {}  # id -> rrf_score
+    meta = {}    # id -> best metadata
+
+    for rank, r in enumerate(text_results):
+        rid = r["id"]
+        scores[rid] = scores.get(rid, 0) + 1.0 / (k + rank + 1)
+        if rid not in meta:
+            meta[rid] = r
+
+    for rank, r in enumerate(vec_results):
+        rid = r["id"]
+        scores[rid] = scores.get(rid, 0) + 1.0 / (k + rank + 1)
+        if rid not in meta:
+            meta[rid] = r
+
+    merged = []
+    for rid, score in sorted(scores.items(), key=lambda x: -x[1]):
+        entry = dict(meta[rid])
+        entry["rrf_score"] = round(score, 6)
+        merged.append(entry)
+    return merged
+
+
+def _vector_search(query_text: str, limit: int = 20) -> list:
+    """Search LanceDB with Gemini embedding."""
+    vec = _embed_query(query_text)
+    if not vec:
+        return []
+    try:
+        tbl = get_lance()
+        raw = tbl.search(vec).limit(limit).to_list()
+        results = []
+        for r in raw:
+            results.append({
+                "id": r.get("id", ""),
+                "text": (r.get("text", "") or "")[:500],
+                "table": r.get("table", ""),
+                "title": r.get("title", ""),
+                "name": r.get("name", ""),
+                "score": max(0, 100 - float(r.get("_distance", 100))),
+                "_distance": float(r.get("_distance", 999)),
+            })
+        return results
+    except Exception:
+        return []
+
+
+def _graph_expand(conn, node_ids: list, hops: int = 1) -> list:
+    """Expand graph neighbors for a set of node IDs."""
+    expanded = []
+    seen = set(node_ids)
+    for nid in node_ids[:5]:  # limit expansion to top 5
+        safe_id = nid.replace("'", "\\'")
+        try:
+            # Outgoing edges
+            r = conn.execute(
+                f"MATCH (n)-[e]->(m) WHERE n.id = '{safe_id}' "
+                f"RETURN label(e), label(m), m.id, "
+                f"COALESCE(m.name, m.title, '') "
+                f"LIMIT 5"
+            )
+            while r.has_next():
+                row = r.get_next()
+                mid = str(row[2] or "")
+                if mid and mid not in seen:
+                    expanded.append({
+                        "id": mid,
+                        "rel": str(row[0] or ""),
+                        "type": str(row[1] or ""),
+                        "name": str(row[3] or ""),
+                        "from": nid,
+                    })
+                    seen.add(mid)
+        except Exception:
+            pass
+        try:
+            # Incoming edges
+            r = conn.execute(
+                f"MATCH (m)-[e]->(n) WHERE n.id = '{safe_id}' "
+                f"RETURN label(e), label(m), m.id, "
+                f"COALESCE(m.name, m.title, '') "
+                f"LIMIT 5"
+            )
+            while r.has_next():
+                row = r.get_next()
+                mid = str(row[2] or "")
+                if mid and mid not in seen:
+                    expanded.append({
+                        "id": mid,
+                        "rel": str(row[0] or ""),
+                        "type": str(row[1] or ""),
+                        "name": str(row[3] or ""),
+                        "from": nid,
+                    })
+                    seen.add(mid)
+        except Exception:
+            pass
+    return expanded
+
+
+@app.get("/api/v1/hybrid-search")
+def hybrid_search(
+    q: str = Query(..., description="Search query"),
+    limit: int = Query(10, ge=1, le=100),
+    expand: bool = Query(True, description="Enable graph expansion on top results"),
+    table_filter: Optional[str] = Query(None, description="Filter by node type"),
+):
+    """Hybrid search: RRF fusion of Cypher text search + LanceDB vector search,
+    with optional 1-hop graph expansion on top results."""
+    conn = get_kuzu()
+
+    # Parallel retrieval (sequential in Python, but both are fast)
+    text_results = _cypher_text_search(conn, q, limit * 3, table_filter)
+    vec_results = _vector_search(q, limit * 3)
+
+    # RRF fusion
+    merged = _rrf_merge(text_results, vec_results)[:limit]
+
+    # Graph expansion
+    graph_context = []
+    if expand and merged:
+        top_ids = [r["id"] for r in merged[:5]]
+        graph_context = _graph_expand(conn, top_ids)
+
+    return {
+        "query": q,
+        "method": "hybrid_rrf",
+        "count": len(merged),
+        "text_hits": len(text_results),
+        "vector_hits": len(vec_results),
+        "results": [
+            {
+                "id": r["id"],
+                "text": r.get("text", "")[:300],
+                "table": r.get("table", ""),
+                "title": r.get("title", ""),
+                "name": r.get("name", ""),
+                "rrf_score": r.get("rrf_score", 0),
+            }
+            for r in merged
+        ],
+        "graph_expansion": graph_context[:20],
+    }
+
+
 # === Graph traversal ===
 @app.get("/api/v1/graph")
 def graph_traverse(
@@ -1952,12 +2101,18 @@ def _rag_search_context(question: str, limit: int = 8) -> tuple:
     sources = []
     context_parts = []
 
-    # Step 1: Cypher text search (primary — replaces broken vector search)
-    search_results = _cypher_text_search(conn, question, limit * 2)
-    for r in search_results[:limit]:
-        src = {"id": r["id"], "text": r["text"], "table": r["table"], "score": r["score"]}
+    # Step 1: Hybrid search (RRF fusion of Cypher text + LanceDB vector)
+    text_results = _cypher_text_search(conn, question, limit * 2)
+    vec_results = _vector_search(question, limit * 2)
+    if vec_results:
+        search_results = _rrf_merge(text_results, vec_results)[:limit]
+    else:
+        search_results = text_results[:limit]
+    for r in search_results:
+        src = {"id": r["id"], "text": r.get("text", ""), "table": r.get("table", ""),
+               "score": r.get("rrf_score", r.get("score", 0))}
         sources.append(src)
-        context_parts.append(f"[{r['table']}] {r['id']}: {r.get('title', '')} — {r['text']}")
+        context_parts.append(f"[{r.get('table', '')}] {r['id']}: {r.get('title', '')} — {r.get('text', '')}")
 
     # Step 1.5: Domain-aware keyword extraction for broader coverage
     # Uses a dictionary of known tax/finance terms to avoid naive bigram pollution

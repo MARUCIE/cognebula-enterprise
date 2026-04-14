@@ -61,10 +61,20 @@
 - systemd path fix: `~/kg-api-server.py` synced from `~/cognebula-enterprise/kg-api-server.py`
 - LanceDB symlink: `/home/kg/data/lancedb-build` → `/home/kg/data/lancedb`
 
+### Embedding rebuild (COMPLETE 2026-04-13 18:01 UTC)
+- **336,884 vectors** (3072-dim, gemini-embedding-2-preview), IVF index built
+- Full rebuild from scratch after LanceDB corruption (symlink + append path mismatch)
+- Watcher auto-restarted API; health confirmed healthy
+
+### End-to-end verification (PASS)
+- `/api/v1/hybrid-search`: RRF fusion working — vector_hits=15 for "增值税税率", graph expansion returns related nodes
+- `/api/v1/health`: healthy (kuzu: true, lancedb: true, 336K vectors)
+- API key auth: 401 on unauthenticated requests, health exempt
+
 ### Remaining work
-1. MindmapNode: 1,488 unfilled (5.2%), diminishing returns — skip or low-priority cron
-2. Embedding rebuild: 28K vectors in progress, auto-completes
-3. Run full 6D audit post-embedding to confirm final score
+1. MindmapNode: 1,488 unfilled (5.2%), diminishing returns
+2. DocumentSection / CPAKnowledge content in hybrid results lacks `title` — consider populating `_display_label` in search results
+3. Next milestone: production readiness (rate limiting, logging, monitoring dashboard)
 
 ---
 

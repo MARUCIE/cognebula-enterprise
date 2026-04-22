@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { getStats, getQuality, type KGStats, type KGQuality } from "../../lib/kg-api";
 import { CN, cnCard, cnLabel, cnValue } from "../../lib/cognebula-theme";
+import ClauseInspector from "../../components/ClauseInspector";
 
 function KPI({ label, value, sub, color }: { label: string; value: string; sub: string; color: string }) {
   return (
@@ -256,6 +257,11 @@ export default function DataQualityPage() {
             法规类节点 (LegalClause 83K, LawOrRegulation 39K) 的内容覆盖率显著更高。提升整体覆盖率需要为元数据节点补充释义文本。
           </p>
         </div>
+      </div>
+
+      {/* Clause Inspector — per-row semantic audit tool (v4.3 façade) */}
+      <div style={{ marginTop: 24 }}>
+        <ClauseInspector />
       </div>
     </div>
   );

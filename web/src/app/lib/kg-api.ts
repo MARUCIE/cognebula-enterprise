@@ -1,11 +1,11 @@
-/* KG API Client — connects to CogNebula KG service.
-   Production: Cloudflare Tunnel (HTTPS) → VPS KuzuDB.
-   Local dev:  Direct Tailscale HTTP. */
+/* KG API Client — browser-safe access via HTTPS proxy.
+   The Cloudflare Worker injects KG_API_KEY server-side, so the browser never handles secrets. */
 
+// Same-origin by default: the browser fetches `/api/v1/*`, which nginx on the
+// same host (app.hegui.org / ops.hegui.org / local dev proxy) forwards to the
+// KG API backend. Override via NEXT_PUBLIC_KG_API_BASE for split-domain deploys.
 const KG_API_BASE =
-  typeof window !== "undefined" && window.location.protocol === "https:"
-    ? "https://opportunity-pentium-blessed-notes.trycloudflare.com/api/v1"
-    : "http://100.75.77.112:8400/api/v1";
+  process.env.NEXT_PUBLIC_KG_API_BASE || "/api/v1";
 
 export interface KGStats {
   total_nodes: number;
@@ -177,12 +177,160 @@ export async function chatRAG(question: string, limit = 8): Promise<ChatResponse
   return resp.json();
 }
 
-/* v4.1 Ontology: 21 node types across 4 layers
-   Color scheme: 4 layer colors (not 21 type colors) for visual clarity */
+/* Hybrid search — text + LanceDB vector fused via RRF, with 1-hop graph expansion */
+
+export interface HybridSearchHit {
+  id: string;
+  text: string;
+  table: string;
+  title: string;
+  name: string;
+  rrf_score: number;
+}
+
+export interface HybridSearchResponse {
+  query: string;
+  method: string;
+  count: number;
+  text_hits: number;
+  vector_hits: number;
+  results: HybridSearchHit[];
+  graph_expansion: unknown[];
+}
+
+export async function hybridSearch(
+  q: string,
+  limit = 10,
+  opts: { expand?: boolean; tableFilter?: string } = {},
+): Promise<HybridSearchResponse> {
+  const params = new URLSearchParams({ q, limit: String(limit) });
+  if (opts.expand === false) params.set("expand", "false");
+  if (opts.tableFilter) params.set("table_filter", opts.tableFilter);
+  return kgFetch<HybridSearchResponse>(`/hybrid-search?${params.toString()}`);
+}
+
+/* Reasoning chain — structured justification rooted at a node (SOTA Must #4) */
+
+export interface ReasoningEdge {
+  edge_type: string;
+  direction: "in" | "out";
+  target: { id: string; type: string | null; label: string | null };
+  source_clause_id: string | null;
+  effective_at: string | null;
+  superseded_at: string | null;
+  via?: { id: string; type: string | null; edge: string };
+}
+
+export interface ReasoningChain {
+  query_node: { id: string; type: string | null; label: string | null };
+  direct_evidence: ReasoningEdge[];
+  related_2hop: ReasoningEdge[];
+  trace: { rel_types_scanned: number; queries_run: number; node_resolved: boolean };
+}
+
+export async function getReasoningChain(
+  nodeId: string,
+  include2Hop = true,
+): Promise<ReasoningChain> {
+  const qs = new URLSearchParams({ node_id: nodeId, include_2hop: String(include2Hop) });
+  return kgFetch<ReasoningChain>(`/reasoning-chain?${qs.toString()}`);
+}
+
+/* Clause inspector — single-row + batch, pure-function façade over
+   src/kg/clause_inspector.py. Mirrors backend describe() shape. */
+
+export interface ClauseInspectRow {
+  argument_role?: string | null;
+  argument_strength?: number | null;
+  override_chain_id?: string | null;
+  override_chain_parents?: string[] | null;
+  jurisdiction_code?: string | null;
+  jurisdiction_scope?: string | null;
+}
+
+export interface ClauseInspectResult {
+  clean: boolean;
+  defect_flags: string[];
+  argument: {
+    role: {
+      key: string;
+      label_zh: string;
+      gloss_en: string;
+      system: string;
+      prohibited_in_tax_law: boolean;
+    } | null;
+    role_prohibited_in_tax_law: boolean;
+    strength: {
+      tier: string | null;
+      label_zh: string;
+      label_en: string;
+      color_token: string;
+      raw: number | null;
+    };
+  };
+  override_chain: {
+    code: string | null;
+    valid: boolean;
+    kind: string;
+    label_zh: string | null;
+    chain: string[];
+    reason: string | null;
+  };
+  override_chain_breadcrumb_zh: string;
+  multiparent: {
+    valid: boolean;
+    reason: string | null;
+    resolved: unknown[];
+  } | null;
+  consistency: {
+    code: string | null;
+    scope: string | null;
+    verdict: string;
+    reason: string | null;
+    expected_scopes: string[];
+  };
+}
+
+export interface ClauseInspectBatchResponse {
+  count: number;
+  clean_count: number;
+  defect_count: number;
+  results: ClauseInspectResult[];
+}
+
+export async function inspectClause(row: ClauseInspectRow): Promise<ClauseInspectResult> {
+  const resp = await fetch(`${KG_API_BASE}/inspect/clause`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(row),
+  });
+  if (!resp.ok) throw new Error(`Inspect API ${resp.status}: ${resp.statusText}`);
+  return resp.json();
+}
+
+export async function inspectClauseBatch(rows: ClauseInspectRow[]): Promise<ClauseInspectBatchResponse> {
+  const resp = await fetch(`${KG_API_BASE}/inspect/clause/batch`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ rows }),
+  });
+  if (!resp.ok) {
+    let detail = resp.statusText;
+    try {
+      const body = await resp.json();
+      if (body?.detail) detail = body.detail;
+    } catch { /* keep statusText */ }
+    throw new Error(`Inspect batch API ${resp.status}: ${detail}`);
+  }
+  return resp.json();
+}
+
+/* v4.2 Ontology: 27 node types across 4 layers (+6 P0 types, -2 garbage)
+   Color scheme: 4 layer colors (not per-type) for visual clarity */
 export const LAYER_GROUPS: Record<string, { color: string; darkColor: string; nodes: string[] }> = {
-  "L1 法规层": { color: "#DBEAFE", darkColor: "#1E3A5F", nodes: ["LegalDocument", "LegalClause", "IssuingBody"] },
-  "L2 业务层": { color: "#CFFAFE", darkColor: "#164E63", nodes: ["TaxRate", "AccountingSubject", "Classification", "TaxEntity", "Region", "FilingForm", "BusinessActivity"] },
-  "L3 合规层": { color: "#FEF3C7", darkColor: "#78350F", nodes: ["ComplianceRule", "RiskIndicator", "TaxIncentive", "Penalty", "AuditTrigger", "TaxAccountingGap", "SocialInsuranceRule", "InvoiceRule", "IndustryBenchmark"] },
+  "L1 法规层": { color: "#DBEAFE", darkColor: "#1E3A5F", nodes: ["LegalDocument", "LegalClause", "IssuingBody", "AccountingStandard", "TaxTreaty"] },
+  "L2 业务层": { color: "#CFFAFE", darkColor: "#164E63", nodes: ["TaxRate", "AccountingSubject", "Classification", "TaxEntity", "Region", "FilingForm", "BusinessActivity", "JournalEntryTemplate", "FinancialStatementItem", "FilingFormField", "TaxItem", "TaxBasis", "TaxLiabilityTrigger", "TaxMilestoneEvent"] },
+  "L3 合规层": { color: "#FEF3C7", darkColor: "#78350F", nodes: ["ComplianceRule", "RiskIndicator", "TaxIncentive", "Penalty", "AuditTrigger", "TaxAccountingGap", "SocialInsuranceRule", "InvoiceRule", "IndustryBenchmark", "TaxCalculationRule", "FinancialIndicator", "DeductionRule", "ResponseStrategy", "PolicyChange"] },
   "L4 知识层": { color: "#F3F4F6", darkColor: "#1F2937", nodes: ["TaxType", "KnowledgeUnit"] },
 };
 
@@ -195,13 +343,18 @@ const L4_COLOR = "#9CA3AF"; // Gray — knowledge/reference
 export const NODE_COLORS: Record<string, string> = {
   // L1 Legal (blue)
   LegalDocument: L1_COLOR, LegalClause: L1_COLOR, IssuingBody: L1_COLOR,
+  AccountingStandard: L1_COLOR, TaxTreaty: L1_COLOR,
   // L2 Business (cyan)
   TaxRate: L2_COLOR, AccountingSubject: L2_COLOR, Classification: L2_COLOR,
   TaxEntity: L2_COLOR, Region: L2_COLOR, FilingForm: L2_COLOR, BusinessActivity: L2_COLOR,
+  JournalEntryTemplate: L2_COLOR, FinancialStatementItem: L2_COLOR, FilingFormField: L2_COLOR,
+  TaxItem: L2_COLOR, TaxBasis: L2_COLOR, TaxLiabilityTrigger: L2_COLOR, TaxMilestoneEvent: L2_COLOR,
   // L3 Compliance (amber)
   ComplianceRule: L3_COLOR, RiskIndicator: L3_COLOR, TaxIncentive: L3_COLOR,
   Penalty: L3_COLOR, AuditTrigger: L3_COLOR, TaxAccountingGap: L3_COLOR,
   SocialInsuranceRule: L3_COLOR, InvoiceRule: L3_COLOR, IndustryBenchmark: L3_COLOR,
+  TaxCalculationRule: L3_COLOR, FinancialIndicator: L3_COLOR, DeductionRule: L3_COLOR,
+  ResponseStrategy: L3_COLOR, PolicyChange: L3_COLOR,
   // L4 Knowledge (gray)
   TaxType: L4_COLOR, KnowledgeUnit: L4_COLOR,
 };
@@ -231,6 +384,17 @@ export const EDGE_LABELS_ZH: Record<string, string> = {
   REQUIRES_FILING: "需申报", ENTITY_FOR_TAX: "主体税种",
   INCENTIVE_BASED_ON: "优惠依据", FT_GOVERNED_BY: "受监管", FT_QUALIFIES_FOR: "符合条件",
   DEBITS_V2: "借方", CREDITS_V2: "贷方",
+  // v4.2 P0 edges
+  HAS_ENTRY_TEMPLATE: "分录模板", ENTRY_DEBITS: "借方科目", ENTRY_CREDITS: "贷方科目",
+  POPULATES: "填列", FIELD_OF: "栏次属于", DERIVES_FROM: "来源于",
+  CALCULATION_FOR_TAX: "计算规则", DECOMPOSES_INTO: "分解为", COMPUTED_FROM: "数据来源",
+  HAS_BENCHMARK: "行业基准", PARTY_TO: "缔约方", OVERRIDES_RATE: "协定税率",
+  // v4.2 P1 edges
+  HAS_ITEM: "税目", COMPUTED_BY: "计税依据", LIABILITY_TRIGGERED_BY: "纳税义务触发",
+  INDICATES_RISK: "触发预警", PENALIZED_FOR: "处罚对象", ESCALATES_TO: "升级为",
+  SPLITS_INTO: "分拆为", DEDUCTS_FROM: "从...扣除",
+  // v4.2 P2 edges
+  RESPONDS_TO: "风险应对", TRIGGERED_BY_CHANGE: "政策影响", SUPERSEDES_POLICY: "替代政策",
 };
 
 // Quiet edge colors: only 3 semantic groups (not per-edge rainbow)

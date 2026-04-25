@@ -200,3 +200,89 @@ def test_lbt_runner_chat_request_body_shape() -> None:
     case = {"question": "测试问题", "id": "x"}
     body = runner.chat_request_body(case, limit=5)
     assert body == {"question": "测试问题", "mode": "rag", "limit": 5}
+
+
+# ---------------------------------------------------------------------------
+# Stage 1 Poe provider tests (offline, no network)
+# ---------------------------------------------------------------------------
+
+
+def test_lbt_runner_build_rag_prompt_contains_context_and_question() -> None:
+    """build_rag_prompt must inject all 5 fields per result + question section."""
+    runner = _import_runner()
+    results = [
+        {
+            "id": "TaxCalculationRule:CIT_基本税率",
+            "table": "TaxCalculationRule",
+            "title": "企业所得税基本税率 25%",
+            "name": "",
+            "text": "居民企业适用 25% 基本税率",
+        },
+        {
+            "id": "FilingFormField:CIT_A100000_L05",
+            "table": "FilingFormField",
+            "title": "纳税调整增加额",
+            "name": "",
+            "text": "汇总 A105000 调整明细表",
+        },
+    ]
+    prompt = runner.build_rag_prompt("CIT 基本税率是多少？", results)
+    assert "知识图谱上下文" in prompt
+    assert "用户问题" in prompt
+    assert "CIT 基本税率是多少？" in prompt
+    assert "TaxCalculationRule" in prompt
+    assert "CIT_A100000_L05" in prompt
+    assert "结构化的回答" in prompt
+
+
+def test_lbt_runner_build_rag_prompt_handles_empty_results() -> None:
+    """Empty retrieval must produce a prompt that signals no context found."""
+    runner = _import_runner()
+    prompt = runner.build_rag_prompt("某问题", [])
+    assert "未检索到" in prompt
+    assert "某问题" in prompt
+
+
+def test_lbt_runner_poe_chat_payload_shape() -> None:
+    """poe_chat_payload must produce OpenAI-compatible chat-completions shape."""
+    runner = _import_runner()
+    payload = runner.poe_chat_payload(
+        model="Gemini-3-Pro",
+        system="你是 CogNebula 助手",
+        prompt="问题：CIT 税率？",
+    )
+    assert payload["model"] == "Gemini-3-Pro"
+    assert payload["messages"][0] == {"role": "system", "content": "你是 CogNebula 助手"}
+    assert payload["messages"][1] == {"role": "user", "content": "问题：CIT 税率？"}
+    assert payload["temperature"] == 0.3
+    assert payload["max_tokens"] == 4096
+
+
+def test_lbt_runner_poe_chat_payload_omits_system_when_empty() -> None:
+    """Empty system prompt must yield messages without a system entry."""
+    runner = _import_runner()
+    payload = runner.poe_chat_payload(model="GPT-5.4", system="", prompt="hi")
+    assert len(payload["messages"]) == 1
+    assert payload["messages"][0]["role"] == "user"
+
+
+def test_lbt_runner_call_poe_errors_without_key() -> None:
+    """call_poe must short-circuit with error when api_key is empty (no network call)."""
+    runner = _import_runner()
+    result = runner.call_poe(api_key="", model="Gemini-3-Pro", system="", prompt="q")
+    assert "error" in result
+    assert "POE_API_KEY" in result["error"]
+
+
+def test_lbt_runner_eval_system_prompt_excludes_genui() -> None:
+    """SYSTEM_PROMPT_EVAL must NOT carry the server's GenUI HTML directives.
+
+    The server's SYSTEM_PROMPT_RAG includes <!--GENUI--> instructions that
+    pollute answer text and skew keyword scoring. The eval-mode prompt is
+    intentionally simpler.
+    """
+    runner = _import_runner()
+    p = runner.SYSTEM_PROMPT_EVAL
+    assert "GENUI" not in p
+    assert "HTML" not in p or "不输出 HTML" in p
+    assert "法规文号" in p  # must demand statute citation

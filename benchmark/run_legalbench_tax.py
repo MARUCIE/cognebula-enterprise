@@ -10,9 +10,21 @@ Reads `eval_legalbench_tax_v0.jsonl` and either:
   sent to the KG API for each case, without actually sending. Lets you inspect
   the wire shape before burning tokens. No external dependencies.
 
-- **Stage 1 live (`--mode live`)**: POSTs each case's `question` to
-  `${COGNEBULA_API_URL}/api/v1/chat` (default `http://localhost:8400`) with
-  `mode: "rag"`, then scores the response on three deterministic dimensions:
+- **Stage 1 live (`--mode live`)**: scores the LegalBench-Tax cases. Two
+  provider backends:
+
+  * `--llm-provider kg-api` (default) — POSTs each `question` to
+    `${COGNEBULA_API_URL}/api/v1/chat` with `mode: "rag"`. The server does
+    retrieval + LLM internally. Backend LLM is whatever `kg-api-server.py`
+    is configured to use (`POE_API_KEY` if set, else Gemini fallback).
+  * `--llm-provider poe` — bypasses `/api/v1/chat`. Runner does retrieval via
+    `/api/v1/hybrid-search` (zero-LLM-cost on the server side, hits the KG
+    only) and POSTs the assembled RAG prompt directly to Poe API
+    (`https://api.poe.com/v1/chat/completions`, OpenAI-compatible).
+    Bot name controlled via `--poe-model` (default `Gemini-3-Pro`).
+    Requires `POE_API_KEY` env var on the runner side.
+
+  Both provider paths score the response on three deterministic dimensions:
 
     1. anchor_recall  — fraction of `reasoning_anchors` whose target-id
        substring appears in returned `sources` rows
@@ -29,11 +41,20 @@ fuzzy semantic equivalence; diff vs Claude Opus 4.7 baseline (70.3% on
 VALS.ai LegalBench-Tax leaderboard).
 
 Usage:
-    python benchmark/run_legalbench_tax.py                          # validate
-    python benchmark/run_legalbench_tax.py --mode dry-run            # preview
-    python benchmark/run_legalbench_tax.py --mode live --output r.json
+    python benchmark/run_legalbench_tax.py                              # validate
+    python benchmark/run_legalbench_tax.py --mode dry-run                # preview
+
+    # Live, route through kg-api server's /api/v1/chat (server LLM):
     COGNEBULA_API_URL=http://localhost:8400 KG_API_KEY=... \
-        python benchmark/run_legalbench_tax.py --mode live --limit 5
+        python benchmark/run_legalbench_tax.py --mode live --max-cases 5
+
+    # Live, runner calls Poe directly (kg-api server only does retrieval):
+    COGNEBULA_API_URL=http://localhost:8400 POE_API_KEY=... \
+        python benchmark/run_legalbench_tax.py --mode live \
+            --llm-provider poe --poe-model Gemini-3-Pro --max-cases 5
+
+    # First-time safety: ALWAYS use --max-cases 5 to verify wire + bot
+    # before pulling the trigger on the full 100.
 
 SOTA gap doc cross-ref: §Day 61-75 — "Build private 100-case Chinese tax
 eval set". Status 2026-04-26: 100/100 cases authored (CIT 30 / VAT 30 /
@@ -69,11 +90,27 @@ REQUIRED_FIELDS = {
 ALLOWED_DOMAINS = {"CIT", "VAT", "IIT", "MISC"}
 ALLOWED_DIFFICULTY = {"easy", "medium", "hard"}
 ALLOWED_MODES = {"validate", "dry-run", "live"}
+ALLOWED_PROVIDERS = {"kg-api", "poe"}
 
 TARGET_DISTRIBUTION = {"CIT": 30, "VAT": 30, "IIT": 20, "MISC": 20}
 
 API_BASE_DEFAULT = os.environ.get("COGNEBULA_API_URL", "http://localhost:8400")
 API_KEY = os.environ.get("KG_API_KEY", "")
+POE_API_KEY = os.environ.get("POE_API_KEY", "")
+POE_API_URL = "https://api.poe.com/v1/chat/completions"
+POE_MODEL_DEFAULT = "Gemini-3-Pro"
+
+# Eval-focused system prompt. Intentionally simpler than the server's
+# SYSTEM_PROMPT_RAG (which carries GenUI HTML directives that would pollute
+# answer text and skew keyword scoring). Keeps the answer factual + cited.
+SYSTEM_PROMPT_EVAL = """你是 CogNebula 业财税知识图谱的 AI 助手。基于提供的知识图谱上下文回答用户的中文税务问题。
+
+规则：
+1. 只根据上下文回答，不编造信息；上下文不足时明确说明
+2. 必须引用具体法规文号 + 条款编号（如「CIT 法 §27」「财税[2018]15 号」「国家税务总局公告 2018 年第 28 号」）
+3. 计算题给出公式 + 代入 + 结果三段
+4. 回答使用纯中文文本，不输出 HTML / Markdown 代码块
+5. 结构化：先给结论，再展开依据"""
 
 # ---------------------------------------------------------------------------
 # Stage 0 — validation
@@ -272,6 +309,130 @@ def call_chat(api_base: str, body: dict, timeout: int = 60) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Stage 1 — Poe provider path (bypass kg-api LLM, retrieval-only via KG)
+# ---------------------------------------------------------------------------
+
+
+def call_hybrid_search(api_base: str, question: str, limit: int, timeout: int = 30) -> dict:
+    """GET /api/v1/hybrid-search for retrieval (zero LLM cost server-side)."""
+    qs = f"q={urllib.request.quote(question)}&limit={limit}&expand=true"
+    url = f"{api_base.rstrip('/')}/api/v1/hybrid-search?{qs}"
+    req = urllib.request.Request(url, headers=_headers())
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return json.loads(resp.read())
+    except urllib.error.HTTPError as e:
+        return {"error": f"HTTP {e.code}", "detail": e.read().decode(errors="ignore")[:500]}
+    except urllib.error.URLError as e:
+        return {"error": f"URLError: {e.reason}"}
+    except Exception as e:
+        return {"error": f"{type(e).__name__}: {str(e)[:200]}"}
+
+
+def build_rag_prompt(question: str, search_results: list) -> str:
+    """Assemble the RAG prompt from hybrid-search results.
+
+    Mirrors the server's _chat_inner RAG path (kg-api-server.py:2571-2579) so
+    that runner-side scoring is comparable to server-side scoring.
+    """
+    context_parts = []
+    for r in search_results:
+        table = r.get("table", "")
+        rid = r.get("id", "")
+        title = r.get("title") or r.get("name") or ""
+        text = r.get("text", "")
+        context_parts.append(f"[{table}] {rid}: {title} — {text}")
+    context = "\n".join(context_parts)
+    if not context.strip():
+        context = "（未检索到相关知识图谱条目）"
+    return (
+        "基于以下知识图谱上下文回答用户的问题。\n\n"
+        f"## 知识图谱上下文\n{context}\n\n"
+        f"## 用户问题\n{question}\n\n"
+        "请给出准确、结构化的回答。"
+    )
+
+
+def poe_chat_payload(model: str, system: str, prompt: str,
+                     temperature: float = 0.3, max_tokens: int = 4096) -> dict:
+    """Build the Poe API request body. OpenAI-compatible chat-completions shape."""
+    messages = []
+    if system:
+        messages.append({"role": "system", "content": system})
+    messages.append({"role": "user", "content": prompt})
+    return {
+        "model": model,
+        "messages": messages,
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+    }
+
+
+def call_poe(api_key: str, model: str, system: str, prompt: str,
+             timeout: int = 90) -> dict:
+    """POST to Poe API. Returns {answer, _elapsed_ms, _usage} or {error}."""
+    if not api_key:
+        return {"error": "POE_API_KEY env var not set"}
+    body = poe_chat_payload(model, system, prompt)
+    data = json.dumps(body).encode()
+    req = urllib.request.Request(
+        POE_API_URL,
+        data=data,
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}",
+        },
+        method="POST",
+    )
+    t0 = time.perf_counter()
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            payload = json.loads(resp.read())
+            elapsed_ms = int((time.perf_counter() - t0) * 1000)
+            try:
+                answer = payload["choices"][0]["message"]["content"]
+            except (KeyError, IndexError, TypeError) as e:
+                return {"error": f"unexpected Poe response shape: {e}",
+                        "raw": str(payload)[:500]}
+            return {
+                "answer": answer,
+                "_elapsed_ms": elapsed_ms,
+                "_usage": payload.get("usage", {}),
+            }
+    except urllib.error.HTTPError as e:
+        return {"error": f"HTTP {e.code}", "detail": e.read().decode(errors="ignore")[:500]}
+    except urllib.error.URLError as e:
+        return {"error": f"URLError: {e.reason}"}
+    except Exception as e:
+        return {"error": f"{type(e).__name__}: {str(e)[:200]}"}
+
+
+def run_poe_case(api_base: str, case: dict, limit: int, model: str,
+                 api_key: str) -> dict:
+    """Full Poe path for one case: retrieval -> prompt -> Poe -> response shape
+    matching call_chat's so score_case can grade it identically.
+    """
+    search = call_hybrid_search(api_base, case["question"], limit)
+    if "error" in search:
+        return {"error": f"hybrid-search failed: {search['error']}"}
+    results = search.get("results", [])
+    prompt = build_rag_prompt(case["question"], results)
+    poe_resp = call_poe(api_key, model, SYSTEM_PROMPT_EVAL, prompt)
+    if "error" in poe_resp:
+        return {"error": f"Poe call failed: {poe_resp['error']}"}
+    # Reshape to look like call_chat's response so score_case stays uniform.
+    api_sources = [{"rows": [[r.get("id", ""), r.get("table", "")]] }
+                   for r in results]
+    return {
+        "answer": poe_resp["answer"],
+        "sources": api_sources,
+        "_elapsed_ms": poe_resp.get("_elapsed_ms"),
+        "_usage": poe_resp.get("_usage", {}),
+        "_retrieval_count": len(results),
+    }
+
+
+# ---------------------------------------------------------------------------
 # Stage 1 — orchestration
 # ---------------------------------------------------------------------------
 
@@ -294,14 +455,25 @@ def run_dry_run(records: list[dict], limit: int, max_preview: int) -> dict:
     }
 
 
-def run_live(records: list[dict], api_base: str, limit: int, sleep_s: float) -> dict:
-    """POST each case to /api/v1/chat, score, aggregate."""
+def run_live(records: list[dict], api_base: str, limit: int, sleep_s: float,
+             provider: str = "kg-api", poe_model: str = POE_MODEL_DEFAULT,
+             poe_api_key: str = "") -> dict:
+    """Score each case via the chosen provider; aggregate per domain/difficulty/overall.
+
+    provider:
+      - "kg-api": POST /api/v1/chat (server does retrieval + LLM)
+      - "poe":    GET /api/v1/hybrid-search (retrieval-only) + POST Poe directly
+    """
     per_case: list[dict] = []
     api_errors = 0
 
     for i, case in enumerate(records, 1):
-        body = chat_request_body(case, limit)
-        response = call_chat(api_base, body)
+        if provider == "poe":
+            response = run_poe_case(api_base, case, limit, poe_model, poe_api_key)
+        else:
+            body = chat_request_body(case, limit)
+            response = call_chat(api_base, body)
+
         if "error" in response:
             api_errors += 1
             per_case.append({
@@ -318,6 +490,8 @@ def run_live(records: list[dict], api_base: str, limit: int, sleep_s: float) -> 
                 "sub_task": case.get("sub_task"),
                 "difficulty": case.get("difficulty"),
                 "elapsed_ms": response.get("_elapsed_ms"),
+                "usage": response.get("_usage", {}),
+                "retrieval_count": response.get("_retrieval_count"),
                 **scored,
             })
         # Brief progress indicator every 10 cases
@@ -330,6 +504,8 @@ def run_live(records: list[dict], api_base: str, limit: int, sleep_s: float) -> 
     by_domain_scores: dict[str, list[float]] = {d: [] for d in ALLOWED_DOMAINS}
     by_difficulty_scores: dict[str, list[float]] = {d: [] for d in ALLOWED_DIFFICULTY}
     overall_scores: list[float] = []
+    total_input_tokens = 0
+    total_output_tokens = 0
     for r in per_case:
         if "composite" not in r:
             continue
@@ -337,12 +513,17 @@ def run_live(records: list[dict], api_base: str, limit: int, sleep_s: float) -> 
         by_domain_scores[r["domain"]].append(r["composite"])
         if r.get("difficulty") in by_difficulty_scores:
             by_difficulty_scores[r["difficulty"]].append(r["composite"])
+        usage = r.get("usage") or {}
+        total_input_tokens += usage.get("prompt_tokens", 0) or 0
+        total_output_tokens += usage.get("completion_tokens", 0) or 0
 
     def _avg(xs: list[float]) -> float | None:
         return round(sum(xs) / len(xs), 4) if xs else None
 
     return {
         "mode": "live",
+        "provider": provider,
+        "poe_model": poe_model if provider == "poe" else None,
         "api_base": api_base,
         "total_cases": len(records),
         "api_errors": api_errors,
@@ -350,6 +531,8 @@ def run_live(records: list[dict], api_base: str, limit: int, sleep_s: float) -> 
         "overall_composite_avg": _avg(overall_scores),
         "by_domain_avg": {d: _avg(by_domain_scores[d]) for d in ALLOWED_DOMAINS},
         "by_difficulty_avg": {d: _avg(by_difficulty_scores[d]) for d in ALLOWED_DIFFICULTY},
+        "total_input_tokens": total_input_tokens,
+        "total_output_tokens": total_output_tokens,
         "per_case": per_case,
     }
 
@@ -370,11 +553,21 @@ def main() -> int:
     parser.add_argument("--api-base", default=API_BASE_DEFAULT,
                         help=f"KG API base URL (default: {API_BASE_DEFAULT})")
     parser.add_argument("--limit", type=int, default=10,
-                        help="Per-question retrieval limit passed to /api/v1/chat (default 10)")
+                        help="Per-question retrieval limit (default 10)")
     parser.add_argument("--sleep", type=float, default=0.0,
                         help="Seconds to sleep between live API calls (rate limit, default 0)")
     parser.add_argument("--max-preview", type=int, default=3,
                         help="Cases to print in dry-run (default 3)")
+    parser.add_argument("--max-cases", type=int, default=None,
+                        help="Cap live mode at first N cases (safety; default = all). "
+                             "Use --max-cases 5 the first time you flip --mode live.")
+    parser.add_argument("--llm-provider", choices=sorted(ALLOWED_PROVIDERS),
+                        default="kg-api",
+                        help="kg-api (POST /api/v1/chat, server-side LLM) | "
+                             "poe (runner does retrieval + Poe direct call). Default kg-api.")
+    parser.add_argument("--poe-model", default=POE_MODEL_DEFAULT,
+                        help=f"Poe bot name when --llm-provider poe (default: {POE_MODEL_DEFAULT}). "
+                             "Examples: Gemini-3-Pro, Claude-Opus-4.7, GPT-5.4-Mini, GPT-5.4")
     parser.add_argument("--output", help="Write JSON results to this path (live mode)")
     args = parser.parse_args()
 
@@ -405,11 +598,31 @@ def main() -> int:
         return 0
 
     # live
-    print(f"=== LegalBench-Tax v0 live scoring against {args.api_base} ===", file=sys.stderr)
-    if not API_KEY:
-        print("[warn] KG_API_KEY env var not set; calls will be unauthenticated",
+    if args.max_cases is not None and args.max_cases > 0:
+        records = records[: args.max_cases]
+    provider = args.llm_provider
+    print(f"=== LegalBench-Tax v0 live scoring (provider={provider}, "
+          f"cases={len(records)}, api_base={args.api_base}) ===",
+          file=sys.stderr)
+    if provider == "kg-api" and not API_KEY:
+        print("[warn] KG_API_KEY env var not set; kg-api calls will be unauthenticated",
               file=sys.stderr)
-    result = run_live(records, args.api_base, args.limit, args.sleep)
+    if provider == "poe" and not POE_API_KEY:
+        print("[error] --llm-provider poe requires POE_API_KEY env var", file=sys.stderr)
+        return 3
+    if provider == "poe":
+        print(f"[info] Poe bot = {args.poe_model}; "
+              "retrieval still hits kg-api /api/v1/hybrid-search (zero-LLM-cost server side)",
+              file=sys.stderr)
+    result = run_live(
+        records,
+        args.api_base,
+        args.limit,
+        args.sleep,
+        provider=provider,
+        poe_model=args.poe_model,
+        poe_api_key=POE_API_KEY,
+    )
     summary_only = {k: v for k, v in result.items() if k != "per_case"}
     print("=== LegalBench-Tax v0 live aggregate ===")
     print(json.dumps(summary_only, indent=2, ensure_ascii=False))

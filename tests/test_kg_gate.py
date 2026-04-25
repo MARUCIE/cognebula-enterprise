@@ -114,3 +114,89 @@ def test_audit_endpoint_shape_stable() -> None:
     }
     missing_axes = required_axes - set(breakdown.keys())
     assert not missing_axes, f"breakdown missing axes: {missing_axes}"
+
+
+# ---------------------------------------------------------------------------
+# LegalBench-Tax Stage 1 runner — offline tests (no API call)
+# ---------------------------------------------------------------------------
+
+
+def _import_runner():
+    """Load benchmark/run_legalbench_tax.py as a module."""
+    import importlib.util
+    from pathlib import Path
+
+    repo_root = Path(__file__).resolve().parents[1]
+    spec = importlib.util.spec_from_file_location(
+        "lbt_runner", repo_root / "benchmark" / "run_legalbench_tax.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_lbt_runner_score_perfect_match() -> None:
+    """score_case must return high composite when answer + sources fully cover anchors."""
+    runner = _import_runner()
+    case = {
+        "id": "test_perfect",
+        "domain": "CIT",
+        "expected_answer": "应纳税所得额 = 1000 × 25% = 250 万元，适用 25% 税率",
+        "reasoning_anchors": [
+            "TaxCalculationRule:CIT_基本税率",
+            "FilingFormField:CIT_A100000_L05",
+        ],
+        "sources": ["CIT 法 §4"],
+    }
+    response = {
+        "answer": "应纳税所得额 = 1000 × 25% = 250 万元 适用 CIT 法 §4 规定 25% 税率",
+        "sources": [{"rows": [["CIT_基本税率"], ["CIT_A100000_L05"]]}],
+    }
+    result = runner.score_case(case, response)
+    assert result["anchor_recall"] == 1.0
+    assert result["keyword_overlap"] >= 0.8
+    assert result["source_citation"] == 1.0
+    assert result["composite"] >= 0.9
+
+
+def test_lbt_runner_score_zero_match() -> None:
+    """score_case must return 0 composite when response is empty/irrelevant."""
+    runner = _import_runner()
+    case = {
+        "id": "test_zero",
+        "domain": "VAT",
+        "expected_answer": "销项税额 = 100 × 13% = 13 元",
+        "reasoning_anchors": ["TaxCalculationRule:VAT_当期应纳"],
+        "sources": ["增值税暂行条例 §4"],
+    }
+    response = {"answer": "未找到相关信息", "sources": []}
+    result = runner.score_case(case, response)
+    assert result["composite"] == 0.0
+
+
+def test_lbt_runner_dry_run_does_not_call_api() -> None:
+    """run_dry_run must build request bodies without performing network I/O."""
+    runner = _import_runner()
+    cases = [
+        {
+            "id": "cit_001",
+            "domain": "CIT",
+            "question": "招待费扣除限额？",
+            "expected_answer": "60% × 5‰",
+            "reasoning_anchors": [],
+            "sources": [],
+        },
+    ]
+    result = runner.run_dry_run(cases, limit=10, max_preview=1)
+    assert result["mode"] == "dry-run"
+    assert result["previewed_count"] == 1
+    assert result["preview"][0]["request_body"]["mode"] == "rag"
+    assert "would_send_to" in result
+
+
+def test_lbt_runner_chat_request_body_shape() -> None:
+    """chat_request_body must produce the exact wire shape kg-api-server expects."""
+    runner = _import_runner()
+    case = {"question": "测试问题", "id": "x"}
+    body = runner.chat_request_body(case, limit=5)
+    assert body == {"question": "测试问题", "mode": "rag", "limit": 5}

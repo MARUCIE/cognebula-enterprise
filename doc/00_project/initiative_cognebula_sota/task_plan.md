@@ -412,3 +412,33 @@ Phase 2: Synthesis + Gap Analysis (Steps 3-4)
 - [x] iit_020 — 无住所个人 6 年规则 (财税[2019]35 号)
 
 **Phase milestone reached 2026-04-25**: IIT 20/20 ✓ (LegalBench-Tax v0 IIT domain saturated). Total eval set 70 → 85 cases. CIT/VAT/IIT all 100%; only MISC 5/20 remains.
+
+## §P-Eval-MISC-Close — Atomic Execution Queue (2026-04-26)
+
+**Phase milestone**: LegalBench-Tax v0 MISC 域 5/20 → 20/20 = **eval set 100/100 全套 saturated**
+**Authoring source**: 印花税法 (2022) + 契税法 (2021) + 房产税暂行条例 + 土地增值税暂行条例 + 环保税法 (2018) + 资源税法 (2020) + 烟叶税法 (2017) + 城建税法 (2021) + 车船税法 (2012) + 关税法 + 船舶吨税法
+**Anti-pattern A4**: each case must cite real 法条/条例
+**Stop condition**: MISC 20/20 = full eval set 100/100 milestone, hard stop
+
+### Batch 1 (misc_006-015, 印花/契/房产/土增/环保/资源 6 子税)
+
+- [x] misc_006 — 借款合同印花税 万分之零点五 (印花税法 附件)
+- [x] misc_007 — 产权转移书据印花税 万分之五 (印花税法 附件)
+- [x] misc_008 — 首套住房契税 1%/1.5%/3% (契税法 + 财税[2016]23 号)
+- [x] misc_009 — 单位赠予个人契税 全额征 3% (契税法 §3)
+- [x] misc_010 — 自用房产税 1.2% × (原值×(1-减除比例)) (房产税暂行条例 §4)
+- [x] misc_011 — 出租房产税 租金 12% / 个人住房 4% (财税[2008]24 号)
+- [x] misc_012 — 土增税 4 级累进 30/40/50/60% (土增税暂行条例 §7)
+- [x] misc_013 — 普通住房土增税豁免 (国发[2005]26 号)
+- [x] misc_014 — 环保税四类应税污染物 (环保税法 §3)
+- [x] misc_015 — 资源税油气从价计征 6%-10% (资源税法 附表)
+
+### Batch 2 (misc_016-020, 烟叶/城建附加/车船/关税/船舶吨 5 子税)
+
+- [x] misc_016 — 烟叶税 20% 比例税率 (烟叶税法 §3)
+- [x] misc_017 — 城建税三档税率 7%/5%/1% (城建税法 §4)
+- [x] misc_018 — 车船税地区差异税额 (车船税法 §3)
+- [x] misc_019 — 进口关税完税价格 = CIF (关税法 §27)
+- [x] misc_020 — 船舶吨税净吨位四档 (船舶吨税法 §3)
+
+**Phase milestone reached 2026-04-26**: MISC 20/20 ✓ (LegalBench-Tax v0 MISC domain saturated). **Total eval set 100/100 ✓ FULL SATURATION** — all 4 domains (CIT/VAT/IIT/MISC) at 100% target. Day 61-75 SOTA prerequisite (private 100-case Chinese tax eval set) closed.

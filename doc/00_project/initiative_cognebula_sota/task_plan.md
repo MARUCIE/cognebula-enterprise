@@ -350,3 +350,34 @@ Phase 2: Synthesis + Gap Analysis (Steps 3-4)
 - [x] **C0 — Quality gate redefinition DEPLOYED** (2026-04-24): backed up prod `src/audit/ontology_conformance.py` → `.pre-session74.bak`; scp'd new version (4933 B → 13762 B); `systemctl restart kg-api.service` clean (PID 1193863, active 3s); post-deploy `curl http://127.0.0.1:8400/api/v1/ontology-audit` confirms `composite_gate` + `noise_classification` fields present. Prod verdict: `composite_gate.verdict=FAIL, canonical_coverage_ratio=0.306, domain_types=62, domain_rogue=43, over_ceiling_by=46` — all 3 conditions FAIL (matches local smoke test exactly). Legacy `verdict/severity` unchanged (backward compat preserved). Note: this deploy did NOT require D1 snapshot because C0 is code-only (no data mutation); D1 remains a hard pre-req for B-batch migrations.
 - [ ] **P0 — Write-entry whitelist guard** (install `ontology-whitelist-guard.py` pre-commit hook validating `CREATE NODE TABLE` against `schemas/ontology_v4.2.cypher`); waits for "P0" trigger after C0 done
 - [ ] B3/B4/B0/B2/H1/H2 — sequenced remediation batches; each needs prior batch done + snapshot evidence; each waits for its own trigger word
+
+## §P-Eval-CIT-Close — Atomic Execution Queue (2026-04-25)
+
+**Phase milestone**: LegalBench-Tax v0 CIT 域 15/30 → 30/30 (close 50% gap from waves 14-20)
+**Authoring source**: PRC CIT 法 (2007 主席令 §63) + 实施条例 (2007 国务院令 §512) + 后续公告
+**Anti-pattern A4**: each case must cite real 法条/公告 in `sources` field
+**Stop condition**: CIT 30/30 atteint = phase milestone, commit, honest stop
+**Out-of-scope (this session)**: IIT 5→20, MISC 5→20, FFF extension, FK 4th pair
+
+### Batch 1 (cit_016-025, 跨境/CFC/反避税/特殊扣除)
+
+- [x] cit_016 — 受控外国企业（CFC）规则 (CIT 法 §45)
+- [x] cit_017 — 关联交易转让定价独立交易原则 (CIT 法 §41 + 国家税务总局 6 号 2017)
+- [x] cit_018 — 资本弱化关联方利息（金融 5:1 / 其他 2:1）(CIT 法 §46)
+- [x] cit_019 — 资产损失税前扣除申报 (国家税务总局 25 号 2011)
+- [x] cit_020 — 公益性捐赠 12% + 三年结转 (CIT 法 §9 + 财税[2018]15 号)
+- [x] cit_021 — 业务招待费 60% × 5‰ 双限 (CIT 实施条例 §43)
+- [x] cit_022 — 广告宣传费 15% + 结转 (CIT 实施条例 §44)
+- [x] cit_023 — 跨年度发票汇算清缴前补凭 (国家税务总局 28 号 2018)
+- [x] cit_024 — 不征税收入对应支出不得扣除 (财税[2011]70 号)
+- [x] cit_025 — 长期股权投资权益法 vs 成本法税务处理 (CIT 实施条例 §17)
+
+### Batch 2 (cit_026-030, 重组/清算/分支/特殊业务)
+
+- [x] cit_026 — 企业重组特殊性税务处理 5 条件 (财税[2009]59 号)
+- [x] cit_027 — 清算所得计算 (CIT 法 §55 + 财税[2009]60 号)
+- [x] cit_028 — 非货币性资产投资 5 年分期 (财税[2014]116 号)
+- [x] cit_029 — 跨地区经营汇总纳税分摊 (国家税务总局 57 号 2012)
+- [x] cit_030 — 高新企业研发费用归集口径 vs 加计扣除口径差异 (国家税务总局 76 号 2018)
+
+**Phase milestone reached 2026-04-25**: CIT 30/30 ✓ (LegalBench-Tax v0 CIT domain saturated). Total eval set 55 → 70 cases.

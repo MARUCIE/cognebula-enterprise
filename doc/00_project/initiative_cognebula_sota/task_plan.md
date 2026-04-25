@@ -381,3 +381,34 @@ Phase 2: Synthesis + Gap Analysis (Steps 3-4)
 - [x] cit_030 — 高新企业研发费用归集口径 vs 加计扣除口径差异 (国家税务总局 76 号 2018)
 
 **Phase milestone reached 2026-04-25**: CIT 30/30 ✓ (LegalBench-Tax v0 CIT domain saturated). Total eval set 55 → 70 cases.
+
+## §P-Eval-IIT-Close — Atomic Execution Queue (2026-04-25)
+
+**Phase milestone**: LegalBench-Tax v0 IIT 域 5/20 → 20/20
+**Authoring source**: 个人所得税法 (2018 修正) + 实施条例 + 国家税务总局公告
+**Anti-pattern A4**: each case must cite real 法条/公告
+**Stop condition**: IIT 20/20 atteint = phase milestone, commit, hard stop
+**Out-of-scope (this session)**: MISC 5→20, FFF/FK/HITL paths
+
+### Batch 1 (iit_006-015, 综合所得 + 经营所得 + 利息股息财产)
+
+- [x] iit_006 — 工资薪金累计预扣法月度计算 (国家税务总局公告 2018 年第 61 号)
+- [x] iit_007 — 劳务报酬预扣（800 起征 / 4000 减除）(IIT 法 §6 + 实施条例 §14)
+- [x] iit_008 — 稿酬所得 70% 减计 + 收入额 (IIT 法 §6)
+- [x] iit_009 — 特许权使用费综合所得并入 (IIT 法 §6)
+- [x] iit_010 — 经营所得 5 级超额累进 5%-35% (IIT 法 §3 + 实施条例 §12)
+- [x] iit_011 — 个人股息红利持股期限差别化（1月/1年）(财税[2015]101 号)
+- [x] iit_012 — 个人股权转让所得 20% (国家税务总局公告 2014 年第 67 号)
+- [x] iit_013 — 个人房屋出租综合税负（IIT 10% + 房产税 4% + VAT 1.5%）
+- [x] iit_014 — 个人住房转让满 5 年唯一住房免征 (财税[1999]278 号)
+- [x] iit_015 — 偶然所得 20% 不可扣减 (IIT 法 §3)
+
+### Batch 2 (iit_016-020, 专项附加扣除 + 居民判定 + 跨境)
+
+- [x] iit_016 — 子女教育专项附加 2000/月/孩 (财税[2018]101 号 + 国务院 2022 年第 14 号)
+- [x] iit_017 — 住房贷款利息 1000/月 20 年 (财税[2018]101 号)
+- [x] iit_018 — 赡养老人 3000/月独/分摊 (财税[2018]101 号)
+- [x] iit_019 — 居民个人 183 天判定标准 (IIT 法 §1)
+- [x] iit_020 — 无住所个人 6 年规则 (财税[2019]35 号)
+
+**Phase milestone reached 2026-04-25**: IIT 20/20 ✓ (LegalBench-Tax v0 IIT domain saturated). Total eval set 70 → 85 cases. CIT/VAT/IIT all 100%; only MISC 5/20 remains.

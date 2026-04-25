@@ -6,6 +6,15 @@ Research world-class SOTA products and platforms in the Code Intelligence / Know
 ## Current Phase
 Phase 2: Synthesis + Gap Analysis (Steps 3-4)
 
+## SOTA External Submission Calendar (pinned 2026-04-25 per SOTA gap doc Day-1)
+
+- **LegalBench-Tax soft-submission target date: 2026-08-01** (Maurice + PM)
+  - Rationale: anti-pattern A1 forbids submission until internal replay beats current SOTA by ≥5 pts on ≥3 sub-tasks. Pinning the date as a Meadows leverage #3 (Goal of System) artifact restructures every engineering decision toward "will this answer benchmark query type X?"
+  - Prerequisite gate: private 100-case Chinese tax eval set built (Day 61-75 milestone) AND internal replay shows ≥5pp lead vs Claude Opus 4.7 (70.3% on VALS.ai 2026-04-24) on ≥3 of {CIT, VAT, IIT, 小税种}
+  - Withdrawal trigger: if at 2026-07-15 internal replay still below SOTA on ≥3 sub-tasks, slip date to 2026-10-01 (do NOT submit mediocre, per Munger inversion #4)
+  - Cross-ref: `outputs/reports/ontology-audit-swarm/2026-04-25-sota-gap-deep-audit.md` §Day 1 + §Anti-pattern A1
+  - CI gate enforcement: `tests/test_kg_gate.py` blocks merge if composite_gate.verdict != PASS (test currently FAILS — by design, becomes forcing function per Meadows leverage #6)
+
 ## Steps
 - [x] 1. Initialize planning-with-files and doc structure
 - [x] 2. Swarm Research: 4 parallel researchers covering 4 domains (2 rounds: 2026-03 + 2026-04 refresh)

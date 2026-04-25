@@ -244,14 +244,17 @@ def test_lbt_runner_build_rag_prompt_handles_empty_results() -> None:
 
 
 def test_lbt_runner_poe_chat_payload_shape() -> None:
-    """poe_chat_payload must produce OpenAI-compatible chat-completions shape."""
+    """poe_chat_payload must produce OpenAI-compatible chat-completions shape.
+
+    Uses real Poe bot name (lowercase-dot-version) per Poe pricing page.
+    """
     runner = _import_runner()
     payload = runner.poe_chat_payload(
-        model="Gemini-3-Pro",
+        model="gemini-3.1-pro",
         system="你是 CogNebula 助手",
         prompt="问题：CIT 税率？",
     )
-    assert payload["model"] == "Gemini-3-Pro"
+    assert payload["model"] == "gemini-3.1-pro"
     assert payload["messages"][0] == {"role": "system", "content": "你是 CogNebula 助手"}
     assert payload["messages"][1] == {"role": "user", "content": "问题：CIT 税率？"}
     assert payload["temperature"] == 0.3
@@ -261,7 +264,7 @@ def test_lbt_runner_poe_chat_payload_shape() -> None:
 def test_lbt_runner_poe_chat_payload_omits_system_when_empty() -> None:
     """Empty system prompt must yield messages without a system entry."""
     runner = _import_runner()
-    payload = runner.poe_chat_payload(model="GPT-5.4", system="", prompt="hi")
+    payload = runner.poe_chat_payload(model="gpt-5.4-nano", system="", prompt="hi")
     assert len(payload["messages"]) == 1
     assert payload["messages"][0]["role"] == "user"
 
@@ -269,9 +272,22 @@ def test_lbt_runner_poe_chat_payload_omits_system_when_empty() -> None:
 def test_lbt_runner_call_poe_errors_without_key() -> None:
     """call_poe must short-circuit with error when api_key is empty (no network call)."""
     runner = _import_runner()
-    result = runner.call_poe(api_key="", model="Gemini-3-Pro", system="", prompt="q")
+    result = runner.call_poe(api_key="", model="gpt-5.4-nano", system="", prompt="q")
     assert "error" in result
     assert "POE_API_KEY" in result["error"]
+
+
+def test_lbt_runner_default_poe_model_is_real_poe_name() -> None:
+    """POE_MODEL_DEFAULT must match a real Poe bot (lowercase-dot-version).
+
+    Guards against regressing to assumed names like 'Gemini-3-Pro'. Pinned
+    against the pricing snapshot dict so any drift is visible at test time.
+    """
+    runner = _import_runner()
+    assert runner.POE_MODEL_DEFAULT in runner.POE_MODEL_PRICING_USD_PER_1M
+    # Naming convention check: lowercase, contains hyphen, no caps in body
+    assert runner.POE_MODEL_DEFAULT == runner.POE_MODEL_DEFAULT.lower()
+    assert "-" in runner.POE_MODEL_DEFAULT
 
 
 def test_lbt_runner_eval_system_prompt_excludes_genui() -> None:

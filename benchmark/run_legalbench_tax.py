@@ -21,7 +21,11 @@ Reads `eval_legalbench_tax_v0.jsonl` and either:
     `/api/v1/hybrid-search` (zero-LLM-cost on the server side, hits the KG
     only) and POSTs the assembled RAG prompt directly to Poe API
     (`https://api.poe.com/v1/chat/completions`, OpenAI-compatible).
-    Bot name controlled via `--poe-model` (default `Gemini-3-Pro`).
+    Bot name controlled via `--poe-model` (default `gpt-5.4-nano`,
+    cheapest text bot at $0.18 in / $1.14 out per 1M tokens; ~$0.15 for
+    a full 100-question run). Real Poe bot names use lowercase-dot-version
+    convention (e.g. `gemini-3.1-pro`, `gpt-5.4-mini`). See `--help`
+    output for the cost-ranked menu.
     Requires `POE_API_KEY` env var on the runner side.
 
   Both provider paths score the response on three deterministic dimensions:
@@ -51,9 +55,19 @@ Usage:
     # Live, runner calls Poe directly (kg-api server only does retrieval):
     COGNEBULA_API_URL=http://localhost:8400 POE_API_KEY=... \
         python benchmark/run_legalbench_tax.py --mode live \
-            --llm-provider poe --poe-model Gemini-3-Pro --max-cases 5
+            --llm-provider poe --poe-model gpt-5.4-nano --max-cases 5
 
-    # First-time safety: ALWAYS use --max-cases 5 to verify wire + bot
+    # Poe bot names are lowercase-dot-version (per Poe /settings/subscription).
+    # Estimated cost per 100-question full run (3K input + 800 output avg/q):
+    #   gpt-5.4-nano             $0.15  (smoke + first baseline, recommended)
+    #   gemini-3.1-flash-lite    $0.20
+    #   gpt-5.4-mini             $0.53
+    #   gemini-3.1-pro           $1.58  (capable mid-tier baseline)
+    #   gpt-5.4                  $1.77
+    #   gpt-5.5                  $3.55
+    #   gpt-5.4-pro              $21.27 (only for SOTA leaderboard parity)
+    #
+    # First-time safety: ALWAYS use --max-cases 5 to verify wire + bot name
     # before pulling the trigger on the full 100.
 
 SOTA gap doc cross-ref: §Day 61-75 — "Build private 100-case Chinese tax
@@ -98,7 +112,29 @@ API_BASE_DEFAULT = os.environ.get("COGNEBULA_API_URL", "http://localhost:8400")
 API_KEY = os.environ.get("KG_API_KEY", "")
 POE_API_KEY = os.environ.get("POE_API_KEY", "")
 POE_API_URL = "https://api.poe.com/v1/chat/completions"
-POE_MODEL_DEFAULT = "Gemini-3-Pro"
+
+# Default = cheapest text-completion bot ($0.18 in / $1.14 out per 1M tokens).
+# Picked for smoke-test safety: 100 questions cost ~$0.15 total. Override
+# via --poe-model when you want more capability. Real Poe bot names are
+# lowercase-dot-version (e.g. gemini-3.1-pro, NOT Gemini-3-Pro).
+POE_MODEL_DEFAULT = "gpt-5.4-nano"
+
+# Reference pricing snapshot (Poe /settings/subscription, 2026-04-26).
+# Useful for --output report annotation. NOT used to gate calls; user
+# always controls cost via --max-cases. Doc rots; runner does not.
+POE_MODEL_PRICING_USD_PER_1M = {
+    "gemini-3.1-flash-lite": (0.25, 1.52),
+    "gpt-5.4-nano":          (0.18, 1.14),
+    "gpt-5.4-mini":          (0.68, 4.09),
+    "gpt-5.3-codex":         (1.59, 12.73),
+    "gpt-5.3-instant":       (1.59, 12.73),
+    "gemini-3.1-pro":        (2.02, 12.12),
+    "grok-4.20-multi-agent": (2.02, 6.06),
+    "gpt-5.4":               (2.27, 13.64),
+    "gpt-5.5":               (4.55, 27.27),
+    "gpt-5.4-pro":           (27.27, 163.64),
+    "gpt-5.5-pro":           (27.27, 163.64),
+}
 
 # Eval-focused system prompt. Intentionally simpler than the server's
 # SYSTEM_PROMPT_RAG (which carries GenUI HTML directives that would pollute
@@ -567,7 +603,10 @@ def main() -> int:
                              "poe (runner does retrieval + Poe direct call). Default kg-api.")
     parser.add_argument("--poe-model", default=POE_MODEL_DEFAULT,
                         help=f"Poe bot name when --llm-provider poe (default: {POE_MODEL_DEFAULT}). "
-                             "Examples: Gemini-3-Pro, Claude-Opus-4.7, GPT-5.4-Mini, GPT-5.4")
+                             "Real Poe names are lowercase-dot-version. Examples by ascending "
+                             "cost/100q: gpt-5.4-nano ($0.15), gemini-3.1-flash-lite ($0.20), "
+                             "gpt-5.4-mini ($0.53), gemini-3.1-pro ($1.58), gpt-5.4 ($1.77), "
+                             "gpt-5.5 ($3.55), gpt-5.4-pro ($21.27).")
     parser.add_argument("--output", help="Write JSON results to this path (live mode)")
     args = parser.parse_args()
 

@@ -1,6 +1,6 @@
 ---
 initiative: cognebula_sota
-last_session_utc: 2026-04-28T17:30:00Z
+last_session_utc: 2026-04-28T20:30:00Z
 status: ACTIVE
 ---
 
@@ -109,9 +109,31 @@ Decoupling rationale: keeping the audit out of pytest avoids the runtime-fixture
 - **Deliverable rolling log**: `doc/00_project/initiative_cognebula_sota/deliverable.md` — most recent entry `2026-04-28 — Sprint G3 + Sprint H + PDCA closeout`.
 - **Notes (cumulative)**: `doc/00_project/initiative_cognebula_sota/notes.md` — most recent entry same date, includes capability ledger flip + design-rule capture (HITL-signal-not-gate, pre-counted-test-delta).
 
-## Working tree state
+## Working tree state (updated 2026-04-28T20:30Z)
 
-Branch `main` is **48 commits ahead of `origin/main`** at session-end (git status pre-commit; `90aa691` was the 49th unpushed commit but git status timing showed 48 — re-verify before push). Many out-of-scope working-tree modifications exist (Dockerfile, README.md, kg-api-server.py, docker-compose.yml, etc. — all from prior sessions); the SOP 3.2 closure commit was deliberately scoped to 8 in-scope files. **Do not bulk-stage** when picking up the next session — review and scope each commit.
+Branch `main` is **in sync with `origin/main`** at session-end. 5 commits added this session and pushed cleanly:
+- `b662ff4` ontology-guard docstring + IF backtrack skip
+- `e1f65bb` kg-api-server.py S15.1 OPTIONS endpoint
+- `c5dce32` §18 atomic queue materialization + Tier-0 closure
+- `871759f` SOTA-Sweep-1 (6 P0 closed)
+- `d57e81d` ontology-guard CI wire + drift probe push/PR + G4 deltas
+- `42b3acf` SOTA-Sweep-2 (7 P0: aging gates + xfail + selftest)
+- `8731728` SOTA-Sweep-3 (Sprint G4 runtime layer S15.2-S15.4 = §18.15-§18.17)
+
+### IMPORTANT pickup caveats
+
+1. **kg-api-server.py drift**: working tree carries 100+ pre-existing mods from prior sessions; HEAD has the surgically-extracted S15.1 only. Live state restored from `/tmp/kg-server-live-backup-1777329507.py`. Next session: either bring those WIP mods forward via scoped commits OR explicitly archive WIP if abandoned.
+
+2. **src/api/kg_api.py drift NEW (Sprint G4 Sweep-3)**: same surgical extract pattern used for S15.2. HEAD now has the OPTIONS endpoint (30 lines after `/health`); working tree restored from `/tmp/kg_api-live-backup-1777333262.py`. **The live working tree does NOT contain S15.2** — `git diff HEAD` shows +765 / -146 (the 146 includes the 30 lines of S15.2 that are in HEAD but not in the WIP). Next session must reconcile: `git stash` the WIP, `git checkout` to verify S15.2 is on disk in clean checkout, then re-apply WIP on top OR cherry-pick S15.2 patch into WIP.
+
+3. **Working-tree NOT bulk-stage-safe**: still applies. Scope each commit per file. The five session commits were each scope-narrow (1-6 files) and clean.
+
+### Pickup queue (Sprint G4 = CLOSED; Tier-P1 polish remaining)
+
+`§18` queue state: all P0 (14) closed including S18.6 subsumed. Remaining:
+- **Tier-P1 (8 items)**: S18.18 (ontology_parser extract) / S18.19 (audit-manifest config) / S18.20 (backend-registry config) / S18.21 (regex non-backtracking) / S18.22 (diff-only scan) / S18.23 (evidence-link template) / S18.24 (rules promoted to ROLLING_REQUIREMENTS) / S18.25 (HANDOFF SHA validator wire). All ≤90min, mostly decomplecting + culture polish.
+- **Tier-P2 (6 items)**: S18.26 (S15.1+S15.2 shared module — now ripe since both backends have OPTIONS) / S18.27-S18.29 (KuzuDB restore drill + snapshot guard + rollback test, all gated on prod access HITL) / S18.30 (working-tree triage manifest) / S18.31 (cross-session parallel-write detector).
+- **HITL (5 items)**: HITL-1 backend split / HITL-2 schema-vs-PROD / HITL-3 KU_ABOUT_TAX / HITL-4 orphan project shell / HITL-5 doctax March batch. All carry `decide_by_utc` + 3 trigger conditions; tracked in `outputs/pdca-evidence/hitl-aging.json`.
 
 ## DNA capsule candidates (this iteration)
 

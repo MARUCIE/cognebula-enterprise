@@ -50,6 +50,13 @@ jobs:
         with:
           python-version: "3.13"
 
+      - name: Run guard selftest (§18.14)
+        # Verifies the guard's invariants before scanning real input. If the
+        # guard regex is broken or the canonical parse silently returns
+        # empty, every commit would "pass" while the hook is dead. Selftest
+        # catches that failure mode in <1s.
+        run: python3 scripts/ontology-whitelist-guard.py --selftest
+
       - name: Determine changed files
         id: changed
         run: |

@@ -139,7 +139,71 @@ def files_from_git_staged() -> list[Path]:
     return [REPO_ROOT / ln.strip() for ln in out.splitlines() if ln.strip()]
 
 
+def selftest() -> int:
+    """§18.14 — verify the guard's three expected behaviors against fixture
+    strings. Catches the failure mode where the guard silently no-ops
+    (regex broken, canonical parse failing, etc.) and every commit "passes"
+    while the hook is actually dead. Run via `--selftest` CLI flag and from
+    `.github/workflows/ontology-gate.yml::whitelist-guard`.
+
+    Cases:
+      1. Empty input → exit 0
+      2. Input with a rogue `<Name>` not in canonical → exit 1
+      3. Input with a canonical type from ontology_v4.2.cypher → exit 0
+      4. Input with `IF NOT EXISTS` + Python concat (regex-backtrack case) → exit 0
+         (the `IF` keyword must be skipped, not captured as identifier)
+
+    Failure of any case means the guard's invariants are broken and the
+    hook should be considered offline until repaired.
+    """
+    import tempfile
+
+    canonical = parse_canonical_types(CANONICAL_SCHEMA)
+    if not canonical:
+        print("SELFTEST FAIL: canonical schema parsed 0 node types", file=sys.stderr)
+        return 2
+
+    # Pick a real canonical type for case #3.
+    a_canonical_type = sorted(canonical)[0]
+
+    # Note: fixture strings below are built via concatenation so the
+    # literals embedded in this script source do NOT themselves match the
+    # guard's own regex — preventing the meta-rejection observed when
+    # storing the fixtures inline.
+    _CN = "CREATE" + " NODE" + " TABLE"  # built at runtime, not literal in source
+    cases: list[tuple[str, str, int]] = [
+        ("empty", "# nothing here\n", 0),
+        ("rogue", f"{_CN} FakeNeverDeclaredXYZ (id STRING, PRIMARY KEY (id));\n", 1),
+        ("canonical", f"{_CN} {a_canonical_type} (id STRING, PRIMARY KEY (id));\n", 0),
+        ("if-not-exists-concat", f'sql = "{_CN} IF NOT EXISTS " + table_name + " (...)"\n', 0),
+    ]
+
+    failures: list[str] = []
+    with tempfile.TemporaryDirectory(prefix="ontology-guard-selftest-") as tmpdir:
+        for name, content, expected_exit in cases:
+            fixture = Path(tmpdir) / f"selftest-{name}.py"
+            fixture.write_text(content, encoding="utf-8")
+            hits = scan_file(fixture, canonical)
+            actual_exit = 1 if hits else 0
+            if actual_exit != expected_exit:
+                failures.append(
+                    f"  case={name}: expected exit={expected_exit}, "
+                    f"got exit={actual_exit}, hits={hits}"
+                )
+
+    if failures:
+        print("SELFTEST FAIL:", file=sys.stderr)
+        for line in failures:
+            print(line, file=sys.stderr)
+        return 1
+    print(f"SELFTEST OK: {len(cases)} cases passed (canonical={len(canonical)} types)")
+    return 0
+
+
 def main(argv: list[str]) -> int:
+    if argv and argv[0] == "--selftest":
+        return selftest()
+
     canonical = parse_canonical_types(CANONICAL_SCHEMA)
     if not canonical:
         print(

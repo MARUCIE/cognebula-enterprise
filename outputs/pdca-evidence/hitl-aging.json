@@ -1,0 +1,130 @@
+{
+  "$schema": "scripts/schemas/hitl-aging.schema.json",
+  "purpose": "§18.3 + §18.4 aging guard. Tracks (a) HITL decisions and (b) non-gating audit signals over time. Nightly test_hitl_aging.py FAILS when any item has aged past its policy ceiling without an explicit re-review. Closes the Munger-flagged failure mode where 'REPORTED, NOT GATED' items sit indefinitely and become permanent furniture.",
+  "policy": {
+    "hitl_max_age_days": 30,
+    "signal_max_age_days": 180,
+    "rationale": "30 days = one normal sprint cycle; if HITL is not decided OR explicitly re-deferred within one cycle, the gate fires. 180 days = signals that flipped true and never resolved; quasi-permanent state forces escalation."
+  },
+  "hitl_decisions": [
+    {
+      "id": "R1-runtime-probe-missing",
+      "summary": "Audit is parse-only — needs OPTIONS endpoint + runtime audit",
+      "owner": "Maurice",
+      "first_observed_utc": "2026-04-26T00:00:00Z",
+      "last_reviewed_utc": "2026-04-28T17:30:00Z",
+      "decide_by_utc": "2026-05-28T23:59:59Z",
+      "status": "in_progress",
+      "current_action": "Sprint G4 in flight: S15.1 done (e1f65bb), S15.2-S15.4 queued in §18.15-§18.17",
+      "re_defer_count": 0
+    },
+    {
+      "id": "R2-backend-split-decision-pending",
+      "summary": "kg-api-server:app vs src.api.kg_api:app — merge / formalize / deprecate decision",
+      "owner": "Maurice",
+      "first_observed_utc": "2026-04-26T00:00:00Z",
+      "last_reviewed_utc": "2026-04-28T17:30:00Z",
+      "decide_by_utc": "2026-05-28T23:59:59Z",
+      "status": "open_hitl",
+      "current_action": "Trigger conditions documented in HANDOFF.md §Open HITL decisions; first trigger forces decision",
+      "re_defer_count": 0
+    },
+    {
+      "id": "R3-cross-repo-coverage",
+      "summary": "灵阙 desktop frontend lives in separate repo; not parsed by this probe",
+      "owner": "Maurice",
+      "first_observed_utc": "2026-04-26T00:00:00Z",
+      "last_reviewed_utc": "2026-04-28T17:30:00Z",
+      "decide_by_utc": "2026-05-28T23:59:59Z",
+      "status": "deferred_explicit",
+      "current_action": "Will copy-pattern audit_api_contract.py into lingque-desktop repo OR generalize into shared AI-Fleet skill; trigger = 灵阙 desktop adds new API consumer",
+      "re_defer_count": 0
+    },
+    {
+      "id": "R4-nginx-grammar",
+      "summary": "nginx config parser is regex-narrow on proxy_pass directives only",
+      "owner": "Maurice",
+      "first_observed_utc": "2026-04-26T00:00:00Z",
+      "last_reviewed_utc": "2026-04-28T17:30:00Z",
+      "decide_by_utc": "2026-05-28T23:59:59Z",
+      "status": "deferred_explicit",
+      "current_action": "Out of MVS budget (~200 LOC); use python-nginx library if Sprint G4+ scope demands it",
+      "re_defer_count": 0
+    },
+    {
+      "id": "HITL-1-backend-split-formalization",
+      "summary": "Same as R2 but tracked via §18 HITL-1 framing with 3 trigger conditions",
+      "owner": "Maurice",
+      "first_observed_utc": "2026-04-28T00:00:00Z",
+      "last_reviewed_utc": "2026-04-28T17:30:00Z",
+      "decide_by_utc": "2026-05-28T23:59:59Z",
+      "status": "open_hitl",
+      "current_action": "Triggers: drift_ratio>0.20 for 3 nightly OR unreachable_paths>12 OR production incident",
+      "re_defer_count": 0
+    },
+    {
+      "id": "HITL-2-schema-vs-prod-lineage",
+      "summary": "11 schema_completeness fails — extend canonical / drop PROD / partial-as-first-class",
+      "owner": "Maurice",
+      "first_observed_utc": "2026-04-26T00:00:00Z",
+      "last_reviewed_utc": "2026-04-28T17:30:00Z",
+      "decide_by_utc": "2026-06-01T23:59:59Z",
+      "status": "open_hitl",
+      "current_action": "Triggers: 2026-06-01 xfail deadline OR count growth beyond baseline 11 OR NULL lineage hit on row claimed to have one",
+      "re_defer_count": 0
+    },
+    {
+      "id": "HITL-3-ku-about-tax-edge-split",
+      "summary": "KU_ABOUT_TAX 166K edges should split into 4 semantic types (DEFINES_TERM/SETS_THRESHOLD/PRESCRIBES_PROCEDURE/CITES_PRECEDENT)",
+      "owner": "Maurice",
+      "first_observed_utc": "2026-04-28T00:00:00Z",
+      "last_reviewed_utc": "2026-04-28T17:30:00Z",
+      "decide_by_utc": "2026-05-28T23:59:59Z",
+      "status": "open_hitl",
+      "current_action": "Canonical schema edit non-HITL; PROD migration on 166K edges is HITL — gated until backup/restore drill complete (§18.27)",
+      "re_defer_count": 0
+    },
+    {
+      "id": "HITL-4-orphan-project-shell",
+      "summary": "/Users/mauricewen/Projects/cognebula-enterprise/ orphan shell (614 MB) — keep / archive / rm -rf",
+      "owner": "Maurice",
+      "first_observed_utc": "2026-04-28T00:00:00Z",
+      "last_reviewed_utc": "2026-04-28T17:30:00Z",
+      "decide_by_utc": "2026-05-28T23:59:59Z",
+      "status": "open_hitl",
+      "current_action": "Carries from §17 S17.HITL.1; verify content superseded before disposal",
+      "re_defer_count": 0
+    },
+    {
+      "id": "HITL-5-doctax-march-batch",
+      "summary": "doctax 535-file March batch (~167-item partial failure) — abandon / re-run / audit partial inserts",
+      "owner": "Maurice",
+      "first_observed_utc": "2026-04-28T00:00:00Z",
+      "last_reviewed_utc": "2026-04-28T17:30:00Z",
+      "decide_by_utc": "2026-05-28T23:59:59Z",
+      "status": "open_hitl",
+      "current_action": "Carries from §17 S17.HITL.2; round4 seed pipeline likely supersedes",
+      "re_defer_count": 0
+    }
+  ],
+  "non_gating_signals": [
+    {
+      "id": "module_mismatch_signal",
+      "source": "scripts/audit_api_contract.py:summary",
+      "summary": "Dockerfile anchor (kg_api_server:app) vs systemd anchor (src.api.kg_api:app) mismatch",
+      "first_true_utc": "2026-04-27T00:00:00Z",
+      "last_reviewed_utc": "2026-04-28T17:30:00Z",
+      "current_value": true,
+      "escalation_rule_path": "doc/00_project/initiative_cognebula_sota/HANDOFF.md#escalation-criteria-for-non-gating-signals"
+    },
+    {
+      "id": "dual_backend_split_signal",
+      "source": "scripts/audit_api_contract.py:summary",
+      "summary": "Two backends declare overlapping but non-identical route sets (drift_ratio=0.12)",
+      "first_true_utc": "2026-04-26T00:00:00Z",
+      "last_reviewed_utc": "2026-04-28T17:30:00Z",
+      "current_value": true,
+      "escalation_rule_path": "doc/00_project/initiative_cognebula_sota/HANDOFF.md#escalation-criteria-for-non-gating-signals"
+    }
+  ]
+}

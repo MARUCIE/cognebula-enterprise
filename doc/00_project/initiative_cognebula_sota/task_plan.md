@@ -442,3 +442,64 @@ Phase 2: Synthesis + Gap Analysis (Steps 3-4)
 - [x] misc_020 — 船舶吨税净吨位四档 (船舶吨税法 §3)
 
 **Phase milestone reached 2026-04-26**: MISC 20/20 ✓ (LegalBench-Tax v0 MISC domain saturated). **Total eval set 100/100 ✓ FULL SATURATION** — all 4 domains (CIT/VAT/IIT/MISC) at 100% target. Day 61-75 SOTA prerequisite (private 100-case Chinese tax eval set) closed.
+
+---
+
+## 2026-04-28 — Step 0 Autonomous Preamble + Project Preflight Snapshot
+
+**Task shape**: preflight / orchestration baseline under active OMX `autopilot` state, routed through `$analyze` because the submitted Step 0 contained the keyword `analyze` in the operating contract.
+
+### Operating constraints accepted for this lane
+
+- [x] Execute safe commands automatically and record automation traces in `task_plan.md` / `notes.md`.
+- [x] Use installed skills/plugins/MCP first when they match the task; use subagents for bounded read-only mapping lanes.
+- [x] Browser automation priority for Codex: Playwright MCP / in-app browser first, `agent-browser` fallback.
+- [x] Preserve gates: docs, tests, security review, and release checks cannot be skipped for speed.
+- [x] Treat external communication as blocked unless explicitly authorized.
+- [x] Promote only verified reusable correction paths into DNA capsules; this preflight produced one candidate but not enough evidence for promotion yet.
+
+### Project architecture + route map summary
+
+| Area | Current evidence |
+|---|---|
+| Project root | `/Users/mauricewen/Projects/27-cognebula-enterprise` |
+| Git HEAD | `1484131e20c6526af317cc9740ac8c1ec21066e9` |
+| Active initiative | `doc/00_project/initiative_cognebula_sota/` |
+| Required planning files | Present: `task_plan.md`, `notes.md`, `deliverable.md`, `PRD.md`, `SYSTEM_ARCHITECTURE.md`, `USER_EXPERIENCE_MAP.md`, `PLATFORM_OPTIMIZATION_PLAN.md`, `ROLLING_REQUIREMENTS_AND_PROMPTS.md` |
+| Web stack | Next.js `16.2.1`, React `19.2.4`, static export mode (`web/`) |
+| Backend stack | FastAPI/Uvicorn + Kuzu/Vela + LanceDB + Redis (`kg-api-server.py`, `cognebula_mcp.py`) |
+| Main web routes | `/`, `/workbench/*`, `/expert/*`, `/expert/data-quality`, `/expert/data-quality/fixture`, `/reports/*`, `/clients/*`, `/settings`, `/skills` |
+| Main API routes | `/api/v1/health`, `/stats`, `/quality`, `/ontology-audit`, `/search`, `/hybrid-search`, `/graph`, `/admin/*`, `/ingest`, `/chat` |
+
+### Blockers / risk ledger
+
+- **P0 architectural blocker**: `SYSTEM_ARCHITECTURE.md` and `notes.md` already record a 2026-04-27 dual-backend drift: `kg-api-server.py` and `src/api/kg_api.py` both target port `8400` with disjoint route sets. Resolution remains HITL-pending: merge / formalize split / deprecate one.
+- **Worktree risk**: repo is ahead of `origin/main` by 46 commits and has many modified/deleted/untracked files. Treat as active WIP; do not revert unrelated changes.
+- **Security hardening risk**: subagent mapping found deploy hardening placeholders under `deploy/contabo/`; production status is not proven in this preflight.
+- **Command hygiene correction**: one manifest-discovery command accidentally traversed `web/node_modules`; corrected bounded route/package commands now exclude generated dependency trees.
+
+### State snapshot
+
+- Created `.omx/context/project-preflight-step0-20260427T161242Z.md`.
+- OMX MCP `state_write` failed with closed transport; fallback updated `.omx/state/sessions/019dcf07-e4b3-79f2-ade8-35c51a1bfb39/autopilot-state.json` and matching skill-active state to `preflight_snapshot`.
+
+---
+
+## §17. 2026-04-28 — SCAF-T LaunchAgent governance closeout
+
+**Trigger**: KB audit pivot (Maurice mid-session) revealed 2 zombie LaunchAgents on Mac referencing the pre-`27-` project path.
+
+### Atomic items (all CLOSED 2026-04-28)
+- [x] S17.1 Scan orphan project shell `/Users/mauricewen/Projects/cognebula-enterprise/` for content classification (614 MB, 28 edge CSVs + 3 JSON/JSONL data files; HITL-decision item)
+- [x] S17.2 `launchctl bootout` + remove `~/Library/LaunchAgents/com.cognebula.backup.plist` (referenced missing `backup-to-mac.sh`, never produced log)
+- [x] S17.3 `launchctl bootout` + remove `~/Library/LaunchAgents/com.cognebula.doctax-ingest.plist` (referenced missing `.venv/bin/python3` + `scripts/ingest_doctax.py`, never produced log)
+- [x] S17.4 Quarantine both plists to `~/.ai-fleet/disabled-launchagents/20260428-cognebula-orphan/` (audit trail preserved)
+- [x] S17.5 Verify cognebula-free state: `launchctl list` empty + `~/Library/LaunchAgents/` empty for cognebula prefix
+- [x] S17.6 Capture verdict + design rule in `deliverable.md` (`Backup-link audit must verify payload arrival, not scheduler existence`)
+
+### HITL items deferred to Maurice
+- **S17.HITL.1** Disposition of orphan project shell `/Users/mauricewen/Projects/cognebula-enterprise/` (614 MB) — options (a) verify superseded → rm -rf, (b) move to `~/Library/Application Support/cognebula-archive/`, (c) keep
+- **S17.HITL.2** Disposition of doctax 535-file batch (March-era ~167-item partial failure run) — options (a) abandon (round4 seed canonical), (b) re-run, (c) audit partial inserts
+
+### Next milestone
+Sprint G4 S15.1 (Backend A `OPTIONS /api/v1/.well-known/capabilities` endpoint) — atomic queue declared in §15, NOT started. Phase boundary: §17 SCAF-T closure complete; §15 Sprint G4 kickoff awaits explicit signal or autonomous-extension trigger.

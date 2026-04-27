@@ -1034,3 +1034,42 @@ test_api_contract_drift.py: 7/7 PASS in 0.17s
 - Probe report: `outputs/reports/consistency-audit/2026-04-28-api-contract-drift.json`
 - PDCA gates: `outputs/pdca-evidence/sop-3.2-drift-probe/it-01/gates.json`
 - Pytest run: `tests/test_api_contract_drift.py` 7/7 PASS in 0.17s under `.venv/bin/python3 3.13.11`
+
+---
+
+## 2026-04-28 — KB audit pivot + LaunchAgent governance closeout (SCAF-T)
+
+### Trigger
+Mid-session pivot from Maurice: "检查所有知识库内容是否md文档化并且在 google drive 已经备份？所有文档质量是否达标，爬取的内容是否完整？" — 4-dimension KB audit (D crawl completeness × C content quality × A md coverage × B GDrive backup) over the running CogNebula KB.
+
+### Audit verdict (4-dim grid)
+| Dim | Status | Evidence |
+|---|---|---|
+| **D Crawl completeness** | GREEN current / YELLOW historical | `data/ingestion-manifest.jsonl` last 5 entries (2026-04-27) all `errors=0`, 435 rows clean; historical `ingest_doctax_v3.log` (Mar 19) shows ~167/535 batch with systematic `ins:0 err:N` failure mode never re-run |
+| **C Content quality** | GREEN governed | `outputs/reports/data-quality-audit/2026-04-27-prod-data-quality-pdca.md` 25.7KB + .html paired; verdict `STRUCTURAL FAIL · 4 cols 100% NULL` with P1/P1.5/P3/P4 swarm-reviewed remediation plan |
+| **A MD coverage** | GREEN | 32 outputs/.md + 41 doc/.md; KG nodes intentionally NOT exported per-node (KuzuDB binary is source of truth) |
+| **B GDrive backup** | GREEN content / RED governance | GDrive `My Drive/VPS-Backups/cognebula-{corpus,snapshots}/2026-04-27/` populated by VPS-side rclone (active path); but Mac-side `com.cognebula.backup.plist` + `com.cognebula.doctax-ingest.plist` referenced `/Users/mauricewen/Projects/cognebula-enterprise/...` (no `27-` prefix) — both 100% orphan (missing scripts, never-produced logs, no PID) |
+
+### SCAF-T governance action (executed this turn, autonomous)
+Two zombie LaunchAgents removed from active scope; project shell preserved pending Maurice review.
+
+**Removed from `~/Library/LaunchAgents/`** (quarantined to `~/.ai-fleet/disabled-launchagents/20260428-cognebula-orphan/`):
+- `com.cognebula.backup.plist` — referenced `cognebula-enterprise/scripts/backup-to-mac.sh` (script does not exist; `/tmp/cognebula-backup.log` never produced)
+- `com.cognebula.doctax-ingest.plist` — referenced `cognebula-enterprise/.venv/bin/python3` + `scripts/ingest_doctax.py` (neither exists; `/tmp/cognebula-doctax-ingest.log` never produced; would have fired every 7,200s against missing target)
+
+**Verification**:
+- `launchctl list | grep -i cognebula` → empty (clean)
+- `ls ~/Library/LaunchAgents/ | grep -i cognebula` → empty (clean)
+- Quarantine copies: `~/.ai-fleet/disabled-launchagents/20260428-cognebula-orphan/com.cognebula.{backup,doctax-ingest}.plist`
+
+### HITL items remaining (Maurice owns)
+1. **Orphan project shell** `/Users/mauricewen/Projects/cognebula-enterprise/` (614 MB, March-era data — `finance-tax-embeddings.json`, `edge_enrichment_matches.json`, `embed_batch_input.jsonl`, 28 edge CSVs in `edge_csv/`). Decision options: (a) verify superseded by current project's data lake → safe to `rm -rf`; (b) move to `~/Library/Application Support/cognebula-archive/`; (c) keep as-is. Per CLAUDE.md data-protection rule, agent will not delete csv/json/jsonl without explicit authorization.
+2. **doctax 535-file batch from March** — historical run failed at ~item 167 with systematic insertion failure. Since round4 seed pipeline (2026-04-27) appears to have superseded it for ComplianceRule/SocialInsuranceRule/InvoiceRule/IndustryBenchmark/TaxAccountingGap (435 rows clean), the doctax full-batch may be obsolete. Decision options: (a) abandon (declare round4 seed = canonical); (b) re-run doctax batch with current pipeline; (c) audit which 167 items inserted partially.
+
+### Design rule captured
+**Backup-link audit must verify payload arrival, not scheduler existence** — `launchctl list` returning a label with status 0 does NOT prove the underlying script ran successfully. The authoritative signal is `destination mtime + log line "delivered"`. This generalizes the 2026-04-23 hermes-delivery silent-failure rule (`feedback_silent_timeout_l7_disguise.md`) to all daemon/cron-driven backup links.
+
+### Live evidence captured
+- Quarantine bundle: `~/.ai-fleet/disabled-launchagents/20260428-cognebula-orphan/`
+- Audit grid trace: this section
+- Reference for VPS-side rclone investigation (next session if Maurice asks): `~/Library/CloudStorage/GoogleDrive-alphameta010@gmail.com/My Drive/VPS-Backups/{cognebula-corpus, cognebula-snapshots}/2026-04-27/` (mtime 12:35 + 13:37)

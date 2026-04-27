@@ -88,3 +88,28 @@ def test_backends_both_present(report: dict) -> None:
     summary = report["summary"]
     assert summary["backend_a_route_count"] > 0, "Backend A has zero routes — file moved or removed?"
     assert summary["backend_b_route_count"] > 0, "Backend B has zero routes — file moved or removed?"
+
+
+def test_deploy_manifests_parsable_and_nonempty(report: dict) -> None:
+    """Sprint G2 — every deploy manifest must produce a non-empty fingerprint.
+
+    This test deliberately does NOT assert dockerfile_module == systemd_module.
+    The mismatch is the P0 condition the audit found, and resolving it is
+    Maurice's HITL decision (merge / split-formalize / deprecate). Forcing
+    equality here would convert a HITL pause into a CI failure — bad shape.
+
+    What this test catches:
+      - Dockerfile got rewritten and we lost the CMD module reference
+      - systemd unit moved/renamed and ExecStart no longer parses
+      - nginx config split and the upstream regex no longer matches
+      - docker-compose.yml restructured and ports moved into a different shape
+    Any of those are real maintenance signals and should fail the build.
+    """
+    manifests = report["deploy_manifests"]
+
+    assert manifests["dockerfile"]["module"], "Dockerfile uvicorn module not parsed"
+    assert manifests["dockerfile"]["port"], "Dockerfile bound port not parsed"
+    assert manifests["systemd"]["module"], "systemd uvicorn module not parsed"
+    assert manifests["systemd"]["port"], "systemd bound port not parsed"
+    assert manifests["nginx"]["upstreams"], "nginx proxy_pass upstreams not parsed"
+    assert manifests["docker_compose"]["ports"], "docker-compose ports not parsed"

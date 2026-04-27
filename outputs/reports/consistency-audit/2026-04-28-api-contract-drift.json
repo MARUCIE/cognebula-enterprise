@@ -9,7 +9,8 @@
     "frontend_orphan_count": 1,
     "route_overlap_count": 3,
     "dual_backend_drift_ratio": 0.12,
-    "dual_backend_split_signal": true
+    "dual_backend_split_signal": true,
+    "module_mismatch_signal": true
   },
   "frontend_orphans": [
     "/api/v1/ka/"
@@ -102,5 +103,32 @@
         "NONE"
       ]
     }
+  },
+  "deploy_manifests": {
+    "dockerfile": {
+      "module": "kg-api-server:app",
+      "port": 8400
+    },
+    "systemd": {
+      "module": "src.api.kg_api:app",
+      "port": 8400
+    },
+    "nginx": {
+      "upstreams": [
+        {
+          "host": "127.0.0.1",
+          "port": 8400
+        }
+      ]
+    },
+    "docker_compose": {
+      "ports": [
+        {
+          "host_port": 8400,
+          "container_port": 8400
+        }
+      ]
+    },
+    "module_mismatch_signal": true
   }
 }

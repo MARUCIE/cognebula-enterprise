@@ -171,7 +171,27 @@ Yesterday's SOP 3.2 audit was `advisory-only` (hand-written .md report). Today's
 - [x] S10.1.e Build `tests/test_api_contract_drift.py` (90 LOC actual; budget said ~50; bigger because 4 tripwires beat 1): 4 distinct gates — `test_no_new_frontend_orphans` (asserts orphans ⊆ {`/api/v1/ka/`}); `test_known_orphans_still_orphans` (forces fixture cleanup if `/api/v1/ka/` gets fixed); `test_dual_backend_drift_signal_present` (tripwire if backends start converging); `test_backends_both_present` (premise check)
 - [x] S10.1.f Wire into nightly tier via `scripts/run_data_quality_tests.sh` NIGHTLY_FILES (NOT fast/standard — same HITL-forcing-function discipline as `test_schema_completeness.py`)
 - [x] S10.1.g Nightly count: 5,860 → **5,864 (+4 not +1)**; plan estimate `+1 test` was a thinko (4 distinct test methods in the module). Wall-clock 53.30s → 54.38s (+1.08s). Honest comparison logged
-- [x] S10.1.h Commit pending: `sop-3.2: API contract drift probe — advisory→enforcing` (next action)
+- [x] S10.1.h Commit landed: `abbc78c` `sop-3.2: API contract drift probe — advisory→enforcing`
+
+## §11. Atomic Execution Queue — Sprint G2: deploy-manifest layer (2026-04-28, extends G1)
+
+### Phase milestone
+G1 caught the backend ↔ frontend route layer. G2 closes the deploy-manifest layer (Dockerfile / systemd / nginx / docker-compose) so the probe sees the *whole* dual-backend signal, not just the symptom. Capability flip: `deploy_manifest_parsing` LACKING → PRESENT.
+
+### Slice S11.1 — extend audit_api_contract.py + 1 nightly test (target: 30-60 min) — DONE
+- [x] S11.1.a Manifest files anchor patterns locked: Dockerfile `CMD ["uvicorn", "kg-api-server:app", ..., "--port", "8400"]`; systemd `ExecStart=...uvicorn src.api.kg_api:app ... --port 8400`; nginx `proxy_pass http://127.0.0.1:8400/`; docker-compose `ports: - "8400:8400"`
+- [x] S11.1.b Extended `scripts/audit_api_contract.py`: added 4 helper functions (`_extract_dockerfile_uvicorn`, `_extract_systemd_uvicorn`, `_extract_nginx_upstreams`, `_extract_compose_ports`) + top-level `parse_deploy_manifests()`. Added `deploy_manifests` block to JSON + `module_mismatch_signal` boolean to summary. ~80 LOC delta total
+- [x] S11.1.c Re-run probe captures P0 deploy-layer mismatch correctly: `dockerfile.module = kg-api-server:app`, `systemd.module = src.api.kg_api:app`, `module_mismatch_signal: true`. Exit-code unchanged (still gates on frontend orphan only, NOT on module mismatch — HITL turf)
+- [x] S11.1.d Added `test_deploy_manifests_parsable_and_nonempty` to `tests/test_api_contract_drift.py`. Asserts each manifest produces a non-empty fingerprint; deliberately does NOT assert `dockerfile_module == systemd_module` (that would convert HITL pause into CI failure — bad shape per Sprint G2 design rule)
+- [x] S11.1.e Nightly count: 5,864 → 5,865 (+1, plan matched reality this time, in contrast to G1's `+1 vs +4` thinko)
+- [x] S11.1.f Commit pending: `sop-3.2: deploy-manifest layer added to drift probe (Sprint G2)` (next action)
+- ⏭ **deferred half** (logged, NOT done): full nginx grammar parse (route map per upstream); Sprint G3 runtime `OPTIONS /.well-known/capabilities` endpoint + live backend probe; Sprint H MCP↔backend coverage; Finding 5 `bin/` doc fix (out of scope)
+
+### Out of scope (Sprint G2 deferred)
+- Full nginx config grammar parsing — requires nginx-config Python lib or hand-rolled state machine, ≥200 LOC, blows MVS budget
+- Backend module merge / split-formalize / deprecate decision (Maurice HITL — explicitly NOT what this probe forces)
+- Live runtime probe of which backend is actually serving (`OPTIONS` endpoint or HTTP HEAD on each route) — Sprint G3
+- Cross-repo: 灵阙 desktop frontend manifest audit (separate codebase)
 - ⏭ **deferred half** (logged): full audit replication (Dockerfile/systemd/nginx parsing — Sprint G2); `OPTIONS /.well-known/capabilities` endpoint (Sprint G3); cross-repo audit including 灵阙 desktop frontend (separate session); MCP-vs-backend coverage probe (Sprint H)
 - ⏭ **deferred half** (logged): backend-merge / split-formalization / deprecation decision (Maurice HITL); `scripts/audit_api_contract.py` reproducible probe (Sprint G); `OPTIONS /api/v1/.well-known/capabilities` endpoint + pytest `every frontend fetch path resolves on running backend` (Sprint G); 灵阙 desktop frontend cross-repo audit (separate codebase); MCP tool ↔ backend coverage audit (Sprint H)
 

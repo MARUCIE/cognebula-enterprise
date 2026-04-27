@@ -1098,6 +1098,57 @@ So whichever single backend is running on port 8400 silently breaks half the fro
 - 灵阙 desktop frontend cross-repo audit (separate codebase, separate session)
 - MCP tool ↔ backend coverage audit (Sprint H candidate)
 
+---
+
+## 2026-04-28 — Step 0 Preflight Evidence Snapshot
+
+### Observation
+
+Maurice supplied a Step 0 operating preamble and the concrete project root `/Users/mauricewen/Projects/27-cognebula-enterprise`. The active OMX state is `autopilot`, but the submitted preamble triggered `$analyze`, so this pass stayed read-only except for trace/state documentation.
+
+### Evidence collected
+
+- Project rules loaded from `AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`; `web/AGENTS.md` adds the Next.js 16 doc-read constraint for frontend edits.
+- Active docs anchor: `doc/index.md` marks `doc/00_project/initiative_cognebula_sota/` as current planning/evidence path.
+- Required active planning files exist under `initiative_cognebula_sota`.
+- App route inventory was bounded to `web/src/app/**/{page,layout,route}.tsx?` and includes expert/workbench/client/report/settings/skills surfaces.
+- API endpoint inventory from `kg-api-server.py` includes health, stats, quality, ontology audit, search, hybrid search, graph, admin, ingest, and chat routes.
+- Subagent mapping identified the primary verification gates: `web npm run build/lint`, `pytest`, `scripts/run_data_quality_tests.sh`, GitHub quality gate commands, Docker Compose packaged runtime checks, and security/SCA gates.
+
+### Ranked hypotheses
+
+| Rank | Hypothesis | Confidence | Evidence strength | Notes |
+|---|---|---:|---|---|
+| 1 | The next substantive implementation lane is blocked by an architectural decision, not by missing project context. | High | Strong | `SYSTEM_ARCHITECTURE.md` and `notes.md` both point to unresolved P0 dual-backend drift. |
+| 2 | Documentation/index alignment is usable enough for work to resume safely after preflight. | High | Strong | `PROJECT_DIR` blocks, `doc/index.md`, route maps, and required planning files all exist. |
+| 3 | The repo can be verified locally, but full release proof will need careful gating because the worktree is very dirty and production hardening state is unclear. | Medium | Moderate | `git status` shows broad WIP; deploy hardening placeholders exist; prior verification artifacts are present. |
+
+### Current best explanation
+
+The project is not in a fresh-start state. It is a heavily active WIP with an existing long-running initiative, substantial local changes, and a known P0 backend deployment/API-contract drift. The correct next action is not broad implementation; it is to preserve the Step 0 operating contract, keep work scoped to the active initiative docs, and treat backend consolidation as HITL-gated until Maurice selects merge / formalize-split / deprecate-one.
+
+### Discriminating probes for the next lane
+
+1. For backend/API work: compare live running backend capabilities against `kg-api-server.py` and `src/api/kg_api.py` with a reproducible `scripts/audit_api_contract.py` probe.
+2. For frontend work: run `cd web && npm run build` plus browser smoke against `/expert/data-quality/fixture`.
+3. For release work: run attacker review before any publish/deploy step, then verify local/GitHub/VPS SHA or artifact digest consistency.
+
+### Command hygiene postmortem
+
+One package-manifest discovery command traversed `web/node_modules`, creating excessive output. Corrected command shape:
+
+```bash
+cd /Users/mauricewen/Projects/27-cognebula-enterprise
+set -euo pipefail
+for f in package.json web/package.json worker/package.json; do
+  [ -f "$f" ] && sed -n '1,220p' "$f"
+done
+find web/src/app -type f \( -name 'page.tsx' -o -name 'layout.tsx' -o -name 'route.ts' \) -print
+```
+
+Candidate DNA capsule: `bounded-project-preflight-snapshot`. Not promoted yet because this is a single confirmed incident; promote after a second recurrence or after converting it into a reusable skill/script with validation.
+
+
 ## 2026-04-28 — Sprint G1: API contract drift probe (advisory→enforcing)
 
 Yesterday's SOP 3.2 audit was a hand-written `.md` deliverable. Today's slice flips the bootstrap-evolution capability `audit_api_contract` from LACKING → PRESENT by writing a code-enforced probe + nightly pytest gate. MVS-pattern: 30-90 min vertical slice + regression gate + explicit deferred half.
@@ -1141,3 +1192,49 @@ P0 signal still holds: `dual_backend_drift_ratio = 0.12` (well below 0.25 thresh
 - Sprint H: MCP tool ↔ backend coverage probe (`cognebula_mcp.py` 7 tools → which backend routes do they actually hit)
 - Backend merge / split-formalization / deprecation decision (Maurice HITL — unchanged)
 - 灵阙 desktop frontend cross-repo audit (separate codebase, separate session)
+
+## 2026-04-28 — Sprint G2: deploy-manifest layer extension
+
+Sprint G1 caught the backend ↔ frontend layer; Sprint G2 closes the deploy-manifest layer (Dockerfile / systemd / nginx / docker-compose). Capability `deploy_manifest_parsing` flipped LACKING → PRESENT. Same MVS-pattern: 30-60 min vertical, regression gate, deferred half.
+
+### Sprint G2 — `parse_deploy_manifests()` extension + 1 nightly test (commit pending)
+
+Anchors:
+- Script delta: ~80 LOC (4 narrow extractor helpers + 1 aggregator) added to `scripts/audit_api_contract.py`. No regex grammar parsing — deliberately narrow patterns matching uvicorn module references, port literals, proxy_pass directives, and `host:container` port pairs.
+- Test delta: 1 new test `test_deploy_manifests_parsable_and_nonempty`. Asserts each manifest produces a non-empty fingerprint. Deliberately does NOT assert `dockerfile_module == systemd_module` because that mismatch is the P0 condition awaiting HITL decision (merge / split-formalize / deprecate) — forcing equality would convert a HITL pause into a CI failure.
+- Nightly count: 5,864 → 5,865 (+1, plan matched reality this time vs G1's `+1 vs +4` thinko).
+
+### What the probe now captures (4 deploy slots)
+
+```
+dockerfile.module      = "kg-api-server:app"      (port 8400)
+systemd.module         = "src.api.kg_api:app"     (port 8400)
+nginx.upstreams        = [{host: "127.0.0.1", port: 8400}]
+docker_compose.ports   = [{host_port: 8400, container_port: 8400}]
+module_mismatch_signal = true
+```
+
+The mismatch signal fires correctly. Exit code still gates only on frontend orphans (HITL discipline preserved).
+
+### Capability ledger flip (cumulative G1 + G2)
+
+| Capability | Before G1 | After G1 | After G2 |
+|---|---|---|---|
+| `audit_api_contract` | LACKING | PRESENT | PRESENT |
+| `frontend_orphan_gate_in_ci` | LACKING | PRESENT | PRESENT |
+| `deploy_manifest_parsing` | LACKING | LACKING | **PRESENT** |
+| `module_mismatch_signal` | LACKING | LACKING | **PRESENT** (reported, non-blocking) |
+| `runtime_capability_endpoint` | LACKING | LACKING | LACKING (Sprint G3) |
+| `live_running_backend_probe` | LACKING | LACKING | LACKING (Sprint G3) |
+| `mcp_vs_backend_coverage` | LACKING | LACKING | LACKING (Sprint H) |
+
+### Design rule applied (worth promoting to engineering-baseline if it recurs)
+
+The probe **reports** `module_mismatch_signal: true` but does **not** fail the gate on it. Intentional: P0 conditions awaiting HITL decision should not be tripwires that block CI, because the resolution requires human judgment that CI cannot give. CI tripwires should only catch *regressions* relative to a known baseline — not *unresolved status quo*. Forcing equality would either pressure a rushed Maurice decision OR condition the team to ignore CI failures. Both are anti-patterns.
+
+### Out of scope (Sprint G2 deferred half, logged not asked)
+- Sprint G3: `OPTIONS /api/v1/.well-known/capabilities` runtime endpoint + live HTTP probe `every frontend fetch path resolves on the running backend` — needs backend code change + runtime fixture, not parse-only
+- Sprint H: MCP tool ↔ backend coverage probe (`cognebula_mcp.py` 7 tools → which backend routes do they actually hit)
+- Full nginx config grammar parser — out of MVS budget (~200+ LOC for a hand-rolled state machine)
+- Cross-repo: 灵阙 desktop frontend manifest audit (separate codebase, separate session)
+- Backend merge / split-formalize / deprecate decision (Maurice HITL — unchanged)

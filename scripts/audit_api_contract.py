@@ -41,12 +41,29 @@ FRONTEND_FILES: list[Path] = [
     REPO_ROOT / "src" / "web" / "unified.html",
 ]
 
+DEPLOY_MANIFEST_FILES: dict[str, Path] = {
+    "dockerfile": REPO_ROOT / "Dockerfile",
+    "systemd": REPO_ROOT / "configs" / "kg-api.service",
+    "nginx": REPO_ROOT / "deploy" / "contabo" / "nginx-cognebula.conf",
+    "docker_compose": REPO_ROOT / "docker-compose.yml",
+}
+
 DECORATOR_RE = re.compile(
     r'^\s*@app\.(?:get|post|put|delete|patch|options|head)\s*\(\s*["\']([^"\']+)["\']',
     re.MULTILINE,
 )
 
 FRONTEND_PATH_RE = re.compile(r'(/api(?:/v\d+)?/[a-zA-Z0-9_/{}.\-]+)')
+
+# Deploy-manifest anchor regexes (intentionally narrow — we extract the uvicorn
+# module reference and the bound port, not the full deploy spec).
+DOCKERFILE_CMD_RE = re.compile(r'^\s*CMD\s*\[([^\]]+)\]', re.MULTILINE)
+SYSTEMD_EXECSTART_RE = re.compile(
+    r'^\s*ExecStart=.*?uvicorn\s+(\S+)(?:\s+.*?--port\s+(\d+))?',
+    re.MULTILINE,
+)
+NGINX_PROXY_PASS_RE = re.compile(r'proxy_pass\s+https?://([\d.]+|[a-zA-Z][\w.\-]*):(\d+)')
+COMPOSE_PORT_RE = re.compile(r'^\s*-\s*["\']?(\d+):(\d+)["\']?\s*$', re.MULTILINE)
 
 # Base-URL false positives. /api/v1 alone is the constant `window.location.origin
 # + '/api/v1'` — it's a prefix, not an endpoint. /api alone is similarly a prefix.
@@ -80,6 +97,95 @@ def parse_frontend(path: Path) -> set[str]:
     }
 
 
+def _extract_dockerfile_uvicorn(path: Path) -> dict[str, str | int | None]:
+    """Parse Dockerfile CMD line — returns {module, port} from JSON-array form."""
+    if not path.exists():
+        return {"module": None, "port": None}
+    text = path.read_text(encoding="utf-8", errors="replace")
+    match = DOCKERFILE_CMD_RE.search(text)
+    if not match:
+        return {"module": None, "port": None}
+    # Crude tokenizer for the JSON-array CMD body: pull quoted strings.
+    tokens = re.findall(r'"([^"]*)"', match.group(1))
+    module: str | None = None
+    port: int | None = None
+    for i, tok in enumerate(tokens):
+        if tok == "uvicorn" and i + 1 < len(tokens):
+            module = tokens[i + 1]
+        if tok == "--port" and i + 1 < len(tokens):
+            try:
+                port = int(tokens[i + 1])
+            except ValueError:
+                pass
+    return {"module": module, "port": port}
+
+
+def _extract_systemd_uvicorn(path: Path) -> dict[str, str | int | None]:
+    """Parse systemd unit ExecStart line — shell-style, not JSON."""
+    if not path.exists():
+        return {"module": None, "port": None}
+    text = path.read_text(encoding="utf-8", errors="replace")
+    match = SYSTEMD_EXECSTART_RE.search(text)
+    if not match:
+        return {"module": None, "port": None}
+    module = match.group(1)
+    port_str = match.group(2)
+    return {
+        "module": module,
+        "port": int(port_str) if port_str else None,
+    }
+
+
+def _extract_nginx_upstreams(path: Path) -> list[dict[str, str | int]]:
+    """Return distinct (host, port) upstream pairs from proxy_pass directives."""
+    if not path.exists():
+        return []
+    text = path.read_text(encoding="utf-8", errors="replace")
+    seen: set[tuple[str, int]] = set()
+    for m in NGINX_PROXY_PASS_RE.finditer(text):
+        seen.add((m.group(1), int(m.group(2))))
+    return [{"host": h, "port": p} for h, p in sorted(seen)]
+
+
+def _extract_compose_ports(path: Path) -> list[dict[str, int]]:
+    """Return distinct host:container port pairs from docker-compose ports lists."""
+    if not path.exists():
+        return []
+    text = path.read_text(encoding="utf-8", errors="replace")
+    seen: set[tuple[int, int]] = set()
+    for m in COMPOSE_PORT_RE.finditer(text):
+        seen.add((int(m.group(1)), int(m.group(2))))
+    return [{"host_port": h, "container_port": c} for h, c in sorted(seen)]
+
+
+def parse_deploy_manifests() -> dict:
+    """Parse all 4 deploy manifests and emit module/port fingerprints.
+
+    Returns a dict shaped for the JSON report. Includes a derived
+    `module_mismatch_signal` that flags the P0 case where Dockerfile and
+    systemd start different uvicorn modules — but does NOT fail the gate
+    (HITL decision turf: the user picks merge / split-formalize / deprecate).
+    """
+    docker = _extract_dockerfile_uvicorn(DEPLOY_MANIFEST_FILES["dockerfile"])
+    systemd = _extract_systemd_uvicorn(DEPLOY_MANIFEST_FILES["systemd"])
+    nginx_upstreams = _extract_nginx_upstreams(DEPLOY_MANIFEST_FILES["nginx"])
+    compose_ports = _extract_compose_ports(DEPLOY_MANIFEST_FILES["docker_compose"])
+
+    module_mismatch = bool(
+        docker["module"]
+        and systemd["module"]
+        and docker["module"] != systemd["module"]
+    )
+
+    return {
+        "dockerfile": docker,
+        "systemd": systemd,
+        "nginx": {"upstreams": nginx_upstreams},
+        "docker_compose": {"ports": compose_ports},
+        "module_mismatch_signal": module_mismatch,
+    }
+
+
 def build_report(*, today: str) -> dict:
     backends = {name: parse_backend(p) for name, p in BACKEND_FILES.items()}
     a_routes = backends["A_kg-api-server"]
@@ -104,6 +210,8 @@ def build_report(*, today: str) -> dict:
             per_path[p] = covers if covers else ["NONE"]
         frontend_attribution[fe_name] = per_path
 
+    deploy_manifests = parse_deploy_manifests()
+
     return {
         "audit_date": today,
         "audit_source": "scripts/audit_api_contract.py",
@@ -127,6 +235,10 @@ def build_report(*, today: str) -> dict:
                 and bool(b_routes)
                 and len(overlap) < 0.25 * max(len(a_routes), len(b_routes))
             ),
+            # Sprint G2 addition: module mismatch is the *symptom* of dual-backend
+            # split visible at the deploy layer. Reported but does NOT fail the
+            # gate — that decision is HITL turf (merge / split-formalize / deprecate).
+            "module_mismatch_signal": deploy_manifests["module_mismatch_signal"],
         },
         "frontend_orphans": frontend_orphans,
         "dual_backend_split": {
@@ -135,6 +247,7 @@ def build_report(*, today: str) -> dict:
             "overlap_routes": overlap,
         },
         "frontend_attribution": frontend_attribution,
+        "deploy_manifests": deploy_manifests,
     }
 
 

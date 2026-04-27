@@ -2,7 +2,7 @@
 
 **Scope**: 31 canonical types in PROD KuzuDB (`https://ops.hegui.org`), 2053 sampled rows.
 **Pipeline**: existing `src/audit/data_quality_survey.py` extended +1 dimension this turn.
-**Verdict**: STRUCTURAL FAIL on lineage envelope (4/5 critical columns 100% NULL across all 31 canonical types). Global `defect_rate=0.0697 ≤ 0.10` is an arithmetic PASS, not a structural one — large-sample types dilute the per-type-FAIL signal in the global average. 11/29 populated types FAIL the per-type threshold.
+**Verdict**: STRUCTURAL FAIL on lineage envelope. **3/5 critical columns are universally 100% NULL across all populated types** (`effective_from`, `jurisdiction_code`, `jurisdiction_scope`); the remaining 2 (`confidence`, `source_doc_id`) are partially attributed in 4 of 31 types (KnowledgeUnit + LegalClause = full attribution; FilingFormField = 43%; TaxCalculationRule = 12%) — corrected from the v2 PDCA simplification "4/5 columns 100% NULL across all 31 types" via corpus regression test discovery on 2026-04-27. **0/5 critical columns have been backfilled** — P1 work is unstarted. Global `defect_rate=0.0697 ≤ 0.10` is an arithmetic PASS, not a structural one — large-sample types dilute the per-type-FAIL signal in the global average. 11/29 populated types FAIL the per-type threshold.
 
 ---
 
@@ -162,6 +162,61 @@ Five-layer test pyramid covering edge / unit / regression / property / matrix di
 | **Total** | | **10,531 cases** | All passing in 7.0s |
 
 Discovery via corpus regression: PDCA Finding 2 understated the partial-attribution picture — `confidence` and `source_doc_id` are partially populated in **4** types (not 2). Corrected above.
+
+### P0.7 — Sprint A: orchestration coverage + golden archetypes (DONE)
+
+`survey()` itself was tested by only 4 unit tests pre-Sprint-A (vs 10K on `survey_type`). This was the highest residual prod-bug risk axis.
+
+| File | Cases | Coverage |
+|------|-------|----------|
+| `test_data_quality_orchestration.py` | 98 pytest IDs + 1,100 hypothesis | 9 sections: Cypher contract, fetch failure handling, verdict tipping points, per-type aggregation, schema-path resolution, parameter flow-through, result shape, property tests, defaults sanity |
+| `test_data_quality_golden.py` | 474 cases over 20 archetypes | A1-A4 legal backbone / A5-A8 Q1 batch / A9-A11 FilingFormField / A12-A14 TaxCalculationRule / A15-A16 empty / A17 placeholder-poisoned / A18 mixed-dirty / A19 single-row / A20 2053-row PROD-scale |
+
+Sprint A subtotal: **1,668 cases**, 1.52s runtime.
+
+### P0.8 — Sprint B: mutation testing (DONE — flagship axis)
+
+The only test layer that catches *transitive accounting bugs* — bugs where mutation order affects the final defect count. Property tests check single-input invariants; mutation tests check path-independence.
+
+| Machine | Settings | Invariants per step |
+|---------|----------|---------------------|
+| `PlaceholderMutationMachine` | 400 examples × 50 steps | 2 |
+| `DuplicateIdMutationMachine` | 400 × 50 | 1 |
+| `NullCoverageMutationMachine` | 400 × 50 | 2 |
+| `CompoundMutationMachine` | 500 × 60 | 3 (defects_total accounting, defect_rate consistency, non-negativity) |
+
+Sprint B subtotal: **~90,000 mutation steps × 1-3 invariants each ≈ 225,000 invariant evaluations**, 20.85s runtime.
+
+### P0.9 — Sprint C: API client + perf gate + CI tiering (DONE)
+
+`scripts/data_quality_survey_via_api.py` had **zero tests** pre-Sprint-C — and it's the surface that touched PROD on 2026-04-27 to produce the v3 baseline. Silent failure here would skew every survey.
+
+| File | Cases | Coverage |
+|------|-------|----------|
+| `test_data_quality_api_client.py` | 46 cases | _fetch_sample success path + 10 HTTP/network failure modes (URLError, 401/403/404/500/502/503, ConnectionResetError, TimeoutError, OSError) + URL construction + main() exit codes + per-type orchestration |
+| `test_data_quality_perf_regression.py` | 12 perf-asserted cases | Wall-clock budgets per row count (100→10K), linearity check (1k→10k ratio 4×-25× to catch O(n²) regression), memory check (report dict size constant) |
+
+CI tiering shipped via `scripts/run_data_quality_tests.sh`:
+
+| Tier | Files | Cases | Wall-clock (p50 / p95 measured) |
+|------|-------|-------|-----------------------------------|
+| `fast` | legacy + api_client + edge | 163 | **445ms p50 / 511ms p95** — sub-second PR gate confirmed |
+| `standard` | + orchestration + corpus + golden + perf | 1,582 | 2.25s — merge-to-main gate |
+| `nightly` | + property + matrix + mutation | 5,832 pytest IDs | 31.04s — cron gate |
+
+Sprint C subtotal: **58 cases + tiered runner**.
+
+### Final test suite status (post Sprint A+B+C)
+
+| Metric | Value |
+|--------|-------|
+| Test files | 11 (~3,700 LOC) |
+| pytest IDs | 5,832 |
+| hypothesis examples | ~6,500 |
+| mutation steps | ~90,000 |
+| **Effective cases** | **~102,000** |
+| Nightly wall-clock | 31.04s |
+| Fast PR gate p95 | 511ms |
 
 ### P1 — `effective_from` backfill (HIGH)
 

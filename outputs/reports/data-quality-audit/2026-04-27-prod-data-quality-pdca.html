@@ -195,7 +195,7 @@ footer {
     <h1>数据质量审计 PDCA 交付 · Round-4 续</h1>
   </div>
   <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-    <span class="verdict-pill" style="border-color:var(--bb-red);color:var(--bb-red);background:rgba(229,57,53,0.06);"><span class="dot" style="background:var(--bb-red);"></span>STRUCTURAL FAIL · 4 列 100% NULL across all 31 types</span>
+    <span class="verdict-pill" style="border-color:var(--bb-red);color:var(--bb-red);background:rgba(229,57,53,0.06);"><span class="dot" style="background:var(--bb-red);"></span>STRUCTURAL FAIL · 3 列 universal 100% NULL · 2 列 partial · 0/5 backfilled</span>
     <span class="verdict-pill" style="font-size:10.5px;padding:4px 10px;border-color:var(--bb-text-mute);color:var(--bb-text-mute);background:transparent;">global defect_rate 0.0697 ≤ 0.10 — arithmetic PASS, not structural PASS</span>
   </div>
 </div>
@@ -203,10 +203,10 @@ footer {
 <div class="kpi-row">
   <div class="kpi"><div class="lbl">canonical 类型</div><div class="val">31</div><div class="sub">parse_canonical_schema</div></div>
   <div class="kpi"><div class="lbl">已抽样行</div><div class="val">2,053</div><div class="sub">per-type cap=100</div></div>
-  <div class="kpi"><div class="lbl">缺陷总数（v2）</div><div class="val amber">143</div><div class="sub">v1=0（gate 漏检）</div></div>
-  <div class="kpi"><div class="lbl">100% NULL 列</div><div class="val red">4 / 5</div><div class="sub">lineage envelope · 全 31 类型</div></div>
-  <div class="kpi"><div class="lbl">per-type FAIL</div><div class="val red">11 / 29</div><div class="sub">populated 类型</div></div>
-  <div class="kpi"><div class="lbl">新测试用例</div><div class="val green">+8</div><div class="sub">53/53 通过</div></div>
+  <div class="kpi"><div class="lbl">缺陷总数（v3）</div><div class="val amber">143</div><div class="sub">10-dim gate active</div></div>
+  <div class="kpi"><div class="lbl">100% NULL 列</div><div class="val red">3 / 5</div><div class="sub">universal · 0/5 backfilled · P1 unstarted (as of 2026-04-27)</div></div>
+  <div class="kpi"><div class="lbl">部分归属类型</div><div class="val amber">4 / 31</div><div class="sub">KU / LC / FFF / TCR</div></div>
+  <div class="kpi"><div class="lbl">语料覆盖</div><div class="val green">5 832</div><div class="sub">test IDs · ~102K assertions · nightly 31s</div></div>
 </div>
 
 <!-- =========================================================== -->

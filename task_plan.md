@@ -95,16 +95,16 @@ Mutation testing currently covers 3 of 9 audit dimensions (placeholder / duplica
 - [x] S7.2.c Implement 3 invariant CLASSES (`TestIdempotence` 2 methods + `TestDefectsUpperBound` 2 methods + `TestDefectsMonotoneAddOnly` 1 method = 5 test methods total, each `@settings(max_examples=300)`)
 - [x] S7.2.d Run `pytest tests/test_data_quality_property.py -q` standalone — `24 passed in 6.12s` (was 19 → +5 methods, not +3 as initially planned: 3 conceptual invariants materialized as 2+2+1=5 methods)
 - [x] S7.2.e Run nightly count: 5,853 → 5,858 (+5 IDs, not +3 — same root cause as S7.2.d)
-- [ ] S7.2.f Commit `data-quality: Sprint E1 — 3 new property invariants (5 test methods)`
+- [x] S7.2.f Commit landed: `73ba8b3` (`data-quality: Sprint E1 — 3 new property invariants (5 test methods)`)
 - ⏭ **deferred half**: 5+ more invariants (commutativity under restore, hash stability of placeholder-per-field, sample-size scaling); matrix expansion (more cells); doctests
 
-### Slice S7.3 — Sprint E2: 1 clause-axis machine (target: 60 min)
-- [ ] S7.3.a Read `src/kg/clause_inspector.py:71-161` to understand `inspect()` row contract
-- [ ] S7.3.b Identify trigger field for `prohibited_role` flag = `argument_role` ∈ {prohibited list via `is_prohibited_in_tax_law`}
-- [ ] S7.3.c Find a known-prohibited role value via grep on `_role_dict` / role registry (or use defensive: pick a role and check it triggers)
-- [ ] S7.3.d Build `ProhibitedRoleMutationMachine`: 400×50, toggle `argument_role` between clean and prohibited, invariant `prohibited_role_count == #rows with prohibited role`
-- [ ] S7.3.e Run mutation file standalone — expect 9 machines passing
-- [ ] S7.3.f Run nightly count: 5853 → 5854
+### Slice S7.3 — Sprint E2: 1 clause-axis machine (DONE)
+- [x] S7.3.a Read `src/kg/clause_inspector.py:71-161` — confirmed `inspect()` row contract: `argument_role` (str) → `is_prohibited_in_tax_law(role)` → `defect_flags.append("prohibited_role")` → `_clause_defect_counts` increments `prohibited_role_count`
+- [x] S7.3.b Identified trigger field `argument_role`; `_clause_defect_counts` at `src/audit/data_quality_survey.py:215-218` consumes the flag
+- [x] S7.3.c Located prohibited role value: `analogy` (类推适用) at `src/kg/argument_role_registry.py:107-117`, marked `prohibited_in_tax_law=True` per 税收法定. Clean roles selected: `yiju` (依据) + `shouquan` (授权) for two-distinct-clean transition coverage
+- [x] S7.3.d Built `ProhibitedRoleMutationMachine` (400×50, 5 rules: `make_prohibited` / `make_clean` / `make_alt_clean` / `make_null_role` + initialize). Two-clean design avoids Sprint D's single-clean blind spot (same lesson as `make_alt_fresh`)
+- [x] S7.3.e `pytest tests/test_data_quality_mutation.py -q` → `9 passed in 38.50s` (was 8 → +1 machine)
+- [x] S7.3.f Nightly count: 5,858 → 5,859 (+1 ID, exactly as predicted)
 - [ ] S7.3.g Commit `data-quality: Sprint E2 — prohibited_role mutation machine`
 - ⏭ **deferred half**: `invalid_chain` machine (needs `validate_chain_id` fixture data) + `inconsistent_scope` machine (needs `_check_consistency` truth table) + Sprint E1 PDCA section update + Sprint E narrative in notes.md (single batched at end of queue)
 

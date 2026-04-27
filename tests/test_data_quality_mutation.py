@@ -796,3 +796,103 @@ TestOrthogonality.settings = settings(
     stateful_step_count=50,
     suppress_health_check=[HealthCheck.filter_too_much],
 )
+
+
+# ---------------------------------------------------------------------------
+# Machine 9 — Prohibited-role clause-axis mutation accounting (Sprint E2)
+# ---------------------------------------------------------------------------
+
+
+class ProhibitedRoleMutationMachine(RuleBasedStateMachine):
+    """Toggle `argument_role` between non-prohibited and 税收法定-prohibited
+    values, verify prohibited_role_count tracks rows currently in the
+    prohibited state.
+
+    Invariant: prohibited_role_count == #rows whose current argument_role is
+    on the 税收法定 prohibition list. None and unknown roles do NOT count
+    as prohibited (they vanish into other inspector flags, not this counter).
+
+    Anchor values (from `src/kg/argument_role_registry.py`):
+      * `analogy`   — RoleMeta(prohibited_in_tax_law=True, label_zh=类推适用)
+      * `yiju`      — statutory basis, not prohibited
+      * `shouquan`  — delegated authority, not prohibited
+
+    Two distinct non-prohibited roles cover both clean→clean transitions
+    (yiju→shouquan) and prohibited→clean transitions (analogy→yiju).
+    Single-clean designs miss the second transition class — same lesson
+    Sprint D learned with `make_alt_fresh`.
+    """
+
+    PROHIBITED_ROLE = "analogy"
+    CLEAN_ROLE = "yiju"
+    ALT_CLEAN_ROLE = "shouquan"
+
+    def __init__(self):
+        super().__init__()
+        self.rows: list[dict] = []
+        # Row-indexes whose argument_role is currently prohibited.
+        self.prohibited_indexes: set[int] = set()
+
+    @initialize(n=st.integers(min_value=4, max_value=12))
+    def start_clean(self, n):
+        self.rows = []
+        for i in range(n):
+            row = _clean_row(i)
+            row["argument_role"] = self.CLEAN_ROLE
+            self.rows.append(row)
+        self.prohibited_indexes = set()
+
+    @rule(row_idx=st.integers(0, 11))
+    def make_prohibited(self, row_idx):
+        if row_idx >= len(self.rows):
+            return
+        self.rows[row_idx]["argument_role"] = self.PROHIBITED_ROLE
+        self.prohibited_indexes.add(row_idx)
+
+    @rule(row_idx=st.integers(0, 11))
+    def make_clean(self, row_idx):
+        if row_idx >= len(self.rows):
+            return
+        self.rows[row_idx]["argument_role"] = self.CLEAN_ROLE
+        self.prohibited_indexes.discard(row_idx)
+
+    @rule(row_idx=st.integers(0, 11))
+    def make_alt_clean(self, row_idx):
+        # Alternate clean role — exercises prohibited→alt-clean and
+        # clean→alt-clean transitions distinct from the CLEAN_ROLE rule.
+        if row_idx >= len(self.rows):
+            return
+        self.rows[row_idx]["argument_role"] = self.ALT_CLEAN_ROLE
+        self.prohibited_indexes.discard(row_idx)
+
+    @rule(row_idx=st.integers(0, 11))
+    def make_null_role(self, row_idx):
+        # NULL argument_role is NOT prohibited — inspector returns role=None
+        # which `is_prohibited_in_tax_law` never sees.
+        if row_idx >= len(self.rows):
+            return
+        self.rows[row_idx]["argument_role"] = None
+        self.prohibited_indexes.discard(row_idx)
+
+    @invariant()
+    def prohibited_count_matches_active_indexes(self):
+        if not self.rows:
+            return
+        # null_coverage_threshold=1.01 ensures null_coverage gate never fires
+        # — keeps this machine focused on the prohibited_role axis only.
+        r = survey_type(
+            self.rows, today=date(2024, 6, 1), null_coverage_threshold=1.01
+        )
+        assert r["prohibited_role_count"] == len(self.prohibited_indexes), (
+            f"prohibited_role_count drift: report={r['prohibited_role_count']} "
+            f"tracked={len(self.prohibited_indexes)} "
+            f"indexes={sorted(self.prohibited_indexes)}"
+        )
+
+
+TestProhibitedRoleMutation = ProhibitedRoleMutationMachine.TestCase
+TestProhibitedRoleMutation.settings = settings(
+    max_examples=400,
+    stateful_step_count=50,
+    suppress_health_check=[HealthCheck.filter_too_much],
+)

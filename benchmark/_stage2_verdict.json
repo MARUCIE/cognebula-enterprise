@@ -1,0 +1,16 @@
+{
+  "common_n": 20,
+  "nano_composite": 0.243,
+  "pro_composites": {
+    "gemini-3.1-pro": 0.20912,
+    "gpt-5.5": 0.312305
+  },
+  "delta_avg": 0.01771250000000002,
+  "verdict": "EVAL-DESIGN-BOUND",
+  "consistency": "VENDOR-VARIANCE (spread=0.103≥0.05) — interpret with caution",
+  "pro_costs_usd": {
+    "gemini-3.1-pro": 0.07889312,
+    "gpt-5.5": 0.30815709999999996
+  },
+  "total_pro_spend_usd": 0.38705021999999994
+}

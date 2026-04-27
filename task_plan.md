@@ -118,3 +118,23 @@ Mutation testing currently covers 3 of 9 audit dimensions (placeholder / duplica
 - New audit dimensions (P4 orphan_fk_count) — product-level call
 - Schema sync / xfail markers — HITL
 - PDCA HTML side update — 2份制 housekeeping, separate task
+
+
+## §8. Atomic Execution Queue — Sprint F1: inconsistent_scope clause-axis machine (2026-04-27, MVS-pattern)
+
+### Phase milestone
+After Sprint E2 closed prohibited_role (7/9 dims), `inconsistent_scope` is the lower-fixture-cost remaining clause-axis machine. Picked over `invalid_chain` because `_check_consistency` truth-table is already known (3-row decision: national / iso_admin / special_zone) and shares fields with the existing `JurisdictionMismatchMutationMachine` while testing a different wrapper. `invalid_chain` requires `chain_id` traversal fixtures (orphan / cycle / version drift modes) — out of MVS 90-min window.
+
+### Slice S8.1 — Sprint F1: 1 clause-axis machine (DONE)
+- [x] S8.1.a Confirmed orthogonality: `(CN, subnational)` + `(CN-31, national)` pass row-axis (both scopes ∈ `ALLOWED_JURISDICTION_SCOPES` + neither XOR triggers) and trigger clause-axis (`_check_consistency` → verdict==`inconsistent` → `inconsistent_code_scope` flag → `inconsistent_scope_count += 1`)
+- [x] S8.1.b Built `InconsistentScopeMutationMachine` (400×50, 3 mutation rules: `make_consistent` / `make_national_inconsistent` / `make_iso_inconsistent` — null_scope rule REMOVED to keep orthogonality invariant clean). Baseline `(CN, national)`. Two distinct inconsistent pairs avoid Sprint D / Sprint E2 single-toggle blind spot.
+- [x] S8.1.c `pytest tests/test_data_quality_mutation.py -q` → `10 passed in 42.34s` (was 9 → +1 machine)
+- [x] S8.1.d Nightly count: 5,859 → 5,860 (+1 ID, exactly as predicted)
+- [x] S8.1.e Orthogonality verified by EXPLICIT 2nd invariant `row_axis_jurisdiction_mismatches_stays_at_zero` — every machine state asserts `r["jurisdiction_mismatches"] == 0`. Refactored to drop null_scope rule (XOR contamination); deferred to Sprint F2 candidate
+- [ ] S8.1.f Commit `data-quality: Sprint F1 — inconsistent_scope mutation machine`
+- ⏭ **deferred half** (logged): `invalid_chain` machine (chain_id traversal fixtures, Sprint F2 candidate); `unknown_jurisdiction_code` machine (different flag, different counter — separate Sprint); orthogonality cross-check: row-axis `_count_jurisdiction_mismatches` machine + clause-axis machine running simultaneously (Sprint F3 cross-axis machine)
+
+### Out of scope (Sprint F deferred, logged not asked)
+- `invalid_chain` mutation machine — fixture cost > 90-min MVS budget
+- More property invariants (commutativity / hash stability / sample-size scaling) — Sprint F4 candidate
+- HITL Plan A/B/C/D, P4 orphan_fk_count, xfail policy — unchanged HITL items

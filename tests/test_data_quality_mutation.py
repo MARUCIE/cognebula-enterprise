@@ -896,3 +896,141 @@ TestProhibitedRoleMutation.settings = settings(
     stateful_step_count=50,
     suppress_health_check=[HealthCheck.filter_too_much],
 )
+
+
+# ---------------------------------------------------------------------------
+# Machine 10 — Inconsistent-scope clause-axis mutation accounting (Sprint F1)
+# ---------------------------------------------------------------------------
+
+
+class InconsistentScopeMutationMachine(RuleBasedStateMachine):
+    """Toggle (jurisdiction_code, jurisdiction_scope) between consistent
+    and clause-axis-inconsistent pairs, verify inconsistent_scope_count
+    tracks rows whose pair currently violates the co-variance decision
+    table (national ↔ national / iso_admin ↔ {subnational,municipal} /
+    special_zone ↔ zone.scope).
+
+    Invariant: inconsistent_scope_count == #rows whose current
+    (code, scope) pair has `_check_consistency` verdict == "inconsistent".
+
+    Orthogonality contract (key design decision):
+      All chosen pairs use codes + scopes that pass row-axis
+      `_count_jurisdiction_mismatches` (scope ∈ ALLOWED_JURISDICTION_SCOPES,
+      both code+scope set so XOR is False). This isolates the clause-axis
+      counter from the row-axis counter — flipping a row from CONSISTENT
+      to INCONSISTENT must increment `inconsistent_scope_count` by exactly
+      1 and leave `jurisdiction_mismatches` at 0.
+
+    Anchor pairs (verified against `src/kg/jurisdiction_consistency.py`):
+      Consistent baseline:
+        ("CN", "national")  — national kind expects scope="national" ✓
+      Inconsistent (clause-axis only, row-axis still 0):
+        ("CN", "subnational")        — national kind, scope mismatch
+        ("CN-31", "national")        — iso_admin kind, scope mismatch
+    Why two distinct inconsistent pairs: same Sprint D / Sprint E2 lesson —
+    single-mutation-rule designs miss the inconsistent_A → inconsistent_B
+    transition class. Hypothesis exercises consistent ↔ inconsistent_1 ↔
+    inconsistent_2 triangle, not just a binary toggle.
+
+    Null-scope handling (verdict='scope_not_set' → no flag, but row-axis XOR
+    fires because code is set + scope is None) is intentionally NOT exercised
+    by this machine — that mixed concern is a separate Sprint F2 candidate.
+    Keeping all three rules in the row-axis-clean band ensures the explicit
+    orthogonality invariant below stays meaningful.
+    """
+
+    CODE_NATIONAL = "CN"
+    CODE_ISO_ADMIN = "CN-31"
+    CONSISTENT_SCOPE = "national"  # matches CN (national kind)
+    INCONSISTENT_SCOPE_FOR_NATIONAL = "subnational"  # in whitelist, mismatches CN
+    # CN-31 (iso_admin) expects {subnational, municipal}; "national" is the
+    # mismatch that still passes the row-axis whitelist check.
+    INCONSISTENT_SCOPE_FOR_ISO = "national"
+
+    def __init__(self):
+        super().__init__()
+        self.rows: list[dict] = []
+        # Row-indexes whose (code, scope) is currently clause-axis-inconsistent.
+        self.inconsistent_indexes: set[int] = set()
+
+    @initialize(n=st.integers(min_value=4, max_value=12))
+    def start_clean(self, n):
+        self.rows = []
+        for i in range(n):
+            row = _clean_row(i)
+            row["jurisdiction_code"] = self.CODE_NATIONAL
+            row["jurisdiction_scope"] = self.CONSISTENT_SCOPE
+            self.rows.append(row)
+        self.inconsistent_indexes = set()
+
+    @rule(row_idx=st.integers(0, 11))
+    def make_national_inconsistent(self, row_idx):
+        # CN + subnational: national kind expects scope=national; subnational
+        # is in whitelist (row-axis OK) but mismatches per decision table.
+        if row_idx >= len(self.rows):
+            return
+        self.rows[row_idx]["jurisdiction_code"] = self.CODE_NATIONAL
+        self.rows[row_idx]["jurisdiction_scope"] = (
+            self.INCONSISTENT_SCOPE_FOR_NATIONAL
+        )
+        self.inconsistent_indexes.add(row_idx)
+
+    @rule(row_idx=st.integers(0, 11))
+    def make_iso_inconsistent(self, row_idx):
+        # CN-31 + national: iso_admin expects {subnational, municipal};
+        # national is in whitelist (row-axis OK) but mismatches per table.
+        if row_idx >= len(self.rows):
+            return
+        self.rows[row_idx]["jurisdiction_code"] = self.CODE_ISO_ADMIN
+        self.rows[row_idx]["jurisdiction_scope"] = self.INCONSISTENT_SCOPE_FOR_ISO
+        self.inconsistent_indexes.add(row_idx)
+
+    @rule(row_idx=st.integers(0, 11))
+    def make_consistent(self, row_idx):
+        # Restore baseline (CN, national).
+        if row_idx >= len(self.rows):
+            return
+        self.rows[row_idx]["jurisdiction_code"] = self.CODE_NATIONAL
+        self.rows[row_idx]["jurisdiction_scope"] = self.CONSISTENT_SCOPE
+        self.inconsistent_indexes.discard(row_idx)
+
+    @invariant()
+    def inconsistent_count_matches_active_indexes(self):
+        if not self.rows:
+            return
+        # null_coverage_threshold=1.01 ensures null_coverage gate never fires.
+        r = survey_type(
+            self.rows, today=date(2024, 6, 1), null_coverage_threshold=1.01
+        )
+        assert r["inconsistent_scope_count"] == len(self.inconsistent_indexes), (
+            f"inconsistent_scope_count drift: report={r['inconsistent_scope_count']} "
+            f"tracked={len(self.inconsistent_indexes)} "
+            f"indexes={sorted(self.inconsistent_indexes)}"
+        )
+
+    @invariant()
+    def row_axis_jurisdiction_mismatches_stays_at_zero(self):
+        # ORTHOGONALITY CONTRACT: every state this machine reaches has
+        # both code+scope set, scope ∈ ALLOWED_JURISDICTION_SCOPES, so
+        # row-axis _count_jurisdiction_mismatches must return 0. If this
+        # ever fails, the machine has accidentally contaminated the
+        # row-axis dim and is no longer a clean clause-axis test.
+        if not self.rows:
+            return
+        r = survey_type(
+            self.rows, today=date(2024, 6, 1), null_coverage_threshold=1.01
+        )
+        assert r["jurisdiction_mismatches"] == 0, (
+            f"orthogonality broken: row-axis jurisdiction_mismatches "
+            f"={r['jurisdiction_mismatches']} (expected 0). "
+            f"A clause-axis machine must not leak into row-axis count.\n"
+            f"rows snapshot: {self.rows[:3]}..."
+        )
+
+
+TestInconsistentScopeMutation = InconsistentScopeMutationMachine.TestCase
+TestInconsistentScopeMutation.settings = settings(
+    max_examples=400,
+    stateful_step_count=50,
+    suppress_health_check=[HealthCheck.filter_too_much],
+)

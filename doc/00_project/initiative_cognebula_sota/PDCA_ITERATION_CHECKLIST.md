@@ -116,12 +116,15 @@ Scanned the changed files for `eval(`, `Function(`, raw network egress, `subproc
 
 ## 4. Debt Ledger (carried forward)
 
-| # | Item | Owner | Deadline | Retroactive-defect if slipped |
-|---|---|---|---|---|
-| 1 | Sprint G4 runtime probe (`OPTIONS /api/v1/.well-known/capabilities` endpoint + live backend pytest fixture) | Maurice | TBD | no — explicit forward-scope |
-| 2 | 灵阙 desktop frontend cross-repo audit (separate codebase) | Maurice | TBD | no — separate session |
-| 3 | Backend merge / split-formalize / deprecate decision (HITL) | Maurice | open | no — HITL discipline |
-| 4 | Full nginx config grammar parse (current parser is regex-narrow on `proxy_pass` only) | Maurice | TBD | no — out of MVS budget |
+| # | R-id (gates.json) | Item | Owner | Deadline | Retroactive-defect if slipped |
+|---|---|---|---|---|---|
+| 1 | `R1-runtime-probe-missing` | Sprint G4 runtime probe (`OPTIONS /api/v1/.well-known/capabilities` endpoint + live backend pytest fixture). **Update 2026-04-28**: S15.1 Backend A OPTIONS endpoint shipped (commit `e1f65bb`); S15.2-S15.4 = §18.15-§18.17. | Maurice | Sprint G4 | no — explicit forward-scope |
+| 2 | `R3-cross-repo-coverage` | 灵阙 desktop frontend cross-repo audit (separate codebase). | Maurice | TBD | no — separate session |
+| 3 | `R2-backend-split-decision-pending` | Backend merge / split-formalize / deprecate decision (HITL). Tracked as §18 HITL-1; trigger condition wired by §18.12 escalation criteria. | Maurice | open (decide_by trigger via §18.12) | no — HITL discipline |
+| 4 | `R4-nginx-grammar` | Full nginx config grammar parse (current parser is regex-narrow on `proxy_pass` only). | Maurice | TBD | no — out of MVS budget |
+| 5 | (new, §18 self-discovered) | Ontology-whitelist-guard scans `.md` files but cannot distinguish doc DESCRIBING the syntax from code USING the syntax — meta-rejection on this very task_plan.md during §18 commit cycle. Fix: whitelist `doc/00_project/` or teach regex to skip Markdown inline-code spans. | Maurice | TBD | no — minor governance debt |
+
+**§18 R-id cross-link rationale (Catmull P0)**: prior version of the table had no explicit pointer back to `gates.json#remaining_risks`, so a session reading only the PDCA checklist could not navigate to the structured risk record. Adding `R-id` makes the cross-reference an O(1) lookup and removes the "Did you read all four documents?" drift mode.
 
 **Retroactive-defect clause (Hickey)**: items above are explicit forward-scope; none flagged as "should already exist." If Sprint G4 has not opened by the next time a deploy-mode mismatch causes a production incident, item #1 escalates to retroactive-defect.
 

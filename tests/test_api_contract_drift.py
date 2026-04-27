@@ -29,6 +29,15 @@ import audit_api_contract  # noqa: E402
 # decision and a notes.md log entry — that is the human-in-the-loop discipline.
 KNOWN_FRONTEND_ORPHANS: frozenset[str] = frozenset({"/api/v1/ka/"})
 
+# Hard count baseline — separate from the SET to make whitelist GROWTH a
+# PR-visible decision (Munger inversion: "single-entry whitelist creep,
+# monotonic — adding an entry that becomes a real orphan would pass both
+# the set-equality test and the cleanup test"). Bumping this constant is the
+# explicit place where Maurice signs off on widening the whitelist; the diff
+# shows up as a number change, not just a set element addition that could be
+# missed. §18.7 in initiative_cognebula_sota/task_plan.md.
+KNOWN_FRONTEND_ORPHANS_COUNT_BASELINE: int = 1
+
 # Floor on dual-backend drift ratio. If overlap grows past 25% of max(|A|, |B|),
 # the backends are converging — that is good news (means a merge is happening)
 # and the gate's purpose is exhausted, not bad news. The threshold matches
@@ -49,6 +58,22 @@ def test_no_new_frontend_orphans(report: dict) -> None:
         f"Either declare these on a backend, remove the frontend reference, "
         f"or — if intentional — update KNOWN_FRONTEND_ORPHANS in this test "
         f"with a notes.md log entry explaining why."
+    )
+
+
+def test_orphan_whitelist_count_baseline() -> None:
+    """The literal length of KNOWN_FRONTEND_ORPHANS must not exceed the
+    pinned baseline. Bumping the baseline is the explicit decision point
+    for widening the whitelist — the diff in this test file is the audit
+    receipt. §18.7 (Munger P0).
+    """
+    assert len(KNOWN_FRONTEND_ORPHANS) <= KNOWN_FRONTEND_ORPHANS_COUNT_BASELINE, (
+        f"KNOWN_FRONTEND_ORPHANS has {len(KNOWN_FRONTEND_ORPHANS)} entries, "
+        f"baseline is {KNOWN_FRONTEND_ORPHANS_COUNT_BASELINE}. Either: (a) the "
+        f"whitelist is genuinely too small — bump the baseline AND log the "
+        f"reason in notes.md AND get explicit Maurice sign-off, or (b) someone "
+        f"added a frontend reference without first checking it should be "
+        f"declared by a backend — drop the orphan instead."
     )
 
 

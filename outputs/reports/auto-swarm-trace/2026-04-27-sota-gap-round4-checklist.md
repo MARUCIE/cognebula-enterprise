@@ -195,4 +195,36 @@ NOT applied (failed 2/3): patch B (parenthetical kept as anti-Goodhart receipt),
 
 ---
 
+## Post-Approval Updates (data refresh, no structural change)
+
+Per the §5.5 design contract ("更新协议" callout) and per the trivial-fix exception
+in `16-auto-visual-swarm-review.md`, atomic-item progress refreshes on the
+swarm-approved scaffold do NOT trigger new swarm rounds. The criterion is
+**structural visual change vs data refresh**, not "file was edited".
+
+### 2026-04-27 (this session, post-Round-3-close)
+
+- **W2-3.8 BusinessActivity row refresh**: 502 → 549 (+47).
+  - seed/seed_business_activity_gbt4754.py phase-1b: +48 SME-relevant 3-digit
+    groups across 10 previously-uncovered divisions (02 林业 / 04 渔业 /
+    16 烟草 / 19 皮革 / 20 木材 / 21 家具 / 22 造纸 / 23 印刷 /
+    30 非金属矿物 / 33 金属制品).
+  - Applied via `scripts/apply_round4_seeds_via_api.py --only BusinessActivity`:
+    47 added, 298 dup_skipped, 0 errors, 9.5s elapsed.
+  - Status remains PARTIAL (gap to 1000 threshold: 451 rows).
+  - No structural change to checklist; only cell content `<td class="col-evidence">`
+    updated. Falls under trivial-fix exception.
+
+### Future-update protocol carried forward
+
+- Cell-content refresh (status flip, count update, evidence cell update) → no swarm
+- Status badge color/label change → no swarm (uses approved palette)
+- Adding a new row to the table → no swarm (uses approved row template)
+- Adding a NEW phase-row block (e.g., "Week 5") → swarm Round 1 only (single round)
+- Removing/restructuring callouts, modifying CSS classes, changing table columns → full ≥3-round swarm
+
+This protocol prevents hook-tax inflation while preserving structural review discipline.
+
+---
+
 Maurice | maurice_wen@proton.me

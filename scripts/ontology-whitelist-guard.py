@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Pre-commit / CI guard: reject `CREATE NODE TABLE X` unless X is canonical.
+"""Pre-commit / CI guard: reject `CREATE NODE TABLE <Name>` unless `<Name>` is canonical.
 
 Session 74 Wave 1 — P0 remediation. Installs the balancing feedback loop
 (B_MISSING per Meadows) that was previously absent: today any Python/SQL/Cypher
@@ -112,6 +112,13 @@ def scan_file(path: Path, canonical: set[str]) -> list[tuple[int, str]]:
     for m in _CREATE_NODE_TABLE_RE.finditer(text):
         name = m.group(1)
         if name in canonical:
+            continue
+        # False-positive guard: when input has `CREATE NODE TABLE IF NOT EXISTS`
+        # followed by Python concatenation (no static identifier afterwards),
+        # the regex backtracks the optional `(?:IF\s+NOT\s+EXISTS\s+)?` group
+        # and captures `IF` itself. `IF` is a reserved keyword and never a
+        # legitimate table name; skip it.
+        if name.upper() == "IF":
             continue
         # Compute 1-indexed line number from match start.
         lineno = text.count("\n", 0, m.start()) + 1

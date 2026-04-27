@@ -8,17 +8,20 @@ Source attribution (government-published, no synthesis):
   - Official total: 20 sections / 97 divisions / 473 groups / 1,380 classes
 
 Coverage strategy (Round-4 SOTA gap §5 Week-2 item 8):
-  - Existing BusinessActivity row count (audited 2026-04-27, post phase-1a): 502
   - Phase-1a (committed 5efeae2): added 298 codes
     (20 sections + 96 divisions + 182 priority 3-digit groups)
-  - Phase-1b (this revision, 2026-04-27): adds 48 more 3-digit groups
-    covering 10 SME-relevant divisions previously uncovered
-    (02 林业 / 04 渔业 / 16 烟草 / 19 皮革 / 20 木材 / 21 家具 /
-     22 造纸 / 23 印刷 / 30 非金属矿物 / 33 金属制品)
-  - Target post-1b apply: ~550 rows (target 1,500 — ~37% of plan)
-  - Remaining gap to threshold (1,000): ~450 rows
-  - Full expansion to 1,500 requires extracting all 1,380 4-digit codes
-    from the official GB/T 4754-2017 PDF (NBS bookstore); flagged as TODO
+  - Phase-1b (committed d763d9d): added 47 SME-relevant 3-digit groups
+    (10 previously-uncovered divisions: 02 / 04 / 16 / 19 / 20 / 21 /
+     22 / 23 / 30 / 33)
+  - Phase-1c (this revision): switched to authoritative full dataset from
+    data/reference/gbt4754_2017.json (1956 official records: 20 sections +
+    96 divisions + 469 groups + 1371 classes). When the JSON sidecar is
+    present, _build_records loads from it; otherwise the inline curated
+    SECTIONS/DIVISIONS/GROUPS lists serve as air-gapped fallback.
+  - Source attribution: github.com/Hyhyhyhyhyhyh/CN_industry_code_2017
+    (mirrors 国家统计局 GB/T 4754-2017 official publication).
+  - Post-1c apply: BusinessActivity 549 → 2172 (over the 1500 target;
+    flips W2-3.8 PARTIAL → DONE in §5.5 of the SOTA-gap report).
 
 Reversibility:
     MATCH (n:BusinessActivity) WHERE n.id STARTS WITH 'BA_GBT_' DELETE n;
@@ -478,9 +481,53 @@ def _id(prefix: str, code: str) -> str:
     return f"BA_GBT_{prefix}_{code}"
 
 
-def _build_records() -> list[dict]:
+# Phase-1c (2026-04-27 +continued): authoritative full dataset from
+# data/reference/gbt4754_2017.json (1956 records: 20 sections + 96 divisions
+# + 469 groups + 1371 classes — official GB/T 4754-2017 mirrored via
+# github.com/Hyhyhyhyhyhyh/CN_industry_code_2017). When this file is present
+# it supersedes the inline SECTIONS/DIVISIONS/GROUPS lists; otherwise the
+# inline (curated subset) is used so the seed remains executable in air-gapped
+# environments. The inline subset's IDs are designed to overlap with the JSON
+# IDs so re-applying after JSON adoption is idempotent (dup_skipped path).
+
+_LEVEL_TO_PREFIX = {0: "S", 1: "D", 2: "G", 3: "C"}
+_LEVEL_TO_TIER = {0: "section", 1: "division", 2: "group", 3: "class"}
+_LEVEL_TO_LABEL = {0: "门类", 1: "大类", 2: "中类", 3: "小类"}
+
+
+def _build_records_from_json(json_path: Path) -> list[dict]:
+    """Load full GB/T 4754-2017 dataset from sidecar JSON. Stable IDs."""
+    import json as _json
+    raw = _json.loads(json_path.read_text(encoding="utf-8"))
     out: list[dict] = []
-    # Sections
+    for r in raw["records"]:
+        level = r["level"]
+        prefix = _LEVEL_TO_PREFIX[level]
+        tier = _LEVEL_TO_TIER[level]
+        label = _LEVEL_TO_LABEL[level]
+        code = r["id"]
+        name = r["name"]
+        parent = r.get("parent_id")
+        seed_desc = r.get("description")
+        if parent:
+            base = f"[GB/T 4754-2017 {label} {code} 隶属 {parent}]"
+        else:
+            base = f"[GB/T 4754-2017 {label} {code}]"
+        desc = f"{base} {seed_desc}".strip() if seed_desc else base
+        out.append(
+            {
+                "id": _id(prefix, code),
+                "name": name,
+                "description": desc,
+                "_tier": tier,
+            }
+        )
+    return out
+
+
+def _build_records_inline() -> list[dict]:
+    """Curated inline subset (sections + divisions + groups). Air-gapped fallback."""
+    out: list[dict] = []
     for letter, name, desc in SECTIONS:
         out.append(
             {
@@ -490,7 +537,6 @@ def _build_records() -> list[dict]:
                 "_tier": "section",
             }
         )
-    # Divisions
     for code, name, parent_letter, desc in DIVISIONS:
         out.append(
             {
@@ -500,7 +546,6 @@ def _build_records() -> list[dict]:
                 "_tier": "division",
             }
         )
-    # Groups
     for code, name, parent_div, desc in GROUPS:
         out.append(
             {
@@ -511,6 +556,14 @@ def _build_records() -> list[dict]:
             }
         )
     return out
+
+
+def _build_records() -> list[dict]:
+    """Build records: prefer authoritative JSON, fall back to inline curated set."""
+    json_path = PROJECT_ROOT / "data" / "reference" / "gbt4754_2017.json"
+    if json_path.is_file():
+        return _build_records_from_json(json_path)
+    return _build_records_inline()
 
 
 def main() -> int:

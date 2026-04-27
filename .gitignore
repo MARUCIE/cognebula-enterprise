@@ -4,7 +4,10 @@ venv/
 __pycache__/
 *.pyc
 .cognebula/
-data/
+# data/ is runtime/derived; track only the authoritative reference subtree
+data/*
+!data/reference/
+!data/reference/**
 *.log
 .DS_Store
 
@@ -16,3 +19,4 @@ backups/
 
 # Temp files
 ontology_v2_gemini_output.txt.env
+.omx/

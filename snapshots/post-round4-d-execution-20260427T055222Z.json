@@ -1,0 +1,71 @@
+{
+  "ts_utc": "20260427T055222Z",
+  "baseline_purpose": "POST Round-4 D+E execution receipt",
+  "totals": {
+    "total_nodes": 515785,
+    "total_edges": 1293535,
+    "node_tables": 69,
+    "rel_tables": 71
+  },
+  "audit": {
+    "canonical_count": 32,
+    "live_count": 93,
+    "composite_gate_verdict": "FAIL",
+    "C1_canonical_coverage": {
+      "value": 0.431,
+      "target": 0.8,
+      "pass": false
+    },
+    "C1_plus_canonical_with_min_rows": {
+      "value": 0.188,
+      "target": 0.5,
+      "pass": false,
+      "stub_suspect_count": 17,
+      "tier_empty": [
+        "ComplianceRule",
+        "IndustryBenchmark",
+        "InvoiceRule",
+        "PolicyChange",
+        "RiskIndicator",
+        "SocialInsuranceRule",
+        "TaxItem"
+      ],
+      "tier_tiny": [
+        "AccountingStandard",
+        "DeductionRule",
+        "FilingForm",
+        "FinancialIndicator",
+        "JournalEntryTemplate",
+        "TaxAccountingGap",
+        "TaxBasis",
+        "TaxEntity",
+        "TaxMilestoneEvent",
+        "TaxType"
+      ]
+    },
+    "canonical_min_rows_metric_summary": {
+      "tier_empty_count": 7,
+      "tier_tiny_count": 10,
+      "tier_ok_count": 6,
+      "passes_count": 6
+    }
+  },
+  "targeted_tables_post": {
+    "CPAKnowledge": "GONE",
+    "MindmapNode": "GONE",
+    "RiskIndicator": "GONE",
+    "TaxTreaty": "GONE",
+    "ResponseStrategy": "GONE",
+    "TaxLiabilityTrigger": "GONE",
+    "INTERPRETS_edges": 390756,
+    "INTERPRETS_DEFINES_edges": "ABSENT (v4.2.5 NOT executed)"
+  },
+  "delta_from_baseline": {
+    "total_nodes": -35897,
+    "total_edges": -9144,
+    "node_tables": -2,
+    "rel_tables": -5,
+    "canonical_count": -3,
+    "live_count": -6
+  }
+}

@@ -42,15 +42,32 @@ DROP TABLE IF EXISTS REL_RiskIndicator_INFLUENCES;
 DROP TABLE IF EXISTS REL_RiskIndicator_DETECTED_BY;
 DROP TABLE IF EXISTS REL_RiskIndicator_TARGETS;
 
-// CPAKnowledge edges
+// CPAKnowledge edges (legacy hypothetical)
 DROP TABLE IF EXISTS REL_CPAKnowledge_REFERENCES;
 DROP TABLE IF EXISTS REL_CPAKnowledge_DESCRIBES;
 DROP TABLE IF EXISTS REL_CPAKnowledge_PART_OF;
 
-// MindmapNode edges
+// MindmapNode edges (legacy hypothetical)
 DROP TABLE IF EXISTS REL_MindmapNode_PARENT_OF;
 DROP TABLE IF EXISTS REL_MindmapNode_LINKS_TO;
 DROP TABLE IF EXISTS REL_MindmapNode_TAGGED_AS;
+
+// --- Discovered during 2026-04-27 prod execution (commit 539b924 follow-up) ---
+// Original v4.2.3 only enumerated REL_*_* hypothetical names; live DB had
+// SHORTER edge-table names that also reference CPAKnowledge/MindmapNode.
+// Each blocker was identified via Kuzu Binder exception during DROP retry.
+// Edge counts at execution:
+//   CPA_ABOUT_TAX  = 288   edges (CPAKnowledge → TaxType-class)
+//   MM_ABOUT_TAX   = 6,424 edges (MindmapNode → TaxType-class)
+//   COVERS         = 230   edges (FROM/TO touches CPAKnowledge)
+//   SIBLING_OF     = ?     edges (FROM/TO touches MindmapNode)
+//   RELATED_TOPIC  = ?     edges (touches CPAKnowledge)
+// Total post-execution edge delta: -9,144 (vs 6,712 originally projected).
+DROP TABLE IF EXISTS CPA_ABOUT_TAX;
+DROP TABLE IF EXISTS MM_ABOUT_TAX;
+DROP TABLE IF EXISTS COVERS;
+DROP TABLE IF EXISTS SIBLING_OF;
+DROP TABLE IF EXISTS RELATED_TOPIC;
 
 // --- Drop nodes (canonical name match; idempotent IF EXISTS) ---
 DROP TABLE IF EXISTS RiskIndicator;

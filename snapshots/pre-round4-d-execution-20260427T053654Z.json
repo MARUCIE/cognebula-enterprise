@@ -1,0 +1,31 @@
+{
+  "ts_utc": "20260427T053654Z",
+  "baseline_purpose": "pre-Round4-D-execution rollback reference",
+  "totals": {
+    "total_nodes": 551682,
+    "total_edges": 1302679,
+    "node_tables": 71,
+    "rel_tables": 76
+  },
+  "audit": {
+    "canonical_count": 35,
+    "live_count": 99,
+    "composite_gate_verdict": "FAIL",
+    "C1_canonical_coverage_value": 0.449
+  },
+  "targeted_tables_baseline": {
+    "CPAKnowledge": 7371,
+    "MindmapNode": 28526,
+    "RiskIndicator": "ABSENT",
+    "TaxTreaty": "ABSENT",
+    "ResponseStrategy": "ABSENT",
+    "TaxLiabilityTrigger": "ABSENT",
+    "INTERPRETS_edges": 390756,
+    "KU_ABOUT_TAX_edges": 166466
+  },
+  "expected_post_d_state": {
+    "total_nodes": 515785,
+    "live_count": 94,
+    "canonical_count": 32
+  }
+}

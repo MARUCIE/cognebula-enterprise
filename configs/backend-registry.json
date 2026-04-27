@@ -1,0 +1,8 @@
+{
+  "_comment": "Sweep-4 / S18.20 — backend identity registry externalized from scripts/audit_api_contract.py:56-59. Maps uvicorn module references (as found in Dockerfile CMD / systemd ExecStart) to the audit's backend key. Renaming a backend file no longer requires editing audit code — edit this file instead.",
+  "schema_version": 1,
+  "module_to_backend_key": {
+    "kg-api-server:app": "A_kg-api-server",
+    "src.api.kg_api:app": "B_src_api_kg_api"
+  }
+}

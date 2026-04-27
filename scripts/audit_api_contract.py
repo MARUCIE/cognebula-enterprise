@@ -29,34 +29,54 @@ from typing import Iterable
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
+# Sweep-4 / S18.19 + S18.20 — manifest data and backend identity registry are
+# externalized to JSON configs. Renaming a backend file or adding a new
+# frontend HTML no longer requires a code edit; PR-reviewed config edit suffices.
+AUDIT_MANIFEST_PATH = REPO_ROOT / "configs" / "audit-manifest.json"
+BACKEND_REGISTRY_PATH = REPO_ROOT / "configs" / "backend-registry.json"
+
+
+def _load_audit_manifest() -> dict:
+    if not AUDIT_MANIFEST_PATH.exists():
+        print(
+            f"ERROR: audit manifest missing at {AUDIT_MANIFEST_PATH}",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+    return json.loads(AUDIT_MANIFEST_PATH.read_text(encoding="utf-8"))
+
+
+def _load_backend_registry() -> dict:
+    if not BACKEND_REGISTRY_PATH.exists():
+        print(
+            f"ERROR: backend registry missing at {BACKEND_REGISTRY_PATH}",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+    return json.loads(BACKEND_REGISTRY_PATH.read_text(encoding="utf-8"))
+
+
+_MANIFEST = _load_audit_manifest()
+_REGISTRY = _load_backend_registry()
+
 BACKEND_FILES: dict[str, Path] = {
-    "A_kg-api-server": REPO_ROOT / "kg-api-server.py",
-    "B_src_api_kg_api": REPO_ROOT / "src" / "api" / "kg_api.py",
+    key: REPO_ROOT / rel for key, rel in _MANIFEST["backend_files"].items()
 }
 
 FRONTEND_FILES: list[Path] = [
-    REPO_ROOT / "src" / "web" / "inspect.html",
-    REPO_ROOT / "src" / "web" / "kg_explorer.html",
-    REPO_ROOT / "src" / "web" / "kg_explorer_v2.html",
-    REPO_ROOT / "src" / "web" / "unified.html",
+    REPO_ROOT / rel for rel in _MANIFEST["frontend_files"]
 ]
 
 DEPLOY_MANIFEST_FILES: dict[str, Path] = {
-    "dockerfile": REPO_ROOT / "Dockerfile",
-    "systemd": REPO_ROOT / "configs" / "kg-api.service",
-    "nginx": REPO_ROOT / "deploy" / "contabo" / "nginx-cognebula.conf",
-    "docker_compose": REPO_ROOT / "docker-compose.yml",
+    key: REPO_ROOT / rel for key, rel in _MANIFEST["deploy_manifest_files"].items()
 }
 
-MCP_TOOL_FILE: Path = REPO_ROOT / "cognebula_mcp.py"
+MCP_TOOL_FILE: Path = REPO_ROOT / _MANIFEST["mcp_tool_file"]
 
 # Mapping from uvicorn module reference to the backend key in `backends` dict.
-# This is the explicit assumption the audit makes — keeping it visible here so
-# future renames force a conscious update rather than silent miscount.
-MODULE_TO_BACKEND_KEY: dict[str, str] = {
-    "kg-api-server:app": "A_kg-api-server",
-    "src.api.kg_api:app": "B_src_api_kg_api",
-}
+# Externalized to configs/backend-registry.json; renaming a backend now
+# requires a JSON edit, not a code edit.
+MODULE_TO_BACKEND_KEY: dict[str, str] = dict(_REGISTRY["module_to_backend_key"])
 
 DECORATOR_RE = re.compile(
     r'^\s*@app\.(?:get|post|put|delete|patch|options|head)\s*\(\s*["\']([^"\']+)["\']',

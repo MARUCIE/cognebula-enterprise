@@ -1,0 +1,21 @@
+{
+  "_comment": "Sweep-4 / S18.19 — audit manifest paths externalized from scripts/audit_api_contract.py:32-51. Paths are relative to REPO_ROOT. Editing this file is reviewed in PR like any other config; previously these were Python constants and inventory drift caused silent miscount.",
+  "schema_version": 1,
+  "backend_files": {
+    "A_kg-api-server": "kg-api-server.py",
+    "B_src_api_kg_api": "src/api/kg_api.py"
+  },
+  "frontend_files": [
+    "src/web/inspect.html",
+    "src/web/kg_explorer.html",
+    "src/web/kg_explorer_v2.html",
+    "src/web/unified.html"
+  ],
+  "deploy_manifest_files": {
+    "dockerfile": "Dockerfile",
+    "systemd": "configs/kg-api.service",
+    "nginx": "deploy/contabo/nginx-cognebula.conf",
+    "docker_compose": "docker-compose.yml"
+  },
+  "mcp_tool_file": "cognebula_mcp.py"
+}

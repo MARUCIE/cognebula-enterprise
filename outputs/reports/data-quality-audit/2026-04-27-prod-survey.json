@@ -1,0 +1,641 @@
+{
+  "api_url": "https://ops.hegui.org",
+  "schema": "/Users/mauricewen/Projects/27-cognebula-enterprise/schemas/ontology_v4.2.cypher",
+  "sample_size": 100,
+  "stale_years": 10,
+  "elapsed_s": 46.13,
+  "fetch_misses": [
+    "PolicyChange",
+    "TaxItem"
+  ],
+  "per_type": {
+    "AccountingStandard": {
+      "sampled": 43,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "AccountingSubject": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "AuditTrigger": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "BusinessActivity": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "Classification": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "ComplianceRule": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "DeductionRule": {
+      "sampled": 25,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "FilingForm": {
+      "sampled": 14,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "FilingFormField": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 0.57,
+        "source_doc_id": 0.57,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "FinancialIndicator": {
+      "sampled": 32,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "FinancialStatementItem": {
+      "sampled": 78,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "IndustryBenchmark": {
+      "sampled": 45,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "InvoiceRule": {
+      "sampled": 40,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "IssuingBody": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "JournalEntryTemplate": {
+      "sampled": 20,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "KnowledgeUnit": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 0.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "LegalClause": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 0.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "LegalDocument": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "Penalty": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "PolicyChange": {
+      "sampled": 0,
+      "null_rate": {
+        "effective_from": 0.0,
+        "confidence": 0.0,
+        "source_doc_id": 0.0,
+        "jurisdiction_code": 0.0,
+        "jurisdiction_scope": 0.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "Region": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "SocialInsuranceRule": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "TaxAccountingGap": {
+      "sampled": 80,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "TaxBasis": {
+      "sampled": 20,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "TaxCalculationRule": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 0.88,
+        "source_doc_id": 0.88,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "TaxEntity": {
+      "sampled": 17,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "TaxIncentive": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "TaxItem": {
+      "sampled": 0,
+      "null_rate": {
+        "effective_from": 0.0,
+        "confidence": 0.0,
+        "source_doc_id": 0.0,
+        "jurisdiction_code": 0.0,
+        "jurisdiction_scope": 0.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "TaxMilestoneEvent": {
+      "sampled": 20,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "TaxRate": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "TaxType": {
+      "sampled": 19,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "defects_total": 0,
+      "defect_rate": 0.0
+    }
+  },
+  "overall": {
+    "canonical_types_surveyed": 31,
+    "total_sampled": 2053,
+    "total_defects": 0,
+    "defect_rate": 0.0,
+    "verdict": "PASS",
+    "target_defect_rate": 0.1
+  }
+}

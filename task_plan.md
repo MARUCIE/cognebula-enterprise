@@ -239,3 +239,60 @@ Pipeline-complete delivery per `pdca-iteration-pipeline`: emit gates.json, appen
 - Cross-axis machine (row-axis + clause-axis simultaneously) — Sprint F3 candidate
 - More property invariants (commutativity / hash stability / sample-size scaling) — Sprint F4 candidate
 - HITL Plan A/B/C/D, P4 orphan_fk_count, xfail policy — unchanged HITL items
+
+## §15. Atomic Execution Queue — Sprint G4: runtime probe (declared 2026-04-28, NOT started)
+
+### Phase milestone
+G3 captured per-deploy-mode reachability via static parse; G4 adds the runtime layer that catches "backend compiles but fails at deploy time" — wrong module path, route registered but handler import-errors at startup, environment misconfiguration. Capability flips: `runtime_capability_endpoint` + `live_running_backend_probe` LACKING → PRESENT. **Decoupled-runtime-audit approach** to keep slice budget under MVS: bash CLI + post-deploy hook is the canonical gate; pytest-fixture variant is OPTIONAL.
+
+### Design rationale (decoupling)
+Booting a backend in pytest blows up complexity: port management, async startup, KuzuDB seed fixture, cleanup. Putting the audit in `scripts/runtime_audit.sh` + wiring it into the deploy runbook gives the same bug-detection value at a fraction of the infrastructure cost. The pytest variant (S15.5) is OPTIONAL and only worth building if Sprint G4+ ships first and the team wants nightly-tier coverage instead of just deploy-time coverage.
+
+### Slice S15.1 — Backend A `OPTIONS /api/v1/.well-known/capabilities` (target: 30 min)
+- [ ] S15.1.a Add OPTIONS handler to `kg-api-server.py` returning `{routes: [list of declared paths], module: "kg-api-server:app", deploy_anchor: "dockerfile|systemd"}` (deploy_anchor read from env var so backend self-declares which mode it was started in)
+- [ ] S15.1.b Manual smoke: `curl -X OPTIONS http://localhost:8400/api/v1/.well-known/capabilities` returns expected JSON
+- [ ] S15.1.c Cross-check: declared routes set matches `audit_api_contract.py` parse output for backend A (23 routes)
+
+### Slice S15.2 — Backend B `OPTIONS /api/v1/.well-known/capabilities` (target: 30 min)
+- [ ] S15.2.a Add same OPTIONS handler to `src/api/kg_api.py` (FastAPI), `module: "src.api.kg_api:app"`
+- [ ] S15.2.b Manual smoke: same shape, port 8400 (or whatever B is configured to)
+- [ ] S15.2.c Cross-check: declared routes set matches `audit_api_contract.py` parse output for backend B (25 routes)
+
+### Slice S15.3 — `scripts/runtime_audit.sh` (target: 45 min)
+- [ ] S15.3.a Bash CLI taking `BASE_URL` arg, calls OPTIONS, parses response with `jq`
+- [ ] S15.3.b Cross-references against expected route set from `audit_api_contract.py --json | jq '.backends.A.routes'` (or B based on backend identity from response)
+- [ ] S15.3.c Exits non-zero on any unreachable frontend path (read from `audit_api_contract.py --json | jq '.frontend_paths'`)
+- [ ] S15.3.d Output format: `OK X/Y reachable` on success, `FAIL: undeclared paths [list]` on failure
+
+### Slice S15.4 — Deploy-runbook integration (target: 20 min)
+- [ ] S15.4.a Wire `scripts/runtime_audit.sh https://app.hegui.org` into `deploy/contabo/post-deploy.sh` (or equivalent)
+- [ ] S15.4.b Document in `deploy/contabo/DOMAIN_TLS_RUNBOOK.md` as a post-`systemctl start kg-api` verification step
+- [ ] S15.4.c Manual run against current production: confirm 0 unreachable paths
+
+### Slice S15.5 (optional) — pytest-fixture wrapper (target: 60 min)
+- [ ] S15.5.a Add pytest fixture `live_backend_a` that starts `kg-api-server.py` in subprocess on dynamic port, waits for `/health`
+- [ ] S15.5.b Add nightly test `test_runtime_audit_against_live_backend_a` invoking `runtime_audit.sh $LIVE_URL`
+- [ ] S15.5.c Same for backend B (`live_backend_b` fixture + test)
+- [ ] S15.5.d Nightly count delta: 5,867 → 5,869 (pre-counted: 2 new test methods)
+- [ ] S15.5.e **OPTIONAL — gate is on deploy runbook (S15.4), not nightly CI**; build only if pytest-coverage is needed in addition to deploy-time coverage
+
+### Out of scope (Sprint G4 deferred, logged not asked)
+- Full nginx config grammar parse (current parser is regex-narrow on `proxy_pass` only — out of MVS budget)
+- Backend module merge / split-formalize / deprecate decision (Maurice HITL — unchanged)
+- Cross-repo: 灵阙 desktop frontend OPTIONS endpoint (separate codebase)
+- audit_content_quality.py gate-wiring (after Sprint G4 ships, becomes 30-min copy-pattern slice)
+- Migration of root `HANDOFF.md` (1,374 lines, mixed CogNebula + Lingque Desktop) to per-initiative split — separate slice
+
+## §16. Atomic Execution Queue — HANDOFF cross-session signal closure (CLOSED 2026-04-28)
+
+### Phase milestone
+After Sprint G3+H+PDCA closeout, the cross-session signal layer was stale: root `HANDOFF.md` last-updated 2026-04-17 and conflated CogNebula + Lingque Desktop (the exact anti-pattern CLAUDE.md per-initiative HANDOFF convention 2026-04-27 solves). Capability flip: `per_initiative_handoff_for_cognebula_sota` LACKING → PRESENT.
+
+### Slice S16.1 — per-initiative HANDOFF.md for cognebula_sota (target: 15 min) — CLOSED 2026-04-28
+- [x] S16.1.a Create `doc/00_project/initiative_cognebula_sota/HANDOFF.md` with frontmatter (`initiative: cognebula_sota`, `status: ACTIVE`, `last_session_utc: 2026-04-28T05:30:00Z`)
+- [x] S16.1.b Body covers: current sprint state, last 3 commits, probe metrics, test counts, capability ledger, open HITL decisions, next-cycle queue (refs §15), deferred-half, cross-session signals, working-tree caveat, DNA capsule candidates
+- [x] S16.1.c Add §15 Sprint G4 atomic queue declaration (this section's sibling) so next session has materialized queue ready
+
+### Out of scope (S16 deferred, logged not asked)
+- Root `HANDOFF.md` migration (1,374 lines mixing 2 initiatives → thin index + per-initiative split for both CogNebula AND Lingque Desktop) — separate slice; the Lingque Desktop split likely belongs in the lingque-desktop repo if that's where the desktop initiative actually lives
+- `state/memory/2026-04-28.md` entry for [BOOTSTRAP-EVOLUTION] traces — post-edit-sota-audit hook should auto-emit; verify next session

@@ -117,6 +117,96 @@ def test_audit_endpoint_shape_stable() -> None:
 
 
 # ---------------------------------------------------------------------------
+# Round-4 stub-backfill detector (Munger STOP rule + Meadows test_no_empty)
+# ---------------------------------------------------------------------------
+#
+# These three tests close the Goodhart loop opened on 2026-04-25 → 2026-04-27:
+# the legacy C1 canonical_coverage_ratio counts type *presence*, so DDL stubs
+# satisfy it. The new tests count type *mass* (rows) and refuse to pass when
+# canonical types are empty/tiny ghosts.
+#
+# Reference: outputs/reports/ontology-audit-swarm/2026-04-27-sota-gap-round4.md
+# (5-lens swarm consensus). After stub-backfill remediation completes, these
+# tests should turn GREEN. Until then they are DESIGN-FAIL — that is the point.
+
+
+def test_no_empty_canonical_tables() -> None:
+    """No canonical type may have row_count == 0.
+
+    A canonical type registered in v4.2 schema with zero rows is a DDL-only
+    ghost (anti-pattern #1 from Round-3 SOTA gap doc). This test fails the
+    build the moment a stub-backfill is deployed.
+    """
+    audit = _fetch_audit()
+    metric = audit.get("canonical_min_rows_metric")
+    if metric is None:
+        pytest.skip(
+            "canonical_min_rows_metric not present — "
+            "endpoint predates Round-4 stub-backfill detector"
+        )
+    empty = metric.get("tier_empty", [])
+    assert not empty, (
+        f"{len(empty)} canonical types are EMPTY (0 rows): {empty}. "
+        f"DDL stubs are not coverage. Fill data or remove the schema entry."
+    )
+
+
+def test_c1_canonical_min_rows() -> None:
+    """canonical_coverage_ratio_with_min_rows must clear the floor.
+
+    Per Munger STOP rule: until the new ratio crosses 0.50, the ONLY allowed
+    work is data ingestion into thin canonical types.
+    """
+    audit = _fetch_audit()
+    cg = audit.get("composite_gate", {})
+    ratio = cg.get("canonical_coverage_ratio_with_min_rows")
+    target = cg.get("min_rows_target_ratio", 0.50)
+    if ratio is None:
+        pytest.skip(
+            "canonical_coverage_ratio_with_min_rows not present — "
+            "endpoint predates Round-4 stub-backfill detector"
+        )
+    metric = audit.get("canonical_min_rows_metric") or {}
+    fails = metric.get("fails", [])
+    assert ratio >= target, (
+        f"canonical_coverage_ratio_with_min_rows={ratio} < target={target}. "
+        f"{len(fails)} canonical types below min-rows threshold; "
+        f"first 5: {fails[:5]}"
+    )
+
+
+def test_canonical_types_meet_priority_min_rows() -> None:
+    """Backbone canonical types must meet stricter row floors.
+
+    The 5 priority tables (INTERPRETS / KU_ABOUT_TAX / AccountingSubject /
+    BusinessActivity / RegulationArticle / ComplianceRule) carry the workload.
+    A 50-row stub on AccountingSubject is technically not EMPTY but cannot
+    answer 客户 reference-data questions. This test is stricter than
+    `test_c1_canonical_min_rows` — it fails on individual priority misses.
+    """
+    audit = _fetch_audit()
+    metric = audit.get("canonical_min_rows_metric") or {}
+    if not metric:
+        pytest.skip("canonical_min_rows_metric absent — endpoint pre-Round-4")
+    PRIORITY = {
+        "INTERPRETS": 300_000,
+        "KU_ABOUT_TAX": 100_000,
+        "AccountingSubject": 1_000,
+        "BusinessActivity": 1_000,
+    }
+    counts = audit.get("canonical_row_counts", {})
+    misses: list[str] = []
+    for tbl, floor in PRIORITY.items():
+        n = counts.get(tbl, 0)
+        if n < floor:
+            misses.append(f"{tbl}={n}<{floor}")
+    assert not misses, (
+        f"{len(misses)} priority canonical types below floor: {misses}. "
+        f"These are backbone tables; their gap caps anchor_recall ceiling."
+    )
+
+
+# ---------------------------------------------------------------------------
 # LegalBench-Tax Stage 1 runner — offline tests (no API call)
 # ---------------------------------------------------------------------------
 

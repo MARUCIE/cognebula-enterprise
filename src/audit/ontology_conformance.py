@@ -267,9 +267,111 @@ def classify_noise(other_bucket: list[str]) -> dict[str, list[str]]:
     }
 
 
+def count_rows_per_type(conn, table_names: set[str] | list[str]) -> dict[str, int]:
+    """Pure read: COUNT(*) per node table. Returns {table: row_count}.
+
+    Empty/missing tables return 0. Used by Round-4 stub-backfill detector
+    (a canonical type with row_count below threshold is a DDL-only ghost).
+    """
+    counts: dict[str, int] = {}
+    for tbl in sorted(set(table_names)):
+        try:
+            res = conn.execute(f"MATCH (n:{tbl}) RETURN COUNT(*) AS c")
+            row = res.get_next() if res.has_next() else None
+            counts[tbl] = int(row[0]) if row else 0
+        except Exception:
+            counts[tbl] = 0
+    return counts
+
+
+# Round-4 stub-backfill detector thresholds.
+# Per Munger STOP rule (`outputs/reports/ontology-audit-swarm/2026-04-27-sota-gap-round4.md`):
+# canonical_coverage_ratio is redefined as `Σ(row_count > MIN_ROWS_DEFAULT) / 35`,
+# with stricter floors on the 5 priority backbone types. A canonical type with
+# rows below its threshold counts as DDL-only ghost (does not contribute to ratio).
+MIN_ROWS_DEFAULT = 1000
+MIN_ROWS_PER_TYPE: dict[str, int] = {
+    "INTERPRETS": 300_000,           # the 390K give-up bucket (Hickey ratio 4.6:1)
+    "KU_ABOUT_TAX": 100_000,         # the 166K second elephant (H1 split target)
+    "AccountingSubject": 1_000,      # 企业会计准则 + 小企业会计准则 target ~1500
+    "BusinessActivity": 1_000,       # GB/T 4754 国民经济行业分类 target ~1500
+    "RegulationArticle": 1_000,      # legal-clause backbone
+    "ComplianceRule": 100,           # smaller domain expected
+}
+MIN_ROWS_TARGET_RATIO: float = 0.50  # below this, only data-ingest work allowed
+
+
+def compute_min_rows_metric(
+    canonical: set[str] | list[str],
+    row_counts: dict[str, int],
+    min_rows_default: int = MIN_ROWS_DEFAULT,
+    min_rows_per_type: dict[str, int] | None = None,
+) -> dict[str, Any]:
+    """Compute the gaming-resistant variant of canonical_coverage_ratio.
+
+    For each canonical type t:
+      threshold(t) = min_rows_per_type.get(t, min_rows_default)
+      passes(t)    = row_counts.get(t, 0) >= threshold(t)
+
+    canonical_coverage_ratio_with_min_rows = (# passes) / |canonical|
+
+    A DDL-only stub (row_count=0) cannot satisfy this metric. Closes the
+    Goodhart loop opened in 2026-04-25 → 2026-04-27 stub-backfill incident.
+    """
+    if min_rows_per_type is None:
+        min_rows_per_type = MIN_ROWS_PER_TYPE
+    canonical_set = set(canonical)
+    if not canonical_set:
+        return {
+            "canonical_coverage_ratio_with_min_rows": 0.0,
+            "min_rows_default": min_rows_default,
+            "passes": [],
+            "fails": [],
+            "tier_empty": [],
+            "tier_tiny": [],
+            "tier_small": [],
+            "tier_ok": [],
+        }
+    passes: list[str] = []
+    fails: list[dict[str, Any]] = []
+    tier_empty: list[str] = []
+    tier_tiny: list[str] = []
+    tier_small: list[str] = []
+    tier_ok: list[str] = []
+    for t in sorted(canonical_set):
+        cnt = row_counts.get(t, 0)
+        threshold = min_rows_per_type.get(t, min_rows_default)
+        if cnt >= threshold:
+            passes.append(t)
+        else:
+            fails.append({"type": t, "rows": cnt, "threshold": threshold})
+        if cnt == 0:
+            tier_empty.append(t)
+        elif cnt < 50:
+            tier_tiny.append(t)
+        elif cnt < 500:
+            tier_small.append(t)
+        else:
+            tier_ok.append(t)
+    ratio = len(passes) / len(canonical_set)
+    return {
+        "canonical_coverage_ratio_with_min_rows": round(ratio, 3),
+        "min_rows_default": min_rows_default,
+        "min_rows_per_type": min_rows_per_type,
+        "passes": passes,
+        "fails": fails,
+        "tier_empty": tier_empty,
+        "tier_tiny": tier_tiny,
+        "tier_small": tier_small,
+        "tier_ok": tier_ok,
+        "stub_suspect_count": len(tier_empty) + len(tier_tiny),
+    }
+
+
 def compute_composite_gate(
     audit_result: dict[str, Any],
     canonical_coverage_target: float = 0.80,
+    min_rows_target_ratio: float = MIN_ROWS_TARGET_RATIO,
 ) -> dict[str, Any]:
     """Three-condition ANDed gate per Session 74 PDCA Wave 1.
 
@@ -312,33 +414,60 @@ def compute_composite_gate(
     c1 = coverage >= canonical_coverage_target
     c2 = rogue_count == 0
     c3 = over_ceiling_by <= 0
-    verdict = "PASS" if (c1 and c2 and c3) else "FAIL"
+
+    # C1+ Round-4 stub-backfill detector (additive; Munger STOP rule).
+    # Reads `canonical_min_rows_metric` if `audit()` populated it, else
+    # falls back to a permissive PASS so unit tests of the legacy 3-axis
+    # gate keep working.
+    min_rows_metric = audit_result.get("canonical_min_rows_metric") or {}
+    coverage_min = min_rows_metric.get("canonical_coverage_ratio_with_min_rows")
+    if coverage_min is None:
+        c1_plus = True
+        c1_plus_block = None
+    else:
+        c1_plus = coverage_min >= min_rows_target_ratio
+        c1_plus_block = {
+            "value": coverage_min,
+            "target": min_rows_target_ratio,
+            "pass": c1_plus,
+            "stub_suspect_count": min_rows_metric.get("stub_suspect_count", 0),
+            "tier_empty": min_rows_metric.get("tier_empty", []),
+            "tier_tiny": min_rows_metric.get("tier_tiny", []),
+        }
+
+    verdict = "PASS" if (c1 and c2 and c3 and c1_plus) else "FAIL"
+
+    breakdown = {
+        "C1_canonical_coverage": {
+            "value": round(coverage, 3),
+            "target": canonical_coverage_target,
+            "pass": c1,
+        },
+        "C2_zero_domain_rogues": {
+            "value": rogue_count,
+            "target": 0,
+            "pass": c2,
+        },
+        "C3_under_brooks_ceiling": {
+            "value": over_ceiling_by,
+            "target": 0,
+            "pass": c3,
+        },
+    }
+    if c1_plus_block is not None:
+        breakdown["C1_plus_canonical_with_min_rows"] = c1_plus_block
 
     return {
         "verdict": verdict,
         "canonical_coverage_ratio": round(coverage, 3),
         "canonical_coverage_target": canonical_coverage_target,
+        "canonical_coverage_ratio_with_min_rows": coverage_min,
+        "min_rows_target_ratio": min_rows_target_ratio,
         "domain_types_count": len(domain_types),
         "noise_types_excluded": len(live & noise_types),
         "domain_rogue_count": rogue_count,
         "over_ceiling_by": over_ceiling_by,
-        "breakdown": {
-            "C1_canonical_coverage": {
-                "value": round(coverage, 3),
-                "target": canonical_coverage_target,
-                "pass": c1,
-            },
-            "C2_zero_domain_rogues": {
-                "value": rogue_count,
-                "target": 0,
-                "pass": c2,
-            },
-            "C3_under_brooks_ceiling": {
-                "value": over_ceiling_by,
-                "target": 0,
-                "pass": c3,
-            },
-        },
+        "breakdown": breakdown,
     }
 
 
@@ -380,6 +509,11 @@ def audit(conn, schema_path: Path | str | None = None) -> dict[str, Any]:
 
     rogue_buckets = classify_rogue(rogue_in_prod)
 
+    # Round-4 stub-backfill detector — count rows for canonical types only.
+    # Cheap (35 COUNT(*) queries on backbone tables). Pure read.
+    canonical_row_counts = count_rows_per_type(conn, canonical)
+    canonical_min_rows_metric = compute_min_rows_metric(canonical, canonical_row_counts)
+
     result = {
         "schema_source": str(schema_path),
         "canonical_count": len(canonical),
@@ -405,6 +539,8 @@ def audit(conn, schema_path: Path | str | None = None) -> dict[str, Any]:
         },
         "verdict": verdict,
         "severity": severity,
+        "canonical_row_counts": canonical_row_counts,
+        "canonical_min_rows_metric": canonical_min_rows_metric,
     }
     result["composite_gate"] = compute_composite_gate(result)
     return result

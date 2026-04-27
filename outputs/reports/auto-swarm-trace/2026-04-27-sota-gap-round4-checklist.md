@@ -227,4 +227,65 @@ This protocol prevents hook-tax inflation while preserving structural review dis
 
 ---
 
+## 2026-04-27 (continued) — Queue (d/e/f/g) exploration receipt + dead-ends ruled out
+
+Per autonomous extension rule, after shipping the (a)/(b)/(c) trio, the next
+"继续" turn explored four candidates (d) FU5 multi-type primer, (e) FU6 prod
+redeploy, (f) W2-3.7 AccountingSubject expansion, (g) W1.5 INTERPRETS split.
+
+### Decisions reached (no commits this round; exploration + documentation only)
+
+(e) and (g) skipped — both HITL hard-blocked (prod redeploy / maintenance window).
+
+(d) FU5 multi-type primer — explored `data/extracted/` for candidate corpora
+beyond `doctax_extracted.json`. Tag distribution found:
+  - OP_BusinessScenario  19,680 records  — NOT canonical (operational tag)
+  - OP_StandardCase       7,844 records  — NOT canonical
+  - RiskIndicator           974 records  — DROPPED in v4.2.3 (FU2 decanonicalized)
+  - FormTemplate            109 records  — Rogue (V1_V2_BLEED → FilingForm),
+                                            but the records are management forms
+                                            (预算/管理), not tax filing forms.
+                                            Mapping = forced semantic = Goodhart. RULED OUT.
+  - ComplianceRule           76 records  — Already covered by 163-record file
+                                            in doctax_extracted.json (commit 023009e).
+                                            Combining → 238, still < 1000 default
+                                            threshold (already over the 100 explicit
+                                            ComplianceRule floor — no incremental win).
+  - TaxOptimization          42 records  — NOT canonical type.
+
+  Dead-end: no other canonical type has corpus volume + clean semantic mapping.
+  Future sessions need to extract from `industry_guides/` (29 doc-level files,
+  needs section parser) or run NLM-style extraction on `data/extracted/cpa/` and
+  `cpa_exams/` (58 files, ~6.6MB total).
+
+(f) W2-3.7 AccountingSubject expansion — searched for authoritative chart of
+accounts >= 1000 entries. Best public source: r3f/china-chart-of-accounts
+GitHub repo, 231 CSV rows. Combined with prod 289 = 520, still below 1000.
+Forcing the threshold by inventing sub-account permutations (银行存款-工商,
+银行存款-建设, etc.) = textbook Munger row-padding warning that §5.5's red
+callout exists to prevent. RULED OUT.
+
+  Future path: 企业会计准则应用指南汇编 PDF extraction (governmental publication)
+  — would yield ~1000-1500 second-level codes per CAS standards 1-42. Requires
+  PDF parser work (~1 session of effort).
+
+### What this turn DID deliver (not commits, but receipts)
+
+- Confirmed two anti-Goodhart traps (semantic-forcing, row-padding) and refused
+  both — preserves §5.5 design integrity.
+- Exploration receipts logged so future sessions don't redo the same dead-ends.
+- Updated FU5 candidate analysis: 8 remaining candidates need NLM extraction
+  or doc-level parser, not direct corpus filter.
+
+### Concrete next-session candidates (event-triggered, not time-scheduled)
+
+| Trigger | Action |
+|---|---|
+| Maurice clears window for (g) v4.2.5 INTERPRETS split | Run prepared script with savepoint + abort guards |
+| Maurice approves (e) FU6 prod redeploy | scp + restart kg-api; verify schema_shape_drift surfaces |
+| (f) WebSearch governmental 企业会计准则应用指南汇编 PDF | Build extractor; target W2-3.7 to 1500 |
+| (d) NLM extraction primer for cpa_exams/ corpus | Target TaxItem / DeductionRule (currently tier_empty) |
+
+---
+
 Maurice | maurice_wen@proton.me

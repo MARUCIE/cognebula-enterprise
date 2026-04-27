@@ -1,0 +1,164 @@
+name: Ontology Conformance Gate
+
+# Runs on every push/PR that touches the ontology schema, the auditor, or the
+# API server code, and once per day on main to catch drift introduced through
+# direct production data writes (injectors, migrations).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "schemas/**"
+      - "src/**"
+      - "tests/**"
+      - "scripts/check_ontology_conformance.py"
+      - "scripts/ontology-whitelist-guard.py"
+      - "kg-api-server.py"
+      - ".github/workflows/ontology-gate.yml"
+  pull_request:
+    paths:
+      - "schemas/**"
+      - "src/**"
+      - "tests/**"
+      - "scripts/check_ontology_conformance.py"
+      - "scripts/ontology-whitelist-guard.py"
+      - "kg-api-server.py"
+      - "doc/**"
+  schedule:
+    # 06:00 UTC daily — after the nightly edge-density pipeline
+    - cron: "0 6 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  whitelist-guard:
+    # §18.1 (Meadows P0 #8 + Munger P0): wire ontology-whitelist-guard.py
+    # into CI. Pre-commit hook is half-loop only — `git push --no-verify` or
+    # direct merge bypasses it. This job closes the second half of B_MISSING
+    # by running the same guard at push/PR time against added/modified lines.
+    #
+    # Scoped to changed files only to avoid scanning the entire history on
+    # every PR — matches the pre-commit semantics. Scans `.py / .cypher /
+    # .sql / .sh / .md` extensions; whitelist prefixes inside the script
+    # already exempt `schemas/`, `deploy/*/migrations/`, `tests/`, etc.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # need history for `git diff origin/main...HEAD`
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Determine changed files
+        id: changed
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            base="${{ github.event.pull_request.base.sha }}"
+            head="${{ github.event.pull_request.head.sha }}"
+            files=$(git diff --name-only "$base...$head")
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            files=$(git diff --name-only "${{ github.event.before }}...${{ github.event.after }}" 2>/dev/null || git diff --name-only HEAD~1...HEAD)
+          else
+            # schedule / workflow_dispatch — scan a representative slice (paths
+            # the pre-commit hook would have caught) rather than full repo.
+            files=$(git ls-files 'scripts/*.py' 'kg-api-server.py' 'cognebula_mcp.py' 'src/api/*.py')
+          fi
+          echo "$files" | tr '\n' ' '
+          # Persist as multi-line file for next step.
+          {
+            echo "files<<EOF"
+            echo "$files"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Run ontology-whitelist-guard against changed files
+        run: |
+          set -euo pipefail
+          files="${{ steps.changed.outputs.files }}"
+          if [ -z "${files// }" ]; then
+            echo "no changed files in scope — skipping guard"
+            exit 0
+          fi
+          # Pass space-separated; guard handles non-existent paths (skipped silently).
+          # shellcheck disable=SC2086
+          python3 scripts/ontology-whitelist-guard.py $files
+
+  plan-suite:
+    # Offline test plan: ontology structural + semantic invariants.
+    # Runs on every PR; no external services required. Floor-checks the
+    # collected count to prevent silent-empty-parametrize from masking drift.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install pytest fastapi httpx pydantic
+
+      - name: Assert plan-suite collected count >= 10000
+        run: |
+          set -euo pipefail
+          n=$(python3 -m pytest tests/plan/ --collect-only -q 2>&1 | tail -1 | awk '{print $1}')
+          echo "collected=$n"
+          if [ "$n" -lt 10000 ]; then
+            echo "ERROR: plan suite collected only $n tests; expected >= 10000."
+            echo "       Silent-empty-parametrize is the usual cause."
+            exit 1
+          fi
+
+      - name: Run offline plan suite
+        run: python3 -m pytest tests/plan/ -q
+
+      - name: Run capability unit tests
+        run: |
+          python3 -m pytest \
+            tests/test_bitemporal_query.py \
+            tests/test_reasoner.py \
+            tests/test_entity_resolver.py \
+            tests/test_graph_rag.py \
+            tests/test_live_factory.py \
+            tests/test_apply_extension.py \
+            tests/test_provenance_coverage.py \
+            -q
+
+  audit-prod:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Probe production ontology-audit endpoint
+        id: audit
+        env:
+          PROD_URL: ${{ secrets.COGNEBULA_PROD_URL || 'http://167.86.74.172' }}
+          API_KEY: ${{ secrets.KG_API_KEY }}
+        run: |
+          set -euo pipefail
+          python3 scripts/check_ontology_conformance.py \
+            --remote "$PROD_URL" \
+            ${API_KEY:+--api-key "$API_KEY"} \
+            --max-rogue 70 \
+            --max-rogue-edges 100 \
+            | tee audit-output.txt
+        # --max-rogue 70: prod has ~64 node rogue today (Session 69 baseline).
+        #   Tighten as migration Phase 1-4 complete: 70 -> 55 -> 35 -> 15 -> 0.
+        # --max-rogue-edges 100: prod has ~75 REL rogue today (Session 69 post-edge-audit).
+        #   Tighten as Phase 0/4 drop orphan-touching RELs: 100 -> 80 -> 40 -> 0.
+
+      - name: Upload audit report as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ontology-audit
+          path: audit-output.txt
+          retention-days: 30

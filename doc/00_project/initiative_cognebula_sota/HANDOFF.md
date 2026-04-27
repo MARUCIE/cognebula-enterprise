@@ -84,11 +84,13 @@ The audit emits several "REPORTED, NOT GATED" signals (current: `module_mismatch
 
 Materialized in `task_plan.md §15`. MVS-shaped, decoupled-runtime-audit approach to keep per-slice budget under 60 min:
 
-1. **S15.1 Backend A OPTIONS endpoint** — **DONE 2026-04-28** (commit pending). `OPTIONS /api/v1/.well-known/capabilities` added to `kg-api-server.py` returning `{module, deploy_anchor, route_count, routes[]}`. APIKeyMiddleware already exempts OPTIONS for CORS preflight, no auth-whitelist edit needed. TestClient round-trip 200 OK / route_count=28 / endpoint self-includes / `CN_DEPLOY_ANCHOR` env var honored with `'unknown'` fallback. Pre-counted nightly delta = +0 (no test added; per S15.5 OPTIONAL note, runtime probing lives in S15.3 bash CLI not pytest).
-2. **S15.2 Backend B OPTIONS endpoint** — same on `src/api/kg_api.py` (~30 min) — **NOT STARTED**
-3. **S15.3 `scripts/runtime_audit.sh`** — bash CLI taking a base URL, calls OPTIONS, compares declared route set to expected (parsed from `audit_api_contract.py` output) (~45 min) — **NOT STARTED**
-4. **S15.4 Deploy-runbook integration** — wire `runtime_audit.sh` into `deploy/contabo/` post-deploy hook so it runs after `systemctl start kg-api` (~20 min) — **NOT STARTED**
-5. **S15.5 (optional)** — pytest fixture wrapper that spins up backend A in subprocess on a dynamic port, runs runtime_audit.sh against it, asserts zero unreachable paths (~60 min, OPTIONAL — gate is on deploy runbook, not on nightly CI) — **NOT STARTED**
+1. **S15.1 Backend A OPTIONS endpoint** — **DONE 2026-04-28** (commit `e1f65bb`). `OPTIONS /api/v1/.well-known/capabilities` added to `kg-api-server.py` returning `{module, deploy_anchor, route_count, routes[]}`. APIKeyMiddleware already exempts OPTIONS for CORS preflight, no auth-whitelist edit needed. TestClient round-trip 200 OK / route_count=28 / endpoint self-includes / `CN_DEPLOY_ANCHOR` env var honored with `'unknown'` fallback. **Pre-counted nightly test delta = +0** (per S15.5 OPTIONAL note, runtime probing lives in S15.3 bash CLI not pytest).
+2. **S15.2 Backend B OPTIONS endpoint** — mirror S15.1 pattern on `src/api/kg_api.py` (~30 min). **Pre-counted nightly test delta = +0** (same rationale as S15.1; runtime probe lives in S15.3 bash). **NOT STARTED**.
+3. **S15.3 `scripts/runtime_audit.sh`** — bash CLI taking a base URL, calls OPTIONS + samples ≥3 random real routes, compares declared+observed route set to `audit_api_contract.py` parse output (Munger P1: three independent witnesses, not one) (~45 min). **Pre-counted nightly test delta = +0** (script invoked from deploy hook, not pytest; lives in `scripts/` and is shellcheck-linted). **NOT STARTED**.
+4. **S15.4 Deploy-runbook integration** — wire `runtime_audit.sh` into `deploy/contabo/` post-deploy hook so it runs after `systemctl start kg-api` (~20 min). **Pre-counted nightly test delta = +0** (deploy-time gate, not nightly CI). **NOT STARTED**.
+5. **S15.5 (optional)** — pytest fixture wrapper that spins up backend A in subprocess on a dynamic port, runs runtime_audit.sh against it, asserts zero unreachable paths (~60 min, OPTIONAL — gate is on deploy runbook, not on nightly CI). **Pre-counted nightly test delta = +1 IF taken** (single integration test). **NOT STARTED**.
+
+> §18.10 closure: Sprint G4 queue now declares `vertical-slice-pre-counted-test-delta` per-slice. Cumulative delta if S15.1-S15.5 all ship: +1 (S15.5 only).
 
 Decoupling rationale: keeping the audit out of pytest avoids the runtime-fixture-complexity blow-up (port management, async startup, DB seeding). Bash + post-deploy is a smaller capital investment that catches the same class of bugs (backend compiles but deploys wrong).
 

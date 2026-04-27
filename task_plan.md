@@ -153,7 +153,7 @@ SOP 3.2 auto-routed via SOP-RECOMMEND hook [2]. Scope tightened to MVS-pattern: 
 - [x] S9.1.e Audit deliverable written: `outputs/reports/consistency-audit/2026-04-27-sop-3.2-audit.md` (redline format per Maurice preference, TL;DR + 4-surface inventory + 5 findings + bootstrap gap + "what this audit did NOT do")
 - [x] S9.1.f Trivial drift fixes inline — NONE applied (all drift is structural or doc-only requiring SYSTEM_ARCHITECTURE rewrite, both out of MVS slice budget)
 - [x] S9.1.g SYSTEM_ARCHITECTURE.md + notes.md updated with **pointer only** (one paragraph each, NOT rewrite — full sync deferred to S9.2 after Maurice picks merge/split/deprecate option)
-- [ ] S9.1.h Commit `data-quality / sop-3.2: front-back consistency audit baseline`
+- [x] S9.1.h Commit landed: `0bd8675` (`sop-3.2: front-back consistency audit baseline (read-only)`)
 - ⏭ **deferred half** (logged): backend-merge / split-formalization / deprecation decision (Maurice HITL); `scripts/audit_api_contract.py` reproducible probe (Sprint G); `OPTIONS /api/v1/.well-known/capabilities` endpoint + pytest `every frontend fetch path resolves on running backend` (Sprint G); 灵阙 desktop frontend cross-repo audit (separate codebase); MCP tool ↔ backend coverage audit (Sprint H)
 
 ### Out of scope (Sprint F deferred, logged not asked)

@@ -112,7 +112,7 @@ Mutation testing currently covers 3 of 9 audit dimensions (placeholder / duplica
 - [x] S7.F PDCA + notes.md narrative for Sprint E1+E2 (single bundled commit)
   - PDCA `2026-04-27-prod-data-quality-pdca.md`: inserted §P0.8c — Sprint E section between P0.8b Sprint D and P0.9 Sprint C; updated "Final test suite status" table to post Sprint A+B+C+D+E (5,853→5,859 IDs, ~170K→~190K mutation steps, ~222K→~243K effective cases, 42.56s→48.58s nightly empirical)
   - `notes.md`: appended 2026-04-27 Sprint E1+E2 section with 3 invariant table + machine 9 anchor values + Sprint E deferred-half log
-- [ ] S7.F commit `data-quality: Sprint E PDCA + notes sync`
+- [x] S7.F commit landed: `3e17f56` (`data-quality: Sprint E PDCA + notes sync`)
 
 ### Out of scope (deferred, logged not asked)
 - New audit dimensions (P4 orphan_fk_count) — product-level call

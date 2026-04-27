@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>CogNebula Enterprise · SOTA Gap 审计 第4轮 · 2026-04-27</title>
+<style>
+:root {
+  --mck-blue: #003B5C;
+  --mck-blue-light: #0066A1;
+  --mck-grey: #4A4A4A;
+  --mck-grey-light: #9B9B9D;
+  --mck-bg: #FAFAFA;
+  --mck-card: #FFFFFF;
+  --mck-rule: #D8D8D8;
+  --mck-accent: #C8102E;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: "Source Han Serif SC", "Noto Serif SC", Georgia, serif;
+  background: var(--mck-bg);
+  color: var(--mck-grey);
+  line-height: 1.7;
+  font-size: 16px;
+}
+.container { max-width: 1080px; margin: 0 auto; padding: 60px 40px 80px; }
+header {
+  border-top: 6px solid var(--mck-blue);
+  border-bottom: 1px solid var(--mck-rule);
+  padding: 30px 0 20px;
+  margin-bottom: 40px;
+}
+header .eyebrow {
+  font-family: "Helvetica Neue", "PingFang SC", sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  color: var(--mck-blue);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+header h1 {
+  font-size: 32px;
+  color: var(--mck-blue);
+  margin: 0 0 6px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+header .subtitle { color: var(--mck-grey); font-size: 14px; }
+header .meta {
+  margin-top: 20px;
+  font-size: 13px;
+  color: var(--mck-grey-light);
+  font-family: "Helvetica Neue", "PingFang SC", sans-serif;
+}
+header .meta strong { color: var(--mck-grey); font-weight: 600; }
+.exec-summary {
+  background: var(--mck-card);
+  border-left: 6px solid var(--mck-blue);
+  padding: 30px 36px;
+  margin: 40px 0 50px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.exec-summary h2 {
+  font-family: "Helvetica Neue", "PingFang SC", sans-serif;
+  font-size: 13px;
+  color: var(--mck-blue);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin: 0 0 20px;
+}
+.exec-summary ol { padding-left: 24px; margin: 0; }
+.exec-summary li { margin-bottom: 14px; }
+.exec-summary li strong { color: var(--mck-blue); }
+h2.section {
+  font-size: 22px;
+  color: var(--mck-blue);
+  border-bottom: 2px solid var(--mck-blue);
+  padding-bottom: 8px;
+  margin: 50px 0 24px;
+  font-weight: 700;
+}
+h3 {
+  font-size: 17px;
+  color: var(--mck-blue);
+  margin: 30px 0 12px;
+  font-weight: 600;
+}
+h4 {
+  font-family: "Helvetica Neue", "PingFang SC", sans-serif;
+  font-size: 13px;
+  color: var(--mck-blue);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 22px 0 8px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 18px 0 24px;
+  font-size: 14px;
+  background: var(--mck-card);
+}
+th {
+  background: var(--mck-blue);
+  color: white;
+  font-family: "Helvetica Neue", "PingFang SC", sans-serif;
+  font-weight: 500;
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+}
+td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--mck-rule);
+  vertical-align: top;
+}
+tr:nth-child(even) td { background: #F4F7FA; }
+.delta-good { color: #1E7A3D; font-weight: 600; }
+.delta-bad { color: var(--mck-accent); font-weight: 600; }
+.delta-flat { color: var(--mck-grey-light); }
+.callout {
+  background: #F0F6FB;
+  border-left: 4px solid var(--mck-blue-light);
+  padding: 16px 22px;
+  margin: 18px 0;
+  font-size: 14px;
+}
+.callout.warn {
+  background: #FCF3F4;
+  border-left-color: var(--mck-accent);
+}
+.callout strong { color: var(--mck-blue); }
+.callout.warn strong { color: var(--mck-accent); }
+code {
+  font-family: "JetBrains Mono", "SF Mono", Consolas, monospace;
+  background: #F0F0F0;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 13px;
+}
+pre {
+  background: #1E2530;
+  color: #E0E6ED;
+  padding: 18px 22px;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-family: "JetBrains Mono", "SF Mono", monospace;
+  font-size: 13px;
+  line-height: 1.65;
+  letter-spacing: 0.02em;
+  margin: 14px 0 20px;
+}
+.advisor-block {
+  background: var(--mck-card);
+  border-top: 3px solid var(--mck-blue-light);
+  padding: 22px 26px;
+  margin: 18px 0;
+}
+.advisor-block .advisor-name {
+  font-family: "Helvetica Neue", "PingFang SC", sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  color: var(--mck-blue);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.advisor-block .advisor-h {
+  font-size: 18px;
+  color: var(--mck-blue);
+  margin: 0 0 14px;
+  font-weight: 600;
+}
+.quote {
+  border-left: 3px solid var(--mck-blue);
+  padding: 6px 18px;
+  font-style: italic;
+  color: var(--mck-grey);
+  margin: 14px 0;
+  font-size: 14px;
+}
+.kpi-row {
+  display: flex;
+  gap: 18px;
+  margin: 24px 0 30px;
+  flex-wrap: wrap;
+}
+.kpi-card {
+  flex: 1 1 220px;
+  background: var(--mck-card);
+  border-top: 4px solid var(--mck-blue);
+  padding: 20px 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.kpi-card .label {
+  font-family: "Helvetica Neue", "PingFang SC", sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--mck-grey-light);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.kpi-card .value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--mck-blue);
+  font-family: "Helvetica Neue", "PingFang SC", sans-serif;
+}
+.kpi-card .sub { font-size: 12px; color: var(--mck-grey); margin-top: 6px; }
+.kpi-card.warn { border-top-color: var(--mck-accent); }
+.kpi-card.warn .value { color: var(--mck-accent); }
+.timeline {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 12px 22px;
+  margin: 18px 0;
+  font-size: 14px;
+}
+.timeline .week {
+  font-family: "Helvetica Neue", "PingFang SC", sans-serif;
+  font-weight: 600;
+  color: var(--mck-blue);
+  padding-top: 4px;
+}
+.timeline .item {
+  background: var(--mck-card);
+  border-left: 3px solid var(--mck-blue-light);
+  padding: 12px 16px;
+}
+.no-go {
+  background: #FCF3F4;
+  border-left: 4px solid var(--mck-accent);
+  padding: 18px 22px;
+  margin: 16px 0;
+  font-size: 14px;
+}
+.no-go ul { margin: 8px 0 0; padding-left: 22px; }
+.no-go li { margin-bottom: 6px; color: var(--mck-grey); }
+.no-go strong { color: var(--mck-accent); }
+.no-go ul { list-style: none; padding-left: 0; }
+.no-go li { position: relative; padding-left: 22px; }
+.no-go li::before {
+  content: "×";
+  position: absolute; left: 0; top: 0;
+  color: var(--mck-accent); font-weight: 700;
+  font-family: "Helvetica Neue", "PingFang SC", sans-serif;
+  font-size: 18px; line-height: 1.4;
+}
+footer {
+  text-align: center;
+  padding: 60px 20px 40px;
+  color: var(--mck-grey-light);
+  font-size: 13px;
+  line-height: 2.2;
+  border-top: 1px solid var(--mck-rule);
+  margin-top: 60px;
+  font-family: "Helvetica Neue", "PingFang SC", sans-serif;
+}
+footer p { margin: 4px 0; }
+@media (max-width: 720px) {
+  .container { padding: 40px 20px 60px; }
+  header h1 { font-size: 24px; }
+  .kpi-row { gap: 12px; }
+  .kpi-card { flex: 1 1 160px; padding: 16px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <div class="eyebrow">CogNebula Enterprise · 本体审计蜂群 · 第 4 轮</div>
+  <h1>SOTA 差距审计 · Stub-Backfill 根因分析</h1>
+  <div class="subtitle">5 顾问并行 · Hara · Hickey · Meadows · Munger · Drucker</div>
+  <div class="meta">
+    <strong>日期</strong> 2026-04-27 ·
+    <strong>前次审计</strong> 2026-04-25 第 3 轮 ·
+    <strong>生产快照</strong> https://ops.hegui.org ·
+    <strong>composite gate</strong> FAIL · severity HIGH
+  </div>
+</header>
+
+<div class="kpi-row">
+  <div class="kpi-card">
+    <div class="label">节点总数</div>
+    <div class="value">551,682</div>
+    <div class="sub">较 2026-04-25 +3,921</div>
+  </div>
+  <div class="kpi-card warn">
+    <div class="label">canonical 真实填充</div>
+    <div class="value">15 / 35</div>
+    <div class="sub">20 个 EMPTY 或 stub（&lt;50 行）</div>
+  </div>
+  <div class="kpi-card warn">
+    <div class="label">over_ceiling_by</div>
+    <div class="value">+62</div>
+    <div class="sub">较 2026-04-25 +16，更糟</div>
+  </div>
+  <div class="kpi-card">
+    <div class="label">session 累计花费</div>
+    <div class="value">$0.84</div>
+    <div class="sub">钱包 2.03%（$41.53）</div>
+  </div>
+</div>
+
+<div class="exec-summary">
+  <h2>执行摘要 · Executive Summary</h2>
+  <ol>
+    <li><strong>Round-3 anti-pattern #1 在 48 小时内被触发。</strong>
+      <code>schemas/extensions/v4.2.0_create_missing_canonicals.cypher</code> 文件第 4 行字面写道"creates them as empty stubs (DDL-only, no data writes)"。结果：<code>intersection</code> 从 19/35 表面达到 35/35，但 <strong>20/35（57%）canonical 类型为空（10 个 0 行）或 stub（10 个 ≤50 行）</strong>。C1 比率被纯 DDL 刷高（Goodhart 陷阱），且无 git commit 记录此次部署。
+    </li>
+    <li><strong>Round-3 四大应用层差距基本未动。</strong> 仅 Region 关闭（31→3,565）；TaxCalculationRule 73→133（部分 1.8 倍）；INTERPRETS 390K + KU_ABOUT_TAX 166K 完全未动；AccountingSubject 159 / BusinessActivity 204 / TaxRate 9K 完全未动。<strong>4 天内真实数据进度约 25%，剩 75% 完整保留，且新增 20 个 stub 类型债务。</strong>
+    </li>
+    <li><strong>Stage 2 LLM 评测（waves 27-40，累计 $0.84）确认架构天花板。</strong> dual-Pro 在前 20 例中 anchor_recall 提升完全相同（gemini-3.1-pro 与 gpt-5.5 各 +0.150 — 跨厂商独立验证），证明检索曲面已被模型饱和、不是容量瓶颈。但 composite 天花板约 0.31，距 SOTA Claude 0.70 仍有 39pp。
+    </li>
+    <li><strong>知识库规范化审计：用户假设证伪。</strong> 源语料是 196 MB 原始 JSON（<code>data/extracted/</code> 128 个 JSON / 0 md；<code>data/compliance-matrix/</code> 228 个 JSON / 0 md），<strong>没有 md 化</strong>。KG 数据库本身有 VPS 卷快照备份（<code>gdrive:VPS-Backups/kg-node/</code>），但<strong>源语料无独立 GDrive 备份</strong>，仅靠 git。
+    </li>
+    <li><strong>5 lens 一致诊断：Round-3 警告是文字而非强制 — 唯一持久修复是机械化 gating。</strong> 5 顾问独立收敛于：(a) 30 天 STOP-and-fill 配新 C1_min50 度量；(b) 删 3 张承认是垃圾的表 + 撤回 3 个 schema 滥造；(c) 下周一 ship INTERPRETS_DEFINES 拆分；(d) 把 eval composite 换成客户成果指标。
+    </li>
+  </ol>
+</div>
+
+<h2 class="section">1 · 实测状态对比 2026-04-25 → 2026-04-27</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width:32%">指标</th>
+      <th style="width:20%">2026-04-25</th>
+      <th style="width:20%">2026-04-27</th>
+      <th style="width:28%">变化</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>节点总数</td><td>547,761</td><td>551,682</td><td class="delta-good">+3,921</td></tr>
+    <tr><td>边总数</td><td>1,302,476</td><td>1,302,679</td><td class="delta-flat">+203</td></tr>
+    <tr><td>node 表数（已填充）</td><td>62</td><td>71</td><td class="delta-bad">+9</td></tr>
+    <tr><td>canonical 交集（intersection）</td><td>19/35</td><td><strong>35/35</strong></td><td class="delta-bad">+16（伪造，见 §2）</td></tr>
+    <tr><td><code>missing_from_prod</code></td><td>16 类</td><td><code>[]</code></td><td class="delta-bad">-16（伪造）</td></tr>
+    <tr><td><code>over_ceiling_by</code></td><td>+46</td><td><strong>+62</strong></td><td class="delta-bad">+16（更糟）</td></tr>
+    <tr><td>rogue 表数</td><td>43</td><td>64</td><td class="delta-bad">+21（更糟）</td></tr>
+    <tr><td>INTERPRETS 边数</td><td>390,756</td><td>390,756</td><td class="delta-flat">0</td></tr>
+    <tr><td>KU_ABOUT_TAX 边数</td><td>166,466</td><td>166,466</td><td class="delta-flat">0</td></tr>
+    <tr><td>TaxRate 行数</td><td>9,000</td><td>9,000</td><td class="delta-flat">0（目标 15-18K）</td></tr>
+    <tr><td>Region 行数</td><td>31</td><td>3,565</td><td class="delta-good">+3,534（已关闭）</td></tr>
+    <tr><td>AccountingSubject 行数</td><td>159</td><td>159</td><td class="delta-flat">0（目标 1,500-2,000）</td></tr>
+    <tr><td>BusinessActivity 行数</td><td>204</td><td>204</td><td class="delta-flat">0（目标 1,500）</td></tr>
+    <tr><td>TaxCalculationRule 行数</td><td>73</td><td>133</td><td class="delta-good">+60</td></tr>
+    <tr><td>FilingFormField 行数</td><td>0</td><td>88</td><td class="delta-good">+88（目标 1,400-2,100）</td></tr>
+    <tr><td>composite gate</td><td>FAIL HIGH</td><td>FAIL HIGH</td><td class="delta-flat">unchanged</td></tr>
+  </tbody>
+</table>
+
+<div class="callout warn">
+  <strong>核心读数</strong>：本体表面被重构得"看起来完整"，底层数据缺口几乎未变。该清单中唯一通过实际数据 ingest 实现的进步是 Region（已通过 <code>seed_region.py</code> 关闭）。
+</div>
+
+<h2 class="section">2 · 空壳回填反模式：Round-3 警告为何被绕过</h2>
+
+<h3>2.1 部署内容</h3>
+
+<p><code>schemas/extensions/v4.2.0_create_missing_canonicals.cypher</code>（97 行，全 DDL）：</p>
+
+<pre>// Audit (2026-04-25 08:14Z) identified 16 of 35 canonical types absent in prod;
+// this file creates them as empty stubs (DDL-only, no data writes).
+//
+// CREATE NODE TABLE IF NOT EXISTS PolicyChange(...)
+// CREATE NODE TABLE IF NOT EXISTS TaxTreaty(...)
+// ... 14 more tables, all empty</pre>
+
+<p>16 张创建的表中，10 张今天仍为 0 行（ComplianceRule, IndustryBenchmark, InvoiceRule, PolicyChange, ResponseStrategy, RiskIndicator, SocialInsuranceRule, TaxItem, TaxLiabilityTrigger, TaxTreaty）。另外 10 张本就存在的 canonical 类型行数 ≤50（canonical "TINY" 层）。</p>
+
+<h3>2.2 Goodhart 循环（Meadows lens）</h3>
+
+<pre>Round 3 处方：    gate FAIL → 修真实数据缺口 → gate PASS
+实际发生：        gate FAIL → 加 DDL stub → 比率↑ → gate PASS（伪造）</pre>
+
+<p>度量 <code>intersection_count / total_expected_tables</code> 有一个自由度（DDL 单独就能加分子）。系统在 48 小时内利用了这个自由度。这是 Goodhart 经典变体：<strong>当度量变成目标，度量就不再是好的度量</strong>。</p>
+
+<h3>2.3 漏过原因（Munger lollapalooza）</h3>
+
+<table>
+  <thead><tr><th>认知偏差</th><th>具体表现</th></tr></thead>
+  <tbody>
+    <tr><td>Incentive-caused bias 激励偏差</td><td>C1 比率是可见 KPI；"修 C1"在仪表板上比"关闭差距"更醒目</td></tr>
+    <tr><td>Doing-something bias 行动偏差</td><td>Round 3 后 4 天无差距关闭 → 心理压力 → ship "任何东西"压住报警</td></tr>
+    <tr><td>Authority-without-enforcement 权威无强制</td><td>警告写在报告里，没有进入部署管线。软警告 + 无后果 + 重复出现 = 被忽视</td></tr>
+  </tbody>
+</table>
+
+<p>Round-3 文档的 anti-pattern (a) 是完全且正确的预测。它被忽视不是因为它错，而是因为<strong>文字警告不是强制原语（enforcement primitives）</strong>。</p>
+
+<h3>2.4 stub-backfill 启用的 3 个新失败模式</h3>
+
+<ol>
+  <li><strong>幻觉推理曲面（HIGH）</strong>：下游 agent 通过 MCP 查询 20 个 thin 类型，得到 0 或 50 行结果，然后要么(a) 幻觉填补、要么(b) 静默降质。可证伪：7 天内记录 MCP 对 20 个 thin 类型的查询，若 ≥5% 返回 &lt;10 行 → 失败已发生。</li>
+  <li><strong>审计链路洗白（HIGH）</strong>：out-of-band 部署无 git commit → provenance 已坏。任何成员被问"v4.2.0 何时 ship?"无法在 30 秒内说出 SHA。</li>
+  <li><strong>SOTA 提交诱惑加速（MEDIUM-HIGH）</strong>：35/35 intersection 被 60 天后的读者（包括团队自己）读为"canonical 完整"。anti-pattern (b)（过早 LegalBench-Tax 提交）变得 2 倍更可能，因为表面绿灯移除了最后一个可见 blocker。</li>
+</ol>
+
+<h2 class="section">3 · 5 顾问审计结果</h2>
+
+<div class="advisor-block">
+  <div class="advisor-name">advisor · Hara — 结构最小化</div>
+  <h3 class="advisor-h">DELETE 而非 DEFER</h3>
+
+  <h4>TOP-3 删除候选（承认是垃圾，立即删）</h4>
+  <ol>
+    <li><strong>RiskIndicator (463 行) + AuditTrigger (463 行)</strong> — <code>ontology_v4.2.cypher</code> 文件头自身写明"superseded by V2 counterpart"。它们的 V2 已存在。<strong>schema 作者本人已认定为垃圾。</strong></li>
+    <li><strong>CPAKnowledge (7,371 行, quality_score=0.0)</strong> — 零域信号，从未被用过任何真事，只占 live=99 的表槽位。</li>
+    <li><strong>MindmapNode (28,526 行, "no content by design")</strong> — 整个审计中最诚实的条目：明知不会承载任何信号也要建。SaaS 产品 artifact 被运到知识图谱里。B4 fold 自 Round 1 以来一直 "NOT TRIGGERED" — 现在触发。</li>
+  </ol>
+
+  <h4>TOP-3 schema 滥造承认（DROP TABLE）</h4>
+  <ol>
+    <li><strong>TaxTreaty</strong> — 多司法管辖扩展是明确禁止的 anti-pattern A2（金税四期 &gt;90% 且 ≥1 付费 CN 客户续签前不允许）。为禁止方向建空 stub = schema 形式的自相矛盾。</li>
+    <li><strong>ResponseStrategy</strong> — <code>recommendedSteps STRING</code> 载荷是咨询散文，不是图可查询结构。任何 SOTA 税务 KG（TaxLOD / ONESOURCE / Bloomberg Tax）都不带此类型。</li>
+    <li><strong>TaxLiabilityTrigger</strong> — 功能上等于 ComplianceRule + TaxCalculationRule 已有覆盖。语义重复假装精确。</li>
+  </ol>
+
+  <h4>KEEP-AND-FILL（90 天硬期限）</h4>
+  <p>剩余 7 个空类型 — TaxItem · DeductionRule · InvoiceRule · SocialInsuranceRule · JournalEntryTemplate · FilingFormField · TaxAccountingGap — 由灵阙变现路径与 Gap 4 计算原子目标合理化。<strong>"留"= 90 天内有一行进来或被删除。没有永久空 stub。</strong></p>
+
+  <div class="quote">"描述什么可以被知道的图谱不是知识图谱 — 它是一个带 schema 的愿望清单。"</div>
+</div>
+
+<div class="advisor-block">
+  <div class="advisor-name">advisor · Hickey — 解耦（complecting）</div>
+  <h3 class="advisor-h">形式 vs 实质</h3>
+
+  <p><strong>诊断</strong>：INTERPRETS 两天没动是因为"拆 INTERPRETS"被当作<strong>一个大重构</strong>（39 万行 + 分类器重写 + 本体委员会）而非<strong>一系列原子可 ship 的解耦</strong>。stub-DDL 20 张表是同一反模式的本体级放大：易（熟悉的 DDL）赢，简（实质）输。</p>
+
+  <h4>下周一可 ship 的动作</h4>
+  <p>用 5 个高精度词法标记拆 <code>INTERPRETS_DEFINES</code>（约 14 万边，35-40% 剥离）：</p>
+
+<pre>MATCH (s)-[r:INTERPRETS]-&gt;(t:Term|Definition|Concept)
+WHERE r.source_clause CONTAINS '是指'
+   OR r.source_clause CONTAINS '所称'
+   OR r.source_clause CONTAINS '本办法所称'
+   OR r.source_clause CONTAINS '定义为'
+SET r:INTERPRETS_DEFINES</pre>
+
+  <p>一条 Cypher MATCH+SET 迁移搞定，不需要分类器重写。<strong>下周一前可测目标</strong>：INTERPRETS 39 万 → ~25 万，INTERPRETS_DEFINES ~14 万，定义类查询的 anchor_recall +0.05 以上。</p>
+
+  <h4>检索/打分中被缠在一起的</h4>
+  <p><code>anchor_recall@1</code> 与 <code>predicate_diversity@2</code> 缠在 composite 里。两个 Pro 都 +0.150 是因为一跳定位被模型饱和；0.31 天花板住在<strong>二跳</strong>，因为 30% 的边都叫 INTERPRETS — 检索器在第二跳实际只有一个谓词可选，无法区分"定义"/"引用"/"修订"。<strong>把 anchor_recall@1 与 traversal_precision@2 独立打分，瓶颈就藏不住了。</strong></p>
+
+  <div class="quote">"这周删一根麻花辫，胜过下个季度做一份完美本体。"</div>
+</div>
+
+<div class="advisor-block">
+  <div class="advisor-name">advisor · Meadows — 杠杆点 #8</div>
+  <h3 class="advisor-h">Balancing Loop 抗 gaming 强度</h3>
+
+  <p><strong>主导循环</strong>（REINFORCING，退化）：<code>gate FAIL → DDL stub → 比率伪造 → gate PASS → 空节点积累 → 真差距扩大 → 下轮 gate FAIL 更深</code></p>
+
+  <p><strong>杠杆点</strong>：#8（Balancing Feedback Loop Strength）— "gate→fix"循环存在但被短路；强化它对 gaming 的抵抗力比改度量（#12）或改 schema（#10）更强大。</p>
+
+  <h4>抗 gaming 度量（加入 <code>tests/test_kg_gate.py</code>）</h4>
+
+<pre>def test_no_empty_canonical_tables():
+    """Stub-backfill 探测器：任何 C1 表 &lt;50 行都是 DDL-only ghost"""
+    C1_EXPECTED = ["INTERPRETS", "KU_ABOUT_TAX", "AccountingSubject",
+                   "RegulationArticle", "ComplianceRule"]
+    ghosts = []
+    for t in C1_EXPECTED:
+        n = db.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]
+        if n &lt; 50:
+            ghosts.append(f"{t}({n})")
+    assert not ghosts, f"先填数据：{ghosts}"
+
+def test_c1_canonical_min50():
+    MIN_ROWS = {"INTERPRETS": 300_000, "KU_ABOUT_TAX": 100_000,
+                "AccountingSubject": 1_000, "DEFAULT": 50}
+    for table, min_r in MIN_ROWS.items():
+        count = db.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+        assert count &gt;= min_r, f"{table}: {count} 行 &lt; 阈值 {min_r}"</pre>
+
+  <p>这两个 test 不能被 DDL 单独满足。它们强制真实数据流。</p>
+
+  <h4>最缺的反馈循环：corpus → KG（黑洞）</h4>
+
+  <table>
+    <thead><tr><th>循环</th><th>当前状态</th><th>影响</th></tr></thead>
+    <tbody>
+      <tr><td><strong>corpus → KG</strong></td><td>完全不透明。128 + 228 个 JSON 文件，零"文件→生成节点数"计数</td><td class="delta-bad">CRITIQUE</td></tr>
+      <tr><td>KG → eval</td><td>部分。eval 存在（waves 27-40），composite 已计算</td><td class="delta-flat">中</td></tr>
+      <tr><td>eval → retrieval</td><td>已诊断。pivot W6 推荐但未执行</td><td class="delta-flat">弱（下游已 block）</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>结构性变更</strong>：加 <code>data/ingestion-manifest.jsonl</code>，每次 ingest 写一行：<code>{ts, source_file, rows_written: {table: count}, duration_s}</code>。CI gate 读 manifest：mtime &lt;48h 的源文件必须显示 rows_written 大于阈值。<strong>无 manifest → gate 立即 FAIL。manifest 显示 0 行 → FAIL。</strong> 关闭 stub 打开的循环。</p>
+</div>
+
+<div class="advisor-block">
+  <div class="advisor-name">advisor · Munger — 反向（机械化非劝诫）</div>
+  <h3 class="advisor-h">STOP 规则</h3>
+
+  <p><strong>为什么 anti-pattern (a) 在明确警告下仍被应用</strong>：团队优化了一个可测代理（intersection 比率）而非底层属性（带真实数据的 canonical 覆盖）。Goodhart 定律 48 小时执行完毕，由"无 commit 的 out-of-band 部署"润滑 — 因为有人知道它过不了 code review。</p>
+
+  <div class="callout warn">
+    <strong>STOP 规则（操作性）</strong>：
+    冻结所有新 schema、新 eval run 与架构工作，直到：(1) <code>canonical_coverage_ratio</code> 重新定义为 <code>Σ(row_count &gt; 1000) / 35</code>；(2) 新数值发布到 gate 仪表板。该数值 &lt;0.50 时，唯一允许的工作是向 20 个 thin 类型 ingest 数据；其他一切（推理引擎、多司法管辖、LegalBench、LLM tuning）冻结至新度量越过 0.50。
+  </div>
+
+  <div class="quote">"Round-3 警告失败不是因为它错，而是因为它活在散文里。不让 build 失败的警告不改变行为 — 它们成为团队在它们预测的失败发生后引用的不在场证明文档。"</div>
+</div>
+
+<div class="advisor-block">
+  <div class="advisor-name">advisor · Drucker — 客户价值</div>
+  <h3 class="advisor-h">今日的客户是谁？</h3>
+
+  <p><strong>CogNebula Enterprise 今天的客户</strong>：<strong>Maurice 自己，做内部 eval 基准测试</strong>。零外部客户在 production 中查询过这个 KG。</p>
+
+  <h4>填补缺失数据可解锁的 3 个客户问题</h4>
+  <ol>
+    <li><strong>代理记账公司老板（yiclaw B2B2C 目标客户）</strong>："本月增值税应纳税额是否触及小规模→一般纳税人 500 万认定门槛?" — 需要完整 TaxRate + FilingFormField。AccountingSubject 空 = Agent 无法做账科映射 = 自动代账 zero deliverable。</li>
+    <li><strong>灵阙平台 Agent（内部工具调用客户）</strong>："行业分类代码 6940 对应的合规检查清单?" — 需要 BusinessActivity 204 → 1,500（GB/T 4754 完整）。没有这个，灵阙 15 个 Agent 调 KG = 查到空集 = 降级为 LLM 内部知识幻觉。</li>
+    <li><strong>代账公司经理（质检 16-24 日窗口）</strong>："客户 A 资产负债表科目余额异常波动科目?" — 需要 AccountingSubject 完整 + INTERPRETS 谓词从"垃圾桶"转为有语义的关系。</li>
+  </ol>
+
+  <h4>商业裁决：RETHINK — 条件性继续，强制方向切换</h4>
+  <p>6 个月填数据 + 跑 eval，零端到端客户演示。Drucker 法则：<strong>如果你说不出"哪个客户今天用了它做了什么"，这是研究项目，不是产品基建。</strong></p>
+
+  <p><strong>继续投资的唯一条件</strong>：30 天客户成果目标 = "<strong>yiclaw 可以跑完一家真实企业 1 月份的增值税申报全流程，无需人工干预</strong>"。需要 AccountingSubject 1,500（公开数据，企业会计准则）+ FilingFormField 1,400（公开数据，增值税申报表）— 两者都可批量脚本导入。</p>
+
+  <p><strong>30 天目标未达成 → 冻结 KG 投资，把灵阙切换为 LLM-only 路径</strong>（Gemini Flash + 结构化提示词），用真实客户先证明平台价值，再回头决定 KG 是否继续填充。</p>
+
+  <div class="quote">优先序 yiclaw &gt; 灵阙 &gt; creatorlens。yiclaw 的代账场景最直接依赖 KG 账科数据，且客户研究已完成 — 你知道谁在付钱（代理记账公司），你知道他们的痛点（41 任务月度工作流）。</div>
+</div>
+
+<h2 class="section">4 · 知识库语料 + 备份审计（用户问题）</h2>
+
+<h3>4.1 规范化状态</h3>
+
+<table>
+  <thead><tr><th>目录</th><th>大小</th><th>.md</th><th>.json</th><th>.其他</th></tr></thead>
+  <tbody>
+    <tr><td><code>data/extracted/</code></td><td>104 MB</td><td>0</td><td>128</td><td>3 (.txt)</td></tr>
+    <tr><td><code>data/compliance-matrix/</code></td><td>56 MB</td><td>0</td><td>228</td><td>0</td></tr>
+    <tr><td><code>data/asbe/</code></td><td>512 KB</td><td>?</td><td>?</td><td>?</td></tr>
+    <tr><td><code>data/backfill/</code></td><td>36 MB</td><td>?</td><td>?</td><td>?</td></tr>
+  </tbody>
+</table>
+
+<div class="callout warn">
+  <strong>用户假设"全部 md 化"被证伪</strong>：196 MB 源语料是裸 JSON，前两大目录中 0 个 md 文件（合计 356 个 JSON 文件）。
+</div>
+
+<h3>4.2 GDrive 备份状态</h3>
+
+<table>
+  <thead><tr><th>资产</th><th>备份状态</th></tr></thead>
+  <tbody>
+    <tr><td>KG production database</td><td class="delta-good">✓ <code>gdrive:VPS-Backups/kg-node/</code> + <code>kg-node-eu/</code>（卷快照）</td></tr>
+    <tr><td>源语料（JSON 文件）</td><td class="delta-bad">✗ 无独立备份 — 只走 git</td></tr>
+    <tr><td>schema 文件</td><td class="delta-good">✓ via git</td></tr>
+    <tr><td>eval 结果</td><td class="delta-flat">✗ 未跟踪 <code>benchmark/results_*.json</code>（仓库惯例 git-ignored）</td></tr>
+  </tbody>
+</table>
+
+<div class="callout warn">
+  <strong>单点失败风险</strong>：git 远程 + VPS 同时丢失 → 196 MB 源语料丢失。<strong>建议添加</strong>：<code>rclone sync data/extracted data/compliance-matrix gdrive:VPS-Backups/cognebula-corpus/$(date +%Y-%m-%d)/</code> 每周。
+</div>
+
+<h2 class="section">5 · 统一推荐 — 30 天 STOP-and-Fill 冲刺</h2>
+
+<p>合成 5 lens（每条都通过至少 2 lens 交叉验证）：</p>
+
+<div class="timeline">
+  <div class="week">第 1 周</div>
+  <div class="item"><strong>机械化强制（消除 stub-backfill 重复性）</strong><br>
+    1. 加 <code>tests/test_no_empty_canonical_tables</code> + <code>test_c1_canonical_min50</code>（Meadows + Munger）<br>
+    2. 重新定义 <code>canonical_coverage_ratio</code> 为 <code>Σ(row_count &gt; 1000) / 35</code>（Munger）<br>
+    3. 删 3 张承认垃圾的表（Hara）：RiskIndicator · CPAKnowledge · MindmapNode<br>
+    4. 移除 3 个 schema 滥造的 stub（Hara）：DROP TABLE TaxTreaty · ResponseStrategy · TaxLiabilityTrigger<br>
+    5. ship INTERPRETS_DEFINES 拆分（Hickey）— 5 标记 Cypher 迁移，目标 ~14 万边剥离<br>
+    6. 备份源语料：<code>rclone sync data/extracted data/compliance-matrix gdrive:VPS-Backups/cognebula-corpus/2026-04-27/</code>
+  </div>
+
+  <div class="week">第 2-3 周</div>
+  <div class="item"><strong>纯数据 ingestion（无架构、无 schema、无 eval）</strong><br>
+    7. AccountingSubject 159 → 1,500（企业会计准则 + 小企业会计准则批量导入）<br>
+    8. BusinessActivity 204 → 1,500（GB/T 4754 国民经济行业分类批量导入）<br>
+    9. FilingFormField 88 → 1,400（增值税申报表 + CIT 申报表 字段 schema）<br>
+    10. 加 ingestion manifest（Meadows）：每个 seed/import 脚本写 <code>data/ingestion-manifest.jsonl</code>
+  </div>
+
+  <div class="week">第 4 周</div>
+  <div class="item"><strong>客户成果测试（Drucker）</strong><br>
+    11. yiclaw 在一家真实企业上做端到端增值税申报演示：原始凭证收集 → 账科映射 → 申报表填充 → 交叉核对 → 输出申报包。<br>
+    <strong>通过 = 零人工干预</strong>。<strong>失败 = 冻结 KG，灵阙转 LLM-only。</strong>
+  </div>
+</div>
+
+<h2 class="section">6 · NOT 做的事（明确 no-go 清单）</h2>
+
+<div class="no-go">
+  <ul>
+    <li><strong>任何新 canonical 类型</strong>（30 天内 schema 不增加）</li>
+    <li><strong>INTERPRETS 完整重构</strong>（本月只做 DEFINES 拆分）</li>
+    <li><strong>多司法管辖扩展</strong>（anti-pattern A2 仍生效）</li>
+    <li><strong>推理引擎 bolt-on</strong>（anti-pattern A4 仍生效）</li>
+    <li><strong>LegalBench-Tax 提交</strong>（anti-pattern A2 仍生效；SOTA 差距 39pp）</li>
+    <li><strong>Stage 3 LLM eval</strong>（Stage 2 verdict = MARGINAL ROI；改追客户成果）</li>
+    <li><strong>第 5 次架构审计</strong>（第 4 次已是 diminishing returns；机械化强制 &gt; 更多诊断）</li>
+  </ul>
+</div>
+
+<h2 class="section">7 · 预期终态（2026-05-27）</h2>
+
+<ul>
+  <li>所有 35 canonical 类型 row_count &gt; 1,000（或被删除如不被客户合理化）</li>
+  <li>INTERPRETS 从 39 万降到 &lt;25 万，INTERPRETS_DEFINES 承载约 14 万</li>
+  <li>yiclaw 真实客户增值税申报演示：通过 / 失败</li>
+  <li>新 gate test 阻止下一次 stub-backfill 回归</li>
+</ul>
+
+<h2 class="section">8 · 累计 session 经济</h2>
+
+<table>
+  <thead><tr><th>阶段</th><th>支出</th><th>累计</th></tr></thead>
+  <tbody>
+    <tr><td>Waves 27-39e（5 baselines + W6-lite）</td><td>$0.4565</td><td>$0.4565</td></tr>
+    <tr><td>Wave 40 Stage 2 dual-Pro（gemini + gpt-5.5）</td><td>$0.3871</td><td>$0.8436</td></tr>
+    <tr><td>第 4 轮审计（5-lens 蜂群，本报告）</td><td>$0（Claude Sonnet local）</td><td>$0.8436</td></tr>
+    <tr><td><strong>合计</strong></td><td>—</td><td><strong>$0.84（钱包 2.03%，$41.53）</strong></td></tr>
+  </tbody>
+</table>
+
+<p>第 4 轮审计 API 支出 $0，产出了 4 轮中信号最强的推荐集。<strong>机械化强制是新的投资方向</strong>；在强制原语存在之前，进一步架构诊断是 diminishing returns。</p>
+
+<footer>
+  <p>CogNebula Enterprise · 第 4 轮 SOTA Gap 审计 · McKinsey Blue 风格</p>
+  <p>Maurice | maurice_wen@proton.me</p>
+  <p style="font-size:12px; margin-top:8px;">2026-04-27 · 数据来源：https://ops.hegui.org · 5-lens swarm（Hara/Hickey/Meadows/Munger/Drucker）· local Claude Sonnet</p>
+</footer>
+
+</div>
+</body>
+</html>

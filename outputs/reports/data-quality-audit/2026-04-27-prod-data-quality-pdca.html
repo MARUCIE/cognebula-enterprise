@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>数据质量审计 PDCA 交付 · 2026-04-27 · CogNebula PROD</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root {
+  --bb-bg: #0E0E0E;
+  --bb-panel: #161616;
+  --bb-grid: #1F1F1F;
+  --bb-border: #2A2A2A;
+  --bb-text: #E8E8E8;
+  --bb-text-mute: #9A9A9A;
+  --bb-text-deep-mute: #5A5A5A;
+  --bb-orange: #FF6B00;
+  --bb-orange-dim: #C95400;
+  --bb-amber: #FFB400;
+  --bb-green: #00C853;
+  --bb-red: #E53935;
+  --bb-cyan: #00B8D4;
+  --bb-blue: #2962FF;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bb-bg);
+  color: var(--bb-text);
+  font-family: 'JetBrains Mono', 'SF Mono', 'Menlo', Consolas, ui-monospace, monospace;
+  font-size: 13.5px;
+  line-height: 1.65;
+  letter-spacing: 0.005em;
+}
+.shell {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 32px 28px 60px;
+}
+.headbar {
+  border: 1px solid var(--bb-border);
+  background: linear-gradient(90deg, var(--bb-panel), #1A1A1A 60%, var(--bb-panel));
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.headbar .crumb { color: var(--bb-text-mute); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; }
+.headbar h1 {
+  margin: 4px 0 0;
+  font-size: 22px;
+  letter-spacing: 0.02em;
+  font-weight: 500;
+  color: var(--bb-text);
+}
+.verdict-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border: 1px solid var(--bb-amber);
+  color: var(--bb-amber);
+  background: rgba(255, 180, 0, 0.06);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+.verdict-pill .dot { width: 8px; height: 8px; background: var(--bb-amber); }
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  margin-bottom: 28px;
+}
+@media (max-width: 1100px) {
+  .kpi-row { grid-template-columns: repeat(3, 1fr); }
+}
+.kpi {
+  background: var(--bb-panel);
+  border: 1px solid var(--bb-border);
+  padding: 14px 16px;
+}
+.kpi .lbl { color: var(--bb-text-mute); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; }
+.kpi .val { color: var(--bb-text); font-size: 26px; margin-top: 6px; font-weight: 500; }
+.kpi .sub { color: var(--bb-text-deep-mute); font-size: 11px; margin-top: 4px; }
+.kpi .val.amber { color: var(--bb-amber); }
+.kpi .val.red { color: var(--bb-red); }
+.kpi .val.green { color: var(--bb-green); }
+.kpi .val.cyan { color: var(--bb-cyan); }
+
+.section {
+  margin-top: 36px;
+  padding-top: 12px;
+  border-top: 1px solid var(--bb-border);
+}
+.section h2 {
+  font-size: 15.5px;
+  margin: 0 0 14px;
+  font-weight: 500;
+  color: var(--bb-orange);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.section h2 .pill {
+  font-size: 10.5px;
+  background: rgba(255, 107, 0, 0.08);
+  border: 1px solid var(--bb-orange-dim);
+  color: var(--bb-orange);
+  padding: 2px 8px;
+  margin-left: 10px;
+  vertical-align: middle;
+}
+.section h3 {
+  font-size: 13.5px;
+  color: var(--bb-cyan);
+  margin: 18px 0 8px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+.panel {
+  background: var(--bb-panel);
+  border: 1px solid var(--bb-border);
+  padding: 16px 18px;
+  margin: 8px 0 14px;
+}
+.panel.warn { border-left: 3px solid var(--bb-amber); }
+.panel.fail { border-left: 3px solid var(--bb-red); }
+.panel.ok { border-left: 3px solid var(--bb-green); }
+table.grid {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  margin: 8px 0 16px;
+  background: var(--bb-panel);
+  border: 1px solid var(--bb-border);
+}
+table.grid th {
+  background: #1A1A1A;
+  color: var(--bb-text-mute);
+  text-align: left;
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--bb-border);
+}
+table.grid td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--bb-grid);
+  vertical-align: top;
+}
+table.grid tr:last-child td { border-bottom: none; }
+table.grid tr:hover td { background: #181818; }
+table.grid td.num { text-align: right; font-variant-numeric: tabular-nums; color: var(--bb-text); }
+table.grid td.num.warn { color: var(--bb-amber); }
+table.grid td.num.fail { color: var(--bb-red); font-weight: 600; }
+table.grid td.num.ok { color: var(--bb-green); }
+table.grid td.code { font-family: inherit; color: var(--bb-cyan); }
+table.grid td.tag { color: var(--bb-text-mute); font-size: 11.5px; }
+table.grid td.note { color: var(--bb-text-deep-mute); font-size: 11.5px; }
+code {
+  background: #1A1A1A;
+  border: 1px solid var(--bb-border);
+  padding: 1px 6px;
+  color: var(--bb-cyan);
+  font-size: 12px;
+  border-radius: 1px;
+}
+.tag-pass { color: var(--bb-green); border: 1px solid var(--bb-green); padding: 2px 8px; font-size: 10.5px; letter-spacing: 0.06em; }
+.tag-fail { color: var(--bb-red); border: 1px solid var(--bb-red); padding: 2px 8px; font-size: 10.5px; letter-spacing: 0.06em; }
+.tag-todo { color: var(--bb-text-mute); border: 1px solid var(--bb-text-mute); padding: 2px 8px; font-size: 10.5px; letter-spacing: 0.06em; }
+.tag-hitl { color: var(--bb-amber); border: 1px solid var(--bb-amber); padding: 2px 8px; font-size: 10.5px; letter-spacing: 0.06em; }
+.tag-done { color: var(--bb-green); border: 1px solid var(--bb-green); padding: 2px 8px; font-size: 10.5px; letter-spacing: 0.06em; background: rgba(0, 200, 83, 0.06); }
+
+footer {
+  margin-top: 60px;
+  text-align: center;
+  border-top: 1px solid var(--bb-border);
+  padding-top: 24px;
+  color: var(--bb-text-deep-mute);
+  font-size: 11.5px;
+  line-height: 2.2;
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<div class="headbar">
+  <div>
+    <div class="crumb">CogNebula Enterprise · KuzuDB PROD · ops.hegui.org</div>
+    <h1>数据质量审计 PDCA 交付 · Round-4 续</h1>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+    <span class="verdict-pill" style="border-color:var(--bb-red);color:var(--bb-red);background:rgba(229,57,53,0.06);"><span class="dot" style="background:var(--bb-red);"></span>STRUCTURAL FAIL · 4 列 100% NULL across all 31 types</span>
+    <span class="verdict-pill" style="font-size:10.5px;padding:4px 10px;border-color:var(--bb-text-mute);color:var(--bb-text-mute);background:transparent;">global defect_rate 0.0697 ≤ 0.10 — arithmetic PASS, not structural PASS</span>
+  </div>
+</div>
+
+<div class="kpi-row">
+  <div class="kpi"><div class="lbl">canonical 类型</div><div class="val">31</div><div class="sub">parse_canonical_schema</div></div>
+  <div class="kpi"><div class="lbl">已抽样行</div><div class="val">2,053</div><div class="sub">per-type cap=100</div></div>
+  <div class="kpi"><div class="lbl">缺陷总数（v2）</div><div class="val amber">143</div><div class="sub">v1=0（gate 漏检）</div></div>
+  <div class="kpi"><div class="lbl">100% NULL 列</div><div class="val red">4 / 5</div><div class="sub">lineage envelope · 全 31 类型</div></div>
+  <div class="kpi"><div class="lbl">per-type FAIL</div><div class="val red">11 / 29</div><div class="sub">populated 类型</div></div>
+  <div class="kpi"><div class="lbl">新测试用例</div><div class="val green">+8</div><div class="sub">53/53 通过</div></div>
+</div>
+
+<!-- =========================================================== -->
+<div class="section">
+  <h2>P · Plan — 我们审了什么、怎么审 <span class="pill">范围 + 工具</span></h2>
+
+  <p>本次审计的范围是 <code>schemas/ontology_v4.2.cypher</code> 声明的 31 个 canonical 类型在 PROD 的实际数据。基础设施已存在 — <code>src/audit/data_quality_survey.py</code>（272 行）+ <code>tests/test_data_quality_survey.py</code>（45 测试）— 本次的工作不是从零造审计计划，而是「跑现有的 + 找漏 + 补一个维度 + 闭环」。</p>
+
+  <h3>已有的 8 个缺陷维度（pre-audit）</h3>
+  <table class="grid">
+    <thead>
+      <tr><th>#</th><th>维度</th><th>判定方式</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="num">1</td><td class="code">duplicate_id_count</td><td>同 <code>id</code> 多次出现，超出第一次的部分计入</td></tr>
+      <tr><td class="num">2</td><td class="code">stale_count</td><td><code>effective_from</code> 早于 today − stale_years（默认 10 年）</td></tr>
+      <tr><td class="num">3</td><td class="code">integrity_violations</td><td><code>reviewed_at</code> XOR <code>reviewed_by</code>（一边 set 一边 NULL）</td></tr>
+      <tr><td class="num">4</td><td class="code">jurisdiction_mismatches</td><td>未知 scope 字符串 OR XOR(code, scope)</td></tr>
+      <tr><td class="num">5</td><td class="code">prohibited_role_count</td><td><code>argument_role = 'analogy'</code>（税收法定禁止类比）</td></tr>
+      <tr><td class="num">6</td><td class="code">invalid_chain_count</td><td><code>override_chain_id</code> 不在白名单（CN-FTZ-* / CN-31 等）</td></tr>
+      <tr><td class="num">7</td><td class="code">inconsistent_scope_count</td><td>code 与 scope 协方差不符（如 <code>CN-FTZ-SHA</code> + <code>municipal</code>）</td></tr>
+      <tr><td class="num tag" style="color:var(--bb-amber)">8</td><td class="code" style="color:var(--bb-amber)">null_rate</td><td><strong>仅上报，不计入 defects_total</strong> — 即 100% NULL 也不会触发 verdict 变化</td></tr>
+    </tbody>
+  </table>
+
+  <div class="panel warn">
+    <strong>识别的漏洞</strong>：第 8 维度 <code>null_rate</code> 是「visible but not actionable」 — 报告里画出比例，但 PASS/FAIL 看不见。systemic 全 NULL 的字段（lineage envelope）会被 0 缺陷的 verdict 直接掩盖。这是这次审计要闭的环。
+  </div>
+</div>
+
+<!-- =========================================================== -->
+<div class="section">
+  <h2>D · Do — 跑两次 + 补一维度 <span class="pill">脚本 + 代码 + 测试</span></h2>
+
+  <h3>Run 1（baseline · 8 维度）</h3>
+  <pre style="background:#1A1A1A;border:1px solid var(--bb-border);padding:12px 14px;color:var(--bb-text);overflow-x:auto;font-size:12.5px;">python scripts/data_quality_survey_via_api.py --sample 100 \
+  --output outputs/reports/data-quality-audit/2026-04-27-prod-survey.json</pre>
+  <p style="margin:10px 0 18px;">结果：<code>defect_rate=0.0000  verdict=PASS  defects=0/2053</code> — 这就是误导性的 PASS。</p>
+
+  <h3>代码改动 · gate 扩展（+1 维度）</h3>
+  <table class="grid">
+    <thead>
+      <tr><th>位置</th><th>改动</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="code">src/audit/data_quality_survey.py</td><td>新增常量 <code>DEFAULT_NULL_COVERAGE_THRESHOLD = 0.50</code><br>新参数 <code>null_coverage_threshold</code>（在 <code>survey_type</code> 与 <code>survey</code>）<br>新缺陷维度 <code>null_coverage_violation_count</code> = CRITICAL_COLUMNS 中 <code>null_rate ≥ threshold</code> 的列数<br>新报告字段 <code>null_coverage_violations</code>（list[str]）+ <code>null_coverage_threshold</code><br>空样本（sampled == 0）短路 — 缺表通过 <code>fetch_misses</code> 上报，不重复计为 5 个 NULL 缺陷<br><code>defects_total</code> 现在累加 8+1 维度</td></tr>
+      <tr><td class="code">tests/test_data_quality_survey.py</td><td>新增类 <code>TestNullCoverageViolations</code>，8 条测试覆盖：默认/自定义/禁用阈值、50% 边界、单列 100% NULL 单计 1、全列填充清零、空样本不出幻影、与 defects_total 联动<br>更新 4 条 legacy 测试（<code>TestCompoundDefects</code> + <code>TestSurveyOrchestration</code>）：要么传 <code>null_coverage_threshold=1.01</code> 关闭、要么 fixture 补全 critical 列</td></tr>
+    </tbody>
+  </table>
+
+  <table class="grid">
+    <thead>
+      <tr><th>测试套</th><th>pre</th><th>post</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>tests/test_data_quality_survey.py</td><td class="num ok">45 PASS</td><td class="num ok">53 PASS</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Run 2（with NULL-coverage gate）</h3>
+  <pre style="background:#1A1A1A;border:1px solid var(--bb-border);padding:12px 14px;color:var(--bb-text);overflow-x:auto;font-size:12.5px;">python scripts/data_quality_survey_via_api.py --sample 100 \
+  --output outputs/reports/data-quality-audit/2026-04-27-prod-survey-v2.json</pre>
+  <p style="margin:10px 0 6px;">结果：<code>defect_rate=0.0697  verdict=PASS  defects=143/2053</code> — 全局 PASS，但 per-type 露出真相。</p>
+</div>
+
+<!-- =========================================================== -->
+<div class="section">
+  <h2>C · Check — 发现 <span class="pill">数据驱动</span></h2>
+
+  <h3>Finding 1 · 全局 verdict 仍在掩盖 per-type 失败</h3>
+  <p>全局 <code>defect_rate=0.0697 PASS</code> 在 target 0.10 下数学上成立，但它是「31 类型平均」。大类型（sample 100）把 5 个 NULL 缺陷分母稀释 → PASS；小 bounded 类型（sample 14-45）放大到 0.11-0.36 → FAIL。全局阈值 ≠ per-type 阈值，是两个不同对象。</p>
+
+  <h3>Finding 2 · 11 / 29 populated 类型 per-type FAIL</h3>
+  <table class="grid">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>类型</th>
+        <th class="num">sample</th>
+        <th class="num">defects</th>
+        <th class="num">defect_rate</th>
+        <th>NULL 列</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="num">1</td><td class="code">FilingForm</td><td class="num">14</td><td class="num">5</td><td class="num fail">0.357</td><td class="note">5 列全 ≥50% NULL</td></tr>
+      <tr><td class="num">2</td><td class="code">TaxEntity</td><td class="num">17</td><td class="num">5</td><td class="num fail">0.294</td><td class="note">5 列全 ≥50% NULL</td></tr>
+      <tr><td class="num">3</td><td class="code">TaxType</td><td class="num">19</td><td class="num">5</td><td class="num fail">0.263</td><td class="note">5 列全 ≥50% NULL</td></tr>
+      <tr><td class="num">4</td><td class="code">JournalEntryTemplate</td><td class="num">20</td><td class="num">5</td><td class="num fail">0.250</td><td class="note">5 列全 ≥50% NULL</td></tr>
+      <tr><td class="num">5</td><td class="code">TaxBasis</td><td class="num">20</td><td class="num">5</td><td class="num fail">0.250</td><td class="note">5 列全 ≥50% NULL</td></tr>
+      <tr><td class="num">6</td><td class="code">TaxMilestoneEvent</td><td class="num">20</td><td class="num">5</td><td class="num fail">0.250</td><td class="note">5 列全 ≥50% NULL</td></tr>
+      <tr><td class="num">7</td><td class="code">DeductionRule</td><td class="num">25</td><td class="num">5</td><td class="num fail">0.200</td><td class="note">5 列全 ≥50% NULL</td></tr>
+      <tr><td class="num">8</td><td class="code">FinancialIndicator</td><td class="num">32</td><td class="num">5</td><td class="num fail">0.156</td><td class="note">5 列全 ≥50% NULL</td></tr>
+      <tr><td class="num">9</td><td class="code">InvoiceRule</td><td class="num">40</td><td class="num">5</td><td class="num fail">0.125</td><td class="note">5 列全 ≥50% NULL</td></tr>
+      <tr><td class="num">10</td><td class="code">AccountingStandard</td><td class="num">43</td><td class="num">5</td><td class="num fail">0.116</td><td class="note">5 列全 ≥50% NULL</td></tr>
+      <tr><td class="num">11</td><td class="code">IndustryBenchmark</td><td class="num">45</td><td class="num">5</td><td class="num fail">0.111</td><td class="note">5 列全 ≥50% NULL</td></tr>
+    </tbody>
+  </table>
+  <p>11 个全部同一根因：5 个 lineage envelope 列（<code>effective_from</code>、<code>confidence</code>、<code>source_doc_id</code>、<code>jurisdiction_code</code>、<code>jurisdiction_scope</code>）在样本中全部 ≥50% NULL。这是结构性的，不是个案 — Q1 batch + 参考 seed split + GBT4754 BusinessActivity 等 seed pipeline 全都只灌入域字段，从未携带 lineage envelope。<strong>正向例外</strong>：<code>KnowledgeUnit</code> + <code>LegalClause</code>（法律 backbone）<code>source_doc_id</code> 已填充（仅 4 NULL 违规而非 5）— 表示归因工作在 backbone 已经启动；其余 4 列（<code>effective_from</code>、<code>confidence</code>、<code>jurisdiction_code</code>、<code>jurisdiction_scope</code>）在全部 31 类型上 100% NULL。</p>
+
+  <h3>Finding 3 · 非-NULL 缺陷类全干净</h3>
+  <p>2053 行抽样的全部 7 个 per-row 缺陷类（duplicate / stale / integrity / jurisdiction / prohibited_role / invalid_chain / inconsistent_scope）共计：<strong>0 缺陷</strong>。说明 per-row 数据质量是 OK 的，缺陷是结构性的 NULL coverage，不是 row-level 的脏值。</p>
+</div>
+
+<!-- =========================================================== -->
+<div class="section">
+  <h2>A · Act — 优先级整改队列 <span class="pill">P0-P4</span></h2>
+
+  <table class="grid">
+    <thead>
+      <tr>
+        <th>优先级</th>
+        <th>项目</th>
+        <th>状态</th>
+        <th>工作量</th>
+        <th>说明</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="tag-done">P0 · DONE</span></td>
+        <td>gate 扩展（NULL-coverage 维度）</td>
+        <td><span class="tag-pass">已闭环</span></td>
+        <td class="note">本会话</td>
+        <td class="note">+1 dimension · +8 tests · 53/53 PASS · 验证已生效</td>
+      </tr>
+      <tr>
+        <td><span class="tag-fail">P1 · HIGH</span></td>
+        <td><code>effective_from</code> 回填 + Goodhart 守卫</td>
+        <td><span class="tag-todo">TODO</span></td>
+        <td class="note">2-3h · 可脚本化</td>
+        <td class="note">影响 11 个 per-type FAIL 类型。<strong>守卫规则（先于回填）</strong>：(a) 不得使用占位字符串绕过 NULL —— gate 新增 placeholder banlist <code>{'unknown','TBD','default','N/A',''}</code>，<strong>case-insensitive + whitespace-stripped</strong>（即 <code>'Unknown'</code>、<code>'  '</code>、空白都触发，闭合 Round-2 Munger 同名变体绕过）；(b) seed-derived 行从 JSON 源 <code>effectiveDate</code> 回填；(c) Q1 batch 无源日期时填真实日期 <code>2024-01-01</code> 并新增独立列 <code>effective_from_source: enum('source','seed_default','extracted')</code> —— 用枚举不用字符串避免 banlist 误伤</td>
+      </tr>
+      <tr>
+        <td><span class="tag-fail">P1.5 · AUTO</span></td>
+        <td><code>jurisdiction_code/scope</code> derive-from-prefix 默认</td>
+        <td><span class="tag-todo">TODO</span></td>
+        <td class="note">1-2h · 自主可执行</td>
+        <td class="note"><strong>降级 HITL → opt-out（Round-1 Munger 提示 / Autonomous Extension 规则）</strong>：(a) <code>id</code> 含 <code>CN-FTZ-*</code> → scope=<code>experimental_zone</code>；(b) <code>CN-31</code>/<code>CN-HK</code>/etc. ISO admin → <code>subnational</code>；(c) 其余 → <code>CN</code>+<code>national</code>。所有 derived 行标记 <code>jurisdiction_source='derived'</code>。Maurice 仅审查异常子集（预期 &lt;5 类型），不阻塞默认路径</td>
+      </tr>
+      <tr>
+        <td><span class="tag-fail">P3 · MED</span></td>
+        <td><code>source_doc_id</code> + <code>confidence</code> 回填</td>
+        <td><span class="tag-todo">TODO</span></td>
+        <td class="note">4-6h + 2h</td>
+        <td class="note">seed 行可用 <code>seed:filename</code> URI scheme；extracted 行从 <code>source_file</code> 字段映射；confidence: 手工 seed 0.95 默认，extracted 用提取置信度</td>
+      </tr>
+      <tr>
+        <td><span class="tag-todo">P4 · FUTURE</span></td>
+        <td>第 10 维度 · 跨表引用完整性</td>
+        <td><span class="tag-todo">TODO</span></td>
+        <td class="note">4-6h</td>
+        <td class="note">检测 <code>orphan_fk_count</code>：<code>taxTypeId</code>/<code>scenarioId</code>/<code>regionId</code> 等指向不存在目标的行；将成为 yiclaw / 灵阙 的 consumer 侧 gate</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="panel warn">
+    <strong>触发协议</strong>：每个 P-level 的工作只在事件触发时启动 — P1/P3 由 P0 闭环后自动进入 next-session 队列；P2 必须等 Maurice 显式信号；P4 由 yiclaw 演示需求触发。<strong>不设日历闹钟</strong> — 避免 Goodhart 把「按时完成」当目标而非「真的需要时完成」。
+  </div>
+</div>
+
+<!-- =========================================================== -->
+<div class="section">
+  <h2>Swarm 共识备注 <span class="pill">Round 2 trace 见 auto-swarm-trace/</span></h2>
+  <p style="font-size:12.5px;color:var(--bb-text-mute);">3/3 APPROVE 后 2 项延期 / 1 项已吸收：<br>
+    — <strong>Hickey · deferred</strong>：未来把 <code>per_row_defect_rate</code> 与 <code>column_coverage_violation_rate</code> 拆为独立 surface（本次保持单一 <code>defects_total</code>，避免一次改太多语义）。<br>
+    — <strong>Munger · 已吸收为 P1 守卫</strong>：placeholder banlist（'unknown'/'TBD'/'default'/'N/A'）现在是 P1 回填的硬约束，<code>effective_from_source</code> 用 enum 不用字符串避免 banlist 误伤。<br>
+    — <strong>Munger · lollapalooza</strong>：避免叠加 9 个待响应项 — 本次 §A 只列 P0-P4，P4 标 <code>FUTURE</code>（不要求本周响应）。
+  </p>
+</div>
+
+<!-- =========================================================== -->
+<div class="section">
+  <h2>可重现性 <span class="pill">90 秒可复跑</span></h2>
+  <pre style="background:#1A1A1A;border:1px solid var(--bb-border);padding:14px 16px;color:var(--bb-text);overflow-x:auto;font-size:12.5px;line-height:1.7;">cd /Users/mauricewen/Projects/27-cognebula-enterprise
+
+# 1. 单元测试（pure-Python，不需要 PROD）
+python -m pytest tests/test_data_quality_survey.py -v          # 53 tests
+
+# 2. PROD 全量审计（31 类型 × sample 100，约 45 秒）
+python scripts/data_quality_survey_via_api.py --sample 100 \
+  --output outputs/reports/data-quality-audit/run-$(date +%F).json
+
+# 3. 严苛阈值（per-type 0.05，bounded 类型必 FAIL）
+python scripts/data_quality_survey_via_api.py --sample 100 --target 0.05</pre>
+  <p style="margin-top:6px;">回退性：gate 扩展是 value-additive（新增字段、不删字段）— 下游消费者读 report dict 看到新键、不会丢键。本次 PROD 0 mutation。</p>
+</div>
+
+<footer>
+  <p>CogNebula Enterprise · 数据质量审计 PDCA · 2026-04-27</p>
+  <p>Maurice | maurice_wen@proton.me</p>
+  <p style="font-size:12px;margin-top:8px;">Generated 2026-04-27 evening · sample = 2,053 rows · gate 53/53 PASS · per-type FAIL 11/29 · audit pipeline · v1 (8 dim) → v2 (9 dim)</p>
+</footer>
+
+</div>
+</body>
+</html>

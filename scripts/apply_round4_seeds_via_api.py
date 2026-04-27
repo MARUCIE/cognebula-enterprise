@@ -38,6 +38,12 @@ from src.seed.seed_accounting_subject_full import _build_records as build_as
 from src.seed.seed_business_activity_gbt4754 import _build_records as build_ba
 from src.seed.seed_filing_form_field_full import _build_records as build_fff
 from src.seed.seed_compliance_rule_extracted import _build_records as build_cr
+from src.seed.seed_reference_data_split import (
+    _build_records_social_insurance as build_sir,
+    _build_records_invoice_rule as build_inv,
+    _build_records_industry_benchmark as build_ind,
+    _build_records_tax_accounting_gap_extended as build_tag,
+)
 
 
 def _esc(v: object) -> str:
@@ -170,6 +176,57 @@ SEEDS = [
         # signs off (FU6 schema-shape gate will catch this after redeploy).
         "drop_keys": ["description", "severity", "sourceClauseId", "status"],
         "field_map": {},
+    },
+    # FU5 phase-2c — 3 tier_empty reference seeds (probed 2026-04-27).
+    # Live shape strict subset of seed JSON; adapter packs dropped rate/range
+    # data into description (or metric for IndustryBenchmark which lacks one).
+    {
+        "name": "SocialInsuranceRule",
+        "table": "SocialInsuranceRule",
+        "build_fn": build_sir,
+        # live: {id, name, description, regionId} (probe 2026-04-27)
+        # JSON: insuranceType / employerRate / employeeRate / baseFloor /
+        #   baseCeiling / adjustmentMonth / effectiveDate are packed by
+        #   _build_records_social_insurance into description blob.
+        "drop_keys": [],
+        "field_map": {},
+    },
+    {
+        "name": "InvoiceRule",
+        "table": "InvoiceRule",
+        "build_fn": build_inv,
+        # live: {id, name, description, invoiceType} (probe 2026-04-27)
+        # JSON: ruleType / condition / procedure / legalBasis packed into
+        #   description by adapter.
+        "drop_keys": [],
+        "field_map": {},
+    },
+    {
+        "name": "IndustryBenchmark",
+        "table": "IndustryBenchmark",
+        "build_fn": build_ind,
+        # live: {id, metric, industryId} — NO name, NO description (probe 2026-04-27)
+        # JSON: ratioName -> metric (range packed into metric string),
+        #   industryCode -> industryId. minValue/maxValue/unit/year/regionId
+        #   embedded in metric "name [min-max]unit · year · region".
+        "drop_keys": [],
+        "field_map": {},
+    },
+    {
+        "name": "TaxAccountingGapExt",
+        "table": "TaxAccountingGap",
+        "build_fn": build_tag,
+        # Live TaxAccountingGap (probe 2026-04-27 via /api/v1/nodes):
+        #   id, name, description, gapKind, direction (+ lineage envelope)
+        # JSON has gapType / adjustmentDirection — field_map translates;
+        #   accountingTreatment / taxTreatment / impact / example /
+        #   A105000LineRef / deferredTaxType / legalBasis are packed into
+        #   description by the adapter (so consumer queries can still tokenize).
+        "drop_keys": [],
+        "field_map": {
+            "gapType": "gapKind",
+            "adjustmentDirection": "direction",
+        },
     },
 ]
 

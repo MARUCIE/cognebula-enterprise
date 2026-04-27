@@ -46,13 +46,24 @@ Exit codes:
 
 from __future__ import annotations
 
-import re
 import subprocess
 import sys
 from pathlib import Path
 
+# scripts/ is not a Python package; add scripts/ to sys.path so we can import
+# from the sibling `_lib/` shared library without making this file a package
+# member. Sweep-4 / S18.18.
+_SCRIPTS_DIR = Path(__file__).resolve().parent
+if str(_SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS_DIR))
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+from _lib.ontology_parser import (  # noqa: E402  (sys.path hack above is required)
+    CREATE_NODE_TABLE_RE,
+    parse_canonical_types,
+)
+
+
+REPO_ROOT = _SCRIPTS_DIR.parent
 CANONICAL_SCHEMA = REPO_ROOT / "schemas" / "ontology_v4.2.cypher"
 
 # Path-prefix whitelist (relative to REPO_ROOT). Files under these prefixes
@@ -69,23 +80,10 @@ WHITELISTED_PREFIXES = (
     "node_modules/",
 )
 
-# Case-insensitive; captures the table name.
-_CREATE_NODE_TABLE_RE = re.compile(
-    r"CREATE\s+NODE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([A-Za-z_][A-Za-z0-9_]*)",
-    re.IGNORECASE,
-)
-
-
-def parse_canonical_types(schema_path: Path) -> set[str]:
-    """Extract node-type names from `schemas/ontology_v4.2.cypher`."""
-    if not schema_path.exists():
-        print(
-            f"ERROR: canonical schema missing at {schema_path}",
-            file=sys.stderr,
-        )
-        sys.exit(2)
-    text = schema_path.read_text(encoding="utf-8")
-    return {m.group(1) for m in _CREATE_NODE_TABLE_RE.finditer(text)}
+# Regex + parse_canonical_types are imported from _lib.ontology_parser
+# (Sweep-4 / S18.18 + S18.21). The new pattern uses `(?!IF\b)` negative
+# lookahead so the optional `IF NOT EXISTS` group cannot backtrack into
+# capturing the literal keyword `IF` — the post-filter hack is gone.
 
 
 def is_whitelisted(path: Path) -> bool:
@@ -109,17 +107,13 @@ def scan_file(path: Path, canonical: set[str]) -> list[tuple[int, str]]:
     except Exception as exc:
         print(f"WARN: could not read {path}: {exc}", file=sys.stderr)
         return []
-    for m in _CREATE_NODE_TABLE_RE.finditer(text):
+    for m in CREATE_NODE_TABLE_RE.finditer(text):
         name = m.group(1)
         if name in canonical:
             continue
-        # False-positive guard: when input has `CREATE NODE TABLE IF NOT EXISTS`
-        # followed by Python concatenation (no static identifier afterwards),
-        # the regex backtracks the optional `(?:IF\s+NOT\s+EXISTS\s+)?` group
-        # and captures `IF` itself. `IF` is a reserved keyword and never a
-        # legitimate table name; skip it.
-        if name.upper() == "IF":
-            continue
+        # No `IF` post-filter needed anymore — the regex's negative lookahead
+        # `(?!IF\b)` rejects the bad capture at match-time. See
+        # `_lib/ontology_parser.py` docstring for the failure mode it prevents.
         # Compute 1-indexed line number from match start.
         lineno = text.count("\n", 0, m.start()) + 1
         violations.append((lineno, name))

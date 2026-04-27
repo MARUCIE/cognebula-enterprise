@@ -68,7 +68,49 @@ Mutation testing currently covers 3 of 9 audit dimensions (placeholder / duplica
 - [x] D.9 run nightly tier `./scripts/run_data_quality_tests.sh nightly` — 5,853 IDs, 5,842 pass + 11 designed-FAIL schema-completeness (HITL pending), 42.56s
 - [x] D.10 PDCA updated — added `P0.8b Sprint D` section + refreshed `Final test suite status` to 12 files / 5,853 IDs / ~222K cases
 - [x] D.11 Sprint D entry appended to `notes.md` with field-routing matrix + write-time bug RCA
-- [ ] D.12 commit single message: `data-quality: Sprint D — mutation expansion to 6 dimensions + orthogonality`
+- [x] D.12 commit landed: `7961a92` (5 files, +1185 / -19)
+
+
+## §7. Atomic Execution Queue — 队列全部执行 (MVS-pattern, 2026-04-27)
+
+### Honest skip log (out-of-scope per 能力圈 / commercial-legal exclusion)
+- ⏭ **B' — P4 orphan_fk_count 第 10 维**: product-level call. Affects yiclaw + 灵阙 consumer contract. NOT autonomous test-only scope. Skipped honest, log here.
+- ⏭ **HITL Plan A/B/C/D jurisdiction**: still pending Maurice decision. Schema sync remains BLOCKED.
+- ⏭ **xfail policy decision**: design call (signal vs forcing function). Defer to Maurice.
+- ⏭ **E' — cross-initiative switch**: out of scope for "test plan continuation". Other initiatives (accounting_agent / finance_tax_kb / lingque_fusion) untouched.
+
+### Slice S7.1 — PDCA HTML 2份制 sync (DONE, 3 swarm rounds, 3/3 APPROVE)
+- [x] S7.1.a HTML KPI band identified at line 209
+- [x] S7.1.b KPI updated: `5 853 · pytest IDs · nightly 43s` (per Munger R1: dropped both `~102K` and `~222K` assertion counts as Goodhart-gameable; per Hara R1: kept only 1st-order verifiable measurements)
+- [x] S7.1.c Sprint D inline insertion REVERTED (R1 swarm flagged Run 1→Run 2 chronology break + density mismatch); deferred to S7.F bundled commit
+- [x] S7.1.d HTML still valid (Run 1 → code-change → test-delta → Run 2 chronology restored)
+- [x] S7.1.e .md runtime drift fixed: `~45s estimate` → `~43s (empirical 42.56s)` per Hickey R2 + agent counter-investigation
+- [x] S7.1.f Swarm trace at `outputs/reports/auto-swarm-trace/2026-04-27-pdca-html-slice1-kpi-sync.md`
+- [ ] S7.1.g Commit `data-quality: PDCA HTML+md Slice 1 — KPI sync to Sprint D state (3-round swarm consensus)`
+- ⏭ **deferred half** (logged): full Sprint D HTML narrative section; red KPI juxtaposition for `0/5 backfilled`; Sprint D §A · Act h3 mirror of P0.8b in .md
+
+### Slice S7.2 — Property invariant +3 (target: 45 min)
+- [ ] S7.2.a Read existing `test_data_quality_property.py` invariants (19 functions, 5,352 examples baseline)
+- [ ] S7.2.b Identify 3 high-leverage invariants not yet covered: (i) idempotence of survey_type (calling twice on same input = same output), (ii) defects_total upper bound (≤ sampled × 9 dimensions), (iii) defects_total monotone-non-decreasing under add-only mutation
+- [ ] S7.2.c Implement the 3 functions with `@settings(max_examples=300)`
+- [ ] S7.2.d Run `pytest tests/test_data_quality_property.py -q` standalone — expect prior 19 + new 3 = 22 passing
+- [ ] S7.2.e Run nightly count to confirm +3 IDs
+- [ ] S7.2.f Commit `data-quality: Sprint E1 — 3 new property invariants`
+- ⏭ **deferred half**: 5+ more invariants (commutativity under restore, hash stability of placeholder-per-field, sample-size scaling); matrix expansion (more cells); doctests
+
+### Slice S7.3 — Sprint E2: 1 clause-axis machine (target: 60 min)
+- [ ] S7.3.a Read `src/kg/clause_inspector.py:71-161` to understand `inspect()` row contract
+- [ ] S7.3.b Identify trigger field for `prohibited_role` flag = `argument_role` ∈ {prohibited list via `is_prohibited_in_tax_law`}
+- [ ] S7.3.c Find a known-prohibited role value via grep on `_role_dict` / role registry (or use defensive: pick a role and check it triggers)
+- [ ] S7.3.d Build `ProhibitedRoleMutationMachine`: 400×50, toggle `argument_role` between clean and prohibited, invariant `prohibited_role_count == #rows with prohibited role`
+- [ ] S7.3.e Run mutation file standalone — expect 9 machines passing
+- [ ] S7.3.f Run nightly count: 5853 → 5854
+- [ ] S7.3.g Commit `data-quality: Sprint E2 — prohibited_role mutation machine`
+- ⏭ **deferred half**: `invalid_chain` machine (needs `validate_chain_id` fixture data) + `inconsistent_scope` machine (needs `_check_consistency` truth table) + Sprint E1 PDCA section update + Sprint E narrative in notes.md (single batched at end of queue)
+
+### Final: end-of-queue housekeeping (target: 15 min)
+- [ ] S7.F PDCA + notes.md narrative for Sprint E1+E2 (single bundled commit)
+- [ ] S7.F commit `data-quality: Sprint E PDCA + notes sync`
 
 ### Out of scope (deferred, logged not asked)
 - New audit dimensions (P4 orphan_fk_count) — product-level call

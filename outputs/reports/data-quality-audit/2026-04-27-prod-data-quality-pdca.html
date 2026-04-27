@@ -206,7 +206,7 @@ footer {
   <div class="kpi"><div class="lbl">缺陷总数（v3）</div><div class="val amber">143</div><div class="sub">10-dim gate active</div></div>
   <div class="kpi"><div class="lbl">100% NULL 列</div><div class="val red">3 / 5</div><div class="sub">universal · 0/5 backfilled · P1 unstarted (as of 2026-04-27)</div></div>
   <div class="kpi"><div class="lbl">部分归属类型</div><div class="val amber">4 / 31</div><div class="sub">KU / LC / FFF / TCR</div></div>
-  <div class="kpi"><div class="lbl">语料覆盖</div><div class="val green">5 832</div><div class="sub">test IDs · ~102K assertions · nightly 31s</div></div>
+  <div class="kpi"><div class="lbl">语料覆盖</div><div class="val green">5 853</div><div class="sub">pytest IDs · nightly 43s</div></div>
 </div>
 
 <!-- =========================================================== -->
@@ -341,11 +341,11 @@ footer {
         <td class="note">影响 11 个 per-type FAIL 类型。<strong>守卫规则（先于回填）</strong>：(a) 不得使用占位字符串绕过 NULL —— gate 新增 placeholder banlist <code>{'unknown','TBD','default','N/A',''}</code>，<strong>case-insensitive + whitespace-stripped</strong>（即 <code>'Unknown'</code>、<code>'  '</code>、空白都触发，闭合 Round-2 Munger 同名变体绕过）；(b) seed-derived 行从 JSON 源 <code>effectiveDate</code> 回填；(c) Q1 batch 无源日期时填真实日期 <code>2024-01-01</code> 并新增独立列 <code>effective_from_source: enum('source','seed_default','extracted')</code> —— 用枚举不用字符串避免 banlist 误伤</td>
       </tr>
       <tr>
-        <td><span class="tag-fail">P1.5 · AUTO</span></td>
+        <td><span class="tag-fail">P1.5 · BLOCKED</span></td>
         <td><code>jurisdiction_code/scope</code> derive-from-prefix 默认</td>
-        <td><span class="tag-todo">TODO</span></td>
-        <td class="note">1-2h · 自主可执行</td>
-        <td class="note"><strong>降级 HITL → opt-out（Round-1 Munger 提示 / Autonomous Extension 规则）</strong>：(a) <code>id</code> 含 <code>CN-FTZ-*</code> → scope=<code>experimental_zone</code>；(b) <code>CN-31</code>/<code>CN-HK</code>/etc. ISO admin → <code>subnational</code>；(c) 其余 → <code>CN</code>+<code>national</code>。所有 derived 行标记 <code>jurisdiction_source='derived'</code>。Maurice 仅审查异常子集（预期 &lt;5 类型），不阻塞默认路径</td>
+        <td><span class="tag-hitl">HITL · Plan A/B/C/D</span></td>
+        <td class="note">阻塞 · 等 Maurice 决策</td>
+        <td class="note"><strong>原 Round-1 Munger derive-rules（CN-FTZ-* / CN-31 / CN-HK）pre-execution 侦察发现命中 0/7 PROD 类型。</strong>若按原规则执行 → 100% 行落到默认 fallback 并标 <code>jurisdiction_source='derived'</code>，<strong>这是 meta-level placeholder 欺诈</strong>（banlist 字符串级别的 gate 抓不到）。三个候选方案（A 诚实 fallback / B 30 天延期 / C 放弃抽象）见下方 Recon Findings 与 <code><a href="2026-04-27-p1.5-jurisdiction-recon-memo.md" style="color:var(--bb-cyan);">recon memo</a></code>。<strong>未经 Maurice 显式选择不动 PROD。</strong></td>
       </tr>
       <tr>
         <td><span class="tag-fail">P3 · MED</span></td>
@@ -366,6 +366,48 @@ footer {
 
   <div class="panel warn">
     <strong>触发协议</strong>：每个 P-level 的工作只在事件触发时启动 — P1/P3 由 P0 闭环后自动进入 next-session 队列；P2 必须等 Maurice 显式信号；P4 由 yiclaw 演示需求触发。<strong>不设日历闹钟</strong> — 避免 Goodhart 把「按时完成」当目标而非「真的需要时完成」。
+  </div>
+</div>
+
+<!-- =========================================================== -->
+<div class="section">
+  <h2>Recon Findings · P1.5 阻塞前置 <span class="pill">2026-04-27 14:30 CST PROD 抽样</span></h2>
+
+  <p style="font-size:12.5px;margin-top:6px;">P1.5 执行前的反侦察发现 3 项 hors-scope blockers，本节是它们在 PDCA 前台的显形（避免它们只活在 memo 里 agent 看得到 / Maurice 看不到）。完整证据见 <code><a href="2026-04-27-p1.5-jurisdiction-recon-memo.md" style="color:var(--bb-cyan);">2026-04-27-p1.5-jurisdiction-recon-memo.md</a></code>。</p>
+
+  <table class="grid">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>发现</th>
+        <th>影响</th>
+        <th>下游动作</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="num">1</td>
+        <td><strong>schema cypher 文件失效</strong> — <code>schemas/ontology_v4.2.cypher</code> 声明了 31 类型的结构列，但 audit 检查的 8 个 lineage envelope 列（<code>effective_from</code>/<code>confidence</code>/<code>source_doc_id</code>/<code>jurisdiction_code/scope</code>/<code>reviewed_by</code>/<code>override_chain_id</code>/<code>extracted_by</code>）<strong>237 / 248 cells 未在 canonical 声明</strong>（仅 11 cells 已存在，集中在 <code>effective_from</code> 时间型实体）。PROD 通过运行时 ALTER TABLE 加列但未回填到 canonical。</td>
+        <td>102K 测试套盲点 — 所有测试读 synthetic / PROD JSON fixture，无一断言「列在 canonical 声明」。新增 canonical 类型若无 lineage 声明会静默通过整个套件。</td>
+        <td><code>tests/test_schema_completeness.py</code>（commit <code>4956d5b</code>）已落地：11 fail / 6 pass，snapshot baseline 锁定 <code>237/248 missing</code>，回填后自动触发 RECONCILIATION PROGRESS fail 强制 ratchet。</td>
+      </tr>
+      <tr>
+        <td class="num">2</td>
+        <td><strong>Round-1 derive-rules 命中率 0/7</strong> — 原 PDCA P1.5 规则（<code>CN-FTZ-*</code> → experimental_zone / <code>CN-31</code>/<code>CN-HK</code> → subnational / 其余 → CN+national）针对 6 个 PROD 类型 × 5 IDs 抽样，匹配数为 <strong>零</strong>。若按原规则执行：100% 行落到默认 fallback 并标 <code>jurisdiction_source='derived'</code>。</td>
+        <td><strong>Meta-level placeholder 欺诈</strong>：metadata flag 谎报自己的 provenance（明明是 hardcode default，却标记 'derived'）。banlist gate（P0.5 字符串级别）<strong>抓不到</strong> — 它只看值，不看「值是怎么来的」。</td>
+        <td>需新增第 11 维度审计：<code>provenance_marker_validity</code>（验证 <code>jurisdiction_source</code> 枚举值与实际 derivation 路径匹配），独立于现有 banlist。设计草案见 memo §"Out-of-scope discoveries" 第 1 段。</td>
+      </tr>
+      <tr>
+        <td class="num">3</td>
+        <td><strong>3 种实际 ID 模式 vs 1 种假设</strong> — PROD 实测 7 类型呈现：(a) jurisdiction-coded（Region：<code>BJ</code>/<code>SH</code>/<code>TJ</code>/<code>CQ</code>/<code>HEB</code> — CN 省/直辖市短码，需 lookup → ISO 3166-2:CN）；(b) token-embedded（SocialInsuranceRule：<code>SIR-NAT-PENSION-001</code> — 子串 <code>NAT</code> 表 national，需 substring 匹配）；(c) 域内不透明（TaxRate UUID / IndustryBenchmark / TaxEntity / TaxType / FilingFormField — 0 jurisdiction 信号）。</td>
+        <td>原 PDCA 假设「所有 31 类型应携带 jurisdiction lineage」over-fit — Plan C 论点：多数类型是 tax-domain 实体而非 jurisdictional artifact，jurisdiction 维度对它们语义上不适用，<strong>gate 维度本身错</strong>。</td>
+        <td>3 候选方案待 Maurice 决策：<strong>Plan A</strong> 诚实 fallback（lookup + token + <code>default_no_signal</code>，~2h）；<strong>Plan B</strong> 30 天延期（per-type 信号研究后再回填）；<strong>Plan C</strong> 放弃抽象（restrict jurisdiction 至 3-5 语义合理的类型，drop CRITICAL_COLUMNS 强制）— Recommendation。或 Maurice 提 <strong>Plan D</strong>。</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="panel fail">
+    <strong>HITL gate</strong>：本节 3 项发现的下游动作均依赖 Maurice 在 Plan A/B/C/D 中显式选择。<strong>未经 approve 不进行 PROD 任何 mutation</strong>。Recon memo 自身 IS the HITL gate（per <code>05-safety-security.md</code> §HITL Required: 涉及生产系统操作）。
   </div>
 </div>
 

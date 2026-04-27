@@ -198,7 +198,7 @@ Sprint B left 6 of 9 audit dimensions without single-axis path-independence veri
 | `JurisdictionMismatchMutationMachine` | 400 × 50 | 1 (rule replay: scope-allowed branch + XOR branch) | jurisdiction code/scope mismatch counting drift |
 | `OrthogonalityMachine` | 400 × 50 | 2 (non-mutated dims at baseline; static-zero dims unchanged) | cross-dimension cross-talk — mutating dim A leaves dim B count untouched |
 
-Sprint D subtotal: **+~80,000 mutation steps × 1-2 invariants ≈ +120,000 invariant evaluations**, 13s runtime delta.
+Sprint D subtotal: **+~80,000 mutation steps × 1-2 invariants ≈ +120,000 invariant evaluations**, ~12s runtime delta (empirical: nightly 31s baseline → 42.56s post-D).
 
 Field-routing matrix proves orthogonality is real: each rule mutates a NON-OVERLAPPING field (placeholder→`extracted_by`, duplicate→`id`, stale→`effective_from` set to old date / not None, integrity→`reviewed_by`→None, null_coverage→`confidence`→None). The static-zero invariant catches accidental side-effects on `jurisdiction_mismatches` / `prohibited_role_count` / `invalid_chain_count` / `inconsistent_scope_count` even though no rule deliberately mutates them — it's a forcing function against future regressions where a new rule grows side-effects.
 
@@ -232,7 +232,7 @@ Sprint C subtotal: **58 cases + tiered runner**.
 | hypothesis examples | ~6,500 |
 | mutation steps | ~170,000 |
 | **Effective cases** | **~222,000** |
-| Nightly wall-clock | ~45s (was 31s; +14s for Sprint D mutation machines) |
+| Nightly wall-clock | ~43s (empirical 42.56s — was 31s; +~12s for Sprint D mutation machines) |
 | Fast PR gate p95 | 511ms (unchanged — Sprint D additions live in nightly only) |
 
 `test_schema_completeness.py` (17 IDs, 11 designed-FAIL pending HITL Plan A/B/C/D) is wired into `nightly` tier only — keeping the schema-vs-audit drift signal visible without blocking PR-tier. Sprint D's 4 new mutation machines also live in nightly via `test_data_quality_mutation.py`.

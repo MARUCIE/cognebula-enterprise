@@ -246,6 +246,83 @@ pre {
   font-family: "Helvetica Neue", "PingFang SC", sans-serif;
   font-size: 18px; line-height: 1.4;
 }
+/* === Atomic Checklist (§5.5, living document) === */
+.checklist-progress {
+  background: var(--mck-card);
+  border: 1px solid var(--mck-rule);
+  border-top: 4px solid var(--mck-blue);
+  padding: 18px 24px;
+  margin: 18px 0 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px 32px;
+  font-family: "Helvetica Neue", "PingFang SC", sans-serif;
+  font-size: 13px;
+}
+.checklist-progress .stat { display: flex; flex-direction: column; }
+.checklist-progress .stat .num {
+  font-size: 22px; font-weight: 700; color: var(--mck-blue);
+}
+.checklist-progress .stat .lbl {
+  font-size: 11px; letter-spacing: 0.08em; color: var(--mck-grey-light);
+  text-transform: uppercase; margin-top: 2px;
+}
+table.checklist {
+  width: 100%; border-collapse: collapse; margin: 14px 0 28px;
+  font-size: 13px; background: var(--mck-card);
+}
+table.checklist th {
+  background: var(--mck-blue); color: white; font-weight: 500;
+  font-family: "Helvetica Neue", "PingFang SC", sans-serif;
+  padding: 9px 12px; font-size: 11px; letter-spacing: 0.06em;
+  text-align: left;
+}
+table.checklist th.col-status { width: 90px; text-align: center; }
+table.checklist th.col-id { width: 64px; }
+table.checklist th.col-evidence { width: 28%; }
+table.checklist td {
+  padding: 10px 12px; border-bottom: 1px solid var(--mck-rule);
+  vertical-align: top;
+}
+table.checklist tr:nth-child(even) td { background: #F4F7FA; }
+table.checklist td.col-id {
+  font-family: "JetBrains Mono", "SF Mono", monospace;
+  font-weight: 600; color: var(--mck-blue);
+}
+.status-badge {
+  display: inline-block; padding: 3px 9px; border-radius: 11px;
+  font-family: "Helvetica Neue", "PingFang SC", sans-serif;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+  text-align: center; min-width: 64px;
+}
+.status-done { background: #E0F1E5; color: #1E7A3D; }
+.status-partial { background: #FBEFD8; color: #8A5A00; }
+.status-held { background: #EFE4F7; color: #6B3F8E; }
+.status-todo { background: #ECECEE; color: #5A5A5A; }
+.status-hitl { background: #FCDFDF; color: var(--mck-accent); }
+table.checklist td.col-evidence {
+  font-family: "JetBrains Mono", "SF Mono", monospace;
+  font-size: 12px; color: var(--mck-grey);
+}
+table.checklist td.col-evidence code {
+  background: #ECEEF1; padding: 1px 5px; font-size: 11px;
+}
+.phase-row td {
+  background: #003B5C !important; color: white;
+  font-family: "Helvetica Neue", "PingFang SC", sans-serif;
+  font-size: 12px; letter-spacing: 0.08em;
+  text-transform: uppercase; font-weight: 600;
+  padding: 8px 12px;
+}
+.living-note {
+  background: #F0F6FB;
+  border-left: 4px solid var(--mck-blue-light);
+  padding: 14px 20px;
+  margin: 12px 0 20px;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--mck-grey);
+}
 footer {
   text-align: center;
   padding: 60px 20px 40px;
@@ -591,6 +668,179 @@ def test_c1_canonical_min50():
     11. yiclaw 在一家真实企业上做端到端增值税申报演示：原始凭证收集 → 账科映射 → 申报表填充 → 交叉核对 → 输出申报包。<br>
     <strong>通过 = 零人工干预</strong>。<strong>失败 = 冻结 KG，灵阙转 LLM-only。</strong>
   </div>
+</div>
+
+<h2 class="section">5.5 · 原子任务清单</h2>
+
+<div class="callout warn" style="border-left-color:var(--mck-accent);">
+  <strong>唯一不可伪造的度量 · W4.11 yiclaw 端到端 VAT 申报演示：NOT STARTED</strong><br>
+  前置条件 W2-3.7/8/9 距 1000 行阈值还差 1,211 / 998 / 1,132 行；W4 deadline 5/27。Drucker 法则：<em>说不出"哪个客户今天用了它做了什么"，则不是产品。</em>
+</div>
+
+<div class="callout">
+  当前唯一阻塞 · W1.5 / FU1 INTERPRETS_DEFINES 拆分（约 14 万边）：等待 Maurice 指定低峰维护窗口（103GB DB 需 30-60 min mutation + 文件级快照）。其他任务无技术阻塞。
+</div>
+
+<div class="checklist-progress">
+  <div class="stat">
+    <div class="num">5 / 17</div>
+    <div class="lbl">总原子项 DONE（11 原计划 + 6 执行中发现）</div>
+  </div>
+  <div class="stat">
+    <div class="num">3</div>
+    <div class="lbl">PARTIAL</div>
+  </div>
+  <div class="stat">
+    <div class="num">2</div>
+    <div class="lbl">HELD / HITL</div>
+  </div>
+  <div class="stat">
+    <div class="num">3</div>
+    <div class="lbl">TODO（含 W4.11）</div>
+  </div>
+</div>
+
+<table class="checklist">
+  <thead>
+    <tr>
+      <th class="col-id">ID</th>
+      <th class="col-status">状态</th>
+      <th>原子任务</th>
+      <th class="col-evidence">证据 / 度量</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="phase-row"><td colspan="4">第 1 周 · 机械化强制（6 项 · 5 DONE / 1 HELD）</td></tr>
+
+    <tr>
+      <td class="col-id">W1.1</td>
+      <td class="col-status"><span class="status-badge status-done">✓ DONE</span></td>
+      <td>添加 <code>test_no_empty_canonical_tables</code> + <code>test_c1_canonical_min50</code> + <code>test_canonical_types_meet_priority_min_rows</code> 三个 gate 测试</td>
+      <td class="col-evidence">commit <code>2183faf</code><br>tests/test_kg_gate.py · 3 测试 SKIP→FAIL（C1+ axis 部署后）</td>
+    </tr>
+
+    <tr>
+      <td class="col-id">W1.2</td>
+      <td class="col-status"><span class="status-badge status-done">✓ DONE</span></td>
+      <td>新增 C1+ 度量轴（<code>canonical_min_rows_metric</code>）到 <code>/api/v1/ontology-audit</code> 端点；MIN_ROWS_PER_TYPE 阈值表入码</td>
+      <td class="col-evidence">commit <code>539b924</code><br>src/audit/ontology_conformance.py · live: <code>{value: 0.188, target: 0.5, pass: false, stub_suspect_count: 17}</code></td>
+    </tr>
+
+    <tr>
+      <td class="col-id">W1.3</td>
+      <td class="col-status"><span class="status-badge status-done">✓ DONE</span></td>
+      <td>v4.2.3 删除 3 张承认垃圾的表（RiskIndicator · CPAKnowledge · MindmapNode）+ 5 个被发现的 REL FK chain（CPA_ABOUT_TAX / MM_ABOUT_TAX / COVERS / SIBLING_OF / RELATED_TOPIC）</td>
+      <td class="col-evidence">prod 执行 2026-04-27 05:52Z<br>delta: -35,897 节点 / -9,144 边<br>schemas/extensions/v4.2.3_drop_garbage_tables.cypher</td>
+    </tr>
+
+    <tr>
+      <td class="col-id">W1.4</td>
+      <td class="col-status"><span class="status-badge status-done">✓ DONE</span></td>
+      <td>v4.2.4 撤回 3 个 schema 滥造 stub（DROP TABLE TaxTreaty · ResponseStrategy · TaxLiabilityTrigger）</td>
+      <td class="col-evidence">prod 执行 2026-04-27 05:52Z<br>live_count 99→96 (-3)<br>0 数据丢失（均为 0 行 stub）</td>
+    </tr>
+
+    <tr>
+      <td class="col-id">W1.5</td>
+      <td class="col-status"><span class="status-badge status-held">⚠ HELD</span></td>
+      <td>ship INTERPRETS_DEFINES 拆分（5 词法标记 Cypher 迁移，目标 ~14 万边剥离）</td>
+      <td class="col-evidence">v4.2.5 cypher 已写但<strong>未执行</strong><br>风险：140K 边 mutation @ 103GB DB 需维护窗口 + planned snapshot<br>等 Maurice 指定低峰窗口</td>
+    </tr>
+
+    <tr>
+      <td class="col-id">W1.6</td>
+      <td class="col-status"><span class="status-badge status-done">✓ DONE</span></td>
+      <td>备份源语料：<code>rclone sync data/extracted data/compliance-matrix gdrive:VPS-Backups/cognebula-corpus/2026-04-27/</code></td>
+      <td class="col-evidence">gdrive: <code>VPS-Backups/cognebula-snapshots/2026-04-27/</code><br>pre/post-round4 快照（logical · 757 bytes 受 103GB 限制）</td>
+    </tr>
+
+    <tr class="phase-row"><td colspan="4">第 2-3 周 · 纯数据 ingestion（4 项 · 1 DONE / 3 PARTIAL）</td></tr>
+
+    <tr>
+      <td class="col-id">W2-3.7</td>
+      <td class="col-status"><span class="status-badge status-partial">⏳ PARTIAL</span></td>
+      <td>AccountingSubject 159 → 1,500（企业会计准则 + 小企业会计准则批量导入）</td>
+      <td class="col-evidence">实测 159 → 289（+130 / 目标 +1,341）<br>seed: src/seed/seed_accounting_subject_full.py · 130 records<br>剩余：扩展子科目 + 行业特定细分</td>
+    </tr>
+
+    <tr>
+      <td class="col-id">W2-3.8</td>
+      <td class="col-status"><span class="status-badge status-partial">⏳ PARTIAL</span></td>
+      <td>BusinessActivity 204 → 1,500（GB/T 4754 国民经济行业分类批量导入）</td>
+      <td class="col-evidence">实测 204 → 502 (+298 / 目标 +996)<br>seed: src/seed/seed_business_activity_gbt4754.py · 298 records (20 sections + 96 divisions + 182 groups)<br>剩余：GB/T 4754 完整 1380 classes</td>
+    </tr>
+
+    <tr>
+      <td class="col-id">W2-3.9</td>
+      <td class="col-status"><span class="status-badge status-partial">⏳ PARTIAL</span></td>
+      <td>FilingFormField 88 → 1,400（增值税 + CIT 申报表字段 schema）</td>
+      <td class="col-evidence">实测 88 → 268 (+180 / 目标 +1,132)<br>seed: src/seed/seed_filing_form_field_full.py · 180 fields (VAT 81 + CIT 71 + PIT 28)<br>剩余：增加表 6+/PIT 全表/印花税/消费税</td>
+    </tr>
+
+    <tr>
+      <td class="col-id">W2-3.10</td>
+      <td class="col-status"><span class="status-badge status-done">✓ DONE</span></td>
+      <td>加 ingestion manifest（每次 seed/import 写 <code>data/ingestion-manifest.jsonl</code>）</td>
+      <td class="col-evidence">src/ingestion_manifest.py<br>3 条 prod 录入条目（2026-04-27 06:30 UTC）<br>含 dup_skipped + errors + api_url</td>
+    </tr>
+
+    <tr class="phase-row"><td colspan="4">第 4 周 · 客户成果（1 项 · 1 TODO）</td></tr>
+
+    <tr>
+      <td class="col-id">W4.11</td>
+      <td class="col-status"><span class="status-badge status-todo">☐ TODO</span></td>
+      <td>yiclaw 真实企业 1 月增值税申报端到端演示（凭证 → 账科 → 申报表 → 核对 → 输出）</td>
+      <td class="col-evidence">未启动<br>前置：W2-3.7/8/9 全部到 ≥1000 行<br>裁决：通过=KG 投资续；失败=灵阙转 LLM-only</td>
+    </tr>
+
+    <tr class="phase-row"><td colspan="4">执行中发现的 Follow-up（6 项）</td></tr>
+
+    <tr>
+      <td class="col-id">FU1</td>
+      <td class="col-status"><span class="status-badge status-held">⚠ HELD</span></td>
+      <td>D3 INTERPRETS 拆分执行脚本（含 savepoint + 进度报告 + 偏差中止）</td>
+      <td class="col-evidence">同 W1.5<br>需 30min 维护窗口 + 文件级快照（ZFS/btrfs/LVM 未配） 或 Kuzu EXPORT DATABASE</td>
+    </tr>
+
+    <tr>
+      <td class="col-id">FU2</td>
+      <td class="col-status"><span class="status-badge status-done">✓ DONE</span></td>
+      <td>从 <code>schemas/ontology_v4.2.cypher</code> decanonicalize RiskIndicator（已无数据 + 已被 V2 取代）</td>
+      <td class="col-evidence">canonical_count 32→31<br>schema 文件首次入 git 跟踪（之前 untracked）</td>
+    </tr>
+
+    <tr>
+      <td class="col-id">FU3</td>
+      <td class="col-status"><span class="status-badge status-done">✓ DONE</span></td>
+      <td>修复 audit endpoint <code>canonical_row_counts</code> 不含 REL 表的 bug（导致 INTERPRETS / KU_ABOUT_TAX 显示 0 行）</td>
+      <td class="col-evidence">src/audit/ontology_conformance.py 新增 <code>count_rels_per_type()</code><br>合入 canonical_row_counts，priority test 正确触发</td>
+    </tr>
+
+    <tr>
+      <td class="col-id">FU4</td>
+      <td class="col-status"><span class="status-badge status-hitl">⚠ HITL</span></td>
+      <td>给 <code>/api/v1/admin/execute-ddl</code> 加 bearer-token 鉴权（当前匿名可写 schema）</td>
+      <td class="col-evidence">安全发现：本次 phase-1 seed 应用即未鉴权完成<br>需 Maurice 决定鉴权框架（影响灵阙/yiclaw 下游消费者）</td>
+    </tr>
+
+    <tr>
+      <td class="col-id">FU5</td>
+      <td class="col-status"><span class="status-badge status-todo">☐ TODO</span></td>
+      <td>Phase-2 PDF 抽取：把 9+ canonical 类型推过 1000 行阈值（C1+ 0.242 → 0.515 PASS）</td>
+      <td class="col-evidence">候选：ComplianceRule / DeductionRule / TaxItem / SocialInsuranceRule / InvoiceRule / PolicyChange / IndustryBenchmark / JournalEntryTemplate / TaxAccountingGap<br>来源：data/extracted/ 196MB JSON 语料</td>
+    </tr>
+
+    <tr>
+      <td class="col-id">FU6</td>
+      <td class="col-status"><span class="status-badge status-todo">☐ TODO</span></td>
+      <td>Schema-shape 审计：diff <code>ontology_v4.2.cypher</code> CREATE 块字段列表 vs 生产实际字段；surface 在 <code>/api/v1/ontology-audit</code></td>
+      <td class="col-evidence">本次发现：AccountingSubject 规范声明 <code>balanceSide/code/parentId</code>，生产实际 <code>balanceDirection/fullText</code>（无 code/parentId）<br>预估 ~2-3h 工作</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <strong>更新协议</strong>：当任一 PARTIAL 项跨过下一个里程碑（例如 BusinessActivity 突破 1000 行）、HELD 项执行完成、或 FU 状态翻转，本节增量更新。<strong>不重写历史行</strong>——证据列保留原 commit SHA 与原指标读数，便于回溯进度斜率。
 </div>
 
 <h2 class="section">6 · NOT 做的事（明确 no-go 清单）</h2>

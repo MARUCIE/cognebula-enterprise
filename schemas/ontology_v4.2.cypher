@@ -114,10 +114,10 @@ CREATE NODE TABLE IF NOT EXISTS FilingFormField(
     description STRING, dataType STRING,
     PRIMARY KEY (id));
 
-CREATE NODE TABLE IF NOT EXISTS RiskIndicator(
-    id STRING, name STRING, description STRING, severity STRING,
-    detection STRING, remediation STRING,
-    PRIMARY KEY (id));
+// RiskIndicator REMOVED 2026-04-27 (v4.2.3 garbage DROP, superseded by RiskIndicatorV2).
+// V1 was 463 admitted-garbage rows; V2 carries the same 463 rows with proper schema.
+// Schema authors marked it for TRUNCATE in this file's own header (line 10).
+// This declaration removal closes that loop — canonical_count 32 → 31.
 
 CREATE NODE TABLE IF NOT EXISTS AuditTrigger(
     id STRING, name STRING, description STRING, severity STRING,
@@ -304,8 +304,8 @@ CREATE REL TABLE IF NOT EXISTS INCENTIVE_BASED_ON(FROM TaxIncentive TO LegalClau
     sourceClauseId STRING, effectiveAt STRING, supersededAt STRING);
 CREATE REL TABLE IF NOT EXISTS INCENTIVE_FOR_TAX(FROM TaxIncentive TO TaxType,
     sourceClauseId STRING, effectiveAt STRING, supersededAt STRING);
-CREATE REL TABLE IF NOT EXISTS INDICATES_RISK(FROM RiskIndicator TO AuditTrigger,
-    sourceClauseId STRING, effectiveAt STRING, supersededAt STRING);
+// INDICATES_RISK REMOVED 2026-04-27 (companion to RiskIndicator V1 drop).
+// V2 equivalent: edge from RiskIndicatorV2 to AuditTrigger if needed.
 CREATE REL TABLE IF NOT EXISTS OVERRIDES_IN(FROM Region TO ComplianceRule,
     sourceClauseId STRING, effectiveAt STRING, supersededAt STRING);
 CREATE REL TABLE IF NOT EXISTS PENALIZED_BY(FROM ComplianceRule TO Penalty,
@@ -314,8 +314,8 @@ CREATE REL TABLE IF NOT EXISTS PENALIZED_FOR(FROM Penalty TO BusinessActivity,
     sourceClauseId STRING, effectiveAt STRING, supersededAt STRING);
 CREATE REL TABLE IF NOT EXISTS REQUIRES_FILING(FROM BusinessActivity TO FilingForm,
     sourceClauseId STRING, effectiveAt STRING, supersededAt STRING);
-CREATE REL TABLE IF NOT EXISTS RISK_FOR_TAX(FROM RiskIndicator TO TaxType,
-    sourceClauseId STRING, effectiveAt STRING, supersededAt STRING);
+// RISK_FOR_TAX REMOVED 2026-04-27 (companion to RiskIndicator V1 drop).
+// V2 equivalent already exists in production as RISK_FOR_TAX-style edge from RiskIndicatorV2.
 CREATE REL TABLE IF NOT EXISTS RULE_FOR_INDUSTRY(FROM ComplianceRule TO Classification,
     sourceClauseId STRING, effectiveAt STRING, supersededAt STRING);
 CREATE REL TABLE IF NOT EXISTS RULE_FOR_TAX(FROM ComplianceRule TO TaxType,
@@ -324,8 +324,7 @@ CREATE REL TABLE IF NOT EXISTS SPLITS_INTO(FROM BusinessActivity TO BusinessActi
     sourceClauseId STRING, effectiveAt STRING, supersededAt STRING);
 CREATE REL TABLE IF NOT EXISTS STACKS_WITH(FROM TaxIncentive TO TaxIncentive,
     sourceClauseId STRING, effectiveAt STRING, supersededAt STRING);
-CREATE REL TABLE IF NOT EXISTS TRIGGERED_BY(FROM AuditTrigger TO RiskIndicator,
-    sourceClauseId STRING, effectiveAt STRING, supersededAt STRING);
+// TRIGGERED_BY REMOVED 2026-04-27 (companion to RiskIndicator V1 drop).
 CREATE REL TABLE IF NOT EXISTS TRIGGERS_TAX(FROM BusinessActivity TO TaxType,
     sourceClauseId STRING, effectiveAt STRING, supersededAt STRING);
 

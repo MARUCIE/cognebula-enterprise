@@ -284,6 +284,24 @@ def count_rows_per_type(conn, table_names: set[str] | list[str]) -> dict[str, in
     return counts
 
 
+def count_rels_per_type(conn, rel_names: set[str] | list[str]) -> dict[str, int]:
+    """Pure read: COUNT(*) per REL table. Returns {rel: edge_count}.
+
+    Companion to count_rows_per_type. Round-4 stub-backfill detector cares
+    about edge backbone tables (INTERPRETS, KU_ABOUT_TAX) too — a thin edge
+    table is the same anti-pattern as a thin node table.
+    """
+    counts: dict[str, int] = {}
+    for rel in sorted(set(rel_names)):
+        try:
+            res = conn.execute(f"MATCH ()-[r:{rel}]->() RETURN COUNT(*) AS c")
+            row = res.get_next() if res.has_next() else None
+            counts[rel] = int(row[0]) if row else 0
+        except Exception:
+            counts[rel] = 0
+    return counts
+
+
 # Round-4 stub-backfill detector thresholds.
 # Per Munger STOP rule (`outputs/reports/ontology-audit-swarm/2026-04-27-sota-gap-round4.md`):
 # canonical_coverage_ratio is redefined as `Σ(row_count > MIN_ROWS_DEFAULT) / 35`,
@@ -509,10 +527,27 @@ def audit(conn, schema_path: Path | str | None = None) -> dict[str, Any]:
 
     rogue_buckets = classify_rogue(rogue_in_prod)
 
-    # Round-4 stub-backfill detector — count rows for canonical types only.
-    # Cheap (35 COUNT(*) queries on backbone tables). Pure read.
+    # Round-4 stub-backfill detector — count rows for canonical NODE types
+    # AND edge counts for any REL types named in MIN_ROWS_PER_TYPE
+    # (e.g. INTERPRETS, KU_ABOUT_TAX). Cheap: ~35 NODE COUNT(*) + 1-3 REL
+    # COUNT(*) queries. Pure read.
     canonical_row_counts = count_rows_per_type(conn, canonical)
-    canonical_min_rows_metric = compute_min_rows_metric(canonical, canonical_row_counts)
+    rel_priority_targets = {
+        name for name in MIN_ROWS_PER_TYPE if name in rel_live
+    }
+    if rel_priority_targets:
+        rel_counts = count_rels_per_type(conn, rel_priority_targets)
+        # Merge: REL keys join NODE keys in same dict; downstream consumers
+        # (compute_min_rows_metric + tests) see one unified row_counts map.
+        canonical_row_counts = {**canonical_row_counts, **rel_counts}
+        # Extend "canonical" set passed to the metric so REL targets are
+        # subject to the same threshold check as NODE targets.
+        canonical_for_metric = canonical | rel_priority_targets
+    else:
+        canonical_for_metric = canonical
+    canonical_min_rows_metric = compute_min_rows_metric(
+        canonical_for_metric, canonical_row_counts
+    )
 
     result = {
         "schema_source": str(schema_path),

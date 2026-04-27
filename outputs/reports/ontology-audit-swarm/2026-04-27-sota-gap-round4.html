@@ -683,20 +683,20 @@ def test_c1_canonical_min50():
 
 <div class="checklist-progress">
   <div class="stat">
-    <div class="num">7 / 17</div>
+    <div class="num">9 / 17</div>
     <div class="lbl">总原子项 DONE（11 原计划 + 6 执行中发现）</div>
   </div>
   <div class="stat">
-    <div class="num">3</div>
+    <div class="num">4</div>
     <div class="lbl">PARTIAL</div>
   </div>
   <div class="stat">
-    <div class="num">2</div>
+    <div class="num">3</div>
     <div class="lbl">HELD / HITL</div>
   </div>
   <div class="stat">
-    <div class="num">2</div>
-    <div class="lbl">TODO（含 W4.11）</div>
+    <div class="num">1</div>
+    <div class="lbl">TODO（W4.11 yiclaw demo）</div>
   </div>
 </div>
 
@@ -825,9 +825,9 @@ def test_c1_canonical_min50():
 
     <tr>
       <td class="col-id">FU5</td>
-      <td class="col-status"><span class="status-badge status-todo">☐ TODO</span></td>
-      <td>Phase-2 PDF 抽取：把 9+ canonical 类型推过 1000 行阈值（C1+ 0.242 → 0.515 PASS）</td>
-      <td class="col-evidence">候选：ComplianceRule / DeductionRule / TaxItem / SocialInsuranceRule / InvoiceRule / PolicyChange / IndustryBenchmark / JournalEntryTemplate / TaxAccountingGap<br>来源：data/extracted/ 196MB JSON 语料</td>
+      <td class="col-status"><span class="status-badge status-partial">⏳ PARTIAL</span></td>
+      <td>Phase-2 PDF 抽取：把 9+ canonical 类型推过 min-rows 阈值（C1+ ratio → 0.5 PASS）</td>
+      <td class="col-evidence"><strong>Primer 完成（本会话）：ComplianceRule 0 → 162（超过 100 阈值）</strong><br>seed: src/seed/seed_compliance_rule_extracted.py · 163 records 抽取自 doctax_extracted.json (node_type=ComplianceRule 过滤)<br>Live shape drift 探针发现：live 仅 {id, name, category}（canonical declares description/severity/sourceClauseId/status — 全部被 prod 拒绝）；wrapper drop_keys 桥接<br>C1+ 影响：ratio 0.273 → 0.303 · ComplianceRule 移出 tier_empty<br>剩余 8 类候选：DeductionRule / TaxItem / SocialInsuranceRule / InvoiceRule / PolicyChange / IndustryBenchmark / JournalEntryTemplate / TaxAccountingGap</td>
     </tr>
 
     <tr>

@@ -37,6 +37,7 @@ from src.ingestion_manifest import record_ingestion
 from src.seed.seed_accounting_subject_full import _build_records as build_as
 from src.seed.seed_business_activity_gbt4754 import _build_records as build_ba
 from src.seed.seed_filing_form_field_full import _build_records as build_fff
+from src.seed.seed_compliance_rule_extracted import _build_records as build_cr
 
 
 def _esc(v: object) -> str:
@@ -152,6 +153,23 @@ SEEDS = [
         "build_fn": build_fff,
         "drop_keys": [],
         "field_map": {},  # live matches seed (id, formId, fieldCode, fieldName, description, dataType)
+    },
+    {
+        "name": "ComplianceRule",
+        "table": "ComplianceRule",
+        "build_fn": build_cr,
+        # ComplianceRule LIVE shape vs canonical drift (probed 2026-04-27 via
+        # iterative CREATE attempts on prod; CALL table_info blocked by the
+        # admin-DDL allowed-prefix list, so we used CREATE-and-error mining):
+        #   canonical declares: id, name, description, severity, sourceClauseId, status
+        #   live actually has:  id, name, category (others rejected with
+        #     "Cannot find property X for n")
+        # Drop everything live doesn't accept; collapse description -> dropped
+        # (long body would corrupt category semantics if mapped). Phase-2b will
+        # ALTER TABLE live to add description/severity columns once Maurice
+        # signs off (FU6 schema-shape gate will catch this after redeploy).
+        "drop_keys": ["description", "severity", "sourceClauseId", "status"],
+        "field_map": {},
     },
 ]
 

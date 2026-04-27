@@ -302,6 +302,118 @@ def count_rels_per_type(conn, rel_names: set[str] | list[str]) -> dict[str, int]
     return counts
 
 
+def parse_canonical_columns(schema_path: Path) -> dict[str, list[str]]:
+    """FU6 — extract per-table column declarations from canonical Cypher.
+
+    Reads each NODE-TABLE declaration block (regex below) and returns
+    {table_name: [col1, col2, ...]} preserving declaration order,
+    excluding the trailing PRIMARY KEY clause.
+
+    Catches the 2026-04-27 AccountingSubject incident: canonical declared
+    `balanceSide / code / parentId` but live had `balanceDirection / fullText`.
+    With this parser + compute_schema_shape_drift downstream, drift surfaces
+    in the audit endpoint instead of silently breaking seed application.
+    """
+    text = schema_path.read_text(encoding="utf-8")
+    block_re = re.compile(
+        r"CREATE NODE TABLE(?:\s+IF NOT EXISTS)?\s+([A-Za-z_][A-Za-z0-9_]*)\s*\((.*?)\)\s*;",
+        re.DOTALL,
+    )
+    out: dict[str, list[str]] = {}
+    for m in block_re.finditer(text):
+        name = m.group(1)
+        body = m.group(2)
+        # Strip line comments (`// ...` and `-- ...`) before splitting
+        body = re.sub(r"(--|//)[^\n]*", "", body)
+        cols: list[str] = []
+        for piece in body.split(","):
+            piece = piece.strip()
+            if not piece:
+                continue
+            if piece.upper().startswith("PRIMARY KEY"):
+                continue
+            tok = piece.split(None, 1)
+            if tok and re.match(r"^[A-Za-z_][A-Za-z0-9_]*$", tok[0]):
+                cols.append(tok[0])
+        out[name] = cols
+    return out
+
+
+def list_live_columns(conn, table_names: set[str] | list[str]) -> dict[str, list[str]]:
+    """FU6 — pure read of live column lists per NODE table.
+
+    Uses Kuzu `CALL table_info(<name>) RETURN *`. Returns {table: [col1, ...]}.
+    Tables that error (missing or unauthorized) get an empty list — same
+    convention as count_rows_per_type so downstream diff treats them uniformly.
+    """
+    out: dict[str, list[str]] = {}
+    for tbl in sorted(set(table_names)):
+        try:
+            res = conn.execute(f"CALL table_info('{tbl}') RETURN *")
+            cols: list[str] = []
+            while res.has_next():
+                row = res.get_next()
+                # Kuzu table_info returns: [property_id, name, type, ...]
+                if len(row) >= 2 and isinstance(row[1], str):
+                    cols.append(row[1])
+            out[tbl] = cols
+        except Exception:
+            out[tbl] = []
+    return out
+
+
+def compute_schema_shape_drift(
+    canonical_cols: dict[str, list[str]],
+    live_cols: dict[str, list[str]],
+    intersection: set[str] | list[str],
+) -> dict[str, Any]:
+    """FU6 — per-table column diff for tables present in both canonical and live.
+
+    For each intersection table:
+      - declared_only: columns in canonical CREATE block but missing in live
+      - live_only:     columns in live table but absent from canonical
+      - matched:       columns present in both
+
+    Returns:
+        {
+            "by_table": {table: {"declared_only": [...], "live_only": [...], "matched": [...]}},
+            "drift_count": int,                       # tables with any drift
+            "tables_with_declared_only": [...],       # canonical declares column not in live
+            "tables_with_live_only": [...],           # live has column canonical does not declare
+        }
+
+    A canonical type with empty drift is shape-conforming. drift_count > 0
+    means at least one canonical type's CREATE block lies about live shape.
+    """
+    by_table: dict[str, dict[str, list[str]]] = {}
+    declared_only_tables: list[str] = []
+    live_only_tables: list[str] = []
+    drift = 0
+    for tbl in sorted(set(intersection)):
+        declared = set(canonical_cols.get(tbl, []))
+        live = set(live_cols.get(tbl, []))
+        do = sorted(declared - live)
+        lo = sorted(live - declared)
+        matched = sorted(declared & live)
+        if do or lo:
+            drift += 1
+            if do:
+                declared_only_tables.append(tbl)
+            if lo:
+                live_only_tables.append(tbl)
+        by_table[tbl] = {
+            "declared_only": do,
+            "live_only": lo,
+            "matched": matched,
+        }
+    return {
+        "by_table": by_table,
+        "drift_count": drift,
+        "tables_with_declared_only": declared_only_tables,
+        "tables_with_live_only": live_only_tables,
+    }
+
+
 # Round-4 stub-backfill detector thresholds.
 # Per Munger STOP rule (`outputs/reports/ontology-audit-swarm/2026-04-27-sota-gap-round4.md`):
 # canonical_coverage_ratio is redefined as `Σ(row_count > MIN_ROWS_DEFAULT) / 35`,
@@ -549,6 +661,17 @@ def audit(conn, schema_path: Path | str | None = None) -> dict[str, Any]:
         canonical_for_metric, canonical_row_counts
     )
 
+    # FU6 — schema-shape audit. For canonical types present in live, diff the
+    # declared CREATE-block columns against actual live columns. Catches the
+    # 2026-04-27 AccountingSubject incident pattern (declared balanceSide,
+    # live had balanceDirection) so future seeds can fail fast on field_map
+    # gaps instead of silently dropping props.
+    canonical_columns_decl = parse_canonical_columns(schema_path)
+    live_columns_actual = list_live_columns(conn, intersection)
+    schema_shape_drift = compute_schema_shape_drift(
+        canonical_columns_decl, live_columns_actual, intersection
+    )
+
     result = {
         "schema_source": str(schema_path),
         "canonical_count": len(canonical),
@@ -576,6 +699,7 @@ def audit(conn, schema_path: Path | str | None = None) -> dict[str, Any]:
         "severity": severity,
         "canonical_row_counts": canonical_row_counts,
         "canonical_min_rows_metric": canonical_min_rows_metric,
+        "schema_shape_drift": schema_shape_drift,
     }
     result["composite_gate"] = compute_composite_gate(result)
     return result

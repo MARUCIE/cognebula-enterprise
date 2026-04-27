@@ -832,9 +832,9 @@ def test_c1_canonical_min50():
 
     <tr>
       <td class="col-id">FU6</td>
-      <td class="col-status"><span class="status-badge status-todo">☐ TODO</span></td>
+      <td class="col-status"><span class="status-badge status-partial">⏳ PARTIAL</span></td>
       <td>Schema-shape 审计：diff <code>ontology_v4.2.cypher</code> CREATE 块字段列表 vs 生产实际字段；surface 在 <code>/api/v1/ontology-audit</code></td>
-      <td class="col-evidence">本次发现：AccountingSubject 规范声明 <code>balanceSide/code/parentId</code>，生产实际 <code>balanceDirection/fullText</code>（无 code/parentId）<br>预估 ~2-3h 工作</td>
+      <td class="col-evidence">实现完成（本会话）：3 函数 <code>parse_canonical_columns / list_live_columns / compute_schema_shape_drift</code> + audit() 集成 + gate test <code>test_schema_shape_drift_below_tolerance</code><br>本地单测通过：合成 live 还原 AccountingSubject 漂移（declared_only=[balanceSide,code,parentId,description], live_only=[balanceDirection,fullText]）<br>剩余：prod redeploy（HITL 待 Maurice 触发；audit 端点纯增量字段，低风险）</td>
     </tr>
   </tbody>
 </table>

@@ -206,6 +206,31 @@ def test_canonical_types_meet_priority_min_rows() -> None:
     )
 
 
+def test_schema_shape_drift_below_tolerance() -> None:
+    """FU6 anti-drift gate: prevent canonical CREATE blocks diverging from live.
+
+    Catches the 2026-04-27 AccountingSubject incident where canonical declared
+    `balanceSide / code / parentId` while live had `balanceDirection / fullText`.
+    Without this gate, seed scripts silently drop unmapped fields and feed the
+    illusion of progress while real shape drift accumulates.
+
+    Tolerance is intentionally generous on first deploy (audit existing drift,
+    don't wedge CI). Tighten as drift gets fixed table-by-table.
+    """
+    audit = _fetch_audit()
+    drift = audit.get("schema_shape_drift")
+    if drift is None:
+        pytest.skip("schema_shape_drift absent — endpoint pre-FU6 redeploy")
+    DRIFT_TOLERANCE = 10  # tune down toward 0 as drift gets fixed
+    drift_count = drift.get("drift_count", 0)
+    assert drift_count <= DRIFT_TOLERANCE, (
+        f"schema-shape drift exceeded tolerance: {drift_count} tables drift "
+        f"(tolerance {DRIFT_TOLERANCE}).\n"
+        f"  declared_only (canonical claims, live missing): {drift.get('tables_with_declared_only', [])}\n"
+        f"  live_only (live has, canonical does not declare): {drift.get('tables_with_live_only', [])}"
+    )
+
+
 # ---------------------------------------------------------------------------
 # LegalBench-Tax Stage 1 runner — offline tests (no API call)
 # ---------------------------------------------------------------------------

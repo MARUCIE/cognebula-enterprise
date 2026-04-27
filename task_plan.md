@@ -137,7 +137,7 @@ After Sprint E2 closed prohibited_role (7/9 dims), `inconsistent_scope` is the l
 ### Slice S8.F — Sprint F1 PDCA + notes housekeeping (DONE)
 - [x] PDCA `2026-04-27-prod-data-quality-pdca.md`: inserted §P0.8d Sprint F1 section; updated "Final test suite status" to post Sprint A+B+C+D+E+F1 (5,860 IDs / ~210K mutation steps / ~265K effective cases / 53.30s nightly empirical / 8/9 mutation-axis dim coverage)
 - [x] `notes.md`: appended 2026-04-27 Sprint F1 entry with anchor pairs + 2-invariant rationale + null_scope-deferred RCA; status-updated the prior Sprint E "Out of scope" line to mark inconsistent_scope as shipped
-- [ ] Commit `data-quality: Sprint F1 PDCA + notes sync`
+- [x] Commit landed: `822da69` (`data-quality: Sprint F1 PDCA + notes sync`)
 
 ### Out of scope (Sprint F deferred, logged not asked)
 - `invalid_chain` mutation machine — fixture cost > 90-min MVS budget; Sprint F2 candidate (NOT executed in this session per MVS-pattern + autonomous-extension quarantine: clause-axis with chain traversal needs Maurice direction on fixture data)

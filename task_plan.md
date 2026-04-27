@@ -131,10 +131,18 @@ After Sprint E2 closed prohibited_role (7/9 dims), `inconsistent_scope` is the l
 - [x] S8.1.c `pytest tests/test_data_quality_mutation.py -q` → `10 passed in 42.34s` (was 9 → +1 machine)
 - [x] S8.1.d Nightly count: 5,859 → 5,860 (+1 ID, exactly as predicted)
 - [x] S8.1.e Orthogonality verified by EXPLICIT 2nd invariant `row_axis_jurisdiction_mismatches_stays_at_zero` — every machine state asserts `r["jurisdiction_mismatches"] == 0`. Refactored to drop null_scope rule (XOR contamination); deferred to Sprint F2 candidate
-- [ ] S8.1.f Commit `data-quality: Sprint F1 — inconsistent_scope mutation machine`
+- [x] S8.1.f Commit landed: `984f1d5` (`data-quality: Sprint F1 — inconsistent_scope mutation machine`)
 - ⏭ **deferred half** (logged): `invalid_chain` machine (chain_id traversal fixtures, Sprint F2 candidate); `unknown_jurisdiction_code` machine (different flag, different counter — separate Sprint); orthogonality cross-check: row-axis `_count_jurisdiction_mismatches` machine + clause-axis machine running simultaneously (Sprint F3 cross-axis machine)
 
+### Slice S8.F — Sprint F1 PDCA + notes housekeeping (DONE)
+- [x] PDCA `2026-04-27-prod-data-quality-pdca.md`: inserted §P0.8d Sprint F1 section; updated "Final test suite status" to post Sprint A+B+C+D+E+F1 (5,860 IDs / ~210K mutation steps / ~265K effective cases / 53.30s nightly empirical / 8/9 mutation-axis dim coverage)
+- [x] `notes.md`: appended 2026-04-27 Sprint F1 entry with anchor pairs + 2-invariant rationale + null_scope-deferred RCA; status-updated the prior Sprint E "Out of scope" line to mark inconsistent_scope as shipped
+- [ ] Commit `data-quality: Sprint F1 PDCA + notes sync`
+
 ### Out of scope (Sprint F deferred, logged not asked)
-- `invalid_chain` mutation machine — fixture cost > 90-min MVS budget
+- `invalid_chain` mutation machine — fixture cost > 90-min MVS budget; Sprint F2 candidate (NOT executed in this session per MVS-pattern + autonomous-extension quarantine: clause-axis with chain traversal needs Maurice direction on fixture data)
+- `unknown_jurisdiction_code` machine — separate counter (NOT `inconsistent_scope_count`), separate Sprint
+- null_scope mixed-concern machine — clause+row joint test, Sprint F2 candidate
+- Cross-axis machine (row-axis + clause-axis simultaneously) — Sprint F3 candidate
 - More property invariants (commutativity / hash stability / sample-size scaling) — Sprint F4 candidate
 - HITL Plan A/B/C/D, P4 orphan_fk_count, xfail policy — unchanged HITL items

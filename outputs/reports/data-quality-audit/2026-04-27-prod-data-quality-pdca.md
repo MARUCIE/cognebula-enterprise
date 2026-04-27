@@ -228,6 +228,20 @@ Two distinct clean roles (`yiju` 依据 + `shouquan` 授权) avoid Sprint D's si
 
 Sprint E subtotal: **+~20,000 mutation steps + ~1,500 property examples ≈ +21,500 invariant evaluations**, +6.02s runtime delta (empirical: nightly 42.56s post-D → 48.58s post-E).
 
+### P0.8d — Sprint F1: inconsistent_scope clause-axis machine (DONE)
+
+Sprint E2 closed prohibited_role at 7/9 mutation coverage. Sprint F1 ships the second clause-axis machine targeting `inconsistent_scope_count` — selected over `invalid_chain` because `_check_consistency` has a known 3-row truth table (national / iso_admin / special_zone) that fits the MVS 90-min slice budget; `invalid_chain` requires `chain_id` traversal fixtures (orphan / cycle / version drift modes) that exceed it.
+
+| Machine | Settings | Invariants per step | Catches |
+|---------|----------|---------------------|---------|
+| `InconsistentScopeMutationMachine` | 400 × 50 | 2 (count match + orthogonality contract) | inconsistent_scope_count drift across consistent ↔ national-mismatch ↔ iso_admin-mismatch transitions; AND row-axis `jurisdiction_mismatches` staying at 0 (clause-axis must not contaminate row-axis) |
+
+Anchor pair selection passes row-axis check (scope ∈ `ALLOWED_JURISDICTION_SCOPES` + both fields set, no XOR) AND triggers clause-axis (decision-table mismatch). Two distinct inconsistent pairs (`(CN, subnational)` for national-kind + `(CN-31, national)` for iso_admin-kind) avoid the Sprint D / Sprint E2 single-toggle blind spot.
+
+The explicit second invariant `row_axis_jurisdiction_mismatches_stays_at_zero` is the design move that makes orthogonality testable: every reachable state has the row-axis dim at zero, so any future change accidentally coupling clause-axis to row-axis will break this test. This is what elevates Sprint F1 above pattern duplication of Sprint E2.
+
+Sprint F1 subtotal: **+~20,000 mutation steps × 2 invariants ≈ +40,000 invariant evaluations**, +4.72s runtime delta (empirical: nightly 48.58s post-E → 53.30s post-F1). Coverage delta: **8/9** audit dimensions (was 7/9 post-E).
+
 ### P0.9 — Sprint C: API client + perf gate + CI tiering (DONE)
 
 `scripts/data_quality_survey_via_api.py` had **zero tests** pre-Sprint-C — and it's the surface that touched PROD on 2026-04-27 to produce the v3 baseline. Silent failure here would skew every survey.
@@ -247,19 +261,20 @@ CI tiering shipped via `scripts/run_data_quality_tests.sh`:
 
 Sprint C subtotal: **58 cases + tiered runner**.
 
-### Final test suite status (post Sprint A+B+C+D+E)
+### Final test suite status (post Sprint A+B+C+D+E+F1)
 
 | Metric | Value |
 |--------|-------|
 | Test files | 12 (~4,000 LOC) |
-| pytest IDs | 5,859 |
-| hypothesis examples | ~8,000 |
-| mutation steps | ~190,000 |
-| **Effective cases** | **~243,000** |
-| Nightly wall-clock | ~49s (empirical 48.58s — was 42.56s post-D; +~6s for Sprint E) |
-| Fast PR gate p95 | 511ms (unchanged — Sprint E additions live in nightly only) |
+| pytest IDs | 5,860 |
+| hypothesis examples | ~8,500 |
+| mutation steps | ~210,000 |
+| **Effective cases** | **~265,000** |
+| Nightly wall-clock | ~53s (empirical 53.30s — was 48.58s post-E; +~5s for Sprint F1) |
+| Fast PR gate p95 | 511ms (unchanged — all Sprint D/E/F1 additions live in nightly only) |
+| **Mutation-axis dim coverage** | **8/9** (placeholder / duplicate / null_coverage / stale / integrity / jurisdiction-row / prohibited_role / inconsistent_scope — only `invalid_chain` remains) |
 
-`test_schema_completeness.py` (17 IDs, 11 designed-FAIL pending HITL Plan A/B/C/D) is wired into `nightly` tier only — keeping the schema-vs-audit drift signal visible without blocking PR-tier. Sprint D's 4 new mutation machines and Sprint E's 1 new mutation machine + 5 new property methods all live in nightly.
+`test_schema_completeness.py` (17 IDs, 11 designed-FAIL pending HITL Plan A/B/C/D) is wired into `nightly` tier only — keeping the schema-vs-audit drift signal visible without blocking PR-tier. Sprint D's 4 new mutation machines, Sprint E's 1 new mutation machine + 5 new property methods, and Sprint F1's 1 new clause-axis machine all live in nightly.
 
 ### P1 — `effective_from` backfill (HIGH)
 

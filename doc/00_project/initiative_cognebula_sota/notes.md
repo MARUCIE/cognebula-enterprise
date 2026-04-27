@@ -1023,7 +1023,48 @@ Coverage delta: mutation testing now covers **7 of 9** audit dimensions (was 6 o
 ### Out of scope (Sprint E deferred half, logged not asked)
 
 - `invalid_chain` mutation machine — needs `validate_chain_id` fixture data + `override_chain_id` + `override_chain_parents` truth-table; non-trivial setup
-- `inconsistent_scope` mutation machine — needs `_check_consistency` truth-table for jurisdiction code/scope pairs (which `JurisdictionMismatchMutationMachine` already partially exercises but at row-axis only, not clause-axis)
+- `inconsistent_scope` mutation machine — needs `_check_consistency` truth-table for jurisdiction code/scope pairs (which `JurisdictionMismatchMutationMachine` already partially exercises but at row-axis only, not clause-axis) [STATUS UPDATE 2026-04-27 evening: shipped via Sprint F1 — see entry below]
 - More property invariants (commutativity under restore, hash stability of placeholder-per-field, sample-size scaling) — Sprint F candidate
 - New audit dimensions (P4 orphan_fk_count) — product-level call, still HITL
 - HITL Plan A/B/C/D for jurisdiction backfill — still HITL
+
+---
+
+## 2026-04-27 — Sprint F1: inconsistent_scope clause-axis machine (8/9 mutation coverage)
+
+After Sprint E2 closed prohibited_role at 7/9 dims, Sprint F1 ships the second clause-axis mutation machine, picked under MVS-pattern budget (60-min slice). Selected over `invalid_chain` because `_check_consistency` has a known 3-row truth table (national / iso_admin / special_zone) that fits inside 90 min; `invalid_chain` requires chain_id traversal fixtures (orphan / cycle / version drift) that don't.
+
+### Sprint F1 — InconsistentScopeMutationMachine (Machine 10, commit `984f1d5`)
+
+400 × 50, 3 mutation rules + 2 invariants.
+
+Anchor pairs (decision-table from `src/kg/jurisdiction_consistency.py:54-95`):
+- **Consistent baseline**: `(CN, national)` — national kind expects scope=national ✓
+- **Inconsistent #1**: `(CN, subnational)` — national kind, scope mismatch (subnational still in `ALLOWED_JURISDICTION_SCOPES`)
+- **Inconsistent #2**: `(CN-31, national)` — iso_admin kind expects {subnational, municipal}, national still whitelisted
+
+Why these specific pairs: every state simultaneously passes row-axis (`_count_jurisdiction_mismatches` returns 0 because scope ∈ whitelist + both fields set so XOR is False) AND triggers clause-axis (`_check_consistency` returns verdict==`inconsistent`, which `clause_inspector.inspect()` translates to `inconsistent_code_scope` flag, which `_clause_defect_counts` increments into `inconsistent_scope_count`). This means the row-axis dim stays at 0 throughout, making the orthogonality contract testable.
+
+Two invariants:
+1. `inconsistent_scope_count == |inconsistent_indexes|` (the standard count-match invariant)
+2. `jurisdiction_mismatches == 0` for ALL reachable states (the **explicit orthogonality contract** — a clause-axis machine must not leak into the row-axis counter; if this ever fails, a future code change accidentally coupled the two axes)
+
+The 2nd invariant is the design move that elevates this machine above pattern-duplication of Sprint E2. Without it, the machine is just "another single-axis machine"; with it, it's a forcing function against future cross-axis coupling regressions.
+
+`null_scope` rule INTENTIONALLY DROPPED: setting `jurisdiction_scope=None` makes row-axis XOR fire (code set, scope unset), contaminating the row-axis-zero invariant. Mixed clause+row concern logged as Sprint F2 candidate (separate machine — not a rule of this machine).
+
+Verification:
+- `pytest tests/test_data_quality_mutation.py -q` → `10 passed in 42.34s` (was 9 → +1 machine)
+- nightly count → 5,859 → 5,860 (+1 ID, exactly as predicted)
+- nightly wall-clock → 48.58s → 53.30s (+4.72s for the new machine)
+
+Coverage delta: mutation testing now covers **8 of 9** audit dimensions. Remaining uncovered: `invalid_chain` (Sprint F2 candidate, requires chain_id fixtures).
+
+### Out of scope (Sprint F1 deferred half, logged not asked)
+
+- `invalid_chain` mutation machine — needs `validate_chain_id` traversal fixtures (orphan / cycle / version drift modes); Sprint F2 candidate
+- `unknown_jurisdiction_code` machine — different flag (`unknown_code` verdict, NOT `inconsistent`), different counter; separate Sprint
+- null_scope mixed-concern machine — clause+row joint test (would simultaneously increment `inconsistent_scope_count` AND `jurisdiction_mismatches`); Sprint F2 candidate
+- Cross-axis machine running row-axis `JurisdictionMismatchMutationMachine` and clause-axis `InconsistentScopeMutationMachine` simultaneously, asserting they never double-count the same defect; Sprint F3 candidate
+- More property invariants (commutativity / hash stability / sample-size scaling) — Sprint F4 candidate
+- HITL Plan A/B/C/D, P4 orphan_fk_count, xfail policy — unchanged HITL items

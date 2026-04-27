@@ -204,6 +204,30 @@ Field-routing matrix proves orthogonality is real: each rule mutates a NON-OVERL
 
 Sprint B + D combined: **8 machines, ~170,000 mutation steps, ~345,000 invariant evaluations**, 34s runtime total.
 
+### P0.8c — Sprint E: property invariant +3 + clause-axis mutation expansion (DONE)
+
+Sprint D closed 6 of 9 audit dimensions on the mutation axis but still left the clause-axis (prohibited_role / invalid_chain / inconsistent_scope) at zero single-axis mutation coverage. Sprint E ships the first clause-axis machine plus 3 high-leverage property invariants that none of the other layers were checking.
+
+#### E1 — property invariants (+3 invariants × 5 methods)
+
+| Invariant class | Methods | Catches |
+|-----------------|---------|---------|
+| `TestIdempotence` | 2 (pure-function + non-mutation) | survey_type accidentally caching state, mutating input rows in-place |
+| `TestDefectsUpperBound` | 2 (total bound + per-dim bound) | a future audit-dim addition that double-counts or exceeds row count |
+| `TestDefectsMonotoneAddOnly` | 1 (add-only non-decreasing, excludes duplicate_id) | a row-axis count regressing under add-only mutation (only global-axis dims may swing) |
+
+Three conceptual invariants materialized as 2+2+1 = **5 test methods** at `@settings(max_examples=300)` each — a useful reminder that "+N invariants" and "+N test methods" diverge once invariants need multiple specializations.
+
+#### E2 — prohibited_role mutation machine (Machine 9)
+
+| Machine | Settings | Invariants per step | Catches |
+|---------|----------|---------------------|---------|
+| `ProhibitedRoleMutationMachine` | 400 × 50 | 1 (count match across prohibit/clean/alt-clean/null transitions) | prohibited_role_count drift under independent toggle of `argument_role` between `analogy` (prohibited) ↔ `yiju` / `shouquan` (clean) ↔ None |
+
+Two distinct clean roles (`yiju` 依据 + `shouquan` 授权) avoid Sprint D's single-clean blind spot — same lesson as `make_alt_fresh` after Sprint D's BORDERLINE_DATE bug. Mutation testing now covers **7 of 9** audit dimensions.
+
+Sprint E subtotal: **+~20,000 mutation steps + ~1,500 property examples ≈ +21,500 invariant evaluations**, +6.02s runtime delta (empirical: nightly 42.56s post-D → 48.58s post-E).
+
 ### P0.9 — Sprint C: API client + perf gate + CI tiering (DONE)
 
 `scripts/data_quality_survey_via_api.py` had **zero tests** pre-Sprint-C — and it's the surface that touched PROD on 2026-04-27 to produce the v3 baseline. Silent failure here would skew every survey.
@@ -223,19 +247,19 @@ CI tiering shipped via `scripts/run_data_quality_tests.sh`:
 
 Sprint C subtotal: **58 cases + tiered runner**.
 
-### Final test suite status (post Sprint A+B+C+D)
+### Final test suite status (post Sprint A+B+C+D+E)
 
 | Metric | Value |
 |--------|-------|
 | Test files | 12 (~4,000 LOC) |
-| pytest IDs | 5,853 |
-| hypothesis examples | ~6,500 |
-| mutation steps | ~170,000 |
-| **Effective cases** | **~222,000** |
-| Nightly wall-clock | ~43s (empirical 42.56s — was 31s; +~12s for Sprint D mutation machines) |
-| Fast PR gate p95 | 511ms (unchanged — Sprint D additions live in nightly only) |
+| pytest IDs | 5,859 |
+| hypothesis examples | ~8,000 |
+| mutation steps | ~190,000 |
+| **Effective cases** | **~243,000** |
+| Nightly wall-clock | ~49s (empirical 48.58s — was 42.56s post-D; +~6s for Sprint E) |
+| Fast PR gate p95 | 511ms (unchanged — Sprint E additions live in nightly only) |
 
-`test_schema_completeness.py` (17 IDs, 11 designed-FAIL pending HITL Plan A/B/C/D) is wired into `nightly` tier only — keeping the schema-vs-audit drift signal visible without blocking PR-tier. Sprint D's 4 new mutation machines also live in nightly via `test_data_quality_mutation.py`.
+`test_schema_completeness.py` (17 IDs, 11 designed-FAIL pending HITL Plan A/B/C/D) is wired into `nightly` tier only — keeping the schema-vs-audit drift signal visible without blocking PR-tier. Sprint D's 4 new mutation machines and Sprint E's 1 new mutation machine + 5 new property methods all live in nightly.
 
 ### P1 — `effective_from` backfill (HIGH)
 

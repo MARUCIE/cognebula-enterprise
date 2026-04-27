@@ -108,8 +108,10 @@ Mutation testing currently covers 3 of 9 audit dimensions (placeholder / duplica
 - [ ] S7.3.g Commit `data-quality: Sprint E2 — prohibited_role mutation machine`
 - ⏭ **deferred half**: `invalid_chain` machine (needs `validate_chain_id` fixture data) + `inconsistent_scope` machine (needs `_check_consistency` truth table) + Sprint E1 PDCA section update + Sprint E narrative in notes.md (single batched at end of queue)
 
-### Final: end-of-queue housekeeping (target: 15 min)
-- [ ] S7.F PDCA + notes.md narrative for Sprint E1+E2 (single bundled commit)
+### Final: end-of-queue housekeeping (DONE)
+- [x] S7.F PDCA + notes.md narrative for Sprint E1+E2 (single bundled commit)
+  - PDCA `2026-04-27-prod-data-quality-pdca.md`: inserted §P0.8c — Sprint E section between P0.8b Sprint D and P0.9 Sprint C; updated "Final test suite status" table to post Sprint A+B+C+D+E (5,853→5,859 IDs, ~170K→~190K mutation steps, ~222K→~243K effective cases, 42.56s→48.58s nightly empirical)
+  - `notes.md`: appended 2026-04-27 Sprint E1+E2 section with 3 invariant table + machine 9 anchor values + Sprint E deferred-half log
 - [ ] S7.F commit `data-quality: Sprint E PDCA + notes sync`
 
 ### Out of scope (deferred, logged not asked)

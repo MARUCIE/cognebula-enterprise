@@ -982,3 +982,48 @@ First pass had `BORDERLINE_DATE = "2014-06-02"` based on naïve "10 years before
 - Single-axis machines for `prohibited_role` / `invalid_chain` / `inconsistent_scope` — these dimensions delegate to `clause_inspector.inspect()` which expects specific row-shape inputs that don't fit the `_clean_row` baseline cleanly. Building proper test fixtures for clause-axis defects is a separate sprint (E?) bounded by the inspector's own contract.
 - New audit dimensions (P4 orphan_fk_count) — product-level call, still pending.
 - HITL Plan A/B/C/D for jurisdiction backfill — still pending.
+
+---
+
+## 2026-04-27 — Sprint E1+E2: property invariants +3 + first clause-axis mutation machine
+
+Sprint E was scoped under "队列全部执行" MVS-pattern (each slice 30-90 min, vertical, with regression gate + explicit deferred-half log). Two slices shipped: S7.2 (Sprint E1, property invariants) and S7.3 (Sprint E2, prohibited_role mutation machine). Sprint D's deferred clause-axis machines are now PARTIALLY shipped — prohibited_role is done; invalid_chain and inconsistent_scope remain deferred (logged below).
+
+### Sprint E1 — property invariant +3 (5 test methods, commit `73ba8b3`)
+
+3 conceptual invariants materialized as 5 test methods at `@settings(max_examples=300)`:
+
+| Invariant class | Methods | What it proves |
+|-----------------|---------|----------------|
+| `TestIdempotence` | `test_survey_type_is_pure_function` + `test_survey_type_does_not_mutate_input` | Calling survey_type twice on the same input yields the same output; input rows are not mutated in-place. |
+| `TestDefectsUpperBound` | `test_defects_total_is_bounded` + `test_per_dimension_counts_bounded_by_sampled` | defects_total ≤ 11×sampled + |CRITICAL_COLUMNS|; per row-axis dim ≤ sampled. Catches a future audit-dim addition that double-counts. |
+| `TestDefectsMonotoneAddOnly` | `test_adding_row_does_not_decrease_non_global_dims` | Adding a row with a unique id never decreases row-axis dim counts. Excludes `duplicate_id_count` because that dimension can swing under add-only mutation. |
+
+Verification: `pytest tests/test_data_quality_property.py -q` → `24 passed in 6.12s` (was 19 functions → +5 methods).
+
+Lesson: **+N invariants ≠ +N test methods.** The plan said "+3 IDs"; reality was +5 IDs. Same estimate→measurement category as Slice S7.1's `~45s` vs `42.56s` correction (caught by Hickey R2 in the swarm trace). Logged in commit message so the discrepancy is auditable.
+
+### Sprint E2 — prohibited_role mutation machine (Machine 9, commit `bed5bfb`)
+
+First clause-axis mutation machine. 400 × 50, 5 rules + 1 invariant.
+
+Anchor values from the registry:
+- **Prohibited**: `analogy` (类推适用) — `prohibited_in_tax_law=True` per 税收法定 (CN tax law explicitly bars reasoning by analogy to create or extend tax liability)
+- **Clean**: `yiju` (依据, statutory basis) + `shouquan` (授权, delegated authority)
+
+Two distinct clean roles avoid Sprint D's single-clean blind spot — same lesson as `make_alt_fresh` after the BORDERLINE_DATE bug. Hypothesis exercises both clean→clean (`yiju↔shouquan`) and prohibited→clean (`analogy↔yiju`/`shouquan`) transitions.
+
+Verification:
+- `pytest tests/test_data_quality_mutation.py -q` → `9 passed in 38.50s` (was 8 → +1 machine)
+- nightly count → 5,858 → 5,859 (+1 ID, exactly as predicted)
+- nightly wall-clock → 42.56s → 48.58s (+6.02s, all Sprint E delta combined)
+
+Coverage delta: mutation testing now covers **7 of 9** audit dimensions (was 6 of 9 post-Sprint-D). Static-zero invariant in `OrthogonalityMachine` still listed `prohibited_role_count` as zero — that's correct because OrthogonalityMachine's field-routing matrix doesn't touch `argument_role`, so the new ProhibitedRoleMutationMachine doesn't conflict.
+
+### Out of scope (Sprint E deferred half, logged not asked)
+
+- `invalid_chain` mutation machine — needs `validate_chain_id` fixture data + `override_chain_id` + `override_chain_parents` truth-table; non-trivial setup
+- `inconsistent_scope` mutation machine — needs `_check_consistency` truth-table for jurisdiction code/scope pairs (which `JurisdictionMismatchMutationMachine` already partially exercises but at row-axis only, not clause-axis)
+- More property invariants (commutativity under restore, hash stability of placeholder-per-field, sample-size scaling) — Sprint F candidate
+- New audit dimensions (P4 orphan_fk_count) — product-level call, still HITL
+- HITL Plan A/B/C/D for jurisdiction backfill — still HITL

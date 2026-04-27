@@ -89,13 +89,13 @@ Mutation testing currently covers 3 of 9 audit dimensions (placeholder / duplica
 - [ ] S7.1.g Commit `data-quality: PDCA HTML+md Slice 1 — KPI sync to Sprint D state (3-round swarm consensus)`
 - ⏭ **deferred half** (logged): full Sprint D HTML narrative section; red KPI juxtaposition for `0/5 backfilled`; Sprint D §A · Act h3 mirror of P0.8b in .md
 
-### Slice S7.2 — Property invariant +3 (target: 45 min)
-- [ ] S7.2.a Read existing `test_data_quality_property.py` invariants (19 functions, 5,352 examples baseline)
-- [ ] S7.2.b Identify 3 high-leverage invariants not yet covered: (i) idempotence of survey_type (calling twice on same input = same output), (ii) defects_total upper bound (≤ sampled × 9 dimensions), (iii) defects_total monotone-non-decreasing under add-only mutation
-- [ ] S7.2.c Implement the 3 functions with `@settings(max_examples=300)`
-- [ ] S7.2.d Run `pytest tests/test_data_quality_property.py -q` standalone — expect prior 19 + new 3 = 22 passing
-- [ ] S7.2.e Run nightly count to confirm +3 IDs
-- [ ] S7.2.f Commit `data-quality: Sprint E1 — 3 new property invariants`
+### Slice S7.2 — Property invariant +3 (DONE, 5 methods landed)
+- [x] S7.2.a Read existing `test_data_quality_property.py` invariants (19 functions baseline)
+- [x] S7.2.b Identify 3 high-leverage invariants: (i) idempotence of survey_type, (ii) defects_total upper bound, (iii) defects_total monotone-non-decreasing under add-only mutation
+- [x] S7.2.c Implement 3 invariant CLASSES (`TestIdempotence` 2 methods + `TestDefectsUpperBound` 2 methods + `TestDefectsMonotoneAddOnly` 1 method = 5 test methods total, each `@settings(max_examples=300)`)
+- [x] S7.2.d Run `pytest tests/test_data_quality_property.py -q` standalone — `24 passed in 6.12s` (was 19 → +5 methods, not +3 as initially planned: 3 conceptual invariants materialized as 2+2+1=5 methods)
+- [x] S7.2.e Run nightly count: 5,853 → 5,858 (+5 IDs, not +3 — same root cause as S7.2.d)
+- [ ] S7.2.f Commit `data-quality: Sprint E1 — 3 new property invariants (5 test methods)`
 - ⏭ **deferred half**: 5+ more invariants (commutativity under restore, hash stability of placeholder-per-field, sample-size scaling); matrix expansion (more cells); doctests
 
 ### Slice S7.3 — Sprint E2: 1 clause-axis machine (target: 60 min)

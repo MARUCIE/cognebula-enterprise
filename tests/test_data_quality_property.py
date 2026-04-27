@@ -450,3 +450,138 @@ class TestLineageFieldCoverage:
         assert r["placeholder_per_field"][field] >= 1, (
             f"banlist failed to detect on {field}: {banned!r}"
         )
+
+
+# ---------------------------------------------------------------------------
+# Property 11 — Idempotence (Sprint E1)
+#
+# survey_type must be a pure function — calling it twice on the same input
+# must return identical output. Catches accidental statefulness (e.g. global
+# caches, in-place mutation of the row list, time.time() leaking into the
+# computation).
+# ---------------------------------------------------------------------------
+
+
+class TestIdempotence:
+
+    @given(st.lists(_row_strategy(populate_critical=True), min_size=0, max_size=15))
+    @settings(max_examples=300)
+    def test_survey_type_is_pure_function(self, rows):
+        # Two consecutive calls with identical args = identical output.
+        r1 = survey_type(rows, today=date(2024, 6, 1), null_coverage_threshold=0.5)
+        r2 = survey_type(rows, today=date(2024, 6, 1), null_coverage_threshold=0.5)
+        assert r1 == r2, (
+            f"survey_type non-deterministic: r1={r1} r2={r2}"
+        )
+
+    @given(st.lists(_row_strategy(populate_critical=True), min_size=1, max_size=10))
+    @settings(max_examples=300)
+    def test_survey_type_does_not_mutate_input(self, rows):
+        # Snapshot rows before the call (deep enough since rows are flat dicts).
+        snapshot = [dict(r) for r in rows]
+        survey_type(rows, today=date(2024, 6, 1), null_coverage_threshold=0.5)
+        # Rows must be unchanged — survey_type is pure read.
+        assert rows == snapshot, (
+            f"survey_type mutated input: before={snapshot} after={rows}"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Property 12 — Defects upper bound (Sprint E1)
+#
+# defects_total cannot exceed sampled × max-defect-units-per-row. This
+# catches accounting drift where a dimension's count grows unboundedly
+# (e.g. a per-cell loop running through every column instead of every row).
+# Per-row max-defect-units = 5 critical NULL coverage violations + 5 lineage
+# placeholder hits + 1 each for: stale, integrity, jurisdiction, prohibited,
+# invalid_chain, inconsistent, duplicate. But NULL coverage is per-COLUMN
+# (not per-row), so it's bounded by len(CRITICAL_COLUMNS) regardless of
+# sampled. Adjusting:
+#
+#   bound = sampled * (5 + 1 + 1 + 1 + 1 + 1 + 1 + 1)  +  len(CRITICAL_COLUMNS)
+#         = sampled * 11                                +  5
+#         = 11 * sampled + 5
+#
+# (5 placeholder per row × len(LINEAGE_STRING_FIELDS) at max + duplicate +
+# stale + integrity + jurisdiction + prohibited + chain + scope = 11 row-axis
+# units; null_coverage = up to 5 column-axis units.)
+# ---------------------------------------------------------------------------
+
+
+class TestDefectsUpperBound:
+
+    @given(st.lists(_row_strategy(populate_critical=True), min_size=0, max_size=12))
+    @settings(max_examples=300)
+    def test_defects_total_is_bounded(self, rows):
+        r = survey_type(rows, today=date(2024, 6, 1), null_coverage_threshold=0.5)
+        sampled = r["sampled"]
+        # Upper bound: 11 row-axis units * sampled + 5 column-axis null_coverage.
+        upper_bound = 11 * sampled + len(CRITICAL_COLUMNS)
+        assert 0 <= r["defects_total"] <= upper_bound, (
+            f"defects_total={r['defects_total']} violates "
+            f"[0, 11*{sampled}+5={upper_bound}]"
+        )
+
+    @given(st.lists(_row_strategy(populate_critical=True), min_size=1, max_size=10))
+    @settings(max_examples=300)
+    def test_per_dimension_counts_bounded_by_sampled(self, rows):
+        # Each row-axis dimension is bounded by sampled (each row contributes
+        # at most 1 to the dimension). NULL coverage is bounded by 5 (number
+        # of CRITICAL_COLUMNS), independent of sampled.
+        r = survey_type(rows, today=date(2024, 6, 1), null_coverage_threshold=0.5)
+        sampled = r["sampled"]
+        per_row_max = sampled
+        for dim in (
+            "duplicate_id_count", "stale_count", "integrity_violations",
+            "jurisdiction_mismatches", "prohibited_role_count",
+            "invalid_chain_count", "inconsistent_scope_count",
+        ):
+            assert 0 <= r[dim] <= per_row_max, (
+                f"{dim}={r[dim]} violates [0, {per_row_max}]"
+            )
+        # NULL coverage = column-axis: bounded by 5 (CRITICAL_COLUMNS count).
+        assert 0 <= r["null_coverage_violation_count"] <= len(CRITICAL_COLUMNS)
+
+
+# ---------------------------------------------------------------------------
+# Property 13 — Defects monotone-non-decreasing under add-only mutation (Sprint E1)
+#
+# If you add a row to the sample and the new row introduces (≥0) new defects,
+# defects_total cannot DECREASE. This is the path-independence sibling of
+# the mutation tests but at property granularity — a new row never erases a
+# pre-existing defect (except duplicate_id_count, which is a count over the
+# whole set and CAN decrease if the new row's id was duplicated; we exclude
+# that dimension from this property).
+# ---------------------------------------------------------------------------
+
+
+class TestDefectsMonotoneAddOnly:
+
+    @given(
+        st.lists(_row_strategy(populate_critical=True), min_size=1, max_size=10),
+        _row_strategy(populate_critical=True),
+    )
+    @settings(max_examples=300)
+    def test_adding_row_does_not_decrease_non_global_dims(self, rows, new_row):
+        # Make sure the new row's id is unique to avoid duplicate_id swing.
+        new_row = dict(new_row)
+        new_row["id"] = f"unique_{id(new_row)}_{len(rows)}"
+        r_before = survey_type(
+            rows, today=date(2024, 6, 1), null_coverage_threshold=0.5
+        )
+        r_after = survey_type(
+            rows + [new_row], today=date(2024, 6, 1), null_coverage_threshold=0.5
+        )
+        # Row-axis dims that count individual-row anomalies must be monotone.
+        # (duplicate_id_count is excluded — adding a row CAN reduce % NULL etc.,
+        #  but raw counts of placeholder/stale/integrity/jurisdiction/clause-axis
+        #  cannot decrease because the prior rows' anomalies remain.)
+        for dim in (
+            "stale_count", "integrity_violations", "jurisdiction_mismatches",
+            "prohibited_role_count", "invalid_chain_count",
+            "inconsistent_scope_count", "placeholder_string_count",
+        ):
+            assert r_after[dim] >= r_before[dim], (
+                f"{dim} regressed under add-only: before={r_before[dim]} "
+                f"after={r_after[dim]} new_row={new_row}"
+            )

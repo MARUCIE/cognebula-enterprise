@@ -502,4 +502,78 @@ Phase 2: Synthesis + Gap Analysis (Steps 3-4)
 - **S17.HITL.2** Disposition of doctax 535-file batch (March-era ~167-item partial failure run) — options (a) abandon (round4 seed canonical), (b) re-run, (c) audit partial inserts
 
 ### Next milestone
-Sprint G4 S15.1 (Backend A `OPTIONS /api/v1/.well-known/capabilities` endpoint) — atomic queue declared in §15, NOT started. Phase boundary: §17 SCAF-T closure complete; §15 Sprint G4 kickoff awaits explicit signal or autonomous-extension trigger.
+- **Sprint G4 S15.1 (Backend A OPTIONS endpoint)** — **DONE 2026-04-28**. `OPTIONS /api/v1/.well-known/capabilities` added to `kg-api-server.py` (lines 343-371). TestClient round-trip 200 OK; module + deploy_anchor + route_count + sorted routes[] all populated; `CN_DEPLOY_ANCHOR` env fallback works. `APIKeyMiddleware` already exempts OPTIONS for CORS preflight, no auth whitelist needed. Pre-counted test delta = +0 (no pytest added per S15.5 OPTIONAL design — runtime probe lives in S15.3 bash CLI).
+- **Next slice in queue**: superseded by §18 atomic queue below (S15.2-S15.4 redistributed as S18.15-S18.17 with surrounding context).
+
+---
+
+## §18. 2026-04-28 — Atomic Optimization Queue (5-lens swarm synthesis)
+
+**Trigger**: Maurice directive "继续蜂群审计后制定 sota 优化原子任务表，循环执行直到全部完成". 5-lens parallel swarm (Hickey decomplecting / Catmull candor / Munger inversion / Meadows leverage / Taleb antifragility) returned ~50 atomic items. Synthesis: convergence-prioritized + carry-over fronted + HITL separated.
+
+**Phase milestone for this session (SOTA-Sweep-1)**:
+- Tier-0 (carry-over) all closed
+- ≥6 Tier-P0 atomic items closed (multi-advisor convergence priority)
+- Pause + report state. Tier-P1 / P2 / HITL fall through to next session.
+
+**Pre-counted test delta**: queue ships +5 nightly tests in total (S18.6 +1, S18.7 +1, S18.8 +0 net since converts existing fails to xfail, S18.14 +1, S18.18 +1, S18.21 +1). Other items are advisory or config-only.
+
+### Tier 0 — Carry-over (working tree, must land first)
+
+- [x] S18.0.1 Fix docstring self-match in `scripts/ontology-whitelist-guard.py` — replace single-letter placeholder in the example with `<Name>` so the guard's own source no longer self-triggers its regex. **Closed**: commit `b662ff4` 2026-04-28. Self-test against own source: exit=0.
+- [x] S18.0.2 Commit `scripts/ontology-whitelist-guard.py` with IF-skip filter + S18.0.1 docstring fix. **Closed**: commit `b662ff4` 2026-04-28 (1 file, +8/-1).
+- [x] S18.0.3 Commit `kg-api-server.py` S15.1 OPTIONS endpoint via surgical extract pattern. **Closed**: commit `e1f65bb` 2026-04-28 (1 file, +29). Live working-tree state restored from `/tmp/kg-server-live-backup-1777329507.py` post-commit; remaining 100+ pre-existing mods preserved unchanged.
+
+### Tier P0 — Multi-lens convergence, ≤90min each, no HITL
+
+- [ ] S18.1 Wire `ontology-whitelist-guard.py` into `.github/workflows/ontology-gate.yml` as CI step on `pull_request` + `push` to main. **Why** (Meadows P0 #8 + Munger P0): currently only pre-commit; `git push --no-verify` or direct merge bypasses the balancing loop entirely. Closes the second half of B_MISSING. **Effort**: S. **Depends**: S18.0.2.
+- [ ] S18.2 Add `audit_api_contract.py` to `on: pull_request` trigger (new `.github/workflows/drift-probe.yml` or extend existing). **Why** (Meadows P0 #9): currently nightly only; 24h delay between mutation and signal. Push-time gate shortens delay to seconds with zero structural change. **Effort**: S. **Depends**: none.
+- [ ] S18.3 Add `hitl_age_days` field to gates.json schema; nightly test FAILS when any HITL item exceeds 30 days without dated re-deferral. **Why** (Munger P0 + Catmull P0 + Taleb P2): "REPORTED, NOT GATED" risks aging into permanent furniture; force decision rather than drift. **Effort**: M (~60min: schema bump + nightly test + 2 existing HITL items get age stamps). **Depends**: none.
+- [ ] S18.4 Add `signal_age_days` decay timer to `audit_api_contract.py` summary; nightly fail if any non-gating signal >180d unresolved. **Why** (Taleb P2 + Munger P0): converges with S18.3 but at signal layer (not just HITL). HITL pause stays a feature; eternal HITL becomes a fail. **Effort**: S. **Depends**: S18.3.
+- [ ] S18.5 Run `ai dna validate` on 2 captured capsule candidates (`audit-probe-with-hitl-signal-not-gate`, `vertical-slice-pre-counted-test-delta`); resolve to PASS or to specific re-author. **Why** (Catmull P0 + Meadows P0 #6): captured ≠ inherited; un-validated capsule cannot be retrieved by next session, so behavior change = 0. **Effort**: S. **Depends**: none.
+- [ ] S18.6 Pin `schema_completeness_failure_count` baseline = 11; nightly FAIL on increase. **Why** (Munger P1 + Taleb P2): without baseline, count grows to 12, 15, 30 — all "known", no alarm. Lollapalooza prevention (normalcy + authority + sunk-cost). **Effort**: S (~20min: add baseline test). **Depends**: none.
+- [ ] S18.7 Pin `frontend_orphan_whitelist_count` baseline = 1; PR-visible bump on increase. **Why** (Munger P0): single-entry whitelist today; without count gate, monotonic creep is invisible. **Effort**: S. **Depends**: none.
+- [ ] S18.8 Convert 11 schema_completeness HITL fails to `@pytest.mark.xfail(strict=True, reason=..., deadline="2026-06-01")` with explicit deadline metadata. **Why** (Munger P1 + Taleb P2): debt with no clock = noise. xfail-with-deadline forces decision before deadline lapses. **Effort**: M (~45min: 11 fixture stamps). **Depends**: none.
+- [ ] S18.9 Add `decide_by` + `trigger_condition` fields to both HITL items in HANDOFF.md (backend split, schema-vs-PROD). **Why** (Catmull P1): three options listed but no forcing function; without trigger, options accumulate indefinitely. **Effort**: S. **Depends**: none.
+- [ ] S18.10 Add pre-counted test delta line to S15.2 / S15.3 / S15.4 in HANDOFF.md per `vertical-slice-pre-counted-test-delta` rule. **Why** (Catmull P1): rule was promoted in current sprint but not yet applied to in-flight queue. Visible learning gap. **Effort**: S. **Depends**: none.
+- [ ] S18.11 Backfill Debt Ledger rows in `PDCA_ITERATION_CHECKLIST.md` for R1-R4 from gates.json `remaining_risks`. **Why** (Catmull P0): table has zero rows despite 4 named risks elsewhere; next session can't see debt in one place. **Effort**: S. **Depends**: none.
+- [ ] S18.12 Document signal-to-gate escalation criteria for `module_mismatch_signal` in HANDOFF.md (under what condition does this flip from REPORTED to GATED). **Why** (Catmull P0): currently undocumented; signal risks indefinite ignore. **Effort**: S. **Depends**: none.
+- [ ] S18.13 `git push origin main` — close 48-commit local-vs-origin gap. **Why** (Catmull P0 / closeout 3-end consistency): origin is stale; any AI CLI resuming from clone hallucinates baseline. **Effort**: S. **Depends**: S18.0.3 (after S15.1 ships) — but actually safe to push now since prior commits are clean.
+- [ ] S18.14 Add pre-commit hook `--selftest` mode + CI step that runs it. **Why** (Taleb P0): hook has known bugs; if hook silently no-ops, every "clean commit" is a lie. Test the test. **Effort**: S. **Depends**: S18.0.2.
+
+### Tier P1 — Decomplecting, runtime, culture polish
+
+- [ ] S18.15 S15.2: Add `OPTIONS /api/v1/.well-known/capabilities` to `src/api/kg_api.py` (mirror S15.1 pattern). **Why** (Sprint G4 carry-over, Hickey P0 alternative): closes B_RUNTIME loop's second half. **Effort**: M (~30min). **Depends**: S18.0.3. **Test delta**: +0.
+- [ ] S18.16 S15.3: `scripts/runtime_audit.sh` bash CLI taking base URL, hits OPTIONS + 3 random sampled real routes, compares to `audit_api_contract.py` parse output. Three independent witnesses per Munger P1. **Why**: OPTIONS alone can lie consistently with itself. **Effort**: M (~45min). **Depends**: S18.15. **Test delta**: +0.
+- [ ] S18.17 S15.4: wire `runtime_audit.sh` into `deploy/contabo/` post-deploy hook. **Why**: closes B_RUNTIME at the deploy boundary, not just CI. **Effort**: S (~20min). **Depends**: S18.16.
+- [ ] S18.18 Extract `parse_canonical_types` from `scripts/ontology-whitelist-guard.py` into `scripts/_lib/ontology_parser.py` (shared module). **Why** (Hickey P0): same regex needed by `audit_content_quality.py` + S15.1 OPTIONS metadata; one extractor, many consumers. **Effort**: S. **Depends**: S18.0.2. **Test delta**: +1 (test_ontology_parser.py).
+- [ ] S18.19 Move audit manifest paths from `scripts/audit_api_contract.py:32-51` to `configs/audit-manifest.json`. **Why** (Hickey P0): inventory data complected with parsing logic. **Effort**: S. **Depends**: none.
+- [ ] S18.20 Move backend identity registry from `scripts/audit_api_contract.py:56-59` to `configs/backend-registry.json`. **Why** (Hickey P0): identity complected with audit logic; renaming forces audit code edit. **Effort**: S. **Depends**: none.
+- [ ] S18.21 Tighten ontology guard regex to non-backtracking on `IF NOT EXISTS`; remove IF-skip post-filter hack. **Why** (Hickey P0 + Munger P0): symptom-patch hides intent; legit table named `If_` would be invisible. **Effort**: S. **Depends**: S18.0.2. **Test delta**: +1 (test_ontology_guard_regex.py).
+- [ ] S18.22 Convert ontology guard scan from full-file to `git diff --cached -U0` added-lines-only mode. **Why** (Munger P0): pre-existing unauthorized table + unrelated edit = false-reject; trains whitelist creep. **Effort**: M (~45min: parse diff format, line-mapping). **Depends**: S18.21.
+- [ ] S18.23 Add evidence-link field template (`evidence_test_sha:`) to capability-ledger LACKING→PRESENT flips in notes.md. **Why** (Taleb P1): ledger inflation prevention via small ceremony cost. **Effort**: S. **Depends**: none.
+- [ ] S18.24 Add design rules (`audit-probe-with-hitl-signal-not-gate`, `vertical-slice-pre-counted-test-delta`) to `ROLLING_REQUIREMENTS_AND_PROMPTS.md` as retrievable surface. **Why** (Catmull P1): captured in notes only; next session can't find them in the rules ledger. **Effort**: S. **Depends**: S18.5.
+- [ ] S18.25 Wire global `handoff-distortion-check.sh` SHA validator to read `doc/00_project/initiative_cognebula_sota/HANDOFF.md` on session start (per-initiative path). **Why** (Munger P1 + Taleb P1): cross-session SHA fabrication risk; prior projects had incidents. **Effort**: S. **Depends**: none.
+
+### Tier P2 — Defer, capture only (drop into next-cycle queue)
+
+- [ ] S18.26 Extract S15.1+S15.2 OPTIONS handler into `src/_lib/capabilities.py` shared module (Hickey P0 alternative; deferred until S15.2 written first to expose the dup).
+- [ ] S18.27 KuzuDB tested restore drill (`scripts/restore_drill.sh`) (Taleb P0 strict; requires prod-access HITL).
+- [ ] S18.28 `--require-snapshot` precondition flag on migration scripts (Taleb P0; depends S18.27).
+- [ ] S18.29 Migration partial-apply rollback fixture test (Taleb P0; depends S18.27).
+- [ ] S18.30 Working-tree triage manifest (Taleb P1; ~M effort, defer to next session under quieter context).
+- [ ] S18.31 Cross-session parallel-write detector via post-commit session-id stamp (Taleb P2).
+
+### HITL — Out of agent scope (Maurice owns)
+
+- **HITL-1** Backend split formalization (`kg-api-server:app` vs `src.api.kg_api:app`): merge / formalize / deprecate. Triggered by S18.12 escalation criteria once written.
+- **HITL-2** Schema-vs-PROD partial-attribution lineage columns (11 nightly fails): extend canonical / drop PROD / declare partial as first-class. Trigger: 2026-06-01 xfail deadline (set by S18.8).
+- **HITL-3** `KU_ABOUT_TAX` edge-type 4-way split (Meadows P0 #5): canonical schema edit only is non-HITL, but PROD migration on 166K edges is HITL.
+- **HITL-4** `/Users/mauricewen/Projects/cognebula-enterprise/` orphan project shell (614 MB) — carries from §17 S17.HITL.1.
+- **HITL-5** doctax 535-file March batch disposition — carries from §17 S17.HITL.2.
+
+### Loop-execute order (this session)
+
+`S18.0.1 → S18.0.2 → S18.0.3 → S18.13 (push) → S18.5 (DNA validate) → S18.7 (pin orphan whitelist) → S18.6 (pin schema baseline) → S18.11 (Debt Ledger backfill) → S18.12 (escalation criteria) → S18.9 (HITL decide_by) → milestone check`.
+
+If milestone reached (Tier 0 + ≥6 P0 closed), pause and report. If blocker hit (hook bug regression, push permission, etc.), pause and name blocker.

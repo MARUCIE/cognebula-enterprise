@@ -113,3 +113,47 @@ def test_deploy_manifests_parsable_and_nonempty(report: dict) -> None:
     assert manifests["systemd"]["port"], "systemd bound port not parsed"
     assert manifests["nginx"]["upstreams"], "nginx proxy_pass upstreams not parsed"
     assert manifests["docker_compose"]["ports"], "docker-compose ports not parsed"
+
+
+def test_reachability_emits_both_deploy_modes(report: dict) -> None:
+    """Sprint G3 — `reachability_per_deploy_mode` must list both modes and
+    each mode must produce a non-empty path-set sum (reachable + unreachable).
+
+    Premise check: at least one mode shows unreachable_paths > 0, otherwise
+    the dual-backend split has zero operational impact and the audit's frame
+    is wrong (in which case revisit the audit, don't soften this assertion).
+    """
+    reachability = report["reachability_per_deploy_mode"]
+    assert "dockerfile" in reachability, "missing dockerfile reachability block"
+    assert "systemd" in reachability, "missing systemd reachability block"
+
+    for mode in ("dockerfile", "systemd"):
+        block = reachability[mode]
+        total = len(block["reachable_paths"]) + len(block["unreachable_paths"])
+        assert total > 0, f"{mode} has zero frontend paths in scope — frontends not parsed?"
+        assert not block.get("module_unknown"), (
+            f"{mode} module {block.get('module')} not in MODULE_TO_BACKEND_KEY map"
+        )
+
+    docker_unreachable = len(reachability["dockerfile"]["unreachable_paths"])
+    systemd_unreachable = len(reachability["systemd"]["unreachable_paths"])
+    assert docker_unreachable + systemd_unreachable > 0, (
+        "Both deploy modes show 100% reachability — dual-backend split has zero "
+        "operational impact, which contradicts the audit premise. Either the "
+        "backends have been merged (drop this audit) or the probe is broken."
+    )
+
+
+def test_mcp_tools_have_known_route_targets(report: dict) -> None:
+    """Sprint H — every MCP tool endpoint must be declared by at least one
+    backend. orphan_count > 0 means cognebula_mcp.py promises a tool that
+    no backend implements — runtime 404 regardless of deploy mode.
+    """
+    mcp = report["mcp_attribution"]
+    assert mcp["tool_count"] > 0, "no MCP tools parsed — cognebula_mcp.py moved or broken?"
+    orphans = mcp["orphan_endpoints"]
+    assert mcp["orphan_count"] == 0, (
+        f"MCP tool(s) call endpoint(s) declared by NEITHER backend: {orphans}. "
+        f"Either implement on a backend, remove the MCP tool, or document the "
+        f"intentional decoupling. Cannot deploy as-is."
+    )

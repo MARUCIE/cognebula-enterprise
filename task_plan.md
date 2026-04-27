@@ -184,7 +184,44 @@ G1 caught the backend ↔ frontend route layer. G2 closes the deploy-manifest la
 - [x] S11.1.c Re-run probe captures P0 deploy-layer mismatch correctly: `dockerfile.module = kg-api-server:app`, `systemd.module = src.api.kg_api:app`, `module_mismatch_signal: true`. Exit-code unchanged (still gates on frontend orphan only, NOT on module mismatch — HITL turf)
 - [x] S11.1.d Added `test_deploy_manifests_parsable_and_nonempty` to `tests/test_api_contract_drift.py`. Asserts each manifest produces a non-empty fingerprint; deliberately does NOT assert `dockerfile_module == systemd_module` (that would convert HITL pause into CI failure — bad shape per Sprint G2 design rule)
 - [x] S11.1.e Nightly count: 5,864 → 5,865 (+1, plan matched reality this time, in contrast to G1's `+1 vs +4` thinko)
-- [x] S11.1.f Commit pending: `sop-3.2: deploy-manifest layer added to drift probe (Sprint G2)` (next action)
+- [x] S11.1.f Commit landed: `8c5acc2` `sop-3.2: deploy-manifest layer added to drift probe (Sprint G2)`
+
+## §12. Atomic Execution Queue — Sprint G3: deploy-mode reachability (2026-04-28, parse-only)
+
+### Phase milestone
+G2 captured the deploy-manifest fingerprints; G3 translates `module_mismatch_signal` into operational impact: which frontend paths are reachable under Dockerfile mode vs systemd mode. Capability flip: `reachability_per_deploy_mode` LACKING → PRESENT. Strict parse-only — no backend changes, no runtime probes (those stay Sprint G4).
+
+### Slice S12.1 — reachability_per_deploy_mode (target: 30-45 min) — CLOSED 2026-04-28
+- [x] S12.1.a Map deploy mode → backend module → backend route set: dockerfile→A_routes, systemd→B_routes (data already in `deploy_manifests` block + `backends` dict)
+- [x] S12.1.b Add `compute_reachability_per_deploy_mode(backends, frontends, deploy_manifests)` to `scripts/audit_api_contract.py`. Returns `{dockerfile: {reachable_paths, unreachable_paths, frontend_files_with_unreachable}, systemd: {...}}`
+- [x] S12.1.c Add `reachability_per_deploy_mode` block to JSON report under top-level
+- [x] S12.1.d Add 1 test `test_reachability_emits_both_deploy_modes`: asserts both keys present + each mode lists non-empty reachable + at-least-one mode shows unreachable (premise check for dual-backend)
+- [x] S12.1.e Re-run probe — verify `frontend_paths_with_deploy_mode_drift: 10` confirmed in JSON; per-mode reachable/unreachable sets emitted
+- [x] S12.1.f Nightly count delta: 5,865 → 5,866 (pre-counted: 1 new test method) — combined with S13.1.e for cumulative 5,865 → 5,867
+
+## §13. Atomic Execution Queue — Sprint H: MCP↔backend coverage (2026-04-28)
+
+### Phase milestone
+SOP 3.2 audit explicitly logged "Did NOT audit MCP tool ↔ backend coverage" as a gap. Sprint H closes it via static parse of `cognebula_mcp.py`. Capability flip: `mcp_vs_backend_coverage` LACKING → PRESENT.
+
+### Slice S13.1 — mcp_tool_attribution (target: 30-45 min) — CLOSED 2026-04-28
+- [x] S13.1.a Locked patterns: 7 `@mcp.tool()` decorators in `cognebula_mcp.py`; each tool body calls `_api_get("/api/v1/...")` or `_api_post("/api/v1/...")`. Paths confirmed: `/api/v1/{search, hybrid-search, graph, chat, stats, quality, nodes}`
+- [x] S13.1.b Add `parse_mcp_tools(path)` to script: regex on `@mcp\.tool\(\)\s*[\r\n]+\s*(?:async\s+)?def\s+(\w+)` for tool names, then per tool body `_api_(get|post)\s*\(\s*["']([^"']+)["']` for endpoints
+- [x] S13.1.c Add `mcp_attribution` block to JSON: `{tool_name: {endpoints, declared_by_backends}}` + summary `mcp_orphan_count` and `mcp_tool_count`
+- [x] S13.1.d Add 1 test `test_mcp_tools_have_known_route_targets`: every MCP tool endpoint is declared by at least one backend (orphan_count == 0) — hard CI fail on regression
+- [x] S13.1.e Nightly count delta: 5,866 → 5,867 (pre-counted: 1 new test method) — confirmed via `./scripts/run_data_quality_tests.sh count`
+
+## §14. PDCA Closeout — gates.json + iteration entry + deliverable
+
+### Phase milestone
+Pipeline-complete delivery per `pdca-iteration-pipeline`: emit gates.json, append iteration entry to PDCA_ITERATION_CHECKLIST.md, append Sprint G3+H section to deliverable.md.
+
+### Slice S14.1 — PDCA artifacts — CLOSED 2026-04-28
+- [x] S14.1.a Create `outputs/pdca-evidence/sop-3.2-drift-probe/it-01/gates.json` (schema-validated): all P0 PASS = audit_api_contract probe shipped + nightly gate green + module_mismatch reported + reachability_per_deploy_mode emitted + mcp_orphan_count == 0
+- [x] S14.1.b Append iteration entry to `doc/00_project/initiative_cognebula_sota/PDCA_ITERATION_CHECKLIST.md`: it-01 covering G1→H per pdca-iteration-pipeline template
+- [x] S14.1.c Append Sprint G3+H section to `doc/00_project/initiative_cognebula_sota/deliverable.md`
+- [x] S14.1.d Run full nightly regression — confirm pre-existing schema_completeness 11 fails remain HITL-pending; +5 new tests (G1→H) all PASS
+- [x] S14.1.e Final commit `sop-3.2: SOTA closure — reachability + MCP coverage + PDCA artifacts (Sprint G3+H+closeout)`
 - ⏭ **deferred half** (logged, NOT done): full nginx grammar parse (route map per upstream); Sprint G3 runtime `OPTIONS /.well-known/capabilities` endpoint + live backend probe; Sprint H MCP↔backend coverage; Finding 5 `bin/` doc fix (out of scope)
 
 ### Out of scope (Sprint G2 deferred)

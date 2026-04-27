@@ -48,6 +48,16 @@ DEPLOY_MANIFEST_FILES: dict[str, Path] = {
     "docker_compose": REPO_ROOT / "docker-compose.yml",
 }
 
+MCP_TOOL_FILE: Path = REPO_ROOT / "cognebula_mcp.py"
+
+# Mapping from uvicorn module reference to the backend key in `backends` dict.
+# This is the explicit assumption the audit makes — keeping it visible here so
+# future renames force a conscious update rather than silent miscount.
+MODULE_TO_BACKEND_KEY: dict[str, str] = {
+    "kg-api-server:app": "A_kg-api-server",
+    "src.api.kg_api:app": "B_src_api_kg_api",
+}
+
 DECORATOR_RE = re.compile(
     r'^\s*@app\.(?:get|post|put|delete|patch|options|head)\s*\(\s*["\']([^"\']+)["\']',
     re.MULTILINE,
@@ -64,6 +74,12 @@ SYSTEMD_EXECSTART_RE = re.compile(
 )
 NGINX_PROXY_PASS_RE = re.compile(r'proxy_pass\s+https?://([\d.]+|[a-zA-Z][\w.\-]*):(\d+)')
 COMPOSE_PORT_RE = re.compile(r'^\s*-\s*["\']?(\d+):(\d+)["\']?\s*$', re.MULTILINE)
+
+# Sprint H — MCP tool extraction.
+MCP_TOOL_DECORATOR_RE = re.compile(
+    r'@mcp\.tool\(\)\s*\n\s*(?:async\s+)?def\s+(\w+)\s*\(',
+)
+MCP_API_CALL_RE = re.compile(r'_api_(?:get|post)\s*\(\s*["\']([^"\']+)["\']')
 
 # Base-URL false positives. /api/v1 alone is the constant `window.location.origin
 # + '/api/v1'` — it's a prefix, not an endpoint. /api alone is similarly a prefix.
@@ -158,6 +174,113 @@ def _extract_compose_ports(path: Path) -> list[dict[str, int]]:
     return [{"host_port": h, "container_port": c} for h, c in sorted(seen)]
 
 
+def compute_reachability_per_deploy_mode(
+    backends: dict[str, set[str]],
+    all_frontend_paths: set[str],
+    deploy_manifests: dict,
+) -> dict:
+    """Sprint G3 — translate `module_mismatch_signal` into operational impact.
+
+    For each deploy mode (dockerfile, systemd), figure out which uvicorn module
+    it actually starts → which backend's route set is in effect → which
+    frontend paths are reachable vs unreachable under that mode.
+
+    This is the parse-only equivalent of an OPTIONS-endpoint runtime probe.
+    The "reachable" guarantee is weaker (depends on accurate MODULE_TO_BACKEND_KEY
+    map) but requires no backend code change and no live HTTP fixture.
+    """
+    result: dict = {}
+    for mode_name in ("dockerfile", "systemd"):
+        manifest_block = deploy_manifests.get(mode_name) or {}
+        module_ref = manifest_block.get("module")
+        if module_ref is None:
+            result[mode_name] = {
+                "module": None,
+                "module_unknown": True,
+                "reachable_paths": [],
+                "unreachable_paths": sorted(all_frontend_paths),
+            }
+            continue
+        backend_key = MODULE_TO_BACKEND_KEY.get(module_ref)
+        routes = backends.get(backend_key or "", set())
+        reachable = sorted(p for p in all_frontend_paths if p in routes)
+        unreachable = sorted(p for p in all_frontend_paths if p not in routes)
+        result[mode_name] = {
+            "module": module_ref,
+            "backend_key": backend_key,
+            "module_unknown": backend_key is None,
+            "reachable_paths": reachable,
+            "unreachable_paths": unreachable,
+            "reachable_count": len(reachable),
+            "unreachable_count": len(unreachable),
+        }
+    return result
+
+
+def parse_mcp_tools(path: Path) -> dict[str, list[str]]:
+    """Sprint H — extract @mcp.tool() functions and the API endpoints each calls.
+
+    Returns {tool_name: [endpoint_path, ...]}. Endpoints come from `_api_get(...)`
+    and `_api_post(...)` calls inside the tool function body. Query strings are
+    stripped to match the path-only contract used by the rest of the audit.
+    """
+    if not path.exists():
+        return {}
+    text = path.read_text(encoding="utf-8", errors="replace")
+
+    decorator_positions = [
+        (m.start(), m.group(1)) for m in MCP_TOOL_DECORATOR_RE.finditer(text)
+    ]
+    if not decorator_positions:
+        return {}
+
+    tools: dict[str, list[str]] = {}
+    for i, (start, name) in enumerate(decorator_positions):
+        end = (
+            decorator_positions[i + 1][0]
+            if i + 1 < len(decorator_positions)
+            else len(text)
+        )
+        body = text[start:end]
+        endpoints = sorted(
+            {_strip_query(m.group(1)) for m in MCP_API_CALL_RE.finditer(body)}
+        )
+        tools[name] = endpoints
+    return tools
+
+
+def compute_mcp_attribution(
+    backends: dict[str, set[str]],
+    mcp_tools: dict[str, list[str]],
+) -> dict:
+    """For each MCP tool's endpoints, which backend(s) declare them.
+
+    Emits orphan_count = endpoints declared by NEITHER backend (would 404 at
+    runtime regardless of which backend is deployed). This is a hard
+    inconsistency — the MCP server promises a tool that no backend implements.
+    """
+    attribution: dict[str, dict] = {}
+    orphan_endpoints: list[tuple[str, str]] = []
+    for tool_name, endpoints in mcp_tools.items():
+        per_endpoint: dict[str, list[str]] = {}
+        for ep in endpoints:
+            declaring = [
+                key for key, routes in backends.items() if ep in routes
+            ]
+            per_endpoint[ep] = declaring if declaring else ["NONE"]
+            if not declaring:
+                orphan_endpoints.append((tool_name, ep))
+        attribution[tool_name] = {"endpoints": per_endpoint}
+    return {
+        "by_tool": attribution,
+        "orphan_endpoints": [
+            {"tool": t, "endpoint": e} for t, e in sorted(orphan_endpoints)
+        ],
+        "orphan_count": len(orphan_endpoints),
+        "tool_count": len(mcp_tools),
+    }
+
+
 def parse_deploy_manifests() -> dict:
     """Parse all 4 deploy manifests and emit module/port fingerprints.
 
@@ -211,6 +334,11 @@ def build_report(*, today: str) -> dict:
         frontend_attribution[fe_name] = per_path
 
     deploy_manifests = parse_deploy_manifests()
+    reachability = compute_reachability_per_deploy_mode(
+        backends, all_frontend_paths, deploy_manifests
+    )
+    mcp_tools = parse_mcp_tools(MCP_TOOL_FILE)
+    mcp_attribution = compute_mcp_attribution(backends, mcp_tools)
 
     return {
         "audit_date": today,
@@ -239,6 +367,17 @@ def build_report(*, today: str) -> dict:
             # split visible at the deploy layer. Reported but does NOT fail the
             # gate — that decision is HITL turf (merge / split-formalize / deprecate).
             "module_mismatch_signal": deploy_manifests["module_mismatch_signal"],
+            # Sprint G3 summary metric: count of frontend paths NOT reachable
+            # under at least one of the two deploy modes. >0 means dual-backend
+            # split has visible operational impact.
+            "frontend_paths_with_deploy_mode_drift": (
+                len(reachability.get("dockerfile", {}).get("unreachable_paths", []))
+                + len(reachability.get("systemd", {}).get("unreachable_paths", []))
+            ),
+            # Sprint H summary metric: MCP tools whose endpoints are declared
+            # by NEITHER backend = hard inconsistency.
+            "mcp_orphan_count": mcp_attribution["orphan_count"],
+            "mcp_tool_count": mcp_attribution["tool_count"],
         },
         "frontend_orphans": frontend_orphans,
         "dual_backend_split": {
@@ -248,6 +387,8 @@ def build_report(*, today: str) -> dict:
         },
         "frontend_attribution": frontend_attribution,
         "deploy_manifests": deploy_manifests,
+        "reachability_per_deploy_mode": reachability,
+        "mcp_attribution": mcp_attribution,
     }
 
 

@@ -875,3 +875,162 @@ iteration; Options A and D rejected.
 ### Rollback
 - Pure additive on the frontend side: 1 new component file + 2 new functions in
   kg-api.ts + 2 new lines in data-quality/page.tsx. `git revert` safe.
+
+## 2026-04-23 — Data-quality surface now leads with structural truth
+
+### Outcome
+- The `/expert/data-quality` page no longer treats `/api/v1/quality` as the whole truth. It now loads `/api/v1/ontology-audit` alongside `/stats` and makes structural drift the first thing an operator sees.
+- Coverage, density, and score remain on the page, but are explicitly framed as hygiene metrics that cannot override a failing ontology-conformance audit.
+
+### Changed files
+- `web/src/app/expert/data-quality/page.tsx`
+  Reframed the page around structural quality: fail-state hero, rogue bucket diagnostics, dominant-bucket highlighting in the type chart, and secondary hygiene section.
+- `web/src/app/lib/kg-api.ts`
+  Added typed `OntologyAudit` support and `getOntologyAudit()`.
+- `doc/index.md`
+  Added `/api/v1/ontology-audit` to the route map and noted that `/expert/data-quality` now consumes all three endpoints.
+- `doc/00_project/initiative_cognebula_sota/PRD.md`
+- `doc/00_project/initiative_cognebula_sota/SYSTEM_ARCHITECTURE.md`
+- `doc/00_project/initiative_cognebula_sota/USER_EXPERIENCE_MAP.md`
+- `doc/00_project/initiative_cognebula_sota/PLATFORM_OPTIMIZATION_PLAN.md`
+  Synced product/system/UX/optimization language to the dual-gate model: structural conformance first, hygiene second.
+- `doc/00_project/initiative_cognebula_sota/task_plan.md`
+- `doc/00_project/initiative_cognebula_sota/notes.md`
+- `doc/00_project/initiative_cognebula_sota/ROLLING_REQUIREMENTS_AND_PROMPTS.md`
+  Recorded the requirement, rationale, and regression-prevention rule.
+
+### Simplifications made
+- Reused the existing `/api/v1/ontology-audit` endpoint instead of inventing a new dashboard-specific aggregation API.
+- Kept the Clause Inspector in place; the main change is the decision order above it, not a new navigation surface.
+- Used `Promise.allSettled` so partial API failures degrade the page instead of blanking the entire audit view.
+
+### Remaining risks / gaps
+- Live production screenshot evidence for the updated authenticated shell was not collected in this session because `Computer Use` transport was unavailable and unauthenticated `curl` to `ops.hegui.org` returned `401`.
+- The page now exposes structural truth, but it does not itself fix ontology drift. Phase 0-4 cleanup/migration work remains the real data-quality backlog.
+
+### Live evidence captured
+- `curl https://app.hegui.org/api/v1/quality` returned the current production hygiene snapshot used in the user screenshot: `score=100 PASS`, `content_coverage=51.0%`, `KnowledgeUnit.total=185,455`
+- `curl https://app.hegui.org/api/v1/stats` returned `total_nodes=547,761`, `total_edges=1,302,476`, with `KnowledgeUnit=185,455` as the dominant live node bucket
+- `curl https://app.hegui.org/api/v1/ontology-audit` returned `FAIL / high`, `live_count=83`, `canonical_count=35`, `over_ceiling_by=46`, confirming that the graph is structurally unhealthy despite the hygiene score
+- Playwright artifact paths:
+  - `outputs/reports/ontology-audit-swarm/screens/2026-04-23-data-quality-structural-gate.png`
+  - `outputs/reports/ontology-audit-swarm/screens/2026-04-23-data-quality-structural-gate.har`
+  These artifacts prove the updated surface can be opened in a local relay, but they should be treated as layout / browser-path evidence only; the fully authenticated `ops.hegui.org` visual proof still remains open.
+
+## 2026-04-24 — UI/UX optimization and release-readiness validation
+
+### Outcome
+- The page now behaves like an operator workbench, not a report dump.
+- The first screen answers three questions in order: `能不能信` → `先清哪一类` → `什么时候进入条款审核`.
+- A production-snapshot fixture route now makes the surface testable and screenshot-able without depending on live auth/network.
+
+### Changed files
+- `web/src/app/expert/data-quality/page.tsx`
+  Reorganized the page into: verdict hero, operator flow rail, action-first metric strip, governance lane, distribution evidence, structural risk breakdown, hygiene panel, collapsible methodology, and inspector shell.
+- `web/src/app/expert/data-quality/page.module.css`
+  Added dedicated layout/tokenized spacing/responsive styles for the workbench.
+- `web/src/app/expert/data-quality/prodSnapshot.ts`
+  Added a production-derived validation snapshot (`app.hegui.org`, 2026-04-23).
+- `web/src/app/expert/data-quality/fixture/page.tsx`
+  Added `/expert/data-quality/fixture` for visual regression, responsive screenshots, and smoke testing.
+- `web/src/app/expert/layout.tsx`
+  Removed stale shell-level graph counts from the top bar so the app shell no longer contradicts the page metrics.
+- `doc/index.md`
+- `doc/00_project/initiative_cognebula_sota/PRD.md`
+- `doc/00_project/initiative_cognebula_sota/USER_EXPERIENCE_MAP.md`
+- `doc/00_project/initiative_cognebula_sota/task_plan.md`
+- `doc/00_project/initiative_cognebula_sota/notes.md`
+  Updated docs to include the new task-first UX model and validation route.
+
+### Validation evidence
+- Desktop screenshot:
+  `outputs/reports/ontology-audit-swarm/screens/2026-04-24-data-quality-fixture-desktop.png`
+- Mobile screenshot:
+  `outputs/reports/ontology-audit-swarm/screens/2026-04-24-data-quality-fixture-mobile.png`
+- Smoke JSON:
+  `outputs/reports/ontology-audit-swarm/2026-04-24-data-quality-fixture-smoke.json`
+- Lighthouse reports:
+  `outputs/reports/ontology-audit-swarm/2026-04-24-data-quality-fixture-lighthouse.report.html`
+  `outputs/reports/ontology-audit-swarm/2026-04-24-data-quality-fixture-lighthouse.report.json`
+- Visual regression baseline hashes:
+  - desktop `af36f7cc5e01e3565ea05278dcb169038e2c12949ecf47b0efb6a89d1552c4dd`
+  - mobile `e5674a84d6dee65196d7a5e985914c3a3655348ef7bb39aca6e1743b1eb5d54a`
+
+### Known limitations
+- Fixture route is snapshot-based validation, not the live authenticated `ops.hegui.org` surface. It is suitable for UI regression and responsive checks, not for proving live auth wiring.
+- Lighthouse performance is acceptable but not yet strong enough to claim a tight budget; current notable pressure is `LCP 7.4s`.
+- Authenticated post-change `ops.hegui.org` screenshot is still open because Basic Auth could not be recovered automatically and the `Computer Use` MCP transport remained unavailable.
+
+## 2026-04-28 — Sprint G3 + Sprint H + PDCA closeout (sop-3.2-drift-probe it-01)
+
+### Outcome
+- The post-2026-04-26 SOP 3.2 hand-written audit (frontend↔backend drift, dual-backend split, deploy-mode reachability, MCP↔backend coverage gap) is now a reproducible probe + nightly CI gate.
+- Sprint G3 closes the deploy-mode reachability gap: the probe now emits per-mode (Dockerfile vs systemd) reachable / unreachable frontend-path sets, making the operational impact of the dual-backend split visible at every nightly run.
+- Sprint H closes the MCP↔backend coverage gap: every `@mcp.tool()` endpoint in `cognebula_mcp.py` is attributed to the backend(s) that declare it; `mcp_orphan_count` is now a hard CI gate.
+- Sprint G3 + H ship without backend code change. HITL discipline preserved: module mismatch and dual-backend split are reported as signals, not enforced as equality.
+
+### Changed files
+- `scripts/audit_api_contract.py`
+  Added `compute_reachability_per_deploy_mode(backends, all_frontend_paths, deploy_manifests)`, `parse_mcp_tools(path)`, `compute_mcp_attribution(backends, mcp_tools)`. Extended `build_report()` to include `reachability_per_deploy_mode` and `mcp_attribution` blocks; extended summary metrics with `frontend_paths_with_deploy_mode_drift`, `mcp_orphan_count`, `mcp_tool_count`. Constants added: `MCP_TOOL_FILE`, `MODULE_TO_BACKEND_KEY`, `MCP_TOOL_DECORATOR_RE`, `MCP_API_CALL_RE`.
+- `tests/test_api_contract_drift.py`
+  Added `test_reachability_emits_both_deploy_modes` (asserts both modes parseable + at-least-one-unreachable; deliberately does NOT assert dockerfile_module == systemd_module). Added `test_mcp_tools_have_known_route_targets` (hard fail on `orphan_count > 0` — legitimate CI failure).
+- `doc/00_project/initiative_cognebula_sota/task_plan.md`
+  Added §12 (Sprint G3 atomic queue), §13 (Sprint H atomic queue), §14 (PDCA closeout queue). All three sections flipped to `[x]` after this iteration.
+- `doc/00_project/initiative_cognebula_sota/PDCA_ITERATION_CHECKLIST.md`
+  Appended `it-01` iteration entry covering G1 + G2 + G3 + H per the `pdca-iteration-pipeline` template (Stage Plan / Iteration Log / Capability Catalog Delta / Debt Ledger / Release Readiness Matrix).
+- `doc/00_project/initiative_cognebula_sota/notes.md`
+  Appended 2026-04-28 closure entry with capability ledger flip (4 capabilities LACKING → PRESENT) and the cumulative G1+G2+G3+H matrix.
+- `outputs/pdca-evidence/sop-3.2-drift-probe/it-01/gates.json`
+  Schema-validated PDCA gates evidence: 9 gates, 6 P0 PASS + 3 P1 (BLOCKED-HITL × 2 + TODO × 1), 4 remaining risks documented, 2 DNA capsule candidates captured.
+
+### Probe metrics (post Sprint G3 + H)
+```
+backend_a_route_count: 23
+backend_b_route_count: 25
+backend_total_distinct: 45
+route_overlap_count: 3
+dual_backend_drift_ratio: 0.12
+dual_backend_split_signal: true
+module_mismatch_signal: true (dockerfile=kg-api-server:app, systemd=src.api.kg_api:app)
+frontend_distinct_path_count: 9
+frontend_orphan_count: 1 (whitelisted: /api/v1/ka/)
+frontend_paths_with_deploy_mode_drift: 10
+mcp_orphan_count: 0
+mcp_tool_count: 7
+```
+
+### Test count delta (cumulative G1 → H)
+```
+nightly tier: 5,862 → 5,867 (+5: G1 +1, G2 +1, G3 +1, H +1, plus G1's split for known-orphan invariant +1)
+standard tier: 1,582 (unchanged — drift tests are nightly-tagged only)
+test_api_contract_drift.py: 7/7 PASS in 0.17s
+```
+
+### Capability ledger flip (cumulative this sprint)
+
+| Capability | Pre G1 | After G2 | After G3 | After H |
+|---|---|---|---|---|
+| `audit_api_contract` | LACKING | PRESENT | PRESENT | PRESENT |
+| `frontend_orphan_gate_in_ci` | LACKING | PRESENT | PRESENT | PRESENT |
+| `deploy_manifest_parsing` | LACKING | PRESENT | PRESENT | PRESENT |
+| `module_mismatch_signal_reported` | LACKING | PRESENT | PRESENT | PRESENT |
+| `reachability_per_deploy_mode` | LACKING | LACKING | **PRESENT** | PRESENT |
+| `mcp_vs_backend_coverage` | LACKING | LACKING | LACKING | **PRESENT** |
+| `runtime_capability_endpoint` | LACKING | LACKING | LACKING | LACKING (Sprint G4) |
+| `live_running_backend_probe` | LACKING | LACKING | LACKING | LACKING (Sprint G4) |
+| `cross_repo_audit_lingque_desktop` | LACKING | LACKING | LACKING | LACKING (separate session) |
+
+### Design rules captured (DNA candidates)
+1. **Audit probes around HITL-pending state must signal, not gate on equality.** When a system property is awaiting human judgment (e.g. backend split decision), the audit gate must assert parseability + premise, never equality of the diverged values. Forcing equality converts a HITL pause into a CI failure — that either pressures a rushed decision or trains the team to ignore CI. See `gates.json.dna_capsule_candidates[0]`.
+2. **Pre-count test deltas per atomic slice.** Each slice in the atomic queue must declare its expected nightly count delta (e.g. `5,866 → 5,867 (+1, pre-counted)`). Pre-counting catches Sprint G1-style `+1 vs +4` thinkos before they trigger a confusing nightly diff during regression. See `gates.json.dna_capsule_candidates[1]`.
+
+### Remaining risks / gaps
+- **Runtime probe still LACKING** (Sprint G4 forward-scope): a backend that compiles but fails at deploy time (e.g. wrong module path in Dockerfile vs systemd, route registered but handler import-errors at startup) would not be caught by parse-only audit. Sprint G4 will add `OPTIONS /api/v1/.well-known/capabilities` runtime endpoint + pytest fixture against a live backend instance.
+- **Backend split decision pending** (HITL, unchanged): `module_mismatch_signal=true` is reported but not enforced. Probe makes the divergence visible at every nightly run; the decision (merge / split-formalize / deprecate) remains Maurice's call when operational data is sufficient.
+- **Cross-repo 灵阙 desktop frontend** (separate session): orphans there would not be detected by this probe. Either copy the audit_api_contract.py pattern into the lingque-desktop repo, or generalize into a shared AI-Fleet skill.
+- **nginx config parser is regex-narrow** (out of MVS budget): only `proxy_pass` directives are parsed. A multi-server-block or upstream-with-load-balancer config would parse incompletely. Either accept the narrowness or adopt `python-nginx`/`nginx-conf-parser` if Sprint G4+ scope demands it.
+
+### Live evidence captured
+- Probe report: `outputs/reports/consistency-audit/2026-04-28-api-contract-drift.json`
+- PDCA gates: `outputs/pdca-evidence/sop-3.2-drift-probe/it-01/gates.json`
+- Pytest run: `tests/test_api_contract_drift.py` 7/7 PASS in 0.17s under `.venv/bin/python3 3.13.11`

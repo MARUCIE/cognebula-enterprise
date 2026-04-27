@@ -1,0 +1,126 @@
+{
+  "$schema": "../../../../../../00-AI-Fleet/scripts/pdca-gates-schema.json",
+  "iteration": "it-01",
+  "sprint": "sop-3.2-drift-probe G1+G2+G3+H closeout",
+  "scope": "API contract drift probe — frontend↔backend, deploy-manifest, deploy-mode reachability, MCP↔backend coverage",
+  "timestamp_utc": "2026-04-28T05:30:00Z",
+  "runner_version": "manual",
+  "gates": {
+    "spec": {
+      "status": "PASS",
+      "detail": "Scope materialized in task_plan.md §11/§12/§13/§14 as atomic queue (S11.1.a–f, S12.1.a–f, S13.1.a–e, S14.1.a–e). Phase milestones declared per slice. Deferred-half explicit per CLAUDE.md MVS-pattern."
+    },
+    "build": {
+      "status": "PASS",
+      "detail": "Probe extended in 4 vertical slices: parse_dual_backends + parse_frontend_paths (G1), parse_deploy_manifests (G2), compute_reachability_per_deploy_mode (G3), parse_mcp_tools + compute_mcp_attribution (H). All slices land in scripts/audit_api_contract.py with no backend code change.",
+      "files_changed": [
+        "scripts/audit_api_contract.py",
+        "tests/test_api_contract_drift.py",
+        "doc/00_project/initiative_cognebula_sota/task_plan.md"
+      ]
+    },
+    "test": {
+      "status": "PASS",
+      "detail": "tests/test_api_contract_drift.py 7/7 PASS — test_no_new_frontend_orphans, test_known_orphans_still_orphans, test_dual_backend_drift_signal_present, test_backends_both_present, test_deploy_manifests_parsable_and_nonempty, test_reachability_emits_both_deploy_modes, test_mcp_tools_have_known_route_targets",
+      "evidence_path": "outputs/reports/consistency-audit/2026-04-28-api-contract-drift.json"
+    },
+    "typecheck": {
+      "status": "PASS",
+      "detail": "Pure Python with stdlib regex/json; no TypeScript/mypy strict surface introduced. Probe imports cleanly under .venv/bin/python3 3.13.11."
+    },
+    "security": {
+      "status": "PASS",
+      "detail": "Grep battery on scripts/audit_api_contract.py + tests/test_api_contract_drift.py: 0 hits for eval(/Function(/subprocess.*shell=True/process.env.*TOKEN|SECRET|KEY/dangerouslySetInnerHTML. Probe is read-only — opens repo files, parses regex, writes JSON to outputs/. No network egress, no shell exec, no secret access."
+    },
+    "license_audit": {
+      "status": "SKIP",
+      "detail": "No new third-party deps introduced; stdlib-only."
+    },
+    "dim_verify": {
+      "status": "SKIP",
+      "detail": "Non-visual deliverable — text-only audit probe. Per pdca-iteration-pipeline Gotcha #3 the SKIP is documented explicitly here."
+    },
+    "swarm_review": {
+      "status": "SKIP",
+      "detail": "Non-visual deliverable — auto-visual-swarm-review not applicable. CI guards (parseability + premise + orphan_count==0 hard fail) carry the regression discipline that swarm review would otherwise carry for visual deliverables."
+    },
+    "release": {
+      "status": "PASS",
+      "detail": "Audit probe ships into nightly tier (test_api_contract_drift collected only in nightly slice). Standard tier unchanged (1582 collected). Module mismatch reported as signal, NOT enforced — preserves Maurice HITL discipline (merge / split-formalize / deprecate decision)."
+    },
+    "observe": {
+      "status": "PASS",
+      "detail": "Capability ledger flips logged in doc/00_project/initiative_cognebula_sota/notes.md under 2026-04-28 entry. [BOOTSTRAP-EVOLUTION] traces emit via post-edit-sota-audit.py PostToolUse hook on each Edit of in-scope files."
+    },
+    "learn": {
+      "status": "PASS",
+      "detail": "Capability catalog delta: 4 LACKING→PRESENT flips this sprint (audit_api_contract, frontend_orphan_gate_in_ci, deploy_manifest_parsing, reachability_per_deploy_mode, mcp_vs_backend_coverage). DNA capsule candidate: 'parse-only audit probe that reports HITL-pending conditions as signals without gating CI on their resolution'.",
+      "capability_catalog_delta": {
+        "audit_api_contract": "LACKING → PRESENT",
+        "frontend_orphan_gate_in_ci": "LACKING → PRESENT",
+        "deploy_manifest_parsing": "LACKING → PRESENT",
+        "module_mismatch_signal_reported": "LACKING → PRESENT",
+        "reachability_per_deploy_mode": "LACKING → PRESENT",
+        "mcp_vs_backend_coverage": "LACKING → PRESENT",
+        "runtime_capability_endpoint": "LACKING (Sprint G4 deferred)",
+        "live_running_backend_probe": "LACKING (Sprint G4 deferred)",
+        "cross_repo_audit_lingque_desktop": "LACKING (separate session)"
+      }
+    }
+  },
+  "p0_p1_acceptance": {
+    "P0_audit_probe_reproducible": "PASS",
+    "P0_nightly_gate_green": "PASS",
+    "P0_module_mismatch_reported": "PASS",
+    "P0_deploy_mode_reachability_emitted": "PASS",
+    "P0_mcp_orphan_count_zero": "PASS",
+    "P0_known_frontend_orphan_unchanged": "PASS",
+    "P1_runtime_capability_endpoint": "BLOCKED-HITL",
+    "P1_backend_merge_or_split_decision": "BLOCKED-HITL",
+    "P1_lingque_desktop_cross_repo_audit": "TODO"
+  },
+  "remaining_risks": [
+    {
+      "id": "R1-runtime-probe-missing",
+      "description": "Audit is parse-only — a backend that compiles but fails at deploy time would not be caught (e.g. wrong module path in Dockerfile vs systemd, route registered but handler import-errors).",
+      "owner": "Maurice",
+      "deadline": "Sprint G4",
+      "mitigation": "Sprint G4 will add OPTIONS /api/v1/.well-known/capabilities runtime endpoint + pytest fixture that resolves every frontend fetch path against a live backend instance."
+    },
+    {
+      "id": "R2-backend-split-decision-pending",
+      "description": "Two backends (kg-api-server:app vs src.api.kg_api:app) remain split. module_mismatch_signal=true is reported but not enforced, by design (HITL discipline).",
+      "owner": "Maurice",
+      "deadline": null,
+      "mitigation": "Probe makes the divergence visible at every nightly run; surface enables informed merge/split-formalize/deprecate decision when Maurice has the operational data to choose."
+    },
+    {
+      "id": "R3-cross-repo-coverage",
+      "description": "灵阙 desktop frontend lives in a separate repo and is not parsed by this probe. Frontend orphans there would not be detected.",
+      "owner": "Maurice",
+      "deadline": "TBD",
+      "mitigation": "Separate session; copy-pattern the audit_api_contract.py probe into the lingque-desktop repo or generalize into a shared scripts/ AI-Fleet skill."
+    },
+    {
+      "id": "R4-nginx-grammar",
+      "description": "nginx config parser is regex-narrow (proxy_pass directives only). A multi-server-block or upstream-with-load-balancer config would be parsed incompletely.",
+      "owner": "Maurice",
+      "deadline": "TBD",
+      "mitigation": "Out of MVS budget (~200 LOC for hand-rolled state machine). Use python-nginx or nginx-conf-parser library if Sprint G4+ scope demands it."
+    }
+  ],
+  "dna_capsule_candidates": [
+    {
+      "id": "audit-probe-with-hitl-signal-not-gate",
+      "description": "When auditing a system in HITL-pending state (e.g. unresolved architectural decision), the audit probe must report the divergence as a signal field and emit a CI test that asserts probe-parseability and probe-premise — NOT equality of the diverged values. Forcing equality converts HITL pause into CI failure, which either pressures rushed decision or trains team to ignore CI.",
+      "trigger": "Adding CI tests around any system property whose resolution is awaiting human judgment.",
+      "evidence": "scripts/audit_api_contract.py reports module_mismatch_signal=true; tests/test_api_contract_drift.py asserts both manifests parseable + at-least-one-mode unreachable, NOT dockerfile_module==systemd_module."
+    },
+    {
+      "id": "vertical-slice-pre-counted-test-delta",
+      "description": "Atomic execution queue must pre-count test count delta per slice (e.g. 'S13.1.e: 5,866 → 5,867 (+1, pre-counted: 1 new test method)'). Pre-counting catches the Sprint G1-style '+1 vs +4' thinko before it lands and triggers a confusing nightly diff during regression.",
+      "trigger": "Any slice that adds pytest test cases.",
+      "evidence": "task_plan.md §12.1.f and §13.1.e both pre-count +1 test per slice; actual nightly delta 5,865 → 5,867 = +2 matches plan exactly."
+    }
+  ]
+}

@@ -10,7 +10,10 @@
     "route_overlap_count": 3,
     "dual_backend_drift_ratio": 0.12,
     "dual_backend_split_signal": true,
-    "module_mismatch_signal": true
+    "module_mismatch_signal": true,
+    "frontend_paths_with_deploy_mode_drift": 10,
+    "mcp_orphan_count": 0,
+    "mcp_tool_count": 7
   },
   "frontend_orphans": [
     "/api/v1/ka/"
@@ -130,5 +133,104 @@
       ]
     },
     "module_mismatch_signal": true
+  },
+  "reachability_per_deploy_mode": {
+    "dockerfile": {
+      "module": "kg-api-server:app",
+      "backend_key": "A_kg-api-server",
+      "module_unknown": false,
+      "reachable_paths": [
+        "/api/v1/chat",
+        "/api/v1/graph",
+        "/api/v1/health",
+        "/api/v1/nodes",
+        "/api/v1/search",
+        "/api/v1/stats"
+      ],
+      "unreachable_paths": [
+        "/api/v1/inspect/clause",
+        "/api/v1/inspect/clause/batch",
+        "/api/v1/ka/"
+      ],
+      "reachable_count": 6,
+      "unreachable_count": 3
+    },
+    "systemd": {
+      "module": "src.api.kg_api:app",
+      "backend_key": "B_src_api_kg_api",
+      "module_unknown": false,
+      "reachable_paths": [
+        "/api/v1/inspect/clause",
+        "/api/v1/inspect/clause/batch"
+      ],
+      "unreachable_paths": [
+        "/api/v1/chat",
+        "/api/v1/graph",
+        "/api/v1/health",
+        "/api/v1/ka/",
+        "/api/v1/nodes",
+        "/api/v1/search",
+        "/api/v1/stats"
+      ],
+      "reachable_count": 2,
+      "unreachable_count": 7
+    }
+  },
+  "mcp_attribution": {
+    "by_tool": {
+      "search": {
+        "endpoints": {
+          "/api/v1/search": [
+            "A_kg-api-server"
+          ]
+        }
+      },
+      "hybrid_search": {
+        "endpoints": {
+          "/api/v1/hybrid-search": [
+            "A_kg-api-server"
+          ]
+        }
+      },
+      "traverse": {
+        "endpoints": {
+          "/api/v1/graph": [
+            "A_kg-api-server"
+          ]
+        }
+      },
+      "chat": {
+        "endpoints": {
+          "/api/v1/chat": [
+            "A_kg-api-server"
+          ]
+        }
+      },
+      "stats": {
+        "endpoints": {
+          "/api/v1/stats": [
+            "A_kg-api-server"
+          ]
+        }
+      },
+      "quality": {
+        "endpoints": {
+          "/api/v1/quality": [
+            "A_kg-api-server",
+            "B_src_api_kg_api"
+          ]
+        }
+      },
+      "lookup_nodes": {
+        "endpoints": {
+          "/api/v1/nodes": [
+            "A_kg-api-server"
+          ]
+        }
+      }
+    },
+    "orphan_endpoints": [],
+    "orphan_count": 0,
+    "tool_count": 7
   }
 }

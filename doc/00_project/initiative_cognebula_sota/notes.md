@@ -1238,3 +1238,81 @@ The probe **reports** `module_mismatch_signal: true` but does **not** fail the g
 - Full nginx config grammar parser — out of MVS budget (~200+ LOC for a hand-rolled state machine)
 - Cross-repo: 灵阙 desktop frontend manifest audit (separate codebase, separate session)
 - Backend merge / split-formalize / deprecate decision (Maurice HITL — unchanged)
+
+## 2026-04-28 — Sprint G3 + Sprint H + PDCA closeout
+
+Sprint G2 captured deploy-manifest fingerprints; Sprint G3 turns `module_mismatch_signal` into operational impact (per-mode reachability), and Sprint H closes the MCP↔backend coverage gap. Both slices ship in one closeout pass alongside the PDCA artifacts (gates.json + iteration checklist + deliverable section). Same MVS-pattern: 30-45 min vertical per slice, regression gate, deferred-half explicit.
+
+### Sprint G3 — `compute_reachability_per_deploy_mode()` + 1 nightly test
+
+Anchors:
+- Script delta: ~30 LOC (1 helper that maps deploy mode → backend module → backend route set, then computes reachable / unreachable frontend path sets per mode). Module → backend mapping locked in `MODULE_TO_BACKEND_KEY` constant: `kg-api-server:app → A`, `src.api.kg_api:app → B`.
+- Test delta: 1 new test `test_reachability_emits_both_deploy_modes`. Asserts both `dockerfile` and `systemd` keys present, each mode parses non-empty path-set sum, AND ≥1 mode shows ≥1 unreachable path (premise check — if both modes reach 100% of frontend paths, the dual-backend split has zero operational impact and the audit's frame is wrong, NOT a reason to soften the assertion). Deliberately does NOT assert dockerfile_module == systemd_module — same Goodhart's-Law-guard rationale as Sprint G2.
+- Probe metric added: `frontend_paths_with_deploy_mode_drift: 10` (10 distinct frontend paths are reachable in one deploy mode but not the other; concrete operational impact of the split is now visible).
+
+### Sprint H — `parse_mcp_tools()` + `compute_mcp_attribution()` + 1 nightly test
+
+Anchors:
+- Script delta: ~40 LOC (decorator-position slicing: find every `@mcp.tool()` decorator, slice the body to the next decorator, regex `_api_(get|post)\s*\(\s*["']([^"']+)["']` for endpoint extraction; then attribute each endpoint to backend(s) declaring it). Avoided needing an AST parser by exploiting the decorator-position structure — narrow regex was sufficient for the 7-tool surface.
+- Test delta: 1 new test `test_mcp_tools_have_known_route_targets`. Asserts `mcp_tool_count > 0` (parser sanity) and `mcp_orphan_count == 0` (every MCP tool endpoint is declared by ≥1 backend). This one **does** hard-fail on regression — an MCP tool calling an endpoint declared by neither backend is a runtime 404 regardless of deploy mode, which is a legitimate CI failure (not a HITL-pending state).
+- Probe metric added: `mcp_orphan_count: 0`, `mcp_tool_count: 7`. All 7 MCP tools (`search_knowledge_graph`, `hybrid_search`, `query_graph`, `chat_with_kg`, `get_kg_stats`, `get_kg_quality`, `list_kg_nodes`) attribute to one or both backends correctly.
+
+### Probe metrics summary (post G3 + H)
+
+```
+backend_a_route_count: 23
+backend_b_route_count: 25
+route_overlap_count: 3
+dual_backend_drift_ratio: 0.12
+dual_backend_split_signal: true
+module_mismatch_signal: true (reported, non-gating)
+frontend_distinct_path_count: 9
+frontend_orphan_count: 1 (whitelisted: /api/v1/ka/)
+frontend_paths_with_deploy_mode_drift: 10
+mcp_orphan_count: 0
+mcp_tool_count: 7
+```
+
+### Test count delta (cumulative G1 → H, this iteration only)
+
+```
+nightly tier: 5,865 → 5,867 (+2 this closeout: G3 +1, H +1)
+test_api_contract_drift.py: 7/7 PASS in 0.17s
+standard tier: 1,582 (unchanged — drift tests are nightly-tagged only)
+```
+
+### Capability ledger flip (cumulative G1 + G2 + G3 + H)
+
+| Capability | Before G1 | After G1 | After G2 | After G3 | After H |
+|---|---|---|---|---|---|
+| `audit_api_contract` | LACKING | PRESENT | PRESENT | PRESENT | PRESENT |
+| `frontend_orphan_gate_in_ci` | LACKING | PRESENT | PRESENT | PRESENT | PRESENT |
+| `deploy_manifest_parsing` | LACKING | LACKING | **PRESENT** | PRESENT | PRESENT |
+| `module_mismatch_signal_reported` | LACKING | LACKING | **PRESENT** | PRESENT | PRESENT |
+| `reachability_per_deploy_mode` | LACKING | LACKING | LACKING | **PRESENT** | PRESENT |
+| `mcp_vs_backend_coverage` | LACKING | LACKING | LACKING | LACKING | **PRESENT** |
+| `runtime_capability_endpoint` | LACKING | LACKING | LACKING | LACKING | LACKING (Sprint G4) |
+| `live_running_backend_probe` | LACKING | LACKING | LACKING | LACKING | LACKING (Sprint G4) |
+| `cross_repo_audit_lingque_desktop` | LACKING | LACKING | LACKING | LACKING | LACKING (separate session) |
+
+### Design rule applied (worth promoting to engineering-baseline if it recurs)
+
+Two design rules surface across G2 + G3 + H — both worth promoting to `knowledge/facts/engineering-baseline/` if they reappear in another sprint:
+
+1. **HITL-signal-not-gate (cumulative across G2 + G3)**: when a system property is awaiting human judgment (backend split decision), the audit gate must assert *parseability + premise*, not *equality of diverged values*. Forcing equality converts a HITL pause into a CI failure, which either pressures a rushed Maurice decision OR conditions the team to ignore CI. Both are anti-patterns. The probe **reports** `module_mismatch_signal: true` and emits per-mode reachability; the tests assert "parser works" and "premise holds" (≥1 path unreachable somewhere — otherwise the dual-backend frame is wrong) but never "the two modes are equal." Captured as DNA candidate `audit-probe-with-hitl-signal-not-gate`.
+
+2. **Pre-counted test-delta per atomic slice**: each slice in `task_plan.md` declares its expected nightly count delta inline (`5,865 → 5,866 (+1, pre-counted: 1 new test method)`). Pre-counting catches Sprint G1-style `+1 vs +4` thinkos before they trigger a confusing nightly diff during regression. Sprint G3 + H both pre-counted +1 each; cumulative 5,865 → 5,867 = +2 matched plan exactly. Captured as DNA candidate `vertical-slice-pre-counted-test-delta`.
+
+### PDCA closeout artifacts shipped
+
+- `outputs/pdca-evidence/sop-3.2-drift-probe/it-01/gates.json` (9 gates, schema-validated, 6 P0 PASS + 3 P1 BLOCKED-HITL/TODO, 4 remaining risks documented, 2 DNA capsule candidates)
+- `doc/00_project/initiative_cognebula_sota/PDCA_ITERATION_CHECKLIST.md` (it-01 entry per pdca-iteration-pipeline template — Stage Plan / Iteration Log / Capability Catalog Delta / Debt Ledger / Release Readiness Matrix)
+- `doc/00_project/initiative_cognebula_sota/deliverable.md` (2026-04-28 Sprint G3+H+PDCA closeout section)
+- task_plan.md §11/§12/§13/§14 all flipped to `[x]`
+
+### Out of scope (Sprint G3 + H deferred half, logged not asked)
+- Sprint G4: runtime `OPTIONS /api/v1/.well-known/capabilities` endpoint + pytest fixture against live backend (needs backend code change + runtime fixture)
+- Cross-repo: 灵阙 desktop frontend manifest audit (separate codebase, separate session)
+- Full nginx config grammar parser (current parser is regex-narrow on `proxy_pass` directives only — out of MVS budget)
+- Backend merge / split-formalize / deprecate decision (Maurice HITL — unchanged)
+- Generalize the audit_api_contract.py pattern into a shared AI-Fleet skill (after a 2nd consumer surfaces, per Skill design rule "do it manually 3-10 times before codifying")

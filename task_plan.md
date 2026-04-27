@@ -139,6 +139,23 @@ After Sprint E2 closed prohibited_role (7/9 dims), `inconsistent_scope` is the l
 - [x] `notes.md`: appended 2026-04-27 Sprint F1 entry with anchor pairs + 2-invariant rationale + null_scope-deferred RCA; status-updated the prior Sprint E "Out of scope" line to mark inconsistent_scope as shipped
 - [x] Commit landed: `822da69` (`data-quality: Sprint F1 PDCA + notes sync`)
 
+
+## §9. Atomic Execution Queue — SOP 3.2 前后端一致性与入口检查 (2026-04-27, audit-only first)
+
+### Phase milestone
+SOP 3.2 auto-routed via SOP-RECOMMEND hook [2]. Scope tightened to MVS-pattern: read-only audit first, trivial drift fixed inline, structural drift logged as deferred half. Project has 113 dirty files in flight (mostly Sprint A-F1 data-quality work + unrelated parallel initiatives) — explicit guard against treating in-flight work as drift.
+
+### Slice S9.1 — Read-only consistency audit (DONE)
+- [x] S9.1.a Inventoried 4 surfaces: 2 backends (kg-api-server.py 23 routes / src/api/kg_api.py 25 routes) + cognebula_mcp.py 7 tools / 4 frontend HTML in src/web/ / configs/ + docker-compose.yml + Dockerfile + nginx / scripts/ (50+) — `bin/` does NOT exist (Finding 5)
+- [x] S9.1.b Built consistency matrix: extracted all `/api/v1/*` paths from frontend `fetch()` + backend `@app.<verb>(...)` decorators + nginx `location` rules + Dockerfile/systemd `uvicorn ...:app` entrypoints
+- [x] S9.1.c Detected 5 drifts: (1) two backends sharing port 8400 with **zero route overlap**; (2) Dockerfile says `kg-api-server:app` but systemd says `src.api.kg_api:app`; (3) `inspect.html` targets B, `kg_explorer*.html` targets A — no client-side capability detection; (4) `/api/v1/ka/` orphan iframe; (5) `bin/` missing per convention
+- [x] S9.1.d Classified: 1+2 = P0 structural (Maurice HITL), 3 = P1 (needs capability-map endpoint, Sprint G), 4 = P2 (orphan), 5 = P3 doc-only
+- [x] S9.1.e Audit deliverable written: `outputs/reports/consistency-audit/2026-04-27-sop-3.2-audit.md` (redline format per Maurice preference, TL;DR + 4-surface inventory + 5 findings + bootstrap gap + "what this audit did NOT do")
+- [x] S9.1.f Trivial drift fixes inline — NONE applied (all drift is structural or doc-only requiring SYSTEM_ARCHITECTURE rewrite, both out of MVS slice budget)
+- [x] S9.1.g SYSTEM_ARCHITECTURE.md + notes.md updated with **pointer only** (one paragraph each, NOT rewrite — full sync deferred to S9.2 after Maurice picks merge/split/deprecate option)
+- [ ] S9.1.h Commit `data-quality / sop-3.2: front-back consistency audit baseline`
+- ⏭ **deferred half** (logged): backend-merge / split-formalization / deprecation decision (Maurice HITL); `scripts/audit_api_contract.py` reproducible probe (Sprint G); `OPTIONS /api/v1/.well-known/capabilities` endpoint + pytest `every frontend fetch path resolves on running backend` (Sprint G); 灵阙 desktop frontend cross-repo audit (separate codebase); MCP tool ↔ backend coverage audit (Sprint H)
+
 ### Out of scope (Sprint F deferred, logged not asked)
 - `invalid_chain` mutation machine — fixture cost > 90-min MVS budget; Sprint F2 candidate (NOT executed in this session per MVS-pattern + autonomous-extension quarantine: clause-axis with chain traversal needs Maurice direction on fixture data)
 - `unknown_jurisdiction_code` machine — separate counter (NOT `inconsistent_scope_count`), separate Sprint

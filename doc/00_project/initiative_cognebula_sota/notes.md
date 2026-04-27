@@ -1068,3 +1068,32 @@ Coverage delta: mutation testing now covers **8 of 9** audit dimensions. Remaini
 - Cross-axis machine running row-axis `JurisdictionMismatchMutationMachine` and clause-axis `InconsistentScopeMutationMachine` simultaneously, asserting they never double-count the same defect; Sprint F3 candidate
 - More property invariants (commutativity / hash stability / sample-size scaling) — Sprint F4 candidate
 - HITL Plan A/B/C/D, P4 orphan_fk_count, xfail policy — unchanged HITL items
+
+---
+
+## 2026-04-27 — SOP 3.2 front-back consistency audit (read-only baseline)
+
+SOP 3.2 was auto-routed via SOP-RECOMMEND hook after Sprint F1 closed. Scope tightened to MVS-pattern audit-only first; no fixes inline.
+
+**Headline finding**: project has **two parallel backend modules** sharing port 8400 with **zero route overlap**:
+- `kg-api-server.py` (top-level, 23 routes, 2670 LOC) — served by `Dockerfile`
+- `src/api/kg_api.py` (25 routes, 1581 LOC) — served by systemd `configs/kg-api.service`
+
+Frontend pages each target a specific backend without declaring which:
+- `inspect.html` → routes only in `src/api/kg_api.py` (clause inspection / registry / coverage)
+- `kg_explorer*.html` → routes only in `kg-api-server.py` (graph viz / admin / chat / hybrid-search)
+- `unified.html` iframes `/api/v1/ka/` — orphan path, declared by neither backend
+
+So whichever single backend is running on port 8400 silently breaks half the frontend. nginx in `deploy/contabo/nginx-cognebula.conf:71-72` blindly forwards `/api/v1/*` → 8400 with no per-prefix routing.
+
+**Severity**: P0 structural (dual backends + deployment path mismatch between Dockerfile and systemd). Fix requires Maurice-level decision: merge / formalize-split / deprecate-one. Not a "fix-in-flight" item under MVS-pattern.
+
+**Deliverable**: `outputs/reports/consistency-audit/2026-04-27-sop-3.2-audit.md` (full redline-format report, 5 findings + bootstrap gap log).
+
+### Out of scope (SOP 3.2 deferred half, logged not asked)
+- Backend-merge / split-formalization / deprecation decision — Maurice HITL
+- `scripts/audit_api_contract.py` reproducible probe (Sprint G candidate — turn the audit into code)
+- `OPTIONS /api/v1/.well-known/capabilities` endpoint (Sprint G candidate)
+- pytest test "every frontend `fetch()` path resolves on the running backend" (Sprint G candidate)
+- 灵阙 desktop frontend cross-repo audit (separate codebase, separate session)
+- MCP tool ↔ backend coverage audit (Sprint H candidate)

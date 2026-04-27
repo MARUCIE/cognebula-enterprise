@@ -43,6 +43,7 @@ NIGHTLY_FILES=(
     "tests/test_data_quality_property.py"
     "tests/test_data_quality_matrix.py"
     "tests/test_data_quality_mutation.py"
+    "tests/test_schema_completeness.py"
 )
 
 case "${1:-standard}" in

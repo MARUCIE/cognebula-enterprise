@@ -267,3 +267,718 @@ Code Intelligence: Sourcegraph SCIP blog, Greptile benchmarks/series-a, GitHub C
 AI Agents: Cursor changelog/blog, Cognition Devin blog, OpenAI Codex cookbook, Augment Code reviews, Windsurf docs/enterprise
 Graph/KG: Neo4j 2025 blog, LanceDB benchmarks, Memgraph comparisons, KuzuDB GitHub (archived), LlamaIndex GraphRAG v2, Tree-sitter ecosystem
 Enterprise: GitLab 2025 releases, Backstage 1.43/CNCF, Atlassian Compass, Linear guide, Vercel/Netlify comparisons, SurfSense GitHub
+
+---
+
+## 2026-04 Update: 4-Agent Swarm Refresh (20+ products, 80+ sources)
+
+Research date: 2026-04-10. Four parallel agents covering Code Intelligence, KG/Graph RAG, Agent Infra, Enterprise DevTools.
+
+### Key Delta vs Previous Research
+
+**1. KuzuDB Status Clarification**
+- Previous note: "acquired by Apple Oct 2025"
+- Updated: KuzuDB original team archived the project Oct 2025. **Vela Partners** maintains an active fork with concurrent multi-writer support added
+- FalkorDB offers documented migration path from KuzuDB (Cypher-compatible)
+- CogNebula currently has 620K nodes / 1M edges on the original KuzuDB — still functional but no upstream patches
+
+**2. Augment Code Context Engine MCP (GA)**
+- Semantic dependency graph architecture — closest competitor to CogNebula's graph approach
+- Context Engine MCP is generally available: local CLI mode + remote API mode
+- Benchmark: Claude Code +80% performance, Cursor+Opus +71%, pass rate +41%
+- ISO 42001 + SOC 2 Type II + CMEK certified
+- Only covers CODE context, not domain knowledge (tax/compliance)
+
+**3. Neo4j Agent Ecosystem ($100M Investment)**
+- Aura Agent GA (Feb 2026): hosted MCP Server, one-click deploy
+- $100M committed to agentic AI ecosystem
+- Official neo4j-graphrag Python package
+- Only graph DB with full MCP + hosted agent deployment
+
+**4. Industry Convergence: "Code Graph + RAG" = Consensus Architecture**
+- GitLab: Knowledge Graph (Rust, GA 18.4) for code entity graph
+- Qodo: Context Engine with multi-repo graph + agentic reasoning
+- Tabnine: Enterprise Context Engine (vector + graph + agentic RAG)
+- All three invested in the same architecture pattern in 2025, independently
+
+**5. Agent Infra: Universal Context Gap**
+All 7 agent platforms (LangChain, CrewAI, Devin, SWE-Agent, Aider, Codex CLI, Claude Code) lack native structured knowledge graph access for regulated domains. Context management is either vector search, file-system traversal, or proprietary indexing. None supports graph traversal over domain-specific ontologies.
+
+**6. LightRAG as Lightweight Alternative**
+- EMNLP 2025 paper. Incremental graph update (50% cheaper than MS GraphRAG)
+- Retrieval latency ~80ms. Pluggable backends (PostgreSQL, Neo4j, MongoDB, Redis)
+- Can use KuzuDB/fork as storage backend
+- MIT license, active development
+
+### Updated Strategic Position for CogNebula
+
+Previous research positioned CogNebula as a **code intelligence** platform competing with Sourcegraph/Augment/Cursor. The 2026-04 refresh reveals a cleaner positioning:
+
+**CogNebula is a DOMAIN knowledge graph for AI agents, not a code graph.**
+
+The competitive landscape has two separate markets:
+1. **Code Context Engines** (Sourcegraph, Augment, Cursor, Copilot) — graph/vector over source code
+2. **Domain Knowledge Graphs** (CogNebula) — structured regulatory knowledge for AI agents in finance/tax
+
+CogNebula has **zero direct competitors** in category 2. The validation from category 1 is that the architecture (graph + RAG + MCP) works — CogNebula applies it to a different knowledge domain.
+
+### Updated Priority Actions
+
+| # | Action | Status (Previous) | Update |
+|---|--------|-------------------|--------|
+| P0-1 | Graph engine migration | CRITICAL: KuzuDB archived | Vela fork available; FalkorDB migration documented. Can defer if Vela fork stable |
+| P0-2 | MCP Server for agent consumption | HIGH | Now CRITICAL: Neo4j Aura Agent GA, Augment MCP GA, CrewAI bidirectional MCP. Window closing |
+| P0-3 | Hybrid RAG (vector + graph) | HIGH | Validated by 6 independent platforms. LightRAG or LanceDB as vector complement |
+| P1-1 | Enterprise auth (SSO/RBAC) | HIGH | Market confirms: $19-60/user/mo for enterprise AI add-ons |
+| P1-2 | Deployment flexibility | MEDIUM → HIGH | 5/6 enterprise platforms support on-prem/air-gapped. Table stakes for regulated industries |
+| NEW | Published benchmarks | — | Augment's 300+ PR benchmark + specific numbers (+80%, 100ms) are sales differentiators. CogNebula needs equivalent |
+
+### Pricing Reference (2026 Market)
+
+| Tier | Market Range | CogNebula Analog |
+|------|-------------|------------------|
+| Individual developer | $10-20/mo | N/A (CogNebula is B2B) |
+| Team AI add-on | $19-40/user/mo | Basic MCP access + query API |
+| Enterprise AI platform | $39-60/user/mo + custom | Full KG + compliance rules + audit trail |
+| Self-hosted/air-gapped | +50-100% premium | Finance/gov customers will pay premium |
+
+### Sources (2026-04 Refresh)
+
+Code Intelligence: Sourcegraph Amp pricing, GitHub Copilot agent mode docs, Cursor indexing architecture (Turbopuffer), Augment Context Engine MCP GA blog, CursorBench
+KG/Graph RAG: Neo4j Aura Agent GA, NebulaGraph 2025 review, lance-graph crate, Weaviate Hybrid Search 2.0, MS GraphRAG v1.0 token cost reduction, LightRAG EMNLP 2025, KuzuDB archived (The Register), Vela Partners fork blog, FalkorDB migration guide
+Agent Infra: LangChain/LangGraph memory docs, CrewAI enterprise review, Devin 2.0 technical design, SWE-Agent NeurIPS 2024, Aider repomap, OpenAI Codex CLI/MCP, Claude Agent SDK
+Enterprise DevTools: GitLab Duo Knowledge Graph docs, GitLab FY2026 earnings, JetBrains AI plans, Snyk DeepCode AI, Qodo Context Engine, Tabnine Enterprise Context Engine launch, Amazon Q Developer features
+
+---
+
+## 2026-04-16 Session 48 — Semantic Edge Import Closure
+
+### Objective
+- Resume the blocked Session 47 handoff and finish semantic-edge loading to production without user interaction.
+
+### Findings
+- Vela/Kuzu `0.12.0` rejects `COPY <rel-group> FROM ... (header=false)` when the REL TABLE GROUP has multiple `FROM/TO` pairs.
+- The production-safe syntax is:
+  `COPY SEMANTIC_SIMILAR FROM "<csv>" (from='Type', to='Type', header=false)`.
+- The previous fallback had already inserted exactly `1000` same-type semantic edges for each of the 7 tables, so rerun safety required deleting existing same-type `SEMANTIC_SIMILAR` edges before bulk reload.
+- Benchmark verification initially failed with `HTTP 401` because the API server reads `KG_API_KEY`, while `benchmark/run_eval.py` only read `COGNEBULA_API_KEY`.
+
+### Actions Executed
+- Patched `scripts/build_semantic_edges.py` to:
+  - bulk load with explicit `from/to`
+  - delete existing same-type semantic edges before reload
+- Synced the script to `kg-node`
+- Stopped `kg-api`, reran the full semantic-edge builder, restarted `kg-api`
+- Patched `benchmark/run_eval.py` to fall back to `KG_API_KEY`
+- Synced benchmark runner to `kg-node` and re-ran hybrid benchmark
+
+### Evidence
+- Post-load graph totals immediately after import: `856,072` nodes / `2,016,849` edges / density `2.356`
+- Latest manual verification totals: `856,072` nodes / `2,017,420` edges / density `2.357`
+- Post-load semantic edges: `570,481`
+- Quality gate: `PASS / 100`
+- Hybrid benchmark: `79% overall`, `100/100` question pass, `0` failures, `0` errors
+  - canonical artifact: `benchmark/results_hybrid_20260416_after_security_fix.json`
+- Runtime: semantic import completed in `827s`
+- Manual UX-path verification (`增值税一般纳税人认定标准是什么`): `5` results returned; top result `VAT_SMALL_SCALE_TO_GENERAL_TAXPAYER`
+
+### Anti-Regression Notes
+- Do not split `SEMANTIC_SIMILAR` into per-type relation tables unless API queries are updated too; the explicit `from/to` COPY path works and preserves the existing relation label.
+- Future benchmark runs against production should work with either `COGNEBULA_API_KEY` or `KG_API_KEY`.
+
+---
+
+## 2026-04-16 Session 49 — Ralph Workflow Grounding
+
+### New Constraints Applied
+- Root agent stays on orchestration; security/testing lanes should run as specialized subagents where useful.
+- Ralph loop requires explicit grounding artifacts before continued execution.
+- DNA capture is required for verified remediation paths.
+
+### Grounding Artifacts
+- Context snapshot: `.omx/context/semantic-edge-closeout-20260416T001600Z.md`
+- Ralph PRD: `.omx/plans/prd-semantic-edge-closeout.md`
+- Ralph test spec: `.omx/plans/test-spec-semantic-edge-closeout.md`
+- PDCA checklist: `doc/00_project/initiative_cognebula_sota/PDCA_ITERATION_CHECKLIST.md`
+
+### DNA Capsule
+- Created: `/Users/mauricewen/00-AI-Fleet/dna/capsules/semantic-rel-group-copy-fix/SKILL.md`
+- Registry: `/Users/mauricewen/00-AI-Fleet/configs/dna-registry.json`
+- Validation:
+  - `ai dna validate` → PASS
+  - `ai dna inherit semantic-rel-group-copy-fix --force` → synced
+  - `ai dna doctor` → PASS
+
+### Attacker Review Follow-up
+- `kg-api-server.py`
+  - Removed query-string API key acceptance; auth now only reads `X-API-Key`
+  - Hardened `migrate_table()` so `source/target` must be real node tables and `field_map` is restricted to target-schema fields plus simple source identifiers/literals
+  - Deployed the fix to the actual systemd service target `/home/kg/kg-api-server.py`
+- `scripts/build_semantic_edges.py`
+  - Removed legacy fallback branches that created per-type relation-table alternatives or partial 1000-row inserts
+  - The script now fails fast if REL TABLE GROUP creation or typed COPY fails, preventing partial-success drift
+- `scripts/render_doc_html.py`
+  - Removed remote JS dependency
+  - Added markdown raw-HTML sanitization before pandoc rendering
+- `benchmark/run_eval.py`
+  - Help text updated to match the new localhost default and `KG_API_KEY` fallback
+- Fresh attacker-review verdict:
+  - no remaining HIGH/MEDIUM findings in scope
+  - residual low risk: markdown sanitization is line-oriented rather than a full untrusted-markdown sanitizer
+  - residual low risk: benchmark fallback to `KG_API_KEY` is mild env-name coupling, not an auth gap
+
+### Final Architect Verification
+- Verdict: `APPROVED`
+- Remaining blockers: none
+- Residual low risks:
+  - markdown hardening is lightweight and intended for trusted docs
+  - benchmark env fallback is mild name coupling
+  - `HANDOFF.md` keeps superseded historical text for audit continuity
+
+## 2026-04-16 Session 50 — Closeout Tail Cleanup
+
+### Objective
+- Remove the last active auth/env naming drift and stale handoff wording left behind after Session 49 approval.
+
+### Actions Executed
+- Standardized `benchmark/run_eval.py` on canonical `KG_API_KEY`
+- Standardized `cognebula_mcp.py` on canonical `KG_API_KEY`
+- Updated MCP copy/metrics to the current `856K+ / 2M+` baseline
+- Reworded the Session 47 handoff density target as historical-only so it no longer conflicts with the canonical `2M+` KPI
+
+### Verification
+- `python3 -m py_compile benchmark/run_eval.py cognebula_mcp.py`
+- `rg -n "COGNEBULA_API_KEY" benchmark/run_eval.py cognebula_mcp.py` → no hits
+- Runtime env-resolution checks:
+  - `run_eval.py`: `KG_ONLY=True`, `OLD_ONLY_EMPTY=True`
+  - `cognebula_mcp.py`: `KG_ONLY=True`, `OLD_ONLY_EMPTY=True`
+- Live remote auth checks:
+  - `GET http://100.75.77.112:8400/api/v1/stats` without auth → `401 Unauthorized`
+  - `GET http://100.75.77.112:8400/api/v1/quality` without auth → `401 Unauthorized`
+
+### Residual Low Risks
+- Markdown sanitization remains intentionally lightweight and only suitable for trusted project docs
+- Historical notes still mention the old env mismatch as root cause evidence, but active code paths now use only `KG_API_KEY`
+
+## 2026-04-16 Session 51 — Static Web Auth Proxy Alignment
+
+### Objective
+- Close the remaining browser-side auth gap: the static Next.js frontend must not call the protected KG API directly or hold `KG_API_KEY`.
+
+### Findings
+- `web/src/app/lib/kg-api.ts` was still pointing the browser at a direct remote API/tunnel path.
+- The web app is built with `output: export`, so a Next.js App Route proxy would break the static export model.
+- The repo already contains a Cloudflare Worker proxy (`worker/src/index.ts`), but it was not yet aligned with the current API-key auth model.
+
+### Actions Executed
+- Removed the incompatible App Route proxy attempt and preserved static export.
+- Repointed `web/src/app/lib/kg-api.ts` to the HTTPS Worker proxy (`NEXT_PUBLIC_KG_API_BASE` override; Worker URL by default).
+- Updated `worker/src/index.ts` to:
+  - read `KG_API_ORIGIN` from Worker vars
+  - inject `X-API-Key` from Worker secret/env binding
+  - forward `Accept` / `Content-Type`
+  - preserve upstream JSON content type
+- Updated `worker/wrangler.toml` with canonical `KG_API_ORIGIN` config.
+- Synced PDCA docs to the browser-safe access path.
+
+### Verification
+- `npm run build` passed in `web/`
+- Static build completed successfully across all 38 routes
+- `./web/node_modules/.bin/tsc --noEmit --target es2022 --module esnext --lib es2022,dom worker/src/index.ts` passed
+- Confirmed no App Route remains under `web/src/app/api/`
+- Verified the browser KG client now defaults to `https://cognebula-kg-proxy.workers.dev/api/v1`
+- Regenerated HTML companions for the updated PDCA markdown docs
+
+### Residual Low Risks
+- Cloudflare runtime secret state is external to the repo; the deployed Worker still needs `KG_API_KEY` configured in Cloudflare
+
+## 2026-04-16 Session 52 — Self-hosted Compose Packaging
+
+### Objective
+- Start closing the last major Phase D gap by packaging the current topology for self-hosted use without exposing `KG_API_KEY` to the browser.
+
+### Actions Executed
+- Added `web/Dockerfile` to build the exported Next.js app into a static image
+- Added `docker/nginx.web.conf.template` to serve the static web app and proxy `/api/v1/*` to `cognebula-api` with injected `X-API-Key`
+- Expanded `docker-compose.yml` to run:
+  - `cognebula-api`
+  - `cognebula-web`
+- Added root `.dockerignore` so the web image build context only contains the files it actually needs
+- Replaced the API image's repo-wide `requirements.txt` install with a minimal runtime dependency set for `kg-api-server.py`
+- Fixed the web healthcheck probe to use `127.0.0.1`
+- Changed the default packaged graph mount to `data/finance-tax-graph.archived.157nodes`, which is the only real local Kuzu file in the repo
+- Changed the packaged web default port from `3000` to `3001` to avoid the local port collision observed during runtime verification
+- Updated `README.md` to document the new local access points (`:3001` web, `:8400` API)
+
+### Verification
+- `docker compose config` passed
+- `KG_API_KEY=dummy docker compose config` passed and showed:
+  - `cognebula-api` receives `KG_API_KEY=dummy`
+  - `cognebula-web` receives `KG_API_KEY=dummy` and `KG_API_UPSTREAM=http://cognebula-api:8400`
+- `KG_API_KEY=dummy docker compose build cognebula-web` passed after `.dockerignore` reduced the web build context from ~`1.29GB` to ~`896KB`
+- `KG_API_KEY=dummy docker compose build cognebula-api` passed after replacing the repo-wide dependency install with a minimal API runtime dependency set
+- `KG_API_KEY=dummy docker compose up -d` started the packaged stack on its default ports
+- `curl http://localhost:8400/api/v1/health` → `status=healthy`, `kuzu=true`, `lancedb=true`
+- `curl -I http://localhost:3001/` → `200 OK`
+- `curl http://localhost:3001/api/v1/health` → packaged web proxy returned `status=healthy`, `kuzu=true`
+- `docker inspect -f '{{.State.Health.Status}}' cognebula-web` → `healthy`
+- `KG_API_KEY=dummy docker compose down` removed the local verification stack cleanly
+- Docker CLI is installed (`Docker version 29.2.0`)
+- Docker context inspection showed `desktop-linux` points to `unix:///Users/mauricewen/.docker/run/docker.sock`
+- Re-rendered HTML companions for `PRD.md`, `SYSTEM_ARCHITECTURE.md`, `USER_EXPERIENCE_MAP.md`, and `PLATFORM_OPTIMIZATION_PLAN.md`
+
+### Residual Local Runtime Note
+- The packaged stack is healthy against the bundled baseline graph (`157` nodes / `35` edges). Richer local QA still depends on mounting a fuller Kuzu file via `COGNEBULA_GRAPH_PATH`.
+
+## 2026-04-16 Session 53 — Phase C Script Portability
+
+### Objective
+- Remove the “single machine only” constraint from the remaining Phase C backfill scripts so they can be preflighted locally and run against arbitrary Kuzu files.
+
+### Actions Executed
+- Updated:
+  - `scripts/cpa_content_backfill.py`
+  - `scripts/mindmap_batch_backfill.py`
+  - `scripts/ld_description_backfill.py`
+- Added `--db-path` to all three scripts
+- Added `KUZU_DB_PATH` env fallback to all three scripts
+- Added `--dry-run` read-only inspection mode to all three scripts
+- Added missing `MindmapNode` table-existence precheck so dry-run exits cleanly instead of throwing a binder exception
+
+### Verification
+- `python3 -m py_compile` passed for all three scripts
+- `--help` output on all three scripts now shows `--db-path`
+- `rg -n -- '--dry-run|KUZU_DB_PATH|db-path' ...` confirms the new interface exists across all three files
+- Local baseline-graph dry-run behavior:
+  - `cpa_content_backfill.py` → `SKIP: CPAKnowledge table does not exist`
+  - `mindmap_batch_backfill.py` → `SKIP: MindmapNode table does not exist`
+  - `ld_description_backfill.py` → `SKIP: LegalDocument table does not exist in this DB`
+
+### Residual Note
+- This change removes portability/precheck friction, but it does not create missing node tables or fill missing content by itself.
+
+## 2026-04-16 Session 54 — Local Demo Graph Bootstrap
+
+### Objective
+- Create a reproducible richer local Kuzu file for demos and packaged local verification, without mutating the archived baseline graph in-place.
+
+### Actions Executed
+- Added `scripts/bootstrap_local_demo_graph.py`
+- The bootstrap script:
+  - copies `data/finance-tax-graph.archived.157nodes`
+  - injects FAQ data
+  - auto-creates `OP_` accounting schema when CPA enrichment is requested
+  - injects CPA case data by default
+  - injects tax incentive data by default
+  - injects administrative region data by default
+  - injects native MindmapNode data by default
+  - reports final node count
+- Generated `data/finance-tax-graph.demo`
+- Verified the packaged API against the richer demo graph with `COGNEBULA_GRAPH_PATH=./data/finance-tax-graph.demo`
+
+### Verification
+- `python3 -m py_compile scripts/bootstrap_local_demo_graph.py` passed
+- `./.venv/bin/python scripts/bootstrap_local_demo_graph.py --force` completed successfully
+- Demo graph file counts:
+  - baseline: `157` nodes / `35` edges
+  - demo: `3847` nodes / `642` edges
+  - `FAQEntry`: `1152`
+  - `CPAKnowledge`: `649`
+  - `MindmapNode`: `990`
+  - `LawOrRegulation`: `0`
+  - `OP_StandardCase`: `266`
+  - `TaxIncentive`: `109`
+  - `AdministrativeRegion`: `477`
+- Packaged runtime proof:
+  - `COGNEBULA_GRAPH_PATH=./data/finance-tax-graph.demo KG_API_KEY=dummy docker compose up -d cognebula-api`
+  - authenticated `/api/v1/stats` returned `nodes=3847`, `edges=642`, `FAQEntry=1152`, `CPAKnowledge=649`, `MindmapNode=990`, `LawOrRegulation=0`, `OP_StandardCase=266`, `TaxIncentive=109`, `AdministrativeRegion=477`
+  - when the full stack is run with the richer demo graph, packaged web proxy requests still return `status=healthy`, `kuzu=true`
+
+### Residual Note
+- The richer demo graph is still a local convenience artifact, not a substitute for a fuller production-like graph snapshot.
+
+## 2026-04-16 Session 55 — Demo Bootstrap Parity Fix
+
+### Objective
+- Close the remaining parity gap between the documented demo-bootstrap behavior and the actual default script path, then collect fresh runtime evidence from the rebuilt local stack.
+
+### Actions Executed
+- Fixed `scripts/bootstrap_local_demo_graph.py` so the default `--include` set explicitly contains `mindmap`
+- Rebuilt `data/finance-tax-graph.demo` from the archived baseline after the fix
+- Re-read the rebuilt Kuzu file directly to confirm the real node/edge distribution
+- Re-ran the packaged local Compose stack against the rebuilt demo graph and verified both direct API and packaged web-proxy stats/health
+
+### Verification
+- `python3 -m py_compile scripts/bootstrap_local_demo_graph.py src/inject_faq_data.py src/inject_cpa_data.py src/inject_mindmap_native.py` passed
+- `./.venv/bin/python scripts/bootstrap_local_demo_graph.py --force` now shows the `[mindmap] ... src/inject_mindmap_native.py` step in the default flow and ends with `Node count: 3847`
+- Direct Kuzu verification on `data/finance-tax-graph.demo`:
+  - `nodes=3847`, `edges=642`
+  - `FAQEntry=1152`, `CPAKnowledge=649`, `MindmapNode=990`, `AdministrativeRegion=477`, `OP_StandardCase=266`, `TaxIncentive=109`, `LawOrRegulation=0`
+- Packaged runtime verification:
+  - `COGNEBULA_GRAPH_PATH=./data/finance-tax-graph.demo KG_API_KEY=dummy docker compose up -d`
+  - `curl http://localhost:8400/api/v1/health` returned `status=healthy`, `kuzu=true`, `lancedb=true`
+  - authenticated `curl -H 'X-API-Key: dummy' http://localhost:8400/api/v1/stats` returned the same `3847 / 642` native-table distribution as the direct Kuzu check
+  - `curl http://localhost:3001/api/v1/stats` through the packaged web proxy returned the same `3847 / 642` native-table distribution without browser-side secrets
+  - `curl -I http://localhost:3001/` returned `200 OK`
+  - `docker inspect -f '{{.State.Health.Status}}' cognebula-web` returned `healthy`
+
+### Residual Note
+- The richer local demo graph is now internally consistent with the bootstrap default path, but it is still a local convenience artifact rather than a production-scale graph snapshot.
+
+## 2026-04-17 Session 56 — README Packaged API Sync
+
+### Objective
+- Remove the last stale self-hosted access example from `README.md` so it no longer points users at the legacy `localhost:8766/api/rag` path that is not part of the current packaged stack.
+
+### Actions Executed
+- Replaced the old README "Agent Integration" example with the current packaged entrypoints:
+  - protected API on `http://localhost:8400/api/v1/*`
+  - browser-safe local proxy on `http://localhost:3001/api/v1/*`
+- Added concrete `search` and `hybrid-search` curl examples that match the current packaged auth model.
+- Re-checked the local Docker environment before attempting a fresh third runtime pass.
+
+### Verification
+- `README.md` now documents:
+  - `curl -H "X-API-Key: your-key" "http://localhost:8400/api/v1/search?..."`
+  - `curl -H "X-API-Key: your-key" "http://localhost:8400/api/v1/hybrid-search?..."`
+  - `curl "http://localhost:3001/api/v1/search?..."`
+- `rg -n "8766|api/rag" README.md` no longer matches the packaged API instructions.
+- Docker environment check on 2026-04-17:
+  - `docker context show` -> `desktop-linux`
+  - `test -S ~/.docker/run/docker.sock` -> `SOCKET_MISSING`
+  - `docker compose up -d` could not proceed because the Docker daemon socket was unavailable in this session.
+
+### Residual Note
+- The README was aligned to the current packaged API surface in this session, but at that moment this specific turn could not collect a brand-new runtime proof because the local Docker daemon was unavailable (`~/.docker/run/docker.sock` missing). Session 55 was still the latest successful packaged proof at that point.
+  Historical note: this blocker was resolved in Session 57.
+
+## 2026-04-17 Session 57 — README Example Runtime Proof
+
+### Objective
+- Close the last verification gap from Session 56 by proving that the new README packaged API examples work against a live local stack rather than only matching the code/docs surface.
+
+### Actions Executed
+- Relaunched Docker Desktop after confirming `desktop-linux` was the active context but `~/.docker/run/docker.sock` was missing.
+- Waited for the local Docker daemon socket to reappear and confirmed `docker info` succeeded.
+- Re-ran the packaged stack with `COGNEBULA_GRAPH_PATH=./data/finance-tax-graph.demo KG_API_KEY=dummy docker compose up -d`.
+- Executed the new README endpoint shapes against the live stack:
+  - protected `search` on `:8400`
+  - protected `hybrid-search` on `:8400`
+  - browser-safe proxied `search` on `:3001`
+- Torn the stack back down after verification.
+
+### Verification
+- Docker recovery:
+  - `open -a /Applications/Docker.app`
+  - `test -S ~/.docker/run/docker.sock` transitioned to `SOCKET_PRESENT`
+  - `docker info` succeeded against `docker-desktop`
+- Packaged runtime:
+  - `COGNEBULA_GRAPH_PATH=./data/finance-tax-graph.demo KG_API_KEY=dummy docker compose up -d`
+  - `curl http://localhost:8400/api/v1/health` returned `status=healthy`, `kuzu=true`, `lancedb=true`
+  - `docker inspect -f '{{.State.Health.Status}}' cognebula-web` returned `healthy`
+- README example proof:
+  - `curl -H 'X-API-Key: dummy' 'http://localhost:8400/api/v1/search?q=%E5%A2%9E%E5%80%BC%E7%A8%8E&limit=5'`
+    returned `count=5` with non-empty results headed by `TT_VAT` / `TT_LAND_VAT`
+  - `curl -H 'X-API-Key: dummy' 'http://localhost:8400/api/v1/hybrid-search?q=%E5%A2%9E%E5%80%BC%E7%A8%8E&limit=5&expand=true'`
+    returned `count=5`, `method=hybrid_rrf`, `text_hits=15`, and non-empty `graph_expansion`
+  - `curl 'http://localhost:3001/api/v1/search?q=%E5%A2%9E%E5%80%BC%E7%A8%8E&limit=5'`
+    returned the same top-5 search results as the protected `:8400` endpoint
+  - `docker compose down` completed, and `docker compose ps` returned no running services
+
+### Residual Note
+- Session 56's Docker-socket blocker is now cleared. README packaged examples are both textually correct and runtime-verified against the local packaged stack.
+
+## 2026-04-17 Session 58 — Compose Command + Route Index Sync
+
+### Objective
+- Remove the last documentation-level drift inside the current self-hosted closeout set: README command syntax should match the validated `docker compose` form, and `doc/index.md` should explicitly advertise the local packaged `:3001` entrypoints.
+
+### Actions Executed
+- Replaced remaining `docker-compose` command examples in `README.md` with `docker compose`.
+- Added local packaged route entries to `doc/index.md`:
+  - `http://localhost:3001/`
+  - `http://localhost:3001/api/v1/*`
+- Re-ran `docker compose config` after the doc-only sync as a guard that the documented command surface still matches the actual compose file.
+
+### Verification
+- `if rg -n 'docker-compose' README.md; then ... else echo README_COMPOSE_CLEAN; fi` -> `README_COMPOSE_CLEAN`
+- `rg -n 'http://localhost:3001/|http://localhost:3001/api/v1/\\*' doc/index.md` returned both new packaged route entries
+- `docker compose config` exited `0`
+
+### Residual Note
+- The self-hosted closeout docs are now internally consistent on command syntax (`docker compose`) and on the local packaged route map (`:3001` web + proxy).
+
+## 2026-04-17 Session 59 — PDCA Packaged Topology Sync
+
+### Objective
+- Bring the PDCA canonical docs fully in line with the packaged self-hosted topology, so the project-level PRD / architecture / UX / optimization documents no longer retain any stale `:8766`, `/api/rag`, `docker-compose`, or “Compose only packages the API container” wording.
+
+### Actions Executed
+- Updated `PRD.md` current packaging text to include the local `docker compose` package (`:8400` protected API + `:3001` web/proxy).
+- Updated `SYSTEM_ARCHITECTURE.md`:
+  - renamed the old `Current Architecture (v1.0)` heading to `Historical Prototype Architecture (v1.0)`
+  - replaced the stale diagram label `REST /api/rag` with `REST /api/v1/*`
+  - added the local packaged topology block (`:3001` web/proxy, `:8400` protected API)
+- Updated `USER_EXPERIENCE_MAP.md` Journey 1 from the old `docker-compose` + `:8766` flow to the current `docker compose` + `:3001` / `:8400` first-run path.
+- Updated `PLATFORM_OPTIMIZATION_PLAN.md` deployment baseline so it no longer claims Docker Compose only packages the API container.
+- Re-rendered the four HTML companions plus `PRD.html`.
+
+### Verification
+- `rg -n '8766|/api/rag|docker-compose|packages only the API container' doc/00_project/initiative_cognebula_sota/PRD.md doc/00_project/initiative_cognebula_sota/SYSTEM_ARCHITECTURE.md doc/00_project/initiative_cognebula_sota/USER_EXPERIENCE_MAP.md doc/00_project/initiative_cognebula_sota/PLATFORM_OPTIMIZATION_PLAN.md` returned no matches
+- `ls -l` confirmed fresh render timestamps for:
+  - `PRD.html`
+  - `SYSTEM_ARCHITECTURE.html`
+  - `USER_EXPERIENCE_MAP.html`
+  - `PLATFORM_OPTIMIZATION_PLAN.html`
+- Spot check of `USER_EXPERIENCE_MAP.md` now shows:
+  - `docker compose up -d --build`
+  - `http://localhost:3001/`
+  - `http://localhost:8400/docs`
+  - `GET /api/v1/search` / `GET /api/v1/hybrid-search`
+- Independent verifier scan returned `PASS` with no remaining stale `localhost:8766`, `/api/rag`, or API-only Compose wording in the four PDCA markdown sources
+
+### Residual Note
+- The PDCA canonical docs are now aligned to the same packaged topology already verified in Sessions 57-58. Remaining work is no longer doc drift inside the self-hosted lane.
+
+## 2026-04-17 Session 60 — Delivery-Surface Audit
+
+### Objective
+- Confirm that the human-facing delivery surface is fully clean after Session 59: not only the markdown PDCA sources, but also the rendered HTML companions and the local Compose runtime state.
+
+### Actions Executed
+- Searched the four PDCA HTML companions for stale `:8766`, `/api/rag`, `docker-compose`, and API-only Compose wording.
+- Observed a transient Docker daemon disconnect while checking `docker compose ps`.
+- Relaunched Docker Desktop, waited for the socket to return, and re-ran `docker compose ps`.
+
+### Verification
+- `rg -n '8766|/api/rag|docker-compose|packages only the API container|api container only|packages? only the api' doc/00_project/initiative_cognebula_sota/PRD.html doc/00_project/initiative_cognebula_sota/SYSTEM_ARCHITECTURE.html doc/00_project/initiative_cognebula_sota/USER_EXPERIENCE_MAP.html doc/00_project/initiative_cognebula_sota/PLATFORM_OPTIMIZATION_PLAN.html` returned no matches
+- Docker recovery:
+  - `open -a /Applications/Docker.app`
+  - `test -S ~/.docker/run/docker.sock` -> `SOCKET_PRESENT`
+  - `docker info` succeeded again
+- Runtime state check:
+  - `docker compose ps` returned no running services
+- Independent verifier audit on the four HTML companions returned `PASS` and confirmed the delivery surface shows the packaged topology (`docker compose`, `:8400`, `:3001`) rather than any stale `:8766` / `/api/rag` path
+
+### Residual Note
+- The self-hosted closeout lane is now clean across markdown, HTML companions, and local Compose runtime state. Remaining work is outside this lane.
+
+## 2026-04-17 Session 61 — Demo Graph Small-Type Expansion
+
+### Objective
+- Move the next unresolved mainline item after the self-hosted doc closeout: expand the local richer demo graph with more real small-type business content instead of only FAQ / CPA / incentives / regions / mindmap.
+
+### Actions Executed
+- Extended `scripts/bootstrap_local_demo_graph.py`:
+  - added `compliance` and `industry` to the supported `--include` set
+  - promoted both to the default enrichment path
+  - reused `create_accounting_schema.py` as a shared prerequisite for both CPA and industry enrichment so `OP_*` tables exist before insertion
+- Rebuilt `data/finance-tax-graph.demo` with `./.venv/bin/python scripts/bootstrap_local_demo_graph.py --force`
+- Added real local enrichment from:
+  - `src/inject_compliance_data.py` -> `ComplianceRule` + `FormTemplate`
+  - `src/inject_industry_data.py` -> `FTIndustry` + extra `OP_BusinessScenario` + extra `OP_StandardCase` + `RiskIndicator`
+- Re-ran the packaged stack against the rebuilt demo graph and verified both stats and a search query targeting the new compliance/risk surface.
+
+### Verification
+- `python3 -m py_compile scripts/bootstrap_local_demo_graph.py src/inject_compliance_data.py src/inject_industry_data.py` passed
+- `./.venv/bin/python scripts/bootstrap_local_demo_graph.py --help` now shows `--include {faq,cpa,compliance,industry,incentives,regions,mindmap}`
+- `./.venv/bin/python scripts/bootstrap_local_demo_graph.py --force` completed successfully and ended with `Node count: 4330`
+- Direct Kuzu counts on `data/finance-tax-graph.demo`:
+  - `nodes=4330`, `edges=642`
+  - `FAQEntry=1152`
+  - `CPAKnowledge=649`
+  - `MindmapNode=990`
+  - `ComplianceRule=84`
+  - `FormTemplate=109`
+  - `FTIndustry=19`
+  - `RiskIndicator=125`
+  - `OP_BusinessScenario=43`
+  - `OP_StandardCase=392`
+  - `TaxIncentive=109`
+  - `AdministrativeRegion=477`
+  - `LawOrRegulation=0`
+- Packaged runtime verification:
+  - `COGNEBULA_GRAPH_PATH=./data/finance-tax-graph.demo KG_API_KEY=dummy docker compose up -d`
+  - `curl http://localhost:8400/api/v1/health` returned `status=healthy`, `kuzu=true`, `lancedb=true`
+  - authenticated `/api/v1/stats` returned `total_nodes=4330`, `total_edges=642`, `node_tables=23`, and the same enriched node mix
+  - `curl 'http://localhost:3001/api/v1/search?q=%E5%90%88%E8%A7%84&limit=5'` returned `count=5` with `RiskIndicator` hits, proving the proxy path can surface the new compliance/risk content
+  - `docker inspect -f '{{.State.Health.Status}}' cognebula-web` returned `healthy`
+  - `docker compose down` succeeded and `docker compose ps` returned no running services
+
+### Residual Note
+- This advances the local/demo side of Phase C small-type expansion, but it does not mean the production-scale graph has been backfilled to the same quality level. The main remaining work is still production-scale content depth, not the local packaged demo path.
+
+## 2026-04-17 Session 62 — Seed Reference Expansion
+
+### Objective
+- Push the local/demo side of Phase C one step further by injecting three remaining seed-backed small types that already exist in the repo: `SocialInsuranceRule`, `TaxAccountingGap`, and `IndustryBenchmark`.
+
+### Actions Executed
+- Added `src/inject_seed_reference_data.py`:
+  - creates `SocialInsuranceRule`, `TaxAccountingGap`, and `IndustryBenchmark` tables if missing
+  - injects the repo's local seed JSONs
+  - generates minimal `description` / `fullText` fields for searchability
+- Extended `scripts/bootstrap_local_demo_graph.py`:
+  - added `seedrefs` to the supported/default `--include` set
+  - wired it to call `src/inject_seed_reference_data.py`
+- Rebuilt `data/finance-tax-graph.demo` with the expanded default path
+- Re-ran the packaged stack and tested search queries aimed at the new seed-backed types
+
+### Verification
+- `python3 -m py_compile scripts/bootstrap_local_demo_graph.py src/inject_seed_reference_data.py` passed
+- `./.venv/bin/python scripts/bootstrap_local_demo_graph.py --help` now shows `--include {faq,cpa,compliance,industry,seedrefs,incentives,regions,mindmap}`
+- `python3 src/inject_seed_reference_data.py --dry-run` reported:
+  - `+138` `SocialInsuranceRule`
+  - `+50` `TaxAccountingGap`
+  - `+45` `IndustryBenchmark`
+  - grand total `+233`
+- `./.venv/bin/python scripts/bootstrap_local_demo_graph.py --force` completed successfully and ended with `Node count: 4563`
+- Direct Kuzu counts on `data/finance-tax-graph.demo`:
+  - `nodes=4563`, `edges=642`
+  - `SocialInsuranceRule=138`
+  - `TaxAccountingGap=50`
+  - `IndustryBenchmark=45`
+  - `ComplianceRule=84`
+  - `FormTemplate=109`
+  - `FTIndustry=19`
+  - `RiskIndicator=125`
+  - `OP_BusinessScenario=43`
+  - `OP_StandardCase=392`
+- Packaged runtime verification:
+  - `COGNEBULA_GRAPH_PATH=./data/finance-tax-graph.demo KG_API_KEY=dummy docker compose up -d`
+  - authenticated `/api/v1/stats` returned `total_nodes=4563`, `total_edges=642`, `node_tables=26`, and the same seed-expanded node mix
+  - `curl 'http://localhost:3001/api/v1/search?q=%E5%85%BB%E8%80%81%E4%BF%9D%E9%99%A9&limit=5'` returned `SocialInsuranceRule` hits
+  - `curl 'http://localhost:3001/api/v1/search?q=%E7%A8%8E%E8%B4%9F%E7%8E%87&limit=5'` returned `IndustryBenchmark` hits
+  - `curl 'http://localhost:3001/api/v1/search?q=%E9%A2%84%E6%94%B6%E8%B4%A6%E6%AC%BE&limit=5'` returned `TaxAccountingGap` hits
+  - `docker inspect -f '{{.State.Health.Status}}' cognebula-web` returned `healthy`
+  - `docker compose down` succeeded and `docker compose ps` returned no running services
+
+### Residual Note
+- The local/demo side of Phase C now covers both extracted content and seed-backed reference types, but the production-scale graph still has not been brought up to the same small-type coverage level.
+
+## 2026-04-23 — Data-quality page reframed around ontology conformance
+
+### Observation
+- The page could show `quality_score=100` while the ontology remained structurally broken (`/api/v1/ontology-audit` already documented rogue types, over-ceiling drift, V1/V2 coexistence, duplicate clusters, and legacy residue).
+- This created a dangerous false positive: operators saw “质量评分 100 / 等级 A” and inferred the graph was usable even when catch-all buckets such as `KnowledgeUnit` were swallowing heterogeneous content.
+
+### Root cause
+- `web/src/app/expert/data-quality/page.tsx` only consumed `/stats` + `/quality` and elevated coverage / density to the top KPI strip.
+- Structural drift data already existed in the repo (`/api/v1/ontology-audit`, `ONTOLOGY_DRIFT_REPORT.md`) but never reached the operator UI.
+
+### Fix
+- Added `getOntologyAudit()` and typed `OntologyAudit` support to `web/src/app/lib/kg-api.ts`.
+- Reworked `data-quality/page.tsx` so the page:
+  - loads `/stats`, `/quality`, and `/ontology-audit` with `Promise.allSettled`
+  - shows a structural-failure hero card before hygiene metrics
+  - promotes rogue counts, dominant bucket share, V1/V2 bleed, duplicate clusters, legacy tables, and rogue edges into first-class risk cards
+  - demotes coverage metrics to “基础卫生指标”
+- Updated PDCA docs so the product contract now says “data quality = structure + hygiene”.
+
+### Evidence / blockers
+- `Computer Use` plugin could not be used for live visual inspection in this session (`Transport closed` on `list_apps` / `get_app_state`).
+- Direct unauthenticated fetch of `https://ops.hegui.org/expert/data-quality/` returned `401 Authorization Required`, so browser-shell proof for the live protected page remains a follow-up item.
+
+### Live production snapshot (fetched 2026-04-23 from `https://app.hegui.org/api/v1/*`)
+- `/stats`: `total_nodes=547,761`, `total_edges=1,302,476`, `node_tables=62`, `rel_tables=73`
+- Dominant bucket: `KnowledgeUnit=185,455` (`33.9%` of all live nodes)
+- Other oversized legacy / drift buckets visible in TOP-15: `DocumentSection=42,252`, `LawOrRegulation=39,651`, `MindmapNode=28,526`, `CPAKnowledge=7,371`
+- `/quality`: `score=100 PASS`, `content_coverage=51.0%`, `edge_density=2.795`
+- `/ontology-audit`: `verdict=FAIL`, `severity=high`, `live_count=83`, `canonical_count=35`, `over_ceiling_by=46`
+- Confirmed drift buckets:
+  - `v1_v2_bleed=5`
+  - duplicate clusters: `tax_rate`, `accounting`, `industry`, `policy`
+  - `saas_leak=6`
+  - `legacy=7`
+
+## 2026-04-24 — UI/UX hardening for the data-quality workbench
+
+### UX diagnosis
+- The old page behaved like a report: six same-weight KPI cards, a long bar chart, a methodology wall of text, then Clause Inspector at the bottom.
+- That made the core task ambiguous. Operators could see `100` and `51%`, but the UI still did not answer the operational question: "what do I do first?"
+
+### Design baseline applied
+- App-shell utility mode: no decorative hero, no marketing structure, utility-first content order
+- Single page-level primary action: jump directly to the治理优先级 lane
+- 8pt/4pt spacing discipline via `page.module.css`
+- Surface hierarchy by background step + border + shadow, not heavy ornament
+- Responsive breakpoints at 1280 / 960 / 720
+- A11y/testability: stable `data-testid`s, details/summary disclosure, keyboard smoke captured against the fixture route
+
+### Implementation
+- `web/src/app/expert/data-quality/page.tsx`
+  - extracted a reusable `DataQualityWorkbench`
+  - converted the page into a task-first layout: verdict hero, operator flow rail, metric strip, governance lane, distribution evidence, risk breakdown, hygiene panel, inspector shell
+  - added lightweight `cognebula:data-quality` custom-event tracking for load and CTA interactions
+- `web/src/app/expert/data-quality/page.module.css`
+  - centralized spacing, layout, responsive, skeleton, and section styles
+- `web/src/app/expert/data-quality/prodSnapshot.ts`
+  - stored a production-derived snapshot from 2026-04-23 (`app.hegui.org`) for validation use
+- `web/src/app/expert/data-quality/fixture/page.tsx`
+  - exposed `/expert/data-quality/fixture` as a stable validation surface
+- `web/src/app/expert/layout.tsx`
+  - removed stale hard-coded graph counts from the shell top bar and replaced them with trust-safe environment status text
+
+### Validation summary
+- Lint: pass
+- TypeScript: pass (source-only tsconfig override to ignore transient `.next/dev` validator corruption)
+- Build: pass
+- Fixture smoke: no console errors, no `/api/v1/*` requests, no secret-bearing URLs, primary CTA scrolls governance lane into view, secondary CTA scrolls inspector into view, keyboard tab lands inside inspector controls
+- Lighthouse: performance `76`, accessibility `96`, best-practices `100`, SEO `100`
+- Main budget pressure: LCP `7.4s`; TBT `10ms`; CLS `0`
+
+## 2026-04-27 — Schema-completeness gate wired into nightly tier
+
+### Continuation of Sprint A+B+C close-out
+
+Sprint commit `4956d5b` ("schema-vs-audit drift test — close the 102K-suite escape") added `tests/test_schema_completeness.py` (17 tests, 6 pass + 11 fail by design) but did NOT wire it into `scripts/run_data_quality_tests.sh`. CI's `unit` job picks it up via default pytest discovery; local-dev tier-runner did not. Closing that visibility gap.
+
+### What was changed
+- `scripts/run_data_quality_tests.sh`: added `tests/test_schema_completeness.py` to `NIGHTLY_FILES`. Not added to `fast` or `standard` because the 11 designed-failures are a HITL forcing function (pending Plan A/B/C/D from `2026-04-27-p1.5-jurisdiction-recon-memo.md`); blocking PR-tier on a known-pending HITL would silence rather than amplify the signal.
+
+### Verification
+- `./scripts/run_data_quality_tests.sh count`:
+  - fast: 163 tests (unchanged)
+  - standard: 1,582 tests (unchanged)
+  - nightly: 5,832 → 5,849 (+17 = `test_schema_completeness.py`)
+- Direct run `pytest tests/test_schema_completeness.py -v`: 11 fail / 6 pass / 0.13s — matches design comment "DAY-1 EXPECTATION: these tests FAIL — that's the signal that schema sync is needed".
+
+### Failure inventory (the signal)
+The 11 designed failures fall into two classes:
+- 8 × `test_audited_lineage_column_appears_in_at_least_one_canonical_type[<col>]`: snake_case columns `effective_from`, `confidence`, `extracted_by`, `jurisdiction_code`, `jurisdiction_scope`, `override_chain_id`, `reviewed_by`, `source_doc_id` — ZERO of 31 canonical types declare them. PROD has them via runtime ALTER TABLE that was never back-ported.
+- 3 × `test_partial_attribution_types_declare_source_doc_id[<type>]`: `LegalClause`, `FilingFormField`, `TaxCalculationRule` carry `source_doc_id` in PROD (corpus regression discovered) but canonical schema is silent.
+
+### What is NOT changed
+- No edit to `schemas/ontology_v4.2.cypher`. Schema sync is HITL — the recon memo holds Plan A/B/C/D pending Maurice. Reconciliation is what flips these tests green; doing it autonomously would mask the forcing function.
+- No edit to `pytest.ini`, no `xfail` markers added. The CI `unit` job is intentionally RED until reconciliation. Adding `xfail(strict=True)` is a design call (signal vs blocking) and belongs to Maurice.
+- No PDCA stat bump (`Final test suite status` table still says 11 files / 5,832 IDs). The PDCA was synced before `test_schema_completeness.py` landed; refreshing the table is a separate housekeeping task.
+
+### Deferred items (logged here, not asked)
+1. **HITL Plan A/B/C/D selection** — `outputs/reports/data-quality-audit/2026-04-27-p1.5-jurisdiction-recon-memo.md`. Once Maurice picks, schema sync can proceed and the 11 failing tests flip green.
+2. **PDCA `Final test suite status` refresh** — bump 11→12 files, 5,832→5,849 IDs, ~3,700→~4,000 LOC. Sync `.md` and `.html` together per 2份制.
+3. **xfail policy decision** — option (a) keep CI RED as forcing function, option (b) add `xfail(strict=True, reason="HITL pending P1.5")` to unblock PR-tier while preserving the signal. Recommend (b) once HITL has an ETA.
+
+## 2026-04-27 — Sprint D: mutation expansion (4 → 8 machines)
+
+### Why
+Sprint B (the flagship mutation axis) covered only 3 of 9 audit dimensions in single-axis machines (placeholder / duplicate_id / null_coverage) plus 1 compound. Six dimensions had ZERO single-axis path-independence verification. Plus the cross-dimension orthogonality property — "mutating dimension A leaves dimension B count untouched" — had no test. Sprint D closes both gaps.
+
+### What was added (`tests/test_data_quality_mutation.py`)
+- `StaleMutationMachine` (400 × 50, 2 invariants) — toggle `effective_from` between fresh/stale/null/alternate-fresh; verify `stale_count` matches the tracked stale-index set, and `stale_rate` stays consistent. Caught a bug in my first pass: `_is_stale` uses `timedelta(days=10*365) = 3650 days` (not 10 calendar years), so the threshold lands ~2-3 days after 10y due to leap-day drift; my "borderline" date `2014-06-02` was actually stale by 1 day. Replaced with an unambiguous `2018-06-01` second fresh date.
+- `IntegrityViolationMutationMachine` (400 × 50, 1 invariant) — independently toggle `reviewed_at` and `reviewed_by`; verify `integrity_violations` matches `bool(at) ^ bool(by)` per row.
+- `JurisdictionMismatchMutationMachine` (400 × 50, 1 invariant) — toggle `jurisdiction_code` / `jurisdiction_scope`, plus inject invalid scope (`galactic`); verify count matches the audit's actual rule (scope set + not in ALLOWED → +1, else XOR(code, scope) → +1).
+- `OrthogonalityMachine` (400 × 50, 2 invariants) — non-overlapping field-routing per dim (placeholder→`extracted_by` / duplicate→`id` / stale→`effective_from` set to old date NOT None / integrity→`reviewed_by`→None / null_coverage→`confidence`→None). Invariant: dimensions NOT in `expected_pos` stay at baseline 0. Plus static-zero invariant for `jurisdiction_mismatches`/`prohibited_role_count`/`invalid_chain_count`/`inconsistent_scope_count` (no rule mutates them; should always be 0).
+
+### Cumulative state (Sprint B + D)
+- 8 mutation machines, ~170,000 mutation steps, ~345,000 invariant evaluations, 34s runtime
+- Nightly tier: 5,849 → 5,853 IDs (+4 TestCase classes)
+- Test files: 11 → 12 (`test_schema_completeness.py` from earlier today + this expansion stays inside the existing mutation file)
+- Effective cases: ~102K → ~222K
+
+### Failure mode caught at write-time
+First pass had `BORDERLINE_DATE = "2014-06-02"` based on naïve "10 years before today" math. Hypothesis found the falsifying example on the first run (`make_borderline(row_idx=0)` → `stale_count=1, expected=0`). Lesson: Python's `timedelta(days=N)` is days-exact, not calendar-aware; never pick test boundary dates without computing them from the actual code's threshold. Fix shipped the same iteration; no follow-up debt.
+
+### Out of scope (deferred)
+- Single-axis machines for `prohibited_role` / `invalid_chain` / `inconsistent_scope` — these dimensions delegate to `clause_inspector.inspect()` which expects specific row-shape inputs that don't fit the `_clean_row` baseline cleanly. Building proper test fixtures for clause-axis defects is a separate sprint (E?) bounded by the inspector's own contract.
+- New audit dimensions (P4 orphan_fk_count) — product-level call, still pending.
+- HITL Plan A/B/C/D for jurisdiction backfill — still pending.

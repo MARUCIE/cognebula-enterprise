@@ -399,3 +399,400 @@ TestCompoundMutation.settings = settings(
     stateful_step_count=60,
     suppress_health_check=[HealthCheck.filter_too_much],
 )
+
+
+# ---------------------------------------------------------------------------
+# Sprint D — single-axis machines for the 3 dimensions that previously had
+# only compound coverage. Path-independence on each dimension proven in
+# isolation surfaces accounting drift the compound machine can mask under
+# noisy mutation streams.
+# ---------------------------------------------------------------------------
+
+
+# Machine 5 — Stale-date mutation accounting
+# ---------------------------------------------------------------------------
+
+
+class StaleMutationMachine(RuleBasedStateMachine):
+    """Toggle `effective_from` between fresh and stale dates, verify stale_count.
+
+    Invariant: stale_count == #rows whose current effective_from is older than
+    today - 10 years. None / "" / unparseable values do NOT count as stale
+    (they vanish into null_rate, not stale_rate).
+    """
+
+    TODAY = date(2024, 6, 1)
+    FRESH_DATE = "2024-01-01"  # < 10y, not stale
+    STALE_DATE = "2010-01-01"  # > 10y, stale
+    # _is_stale uses `timedelta(days=10*365) = 3650 days`, which differs from
+    # 10 calendar years by ~2-3 days (leap-year drift). Threshold lands around
+    # 2014-06-04, so 2014-06-02 is actually 1 day STALE. Pick a date that is
+    # unambiguously fresh — 2-year buffer past the boundary is plenty.
+    SECOND_FRESH_DATE = "2018-06-01"
+
+    def __init__(self):
+        super().__init__()
+        self.rows: list[dict] = []
+        # Track which row-indexes carry a stale date right now.
+        self.stale_indexes: set[int] = set()
+
+    @initialize(n=st.integers(min_value=4, max_value=12))
+    def start_clean(self, n):
+        self.rows = [_clean_row(i) for i in range(n)]
+        self.stale_indexes = set()
+
+    @rule(row_idx=st.integers(0, 11))
+    def make_stale(self, row_idx):
+        if row_idx >= len(self.rows):
+            return
+        self.rows[row_idx]["effective_from"] = self.STALE_DATE
+        self.stale_indexes.add(row_idx)
+
+    @rule(row_idx=st.integers(0, 11))
+    def make_fresh(self, row_idx):
+        if row_idx >= len(self.rows):
+            return
+        self.rows[row_idx]["effective_from"] = self.FRESH_DATE
+        self.stale_indexes.discard(row_idx)
+
+    @rule(row_idx=st.integers(0, 11))
+    def make_alt_fresh(self, row_idx):
+        # Alternate fresh value — exercises the path where row was stale and
+        # is moved back to a different (still-fresh) date. Distinct from the
+        # FRESH_DATE rule so hypothesis exercises both transitions.
+        if row_idx >= len(self.rows):
+            return
+        self.rows[row_idx]["effective_from"] = self.SECOND_FRESH_DATE
+        self.stale_indexes.discard(row_idx)
+
+    @rule(row_idx=st.integers(0, 11))
+    def make_null(self, row_idx):
+        # NULL effective_from is NOT stale — null_rate counts it instead.
+        if row_idx >= len(self.rows):
+            return
+        self.rows[row_idx]["effective_from"] = None
+        self.stale_indexes.discard(row_idx)
+
+    @invariant()
+    def stale_count_matches_active_indexes(self):
+        if not self.rows:
+            return
+        r = survey_type(
+            self.rows, today=self.TODAY, null_coverage_threshold=1.01
+        )
+        assert r["stale_count"] == len(self.stale_indexes), (
+            f"stale_count drift: report={r['stale_count']} "
+            f"tracked={len(self.stale_indexes)} "
+            f"indexes={sorted(self.stale_indexes)}"
+        )
+
+    @invariant()
+    def stale_rate_consistent_with_count(self):
+        if not self.rows:
+            return
+        r = survey_type(
+            self.rows, today=self.TODAY, null_coverage_threshold=1.01
+        )
+        expected_rate = round(r["stale_count"] / r["sampled"], 4)
+        assert abs(r["stale_rate"] - expected_rate) < 1e-4
+
+
+TestStaleMutation = StaleMutationMachine.TestCase
+TestStaleMutation.settings = settings(
+    max_examples=400,
+    stateful_step_count=50,
+    suppress_health_check=[HealthCheck.filter_too_much],
+)
+
+
+# Machine 6 — Integrity-violation mutation accounting
+# ---------------------------------------------------------------------------
+
+
+class IntegrityViolationMutationMachine(RuleBasedStateMachine):
+    """Independently toggle `reviewed_at` and `reviewed_by`; verify
+    integrity_violations == count(rows where exactly-one is set).
+
+    Truth table per row (treating None / "" as falsy):
+      reviewed_at | reviewed_by | violation?
+      ──────────────────────────────────────
+      F           | F           | no
+      T           | F           | YES
+      F           | T           | YES
+      T           | T           | no
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.rows: list[dict] = []
+
+    @initialize(n=st.integers(min_value=4, max_value=12))
+    def start_clean(self, n):
+        self.rows = [_clean_row(i) for i in range(n)]
+
+    @rule(row_idx=st.integers(0, 11))
+    def remove_reviewed_at(self, row_idx):
+        if row_idx < len(self.rows):
+            self.rows[row_idx]["reviewed_at"] = None
+
+    @rule(row_idx=st.integers(0, 11))
+    def remove_reviewed_by(self, row_idx):
+        if row_idx < len(self.rows):
+            self.rows[row_idx]["reviewed_by"] = None
+
+    @rule(row_idx=st.integers(0, 11))
+    def restore_both(self, row_idx):
+        if row_idx < len(self.rows):
+            self.rows[row_idx]["reviewed_at"] = "2024-01-02"
+            self.rows[row_idx]["reviewed_by"] = "auditor"
+
+    @rule(row_idx=st.integers(0, 11))
+    def remove_both(self, row_idx):
+        if row_idx < len(self.rows):
+            self.rows[row_idx]["reviewed_at"] = None
+            self.rows[row_idx]["reviewed_by"] = None
+
+    @invariant()
+    def integrity_count_matches_xor(self):
+        if not self.rows:
+            return
+        r = survey_type(
+            self.rows, today=date(2024, 6, 1), null_coverage_threshold=1.01
+        )
+        # Recompute expected: count rows where bool(at) ^ bool(by).
+        expected = sum(
+            1 for row in self.rows
+            if bool(row.get("reviewed_at")) ^ bool(row.get("reviewed_by"))
+        )
+        assert r["integrity_violations"] == expected, (
+            f"integrity drift: report={r['integrity_violations']} "
+            f"expected={expected} "
+            f"pairs={[(r2.get('reviewed_at'), r2.get('reviewed_by')) for r2 in self.rows]}"
+        )
+
+
+TestIntegrityViolationMutation = IntegrityViolationMutationMachine.TestCase
+TestIntegrityViolationMutation.settings = settings(
+    max_examples=400,
+    stateful_step_count=50,
+    suppress_health_check=[HealthCheck.filter_too_much],
+)
+
+
+# Machine 7 — Jurisdiction-mismatch mutation accounting
+# ---------------------------------------------------------------------------
+
+
+class JurisdictionMismatchMutationMachine(RuleBasedStateMachine):
+    """Toggle jurisdiction_code / jurisdiction_scope; verify mismatch count.
+
+    The audit's `_count_jurisdiction_mismatches` rule:
+      1. If scope is set AND not in ALLOWED_JURISDICTION_SCOPES → +1 (continue)
+      2. Else if XOR(code, scope) → +1
+      3. Else → 0
+
+    So a row contributes IFF: (scope set AND scope ∉ ALLOWED) OR XOR(code, scope).
+    """
+
+    # Sample one valid scope and one invalid one to drive both branches.
+    VALID_SCOPE = "national"
+    INVALID_SCOPE = "galactic"  # not in ALLOWED_JURISDICTION_SCOPES
+
+    def __init__(self):
+        super().__init__()
+        self.rows: list[dict] = []
+
+    @initialize(n=st.integers(min_value=4, max_value=12))
+    def start_clean(self, n):
+        self.rows = [_clean_row(i) for i in range(n)]
+
+    @rule(row_idx=st.integers(0, 11))
+    def remove_code(self, row_idx):
+        if row_idx < len(self.rows):
+            self.rows[row_idx]["jurisdiction_code"] = None
+
+    @rule(row_idx=st.integers(0, 11))
+    def remove_scope(self, row_idx):
+        if row_idx < len(self.rows):
+            self.rows[row_idx]["jurisdiction_scope"] = None
+
+    @rule(row_idx=st.integers(0, 11))
+    def set_invalid_scope(self, row_idx):
+        if row_idx < len(self.rows):
+            self.rows[row_idx]["jurisdiction_scope"] = self.INVALID_SCOPE
+
+    @rule(row_idx=st.integers(0, 11))
+    def set_valid_scope(self, row_idx):
+        if row_idx < len(self.rows):
+            self.rows[row_idx]["jurisdiction_scope"] = self.VALID_SCOPE
+
+    @rule(row_idx=st.integers(0, 11))
+    def restore_pair(self, row_idx):
+        if row_idx < len(self.rows):
+            self.rows[row_idx]["jurisdiction_code"] = "CN"
+            self.rows[row_idx]["jurisdiction_scope"] = self.VALID_SCOPE
+
+    @invariant()
+    def mismatch_count_matches_rule(self):
+        if not self.rows:
+            return
+        from src.kg.bitemporal_query import ALLOWED_JURISDICTION_SCOPES
+        r = survey_type(
+            self.rows, today=date(2024, 6, 1), null_coverage_threshold=1.01
+        )
+        expected = 0
+        for row in self.rows:
+            code = row.get("jurisdiction_code")
+            scope = row.get("jurisdiction_scope")
+            if scope and scope not in ALLOWED_JURISDICTION_SCOPES:
+                expected += 1
+                continue
+            if bool(code) ^ bool(scope):
+                expected += 1
+        assert r["jurisdiction_mismatches"] == expected, (
+            f"jurisdiction mismatch drift: report={r['jurisdiction_mismatches']} "
+            f"expected={expected} "
+            f"pairs={[(r2.get('jurisdiction_code'), r2.get('jurisdiction_scope')) for r2 in self.rows]}"
+        )
+
+
+TestJurisdictionMismatchMutation = JurisdictionMismatchMutationMachine.TestCase
+TestJurisdictionMismatchMutation.settings = settings(
+    max_examples=400,
+    stateful_step_count=50,
+    suppress_health_check=[HealthCheck.filter_too_much],
+)
+
+
+# Machine 8 — Cross-dimension orthogonality
+# ---------------------------------------------------------------------------
+
+
+class OrthogonalityMachine(RuleBasedStateMachine):
+    """Each rule mutates exactly ONE dimension via a NON-OVERLAPPING field.
+    Invariant: dimensions NOT mutated stay at their clean baseline (0).
+
+    Field-routing matrix:
+      dim            | field mutated      | side-effects
+      placeholder    | extracted_by       | NOT in CRITICAL_COLUMNS → null_coverage unaffected
+      duplicate      | id                 | id never tracked by other dims
+      stale          | effective_from set to old date → still non-NULL → null_coverage unaffected
+      integrity      | reviewed_by → None | NOT in CRITICAL_COLUMNS → null_coverage unaffected;
+                                            None ≠ banlist string → placeholder unaffected
+      null_coverage  | confidence → None  | NOT a string → placeholder unaffected;
+                                            confidence not used elsewhere
+
+    Static-zero dimensions (never intentionally mutated, must stay at 0):
+      jurisdiction_mismatches, prohibited_role_count, invalid_chain_count,
+      inconsistent_scope_count.
+    """
+
+    TODAY = date(2024, 6, 1)
+    THRESHOLD = 0.5
+
+    DIM_KEY = {
+        "placeholder": "placeholder_string_count",
+        "duplicate": "duplicate_id_count",
+        "stale": "stale_count",
+        "integrity": "integrity_violations",
+        "null_coverage": "null_coverage_violation_count",
+    }
+    STATIC_ZERO_DIMS = (
+        "jurisdiction_mismatches",
+        "prohibited_role_count",
+        "invalid_chain_count",
+        "inconsistent_scope_count",
+    )
+
+    def __init__(self):
+        super().__init__()
+        self.rows: list[dict] = []
+        # Track which abstract dimensions have received at least one mutation.
+        self.expected_pos: set[str] = set()
+
+    @initialize(n=st.integers(min_value=4, max_value=12))
+    def start_clean(self, n):
+        self.rows = [_clean_row(i) for i in range(n)]
+        self.expected_pos = set()
+
+    @rule(row_idx=st.integers(0, 11), banned=st.sampled_from(_BANLIST_LIST))
+    def mutate_placeholder_only(self, row_idx, banned):
+        if row_idx < len(self.rows):
+            self.rows[row_idx]["extracted_by"] = banned
+            self.expected_pos.add("placeholder")
+
+    @rule(row_idx=st.integers(0, 11))
+    def mutate_duplicate_only(self, row_idx):
+        if row_idx < len(self.rows):
+            self.rows[row_idx]["id"] = "SHARED"
+            self.expected_pos.add("duplicate")
+
+    @rule(row_idx=st.integers(0, 11))
+    def mutate_stale_only(self, row_idx):
+        if row_idx < len(self.rows):
+            # Set to old date, NOT None — preserves non-NULL for null_coverage isolation.
+            self.rows[row_idx]["effective_from"] = "2010-01-01"
+            self.expected_pos.add("stale")
+
+    @rule(row_idx=st.integers(0, 11))
+    def mutate_integrity_only(self, row_idx):
+        if row_idx < len(self.rows):
+            self.rows[row_idx]["reviewed_by"] = None  # XOR with reviewed_at
+            self.expected_pos.add("integrity")
+
+    @rule(row_idx=st.integers(0, 11))
+    def mutate_null_coverage_only(self, row_idx):
+        if row_idx < len(self.rows):
+            # confidence is the cleanest critical column to NULL: numeric, not
+            # a string (so placeholder gate doesn't fire even at 0% rows), not
+            # a date (stale gate doesn't fire), not in lineage envelope.
+            self.rows[row_idx]["confidence"] = None
+            # Whether this dim actually fires depends on threshold — only flag
+            # `expected_pos` if at least 50% of rows are now NULL on confidence.
+            null_share = sum(
+                1 for r in self.rows if r.get("confidence") is None
+            ) / max(len(self.rows), 1)
+            if null_share >= self.THRESHOLD:
+                self.expected_pos.add("null_coverage")
+            else:
+                # Below threshold → no defect should fire; keep expected_pos clean.
+                self.expected_pos.discard("null_coverage")
+
+    @invariant()
+    def non_mutated_dims_stay_at_baseline(self):
+        if not self.rows:
+            return
+        r = survey_type(
+            self.rows, today=self.TODAY, null_coverage_threshold=self.THRESHOLD
+        )
+        for dim_name, count_key in self.DIM_KEY.items():
+            if dim_name not in self.expected_pos:
+                assert r[count_key] == 0, (
+                    f"orthogonality breach: dim={dim_name} count={r[count_key]} "
+                    f"despite no mutation. mutated={sorted(self.expected_pos)}\n"
+                    f"rows snapshot: {self.rows[:3]}..."
+                )
+
+    @invariant()
+    def static_zero_dims_remain_zero(self):
+        # Dimensions we never mutate must stay at baseline 0 — catches
+        # accidental cross-talk if a rule body grows side-effects.
+        if not self.rows:
+            return
+        r = survey_type(
+            self.rows, today=self.TODAY, null_coverage_threshold=self.THRESHOLD
+        )
+        for dim in self.STATIC_ZERO_DIMS:
+            assert r[dim] == 0, (
+                f"static-zero dim {dim} broke baseline: count={r[dim]}\n"
+                f"mutated={sorted(self.expected_pos)}\n"
+                f"rows snapshot: {self.rows[:3]}..."
+            )
+
+
+TestOrthogonality = OrthogonalityMachine.TestCase
+TestOrthogonality.settings = settings(
+    max_examples=400,
+    stateful_step_count=50,
+    suppress_health_check=[HealthCheck.filter_too_much],
+)

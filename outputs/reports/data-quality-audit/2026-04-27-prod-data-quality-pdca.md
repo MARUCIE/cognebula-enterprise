@@ -187,6 +187,23 @@ The only test layer that catches *transitive accounting bugs* — bugs where mut
 
 Sprint B subtotal: **~90,000 mutation steps × 1-3 invariants each ≈ 225,000 invariant evaluations**, 20.85s runtime.
 
+### P0.8b — Sprint D: mutation expansion to remaining single-axis dimensions + orthogonality (DONE)
+
+Sprint B left 6 of 9 audit dimensions without single-axis path-independence verification (only the compound machine touched them). Sprint D adds the 3 highest-leverage single-axis machines (stale / integrity / jurisdiction) and the cross-dimension orthogonality machine that catches accidental side-effects between dimensions.
+
+| Machine | Settings | Invariants per step | Catches |
+|---------|----------|---------------------|---------|
+| `StaleMutationMachine` | 400 × 50 | 2 (count match, rate consistency) | stale_count drift across fresh/stale/null transitions |
+| `IntegrityViolationMutationMachine` | 400 × 50 | 1 (XOR truth-table) | reviewed_at/reviewed_by accounting under independent toggles |
+| `JurisdictionMismatchMutationMachine` | 400 × 50 | 1 (rule replay: scope-allowed branch + XOR branch) | jurisdiction code/scope mismatch counting drift |
+| `OrthogonalityMachine` | 400 × 50 | 2 (non-mutated dims at baseline; static-zero dims unchanged) | cross-dimension cross-talk — mutating dim A leaves dim B count untouched |
+
+Sprint D subtotal: **+~80,000 mutation steps × 1-2 invariants ≈ +120,000 invariant evaluations**, 13s runtime delta.
+
+Field-routing matrix proves orthogonality is real: each rule mutates a NON-OVERLAPPING field (placeholder→`extracted_by`, duplicate→`id`, stale→`effective_from` set to old date / not None, integrity→`reviewed_by`→None, null_coverage→`confidence`→None). The static-zero invariant catches accidental side-effects on `jurisdiction_mismatches` / `prohibited_role_count` / `invalid_chain_count` / `inconsistent_scope_count` even though no rule deliberately mutates them — it's a forcing function against future regressions where a new rule grows side-effects.
+
+Sprint B + D combined: **8 machines, ~170,000 mutation steps, ~345,000 invariant evaluations**, 34s runtime total.
+
 ### P0.9 — Sprint C: API client + perf gate + CI tiering (DONE)
 
 `scripts/data_quality_survey_via_api.py` had **zero tests** pre-Sprint-C — and it's the surface that touched PROD on 2026-04-27 to produce the v3 baseline. Silent failure here would skew every survey.
@@ -206,17 +223,19 @@ CI tiering shipped via `scripts/run_data_quality_tests.sh`:
 
 Sprint C subtotal: **58 cases + tiered runner**.
 
-### Final test suite status (post Sprint A+B+C)
+### Final test suite status (post Sprint A+B+C+D)
 
 | Metric | Value |
 |--------|-------|
-| Test files | 11 (~3,700 LOC) |
-| pytest IDs | 5,832 |
+| Test files | 12 (~4,000 LOC) |
+| pytest IDs | 5,853 |
 | hypothesis examples | ~6,500 |
-| mutation steps | ~90,000 |
-| **Effective cases** | **~102,000** |
-| Nightly wall-clock | 31.04s |
-| Fast PR gate p95 | 511ms |
+| mutation steps | ~170,000 |
+| **Effective cases** | **~222,000** |
+| Nightly wall-clock | ~45s (was 31s; +14s for Sprint D mutation machines) |
+| Fast PR gate p95 | 511ms (unchanged — Sprint D additions live in nightly only) |
+
+`test_schema_completeness.py` (17 IDs, 11 designed-FAIL pending HITL Plan A/B/C/D) is wired into `nightly` tier only — keeping the schema-vs-audit drift signal visible without blocking PR-tier. Sprint D's 4 new mutation machines also live in nightly via `test_data_quality_mutation.py`.
 
 ### P1 — `effective_from` backfill (HIGH)
 
@@ -228,18 +247,29 @@ Affects 11 FAIL-level types. Per Round-1 Munger inversion the **guard precedes t
 
 Estimated work: 2-3 hours scripted (additive UPDATE batches via wrapper).
 
-### P1.5 — `jurisdiction_code/scope` derive-from-prefix default (AUTO, opt-out)
+### P1.5 — `jurisdiction_code/scope` derive-from-prefix default (BLOCKED, HITL Plan A/B/C/D)
 
-**Downgraded HITL → AUTO per Round-1 Munger + Autonomous Extension rule.** Sane defaults exist; permission-asking would be a violation.
+**Status reversed by 2026-04-27 PROD reconnaissance. Round-1 derive-rules match 0/7 PROD types sampled.** See `2026-04-27-p1.5-jurisdiction-recon-memo.md` for full evidence and the §"Recon Findings" section below for Maurice-facing summary.
 
-Derivation rules:
-1. `id` contains `CN-FTZ-*` → `scope=experimental_zone`, `code=<prefix>`
-2. `id` contains ISO admin (`CN-31`, `CN-HK`, etc.) → `scope=subnational`, `code=<as-is>`
-3. Otherwise → `code=CN`, `scope=national`
+Original (now-rejected) derivation rules — kept here as historical record only:
 
-All derived rows mark `jurisdiction_source='derived'`. Maurice reviews only the exception subset (expected <5 types where defaults are wrong), does not block the default path.
+1. `id` contains `CN-FTZ-*` → `scope=experimental_zone`, `code=<prefix>` — **0 PROD hits**
+2. `id` contains ISO admin (`CN-31`, `CN-HK`, etc.) → `scope=subnational`, `code=<as-is>` — **0 PROD hits**
+3. Otherwise → `code=CN`, `scope=national` — **100% fallback** (would falsely tag rows `jurisdiction_source='derived'`, a meta-level placeholder fraud the banlist gate cannot catch)
 
-Estimated work: 1-2 hours scripted.
+PROD ID-pattern reality (3 distinct shapes observed across 7 sampled canonical types):
+
+- **Jurisdiction-coded** (Region only): `BJ` / `SH` / `TJ` / `CQ` / `HEB` — Chinese province/municipality short codes; needs lookup table → ISO 3166-2:CN format.
+- **Token-embedded** (SocialInsuranceRule): substring `NAT` denotes national scope; needs substring matching, not prefix matching.
+- **Domain-only / opaque** (5+ types: TaxRate UUID, IndustryBenchmark, TaxEntity, TaxType, FilingFormField): zero jurisdiction signal; default fallback must NOT pretend to be derivation.
+
+Three candidate revised plans pending Maurice HITL decision:
+
+- **Plan A** — honest fallback with `jurisdiction_source` enum {`lookup`, `token_match`, `default_no_signal`}. Implementable in 1-2h.
+- **Plan B** — defer 30 days until per-type signal research completes.
+- **Plan C** — drop the abstraction: restrict jurisdiction enforcement to 3-5 semantically-meaningful types (Region, possibly LegalDocument, possibly Penalty); remove `jurisdiction_code/scope` from `CRITICAL_COLUMNS` for the rest. **Recommended**.
+
+**No PROD mutation will occur until Maurice selects Plan A / B / C / D.**
 
 ### P3 — `source_doc_id` / `confidence` backfill (MEDIUM)
 

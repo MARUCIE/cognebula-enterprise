@@ -683,15 +683,15 @@ def test_c1_canonical_min50():
 
 <div class="checklist-progress">
   <div class="stat">
-    <div class="num">9 / 17</div>
-    <div class="lbl">总原子项 DONE（11 原计划 + 6 执行中发现）</div>
+    <div class="num">9 / 19</div>
+    <div class="lbl">总原子项 DONE（11 原计划 + 8 执行中发现）</div>
   </div>
   <div class="stat">
     <div class="num">4</div>
     <div class="lbl">PARTIAL</div>
   </div>
   <div class="stat">
-    <div class="num">3</div>
+    <div class="num">5</div>
     <div class="lbl">HELD / HITL</div>
   </div>
   <div class="stat">
@@ -827,7 +827,7 @@ def test_c1_canonical_min50():
       <td class="col-id">FU5</td>
       <td class="col-status"><span class="status-badge status-partial">⏳ PARTIAL</span></td>
       <td>Phase-2 PDF 抽取：把 9+ canonical 类型推过 min-rows 阈值（C1+ ratio → 0.5 PASS）</td>
-      <td class="col-evidence"><strong>Primer 完成（本会话）：ComplianceRule 0 → 162（超过 100 阈值）</strong><br>seed: src/seed/seed_compliance_rule_extracted.py · 163 records 抽取自 doctax_extracted.json (node_type=ComplianceRule 过滤)<br>Live shape drift 探针发现：live 仅 {id, name, category}（canonical declares description/severity/sourceClauseId/status — 全部被 prod 拒绝）；wrapper drop_keys 桥接<br>C1+ 影响：ratio 0.273 → 0.303 · ComplianceRule 移出 tier_empty<br>剩余 8 类候选：DeductionRule / TaxItem / SocialInsuranceRule / InvoiceRule / PolicyChange / IndustryBenchmark / JournalEntryTemplate / TaxAccountingGap</td>
+      <td class="col-evidence"><strong>Primer (Phase-2a) — ComplianceRule 0 → 162（超过 100 阈值）</strong><br>seed: src/seed/seed_compliance_rule_extracted.py · 163 records 抽取自 doctax_extracted.json (node_type=ComplianceRule 过滤)<br>Live shape drift 探针发现：live 仅 {id, name, category}（canonical declares description/severity/sourceClauseId/status — 全部被 prod 拒绝）；wrapper drop_keys 桥接<br><br><strong>Phase-2c (本会话续) — 3 tier_empty + 1 tier_tiny 推进 (+273 行)</strong><br>SocialInsuranceRule 0 → 138（tier_small 入位）；JSON: data/seed_social_insurance.json · 138 records · 7 险种 × 多地区<br>InvoiceRule 0 → 40（tier_tiny 入位）；JSON: data/seed_invoice_rules.json · 40 records<br>IndustryBenchmark 0 → 45（tier_tiny 入位）；JSON: data/seed_industry_benchmarks.json · 45 records · 行业指标基准<br>TaxAccountingGap 30 → 80（tier_tiny 加深）；JSON: data/seed_tax_accounting_gap.json · 50 records (TAG-* IDs disjoint from Q1 batch tag_NN)<br>seed: src/seed/seed_reference_data_split.py · 4 adapter 函数；wrapper SEEDS extended (+4 entries)<br>Live shape probe (CREATE-and-error)：SIR={id,name,description,regionId}；INV={id,name,description,invoiceType}；IND={id,metric,industryId} (无 name/description)；TAG={id,name,description,gapKind,direction}<br>影响：tier_empty 5 → 2 (剩 PolicyChange + TaxItem，无可信源数据)；stub_suspect_count 17 → 13<br><strong>C1+ ratio 维持 0.303（未升）：因为 4 个新增类型语义自带上界，无法跨过 min_rows_default=1000 阈值。FU7 跟踪。</strong></td>
     </tr>
 
     <tr>
@@ -835,6 +835,20 @@ def test_c1_canonical_min50():
       <td class="col-status"><span class="status-badge status-partial">⏳ PARTIAL</span></td>
       <td>Schema-shape 审计：diff <code>ontology_v4.2.cypher</code> CREATE 块字段列表 vs 生产实际字段；surface 在 <code>/api/v1/ontology-audit</code></td>
       <td class="col-evidence">实现完成（本会话）：3 函数 <code>parse_canonical_columns / list_live_columns / compute_schema_shape_drift</code> + audit() 集成 + gate test <code>test_schema_shape_drift_below_tolerance</code><br>本地单测通过：合成 live 还原 AccountingSubject 漂移（declared_only=[balanceSide,code,parentId,description], live_only=[balanceDirection,fullText]）<br>剩余：prod redeploy（HITL 待 Maurice 触发；audit 端点纯增量字段，低风险）</td>
+    </tr>
+
+    <tr>
+      <td class="col-id">FU7</td>
+      <td class="col-status"><span class="status-badge status-hitl">⚠ HITL</span></td>
+      <td>诚实校准 <code>MIN_ROWS_PER_TYPE</code>：按语义基数为 bounded 类型设阈值（替代默认 1000）</td>
+      <td class="col-evidence"><strong>问题（本会话发现）</strong>：FU5 Phase-2c 灌入 273 真实行后 C1+ ratio 维持 0.303 — 因为 4 个 bounded-cardinality 类型（IndustryBenchmark 45 / InvoiceRule 40 / TaxAccountingGap 80 / SocialInsuranceRule 138）都低于 default=1000 阈值<br>语义基数实证：中国「标准计税依据」语义上界 ~20；「行业基准」按主要 SME 行业 × 3-5 指标 ~50；CN「企业会计准则」42 条已封闭<br>正确做法：每类型 threshold = 70% × 自然语义最大值（不是机械填 980 行假数据)<br>建议表（草案）：DeductionRule 20 · TaxBasis 15 · TaxMilestoneEvent 15 · TaxType 15 · JournalEntryTemplate 15 · AccountingStandard 30 · TaxAccountingGap 25 · TaxEntity 10 · FinancialIndicator 20 · FilingForm 10 · SocialInsuranceRule 50 · InvoiceRule 30 · IndustryBenchmark 30 · TaxItem 30 · PolicyChange 50<br>HITL 触发：Maurice 审核校准表是否反映真实业务期望；批准后 src/audit/ontology_conformance.py:423 修订 MIN_ROWS_PER_TYPE</td>
+    </tr>
+
+    <tr>
+      <td class="col-id">FU8</td>
+      <td class="col-status"><span class="status-badge status-todo">☐ TODO</span></td>
+      <td>tier_empty 残余 2 类（PolicyChange / TaxItem）数据源识别</td>
+      <td class="col-evidence"><strong>状态</strong>：data/seed_*.json 不含；data/extracted/doctax_extracted.json 已被 ComplianceRule 消费但无 PolicyChange / TaxItem 节点类型<br>候选源：<br>• PolicyChange — 国家税务总局 2024-2026 公告 RSS（IssuingBody 已 398 条可关联）<br>• TaxItem — 增值税征税范围、消费税 15 大类应税消费品（约 200-400 条）<br>预期工作量：2-4 小时人工 curated（不可 LLM 合成 — 政策内容需逐字精确）</td>
     </tr>
   </tbody>
 </table>

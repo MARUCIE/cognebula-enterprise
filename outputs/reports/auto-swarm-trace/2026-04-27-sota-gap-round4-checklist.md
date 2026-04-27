@@ -288,4 +288,123 @@ callout exists to prevent. RULED OUT.
 
 ---
 
+## Appendix C — 2026-04-27 evening turn: ref-seed split apply + FU7/FU8
+
+User directive: "对比路线图清单，检查和完成剩下的任务"
+
+### What landed (cumulative this turn)
+
+| Action | Volume | Type | Reversible |
+|---|---|---|---|
+| Apply SocialInsuranceRule (`data/seed_social_insurance.json`) | +138 | Data | YES (`MATCH (n:SocialInsuranceRule) WHERE n.id STARTS WITH 'SIR-' DELETE n`) |
+| Apply InvoiceRule (`data/seed_invoice_rules.json`) | +40 | Data | YES |
+| Apply IndustryBenchmark (`data/seed_industry_benchmarks.json`) | +45 | Data | YES |
+| Apply TaxAccountingGap additive (`data/seed_tax_accounting_gap.json`, IDs `TAG-*` disjoint) | +50 | Data | YES |
+| New module `src/seed/seed_reference_data_split.py` (4 adapter functions) | +130 LOC | Code | n/a |
+| Wrapper `apply_round4_seeds_via_api.py` extended (+4 SEEDS entries) | +50 LOC | Code | n/a |
+| §5.5 progress widget refresh (counts 9/17→9/19, 3→5) | 4 chars | Cell-content | n/a |
+| §5.5 FU5 evidence cell update (Phase-2c sub-section) | ~12 lines | Cell-content | n/a |
+| §5.5 add FU7 (HITL: honest threshold calibration) | 1 row | Row-instantiation | n/a |
+| §5.5 add FU8 (TODO: PolicyChange + TaxItem source) | 1 row | Row-instantiation | n/a |
+
+PROD delta: **+273 net new canonical rows** (0 errors across 4 batches).
+
+### Mini-swarm 3-advisor consensus (Round 1, single-pass)
+
+Per protocol §16, structural additions to swarm-approved scaffold (FU7 + FU8
+new rows) need ≥2/3 consensus before landing. Cell-content refresh of 9/17→9/19
+and FU5 evidence packing fall under the trivial-fix exception established in
+Appendix A. Below is the 3-advisor pass on the structural additions.
+
+#### Hara (system minimalism / does this need to exist?)
+
+> APPROVE.
+>
+> FU7 names a real failure of the existing system: a metric that does not
+> move when correct work happens is itself broken. Surfacing this as an
+> explicit follow-up — rather than silently lowering thresholds or padding
+> rows — preserves the integrity of the C1+ axis. The row also gives Maurice
+> a one-paragraph diff to react to, not a 10-page proposal.
+>
+> FU8 is the inverse: it admits that 2/31 canonical types have no defensible
+> source data today, and bounds the work (2-4 hours human curation, no LLM
+> synthesis). This is honest scoping. If anything, it could be tighter — the
+> current evidence cell lists candidate sources without committing to one.
+> Acceptable as TODO, not yet ready for in-progress.
+
+#### Hickey (complecting / values vs places)
+
+> APPROVE with one observation.
+>
+> The FU7 row correctly separates the THRESHOLD VALUE (data) from the
+> THRESHOLD POLICY (calibration intent). Today both are entangled in
+> `MIN_ROWS_PER_TYPE: dict[str, int]` at line 423 — a single dict that mixes
+> "natural domain bound" (TaxBasis 15) with "ingest target" (INTERPRETS 300K).
+> Eventually these should be two separate constants. Not in scope for THIS
+> turn (Maurice has to approve calibration first), but the eventual fix is
+> in the value layer, not the audit logic.
+>
+> FU8: fine. Naming the absence of source data is a value (truth). Inventing
+> data would be a place (a row in PROD) that doesn't correspond to anything
+> in the world.
+
+#### Munger (inversion / what could go wrong?)
+
+> APPROVE with one explicit warning logged.
+>
+> Inversion: what if FU7 stays "HITL" indefinitely because Maurice never
+> reviews it? Risk: the threshold question becomes load-bearing for Round-5
+> retrospectives, and PARTIAL items pile up because C1+ won't move. Mitigation
+> already in place: §5.5 update protocol says "do not rewrite history rows"
+> — so future sessions will see FU7 still HITL and either escalate or work
+> around it. The row is self-documenting.
+>
+> Inversion on FU8: what if TaxItem / PolicyChange ARE actually addressable
+> by LLM synthesis from extracted corpus, but I'm being too cautious? Counter:
+> previous extraction of ComplianceRule used `node_type` filter, not LLM
+> synthesis. There's a path (corpus has these node types or it doesn't) that
+> doesn't require synthesis. The TODO row is correctly bounded.
+>
+> Lollapalooza warning: stacking FU7 + FU8 + W4.11 yiclaw demo + W2-3.7/9 +
+> W1.5 + FU4 = 6 HITL/TODO items. Maurice gets 6 things to react to. Verify
+> §5.5 prioritizes these in red callout (currently only W4.11 + W1.5 are in
+> callouts) — consider promoting FU7 to a callout if it remains uncalibrated
+> for 7 days.
+
+#### Consensus
+
+3/3 APPROVE for FU7 + FU8 row addition.
+Action items from review: 1 deferred (Hickey: split MIN_ROWS_PER_TYPE eventually);
+1 monitored (Munger: promote FU7 to red callout if uncalibrated >7 days).
+
+### Trivial-fix exception log (this turn)
+
+Per Appendix A protocol — cell-content refresh on swarm-approved scaffold:
+- `<div class="stat">` count refresh (4 chars in 4 places) — exempt
+- FU5 evidence cell content extension (~12 lines into existing cell) — exempt
+  (cell role = evidence column, position approved; only contents changed)
+
+Row instantiation using approved row template (col-id / col-status badge /
+col-evidence) for FU7 + FU8 — covered by mini-swarm above (3/3 APPROVE).
+
+### Honest score on the metric not moving
+
+C1+ ratio: 0.303 → 0.303 (unchanged after +273 real rows).
+
+This is the diagnostic finding. The metric is correctly designed to resist
+Goodhart row-padding (Round-3 anti-pattern). It's CURRENTLY mis-calibrated
+for bounded-cardinality types. The right next move is FU7 (calibration), not
+"add more rows to types that already represent the entire domain."
+
+### Concrete next-session candidates (event-triggered)
+
+| Trigger | Action |
+|---|---|
+| Maurice approves FU7 calibration table | `src/audit/ontology_conformance.py:423` MIN_ROWS_PER_TYPE update; expected C1+ jump 0.303 → 0.55-0.65 |
+| Maurice approves FU6 prod redeploy | scp + restart kg-api; schema_shape_drift surfaces in audit response |
+| Maurice clears W1.5 maintenance window | INTERPRETS_DEFINES split (~140K edge mutation, 30-60min) |
+| FU8 source-research session (2-4h) | Curate PolicyChange (~50) + TaxItem (~200) from authoritative SAT bulletins |
+
+---
+
 Maurice | maurice_wen@proton.me

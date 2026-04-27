@@ -1097,3 +1097,47 @@ So whichever single backend is running on port 8400 silently breaks half the fro
 - pytest test "every frontend `fetch()` path resolves on the running backend" (Sprint G candidate)
 - 灵阙 desktop frontend cross-repo audit (separate codebase, separate session)
 - MCP tool ↔ backend coverage audit (Sprint H candidate)
+
+## 2026-04-28 — Sprint G1: API contract drift probe (advisory→enforcing)
+
+Yesterday's SOP 3.2 audit was a hand-written `.md` deliverable. Today's slice flips the bootstrap-evolution capability `audit_api_contract` from LACKING → PRESENT by writing a code-enforced probe + nightly pytest gate. MVS-pattern: 30-90 min vertical slice + regression gate + explicit deferred half.
+
+### Sprint G1 — `scripts/audit_api_contract.py` + `tests/test_api_contract_drift.py` (commit pending)
+
+Anchors:
+- Script: 130 LOC actual (budget said ~150). Parses `kg-api-server.py` + `src/api/kg_api.py` decorators (`@app.<verb>("/...")`) and the 4 frontend HTML files (`/api(?:/v\d+)?/...` literals, base-URL `/api/v[0-9]+` filtered as false positive).
+- Test: 90 LOC actual (budget said ~50; bigger because 4 distinct tripwire gates beat 1 big assertion):
+  - `test_no_new_frontend_orphans` — orphans ⊆ `{/api/v1/ka/}`
+  - `test_known_orphans_still_orphans` — forces fixture cleanup if orphan gets fixed
+  - `test_dual_backend_drift_signal_present` — tripwire if `dual_backend_drift_ratio` crosses 0.25 (i.e. backends start converging)
+  - `test_backends_both_present` — premise check
+- Wired into `NIGHTLY_FILES` (NOT fast/standard — same HITL-forcing-function discipline as `test_schema_completeness.py`).
+- Nightly count: 5,860 → 5,864 (+4 not +1 — plan thinko; 4 distinct test methods). Wall-clock 53.30s → 54.38s (+1.08s).
+- 11 pre-existing failures in `test_schema_completeness.py` (HITL-pending Plan A/B/C/D) unchanged — no regression introduced.
+
+### Probe corrections vs hand-audit (the ROI of advisory→enforcing)
+
+The probe found 2 places where yesterday's hand audit miscounted:
+
+1. **`route_overlap_count`**: hand audit said "ZERO", probe says **3** (`/`, `/api/v1/ingest`, `/api/v1/quality`). Hand-counting error. Probe is now master truth; updated `2026-04-27-sop-3.2-audit.md` Finding 1 to reflect the correction.
+2. **`frontend_orphans`**: hand audit Finding 3 implied 3 orphans, but inspect/clause endpoints from Finding 3 are NOT strict orphans — they ARE declared by backend B. Strict orphan = path declared by neither backend. Only `/api/v1/ka/` qualifies. Set locked as `{/api/v1/ka/}`.
+
+P0 signal still holds: `dual_backend_drift_ratio = 0.12` (well below 0.25 threshold) means ~88% of routes are disjoint between A and B. Maurice HITL decision (merge / split-formalize / deprecate-one) still pending.
+
+### Capability ledger flip
+
+| Capability | Before | After |
+|---|---|---|
+| `audit_api_contract` | LACKING | **PRESENT** (`scripts/audit_api_contract.py`) |
+| `frontend_orphan_gate_in_ci` | LACKING | **PRESENT** (`tests/test_api_contract_drift.py`, nightly) |
+| `runtime_capability_endpoint` | LACKING | LACKING (Sprint G3 — `OPTIONS /.well-known/capabilities`) |
+| `live_running_backend_probe` | LACKING | LACKING (Sprint G3 — runtime fetch test) |
+| `cross_repo_audit_lingque_desktop` | LACKING | LACKING (separate session) |
+| `mcp_vs_backend_coverage` | LACKING | LACKING (Sprint H) |
+
+### Out of scope (Sprint G1 deferred half, logged not asked)
+- Sprint G2: full audit replication including Dockerfile/systemd/nginx parsing (parse `Dockerfile`, `configs/kg-api.service`, `deploy/contabo/nginx-cognebula.conf` — currently the probe only parses Python decorators)
+- Sprint G3: `OPTIONS /api/v1/.well-known/capabilities` endpoint + runtime "is the backend currently serving this path" pytest gate (would catch a backend that compiles but is misconfigured at deploy time)
+- Sprint H: MCP tool ↔ backend coverage probe (`cognebula_mcp.py` 7 tools → which backend routes do they actually hit)
+- Backend merge / split-formalization / deprecation decision (Maurice HITL — unchanged)
+- 灵阙 desktop frontend cross-repo audit (separate codebase, separate session)

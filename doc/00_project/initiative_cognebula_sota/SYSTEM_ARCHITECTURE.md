@@ -2,7 +2,9 @@
 
 > Version: 0.3 (Updated) | Last updated: 2026-04-23
 >
-> **2026-04-27 audit pointer**: SOP 3.2 front-back consistency audit found a P0 dual-backend drift (`kg-api-server.py` vs `src/api/kg_api.py` both targeting port 8400 with disjoint route sets). Findings logged at `outputs/reports/consistency-audit/2026-04-27-sop-3.2-audit.md`. Fix is HITL-pending (3 options: merge / formalize-split / deprecate-one). Do not rely on this doc's backend description until that audit is closed.
+> **2026-04-27 audit pointer**: SOP 3.2 front-back consistency audit found a P0 dual-backend drift (`kg-api-server.py` vs `src/api/kg_api.py` both targeting port 8400 with mostly disjoint route sets). Findings logged at `outputs/reports/consistency-audit/2026-04-27-sop-3.2-audit.md`. Fix is HITL-pending (3 options: merge / formalize-split / deprecate-one). Do not rely on this doc's backend description until that audit is closed.
+>
+> **2026-04-28 update**: Sprint G1 turned the hand audit into a reproducible probe — `scripts/audit_api_contract.py` parses both backends + all frontend HTML, emits JSON drift report, and `tests/test_api_contract_drift.py` (4 tests) is wired into the nightly tier (5,860 → 5,864). Probe corrected the original "ZERO route overlap" claim to **3 overlap** (`/`, `/api/v1/ingest`, `/api/v1/quality`); P0 dual-backend signal still holds (`dual_backend_drift_ratio = 0.12`, well below 0.25 threshold). Frontend orphan set locked at `{/api/v1/ka/}` — any new orphan triggers a nightly fail.
 
 <!-- AI-TOOLS:PROJECT_DIR:BEGIN -->
 PROJECT_DIR: /Users/mauricewen/Projects/27-cognebula-enterprise

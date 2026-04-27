@@ -1,0 +1,106 @@
+{
+  "audit_date": "2026-04-28",
+  "audit_source": "scripts/audit_api_contract.py",
+  "summary": {
+    "backend_a_route_count": 23,
+    "backend_b_route_count": 25,
+    "backend_total_distinct": 45,
+    "frontend_distinct_path_count": 9,
+    "frontend_orphan_count": 1,
+    "route_overlap_count": 3,
+    "dual_backend_drift_ratio": 0.12,
+    "dual_backend_split_signal": true
+  },
+  "frontend_orphans": [
+    "/api/v1/ka/"
+  ],
+  "dual_backend_split": {
+    "a_only_routes": [
+      "/api/v1/admin/alter-table",
+      "/api/v1/admin/enrich-edges",
+      "/api/v1/admin/execute-ddl",
+      "/api/v1/admin/fix-titles",
+      "/api/v1/admin/migrate-table",
+      "/api/v1/admin/reset-table",
+      "/api/v1/chat",
+      "/api/v1/constellation",
+      "/api/v1/constellation/type",
+      "/api/v1/debug/paths",
+      "/api/v1/graph",
+      "/api/v1/health",
+      "/api/v1/hybrid-search",
+      "/api/v1/nodes",
+      "/api/v1/ontology-audit",
+      "/api/v1/reasoning-chain",
+      "/api/v1/search",
+      "/api/v1/stats",
+      "/kg_explorer.html",
+      "/kg_explorer_v2.html"
+    ],
+    "b_only_routes": [
+      "/api/neighbors/{node_id}",
+      "/api/node/{node_id}",
+      "/api/query",
+      "/api/sample",
+      "/api/search",
+      "/api/stats",
+      "/api/tables",
+      "/api/v1/argument-coverage",
+      "/api/v1/coverage/all",
+      "/api/v1/graph-rag/plan",
+      "/api/v1/inspect/clause",
+      "/api/v1/inspect/clause/batch",
+      "/api/v1/jurisdiction-coverage",
+      "/api/v1/provenance-coverage",
+      "/api/v1/registry/argument-roles",
+      "/api/v1/registry/check-jurisdiction-consistency",
+      "/api/v1/registry/resolve-override-chain",
+      "/api/v1/registry/resolve-override-chain/multiparent",
+      "/api/v1/registry/special-zones",
+      "/health",
+      "/inspect",
+      "/inspect.html"
+    ],
+    "overlap_routes": [
+      "/",
+      "/api/v1/ingest",
+      "/api/v1/quality"
+    ]
+  },
+  "frontend_attribution": {
+    "inspect.html": {
+      "/api/v1/inspect/clause": [
+        "B_src_api_kg_api"
+      ],
+      "/api/v1/inspect/clause/batch": [
+        "B_src_api_kg_api"
+      ]
+    },
+    "kg_explorer.html": {
+      "/api/v1/chat": [
+        "A_kg-api-server"
+      ],
+      "/api/v1/graph": [
+        "A_kg-api-server"
+      ],
+      "/api/v1/health": [
+        "A_kg-api-server"
+      ],
+      "/api/v1/nodes": [
+        "A_kg-api-server"
+      ],
+      "/api/v1/search": [
+        "A_kg-api-server"
+      ],
+      "/api/v1/stats": [
+        "A_kg-api-server"
+      ]
+    },
+    "kg_explorer_v2.html": {},
+    "unified.html": {
+      "/api/v1/ka/": [
+        "NONE"
+      ]
+    }
+  }
+}

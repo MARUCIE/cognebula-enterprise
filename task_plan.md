@@ -154,6 +154,25 @@ SOP 3.2 auto-routed via SOP-RECOMMEND hook [2]. Scope tightened to MVS-pattern: 
 - [x] S9.1.f Trivial drift fixes inline — NONE applied (all drift is structural or doc-only requiring SYSTEM_ARCHITECTURE rewrite, both out of MVS slice budget)
 - [x] S9.1.g SYSTEM_ARCHITECTURE.md + notes.md updated with **pointer only** (one paragraph each, NOT rewrite — full sync deferred to S9.2 after Maurice picks merge/split/deprecate option)
 - [x] S9.1.h Commit landed: `0bd8675` (`sop-3.2: front-back consistency audit baseline (read-only)`)
+
+
+## §10. Atomic Execution Queue — Sprint G1: API contract drift probe (2026-04-28, advisory→enforcing)
+
+### Phase milestone
+Yesterday's SOP 3.2 audit was `advisory-only` (hand-written .md report). Today's Sprint G1 turns it into `enforcing` by writing `scripts/audit_api_contract.py` + `tests/test_api_contract_drift.py`. Capability flip `audit_api_contract LACKING → PRESENT`. Bounded: parse-only, no fixes, no runtime calls, no production touch.
+
+### Slice S10.1 — audit_api_contract.py + pytest gate (target: 60-90 min) — DONE
+- [x] S10.1.a Read recent backend files just enough to lock decorator regex (`@app\.<verb>\("..."\)`) and avoid false positives from comments/strings
+- [x] S10.1.b Read 4 frontend HTML files just enough to lock fetch-path regex (`/api(?:/v\d+)?/[a-zA-Z0-9_/{}.\-]+`) — broadened to absorb 4 distinct call styles (literal arg / template-string concat / `API_BASE` prefix / `<iframe src>`); base-URL filter `^/api(?:/v\d+)?/?$` strips `API_BASE`-only constants
+- [x] S10.1.c Build `scripts/audit_api_contract.py` (130 LOC actual; budget said ~150): parses 2 backends + 4 frontends, emits JSON drift report to `outputs/reports/consistency-audit/<date>-api-contract-drift.json` with axes `{frontend_orphans, dual_backend_split (a_only/b_only/overlap), frontend_attribution, dual_backend_drift_ratio}`. Exits 1 on any non-`/api/v1/ka/` orphan
+- [x] S10.1.d Run probe — actual reproduction (corrects yesterday's hand-audit on 2 axes):
+  - `frontend_orphans` = 1 (only `/api/v1/ka/`); yesterday's audit Finding 3 `inspect/clause*` paths are NOT strict orphans (backend B declares them) — yesterday's `frontend_orphans = 3` was a categorization miscount
+  - `route_overlap_count` = **3** (`/`, `/api/v1/ingest`, `/api/v1/quality`); yesterday's audit said "ZERO" — that was a hand-counting error. The probe corrects the master truth. P0 dual-backend signal still holds (`dual_backend_drift_ratio = 0.12 < 0.25 threshold`)
+- [x] S10.1.e Build `tests/test_api_contract_drift.py` (90 LOC actual; budget said ~50; bigger because 4 tripwires beat 1): 4 distinct gates — `test_no_new_frontend_orphans` (asserts orphans ⊆ {`/api/v1/ka/`}); `test_known_orphans_still_orphans` (forces fixture cleanup if `/api/v1/ka/` gets fixed); `test_dual_backend_drift_signal_present` (tripwire if backends start converging); `test_backends_both_present` (premise check)
+- [x] S10.1.f Wire into nightly tier via `scripts/run_data_quality_tests.sh` NIGHTLY_FILES (NOT fast/standard — same HITL-forcing-function discipline as `test_schema_completeness.py`)
+- [x] S10.1.g Nightly count: 5,860 → **5,864 (+4 not +1)**; plan estimate `+1 test` was a thinko (4 distinct test methods in the module). Wall-clock 53.30s → 54.38s (+1.08s). Honest comparison logged
+- [x] S10.1.h Commit pending: `sop-3.2: API contract drift probe — advisory→enforcing` (next action)
+- ⏭ **deferred half** (logged): full audit replication (Dockerfile/systemd/nginx parsing — Sprint G2); `OPTIONS /.well-known/capabilities` endpoint (Sprint G3); cross-repo audit including 灵阙 desktop frontend (separate session); MCP-vs-backend coverage probe (Sprint H)
 - ⏭ **deferred half** (logged): backend-merge / split-formalization / deprecation decision (Maurice HITL); `scripts/audit_api_contract.py` reproducible probe (Sprint G); `OPTIONS /api/v1/.well-known/capabilities` endpoint + pytest `every frontend fetch path resolves on running backend` (Sprint G); 灵阙 desktop frontend cross-repo audit (separate codebase); MCP tool ↔ backend coverage audit (Sprint H)
 
 ### Out of scope (Sprint F deferred, logged not asked)

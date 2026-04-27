@@ -76,6 +76,56 @@ CRITICAL_COLUMNS: tuple[str, ...] = (
     "jurisdiction_scope",
 )
 
+# Closes the 2026-04-27 Round-1 Munger inversion + Round-2 follow-up:
+# placeholder strings ('unknown' / 'TBD' / 'default' / 'N/A' / '') in lineage
+# fields are NULL-equivalents pretending to be real attributions. They flip
+# null_rate green without real lineage. The banlist enforces semantic-NULL
+# detection alongside structural-NULL detection.
+#
+# Match is case-insensitive + whitespace-stripped, so 'Unknown', '  ', and
+# ' default ' all hit. Empty string '' also hits — it's the canonical
+# Cypher result for a column the writer "set" to no content.
+LINEAGE_STRING_FIELDS: tuple[str, ...] = (
+    "source_doc_id",
+    "extracted_by",
+    "reviewed_by",
+    "jurisdiction_code",
+    "override_chain_id",
+)
+PLACEHOLDER_BANLIST: frozenset[str] = frozenset({
+    "unknown", "tbd", "todo", "default", "n/a", "na",
+    "none", "null", "nil", "tba", "fixme", "?", "-", "",
+})
+
+
+def _is_placeholder(value: object) -> bool:
+    """Return True if value is a NULL-equivalent placeholder string.
+
+    Case-insensitive + whitespace-stripped. Numeric / None / non-string
+    inputs return False (banlist applies only to *strings*; True NULL is
+    counted by null_rate, not by placeholder gate).
+    """
+    if not isinstance(value, str):
+        return False
+    return value.strip().lower() in PLACEHOLDER_BANLIST
+
+
+def _count_placeholder_strings(rows: list[dict]) -> tuple[int, dict[str, int]]:
+    """Count per-field placeholder hits across tracked lineage string columns.
+
+    Returns (total_count, per_field_counts) where per_field_counts maps each
+    LINEAGE_STRING_FIELDS entry to its hit count in this sample. The total
+    is the sum of all fields' hits — a row with placeholder values in 3
+    fields contributes 3 hits, mirroring how `integrity_violations` and
+    `jurisdiction_mismatches` count.
+    """
+    per_field: dict[str, int] = {col: 0 for col in LINEAGE_STRING_FIELDS}
+    for r in rows:
+        for col in LINEAGE_STRING_FIELDS:
+            if _is_placeholder(r.get(col)):
+                per_field[col] += 1
+    return sum(per_field.values()), per_field
+
 
 def _parse_date(value: Any) -> date | None:
     if value is None or value == "":
@@ -224,6 +274,7 @@ def survey_type(
         if sampled
         else []
     )
+    placeholder_string_count, placeholder_per_field = _count_placeholder_strings(rows)
 
     defects_total = (
         duplicate_id_count
@@ -234,6 +285,7 @@ def survey_type(
         + invalid_chain_count
         + inconsistent_scope_count
         + null_coverage_violation_count
+        + placeholder_string_count
     )
     defect_rate = round(defects_total / sampled, 4) if sampled else 0.0
     return {
@@ -250,6 +302,8 @@ def survey_type(
         "null_coverage_violation_count": null_coverage_violation_count,
         "null_coverage_violations": null_coverage_violations,
         "null_coverage_threshold": null_coverage_threshold,
+        "placeholder_string_count": placeholder_string_count,
+        "placeholder_per_field": placeholder_per_field,
         "defects_total": defects_total,
         "defect_rate": defect_rate,
     }

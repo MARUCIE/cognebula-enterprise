@@ -490,6 +490,147 @@ class TestCompoundDefects:
 
 
 # -------------------------------------------------------------------------
+# Placeholder banlist (10th defect dimension) — Goodhart guard
+# -------------------------------------------------------------------------
+#
+# Closes Round-1 Munger inversion: lineage strings like 'unknown' / 'TBD' /
+# 'default' / '' must NOT pass as legitimate attribution. Banlist match is
+# case-insensitive and whitespace-stripped (closes Round-2 Munger
+# same-name-variant bypass: 'Unknown', '  ', ' default ').
+#
+# Banlist applies ONLY to LINEAGE_STRING_FIELDS — true NULL is counted by
+# null_rate, not double-counted here. Non-string types pass through.
+
+
+class TestPlaceholderStrings:
+    # Canonical clean lineage — mirrors the shape used in
+    # TestSurveyTypeBasics.test_clean_sample_has_zero_defects so the row
+    # produces ZERO defects across ALL nine prior dimensions. Any new
+    # dimension test on top of this fixture must remain isolated to its
+    # own metric, so defects_total integration tests are clean.
+    _CLEAN_LINEAGE: dict = {
+        "effective_from": "2024-01-01",
+        "confidence": 0.9,
+        "source_doc_id": "doc_123",
+        "extracted_by": "extractor_v2",
+        "reviewed_at": "2024-01-02",  # paired with reviewed_by — no XOR violation
+        "reviewed_by": "maurice",
+        "jurisdiction_code": "CN",
+        "jurisdiction_scope": "national",
+        # override_chain_id intentionally omitted — NULL is permitted and
+        # avoids invalid_chain whitelist mismatch noise in defects_total.
+    }
+
+    def _row(self, **overrides) -> dict:
+        return {"id": "n1", **self._CLEAN_LINEAGE, **overrides}
+
+    def test_no_placeholder_clean(self):
+        # 5 rows fully populated with legitimate strings → 0 hits.
+        rows = [self._row(id=f"n{i}") for i in range(5)]
+        r = survey_type(rows, today=date(2024, 6, 1))
+        assert r["placeholder_string_count"] == 0
+        assert all(v == 0 for v in r["placeholder_per_field"].values())
+
+    def test_unknown_lowercase_flagged(self):
+        rows = [self._row(source_doc_id="unknown")]
+        r = survey_type(rows, today=date(2024, 6, 1))
+        assert r["placeholder_string_count"] == 1
+        assert r["placeholder_per_field"]["source_doc_id"] == 1
+
+    def test_unknown_uppercase_flagged_case_insensitive(self):
+        # Both 'Unknown' and 'UNKNOWN' must trigger — same-name-variant bypass closure.
+        rows = [
+            self._row(id="n1", source_doc_id="Unknown"),
+            self._row(id="n2", source_doc_id="UNKNOWN"),
+            self._row(id="n3", source_doc_id="UnKnOwN"),
+        ]
+        r = survey_type(rows, today=date(2024, 6, 1))
+        assert r["placeholder_string_count"] == 3
+        assert r["placeholder_per_field"]["source_doc_id"] == 3
+
+    def test_whitespace_stripped_flagged(self):
+        # ' default ', '  ', '\tTBD\n' — strip then lowercase before banlist match.
+        rows = [
+            self._row(id="n1", extracted_by=" default "),
+            self._row(id="n2", reviewed_by="  "),
+            self._row(id="n3", override_chain_id="\tTBD\n"),
+        ]
+        r = survey_type(rows, today=date(2024, 6, 1))
+        assert r["placeholder_string_count"] == 3
+        assert r["placeholder_per_field"]["extracted_by"] == 1
+        assert r["placeholder_per_field"]["reviewed_by"] == 1
+        assert r["placeholder_per_field"]["override_chain_id"] == 1
+
+    def test_empty_string_in_lineage_field_flagged(self):
+        # '' is in the banlist — note this OVERLAPS with null_rate (which also
+        # treats '' as NULL). Both metrics fire independently; that's intended:
+        # null_rate signals absence, banlist signals "absence with intent to
+        # appear present". Here we assert banlist sees it.
+        rows = [self._row(jurisdiction_code="")]
+        r = survey_type(rows, today=date(2024, 6, 1))
+        assert r["placeholder_string_count"] == 1
+        assert r["placeholder_per_field"]["jurisdiction_code"] == 1
+
+    def test_normal_string_not_flagged(self):
+        # Legitimate IDs like 'doc_123' / 'extractor_v2' / 'CN' must pass.
+        rows = [
+            self._row(id="n1", source_doc_id="doc_unknown_subset_2024"),  # contains 'unknown' substring but not equal
+            self._row(id="n2", extracted_by="default_extractor_v3"),  # contains 'default' substring but not equal
+        ]
+        r = survey_type(rows, today=date(2024, 6, 1))
+        # Banlist matches whole-token after strip+lower, NOT substring.
+        assert r["placeholder_string_count"] == 0
+
+    def test_multiple_fields_count_independently(self):
+        # One row with placeholder in 3 different lineage fields → 3 hits.
+        rows = [
+            self._row(
+                source_doc_id="unknown",
+                extracted_by="TBD",
+                jurisdiction_code="N/A",
+            ),
+        ]
+        r = survey_type(rows, today=date(2024, 6, 1))
+        assert r["placeholder_string_count"] == 3
+        assert r["placeholder_per_field"]["source_doc_id"] == 1
+        assert r["placeholder_per_field"]["extracted_by"] == 1
+        assert r["placeholder_per_field"]["jurisdiction_code"] == 1
+
+    def test_non_string_value_not_flagged(self):
+        # None / 42 / [] are not strings → banlist skips. None IS counted by
+        # null_rate, but that's a separate dimension (sums independently).
+        rows = [
+            self._row(id="n1", source_doc_id=None),
+            self._row(id="n2", extracted_by=42),
+            self._row(id="n3", reviewed_by=[]),
+        ]
+        r = survey_type(rows, today=date(2024, 6, 1))
+        # Banlist sees zero — only strings are evaluated.
+        assert r["placeholder_string_count"] == 0
+
+    def test_defects_total_includes_placeholder_count(self):
+        # Integration: a placeholder-only row must contribute to defects_total
+        # via the new dimension, even when other dimensions are clean.
+        rows = [
+            self._row(id=f"n{i}", source_doc_id="unknown")
+            for i in range(4)
+        ]
+        # Disable null-coverage threshold (CRITICAL_COLUMNS are populated except
+        # source_doc_id which is a banned string, NOT NULL).
+        r = survey_type(
+            rows,
+            today=date(2024, 6, 1),
+            null_coverage_threshold=1.01,
+        )
+        assert r["placeholder_string_count"] == 4
+        # Other dimensions clean → defects_total == placeholder_string_count.
+        assert r["duplicate_id_count"] == 0
+        assert r["null_coverage_violation_count"] == 0
+        assert r["defects_total"] == 4
+        assert r["defect_rate"] == 1.0
+
+
+# -------------------------------------------------------------------------
 # survey — orchestration over a stub connection
 # -------------------------------------------------------------------------
 

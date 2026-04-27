@@ -105,7 +105,18 @@ Global `defect_rate=0.0697 PASS` is correct given the target 0.10, but it **aver
 | 10 | AccountingStandard | 43 | 5 | 0.116 | All 5 critical cols ≥50% NULL |
 | 11 | IndustryBenchmark | 45 | 5 | 0.111 | All 5 critical cols ≥50% NULL |
 
-Same pattern for all 11: every critical lineage column is missing across the entire sample. This is structural, not anecdotal — the seed pipelines that populated these types (Q1 batch + reference seed split + GBT4754 BusinessActivity etc.) never carried lineage envelope data, only domain fields. **Positive exception**: `KnowledgeUnit` + `LegalClause` (legal backbone) have `source_doc_id` populated — only 4 NULL violations rather than 5 — indicating attribution work began on backbone types. The other 4 columns (`effective_from`, `confidence`, `jurisdiction_code`, `jurisdiction_scope`) remain 100% NULL across all 31 canonical types.
+Same pattern for all 11: every critical lineage column is missing across the entire sample. This is structural, not anecdotal — the seed pipelines that populated these types (Q1 batch + reference seed split + GBT4754 BusinessActivity etc.) never carried lineage envelope data, only domain fields.
+
+**Positive exceptions** (corrected on 2026-04-27 by corpus regression test discovery — original PDCA simplified the picture):
+
+| Type | source_doc_id NULL | confidence NULL | Notes |
+|------|---------------------|------------------|-------|
+| KnowledgeUnit | 0% (full attribution) | 100% NULL | legal backbone with source_doc_id only |
+| LegalClause | 0% (full attribution) | 100% NULL | legal backbone with source_doc_id only |
+| FilingFormField | 57% NULL (43% attributed) | 57% NULL | discovered via corpus test 2026-04-27 |
+| TaxCalculationRule | 88% NULL (12% attributed) | 88% NULL | discovered via corpus test 2026-04-27 |
+
+So 4 types (not 2) carry partial attribution. `effective_from`, `jurisdiction_code`, and `jurisdiction_scope` remain 100% NULL across **all** populated types with no exception. `confidence` and `source_doc_id` are partially populated in the 4 types above. The 27 remaining populated types have all 5 critical columns at 100% NULL.
 
 ### Finding 3 — non-NULL defect categories are clean
 
@@ -129,11 +140,34 @@ Per-row data quality is OK. The defect is structural NULL coverage, not row-leve
 
 Closed in this commit set. NULL-coverage now contributes to `defects_total`, surfaces as `null_coverage_violations` array, and is covered by 8 new pytest cases. The gate is honest.
 
-### P1 — `effective_from` backfill + Goodhart guard (HIGH)
+### P0.5 — placeholder banlist gate (DONE this turn — Round-1 Munger Goodhart guard)
 
-Affects 11 FAIL-level types. Per Round-1 Munger inversion the **guard precedes the backfill**:
+10th defect dimension shipped: `placeholder_string_count` counts banned-token occurrences across `LINEAGE_STRING_FIELDS` (`source_doc_id`, `extracted_by`, `reviewed_by`, `jurisdiction_code`, `override_chain_id`). Match is case-insensitive + whitespace-stripped (closes Round-2 Munger same-name-variant bypass: `'Unknown'`, `'  '`, `' default '`). Banlist: `{'unknown', 'tbd', 'todo', 'default', 'n/a', 'na', 'none', 'null', 'nil', 'tba', 'fixme', '?', '-', ''}`.
 
-1. **Placeholder banlist** (gate-side): `source_doc_id` and similar lineage strings must NOT be in the banned set `{'unknown', 'TBD', 'todo', 'default', 'N/A', ''}`. Match must be **case-insensitive + whitespace-stripped** so variants like `'Unknown'`, `'  '`, `' default '` also trigger — closes the Round-2 Munger same-name-variant bypass. Add to existing data-quality survey as a 10th defect dimension before any P1 backfill runs — otherwise backfill could flip null_rate green via placeholder strings without real attribution.
+PROD v3 snapshot confirms 0 placeholder hits across all 31 types — banlist is in place **before** P1 backfill, fermant la fenêtre Goodhart par construction.
+
+Test coverage shipped: 9 unit tests in `TestPlaceholderStrings` + property-based, matrix, corpus, and edge tests via the 10K test plan below.
+
+### P0.6 — Massive test plan: ≥10,000 cases (DONE this turn)
+
+Five-layer test pyramid covering edge / unit / regression / property / matrix dimensions:
+
+| Layer | File | Test count | Purpose |
+|-------|------|------------|---------|
+| Unit (legacy) | `test_data_quality_survey.py` | 62 cases | Original 9 dimensions + new banlist |
+| Property-based | `test_data_quality_property.py` | 5,352 hypothesis examples (19 functions) | Invariants over random rows: monotonicity, accounting, bounds, permutation, linearity, type guards |
+| Matrix parametrize | `test_data_quality_matrix.py` | 4,227 cells | 31 canonical types × 9 dimensions × 4 thresholds × 3 sample sizes (cross-product), build-time ontology drift detector |
+| Corpus regression | `test_data_quality_corpus.py` | 835 cells | PROD v3 snapshot lock-in per (type, field) cell — surfaces narrative-vs-data divergence |
+| Edge enumeration | `test_data_quality_edge.py` | 55 cases | Threshold boundaries, Unicode/CJK/emoji, NULL semantics distinctions, dup-id edges |
+| **Total** | | **10,531 cases** | All passing in 7.0s |
+
+Discovery via corpus regression: PDCA Finding 2 understated the partial-attribution picture — `confidence` and `source_doc_id` are partially populated in **4** types (not 2). Corrected above.
+
+### P1 — `effective_from` backfill (HIGH)
+
+Affects 11 FAIL-level types. Per Round-1 Munger inversion the **guard precedes the backfill** — and that guard now exists (P0.5 above). Backfill steps:
+
+1. **Banlist already active** (gate-side, P0.5 done): `source_doc_id` and similar lineage strings must NOT be in the banlist `{'unknown', 'tbd', 'todo', 'default', 'n/a', 'na', 'none', 'null', 'nil', 'tba', 'fixme', '?', '-', ''}`, case-insensitive + whitespace-stripped. Backfill that flips a NULL into 'unknown' will re-fire as a defect via this gate.
 2. **Seed-derived rows**: backfill from JSON source `effectiveDate` field where present (SocialInsuranceRule and several others have it).
 3. **Q1 batch with no source date**: use real date `2024-01-01` AND introduce a separate enum column `effective_from_source: enum('source', 'seed_default', 'extracted')`. Use enum, not string, so the placeholder banlist doesn't false-positive on legitimate defaults.
 

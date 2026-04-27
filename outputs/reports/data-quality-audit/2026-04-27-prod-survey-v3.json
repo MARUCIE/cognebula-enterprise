@@ -1,0 +1,1154 @@
+{
+  "api_url": "https://ops.hegui.org",
+  "schema": "/Users/mauricewen/Projects/27-cognebula-enterprise/schemas/ontology_v4.2.cypher",
+  "sample_size": 100,
+  "stale_years": 10,
+  "elapsed_s": 55.22,
+  "fetch_misses": [
+    "PolicyChange",
+    "TaxItem"
+  ],
+  "per_type": {
+    "AccountingStandard": {
+      "sampled": 43,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 5,
+      "null_coverage_violations": [
+        "confidence",
+        "effective_from",
+        "jurisdiction_code",
+        "jurisdiction_scope",
+        "source_doc_id"
+      ],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 5,
+      "defect_rate": 0.1163
+    },
+    "AccountingSubject": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 5,
+      "null_coverage_violations": [
+        "confidence",
+        "effective_from",
+        "jurisdiction_code",
+        "jurisdiction_scope",
+        "source_doc_id"
+      ],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 5,
+      "defect_rate": 0.05
+    },
+    "AuditTrigger": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 5,
+      "null_coverage_violations": [
+        "confidence",
+        "effective_from",
+        "jurisdiction_code",
+        "jurisdiction_scope",
+        "source_doc_id"
+      ],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 5,
+      "defect_rate": 0.05
+    },
+    "BusinessActivity": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 5,
+      "null_coverage_violations": [
+        "confidence",
+        "effective_from",
+        "jurisdiction_code",
+        "jurisdiction_scope",
+        "source_doc_id"
+      ],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 5,
+      "defect_rate": 0.05
+    },
+    "Classification": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 5,
+      "null_coverage_violations": [
+        "confidence",
+        "effective_from",
+        "jurisdiction_code",
+        "jurisdiction_scope",
+        "source_doc_id"
+      ],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 5,
+      "defect_rate": 0.05
+    },
+    "ComplianceRule": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 5,
+      "null_coverage_violations": [
+        "confidence",
+        "effective_from",
+        "jurisdiction_code",
+        "jurisdiction_scope",
+        "source_doc_id"
+      ],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 5,
+      "defect_rate": 0.05
+    },
+    "DeductionRule": {
+      "sampled": 25,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 5,
+      "null_coverage_violations": [
+        "confidence",
+        "effective_from",
+        "jurisdiction_code",
+        "jurisdiction_scope",
+        "source_doc_id"
+      ],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 5,
+      "defect_rate": 0.2
+    },
+    "FilingForm": {
+      "sampled": 14,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 5,
+      "null_coverage_violations": [
+        "confidence",
+        "effective_from",
+        "jurisdiction_code",
+        "jurisdiction_scope",
+        "source_doc_id"
+      ],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 5,
+      "defect_rate": 0.3571
+    },
+    "FilingFormField": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 0.57,
+        "source_doc_id": 0.57,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 5,
+      "null_coverage_violations": [
+        "confidence",
+        "effective_from",
+        "jurisdiction_code",
+        "jurisdiction_scope",
+        "source_doc_id"
+      ],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 5,
+      "defect_rate": 0.05
+    },
+    "FinancialIndicator": {
+      "sampled": 32,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 5,
+      "null_coverage_violations": [
+        "confidence",
+        "effective_from",
+        "jurisdiction_code",
+        "jurisdiction_scope",
+        "source_doc_id"
+      ],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 5,
+      "defect_rate": 0.1562
+    },
+    "FinancialStatementItem": {
+      "sampled": 78,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 5,
+      "null_coverage_violations": [
+        "confidence",
+        "effective_from",
+        "jurisdiction_code",
+        "jurisdiction_scope",
+        "source_doc_id"
+      ],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 5,
+      "defect_rate": 0.0641
+    },
+    "IndustryBenchmark": {
+      "sampled": 45,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 5,
+      "null_coverage_violations": [
+        "confidence",
+        "effective_from",
+        "jurisdiction_code",
+        "jurisdiction_scope",
+        "source_doc_id"
+      ],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 5,
+      "defect_rate": 0.1111
+    },
+    "InvoiceRule": {
+      "sampled": 40,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 5,
+      "null_coverage_violations": [
+        "confidence",
+        "effective_from",
+        "jurisdiction_code",
+        "jurisdiction_scope",
+        "source_doc_id"
+      ],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 5,
+      "defect_rate": 0.125
+    },
+    "IssuingBody": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 5,
+      "null_coverage_violations": [
+        "confidence",
+        "effective_from",
+        "jurisdiction_code",
+        "jurisdiction_scope",
+        "source_doc_id"
+      ],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 5,
+      "defect_rate": 0.05
+    },
+    "JournalEntryTemplate": {
+      "sampled": 20,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 5,
+      "null_coverage_violations": [
+        "confidence",
+        "effective_from",
+        "jurisdiction_code",
+        "jurisdiction_scope",
+        "source_doc_id"
+      ],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 5,
+      "defect_rate": 0.25
+    },
+    "KnowledgeUnit": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 0.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 4,
+      "null_coverage_violations": [
+        "confidence",
+        "effective_from",
+        "jurisdiction_code",
+        "jurisdiction_scope"
+      ],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 4,
+      "defect_rate": 0.04
+    },
+    "LegalClause": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 0.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 4,
+      "null_coverage_violations": [
+        "confidence",
+        "effective_from",
+        "jurisdiction_code",
+        "jurisdiction_scope"
+      ],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 4,
+      "defect_rate": 0.04
+    },
+    "LegalDocument": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 5,
+      "null_coverage_violations": [
+        "confidence",
+        "effective_from",
+        "jurisdiction_code",
+        "jurisdiction_scope",
+        "source_doc_id"
+      ],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 5,
+      "defect_rate": 0.05
+    },
+    "Penalty": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 5,
+      "null_coverage_violations": [
+        "confidence",
+        "effective_from",
+        "jurisdiction_code",
+        "jurisdiction_scope",
+        "source_doc_id"
+      ],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 5,
+      "defect_rate": 0.05
+    },
+    "PolicyChange": {
+      "sampled": 0,
+      "null_rate": {
+        "effective_from": 0.0,
+        "confidence": 0.0,
+        "source_doc_id": 0.0,
+        "jurisdiction_code": 0.0,
+        "jurisdiction_scope": 0.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 0,
+      "null_coverage_violations": [],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "Region": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 5,
+      "null_coverage_violations": [
+        "confidence",
+        "effective_from",
+        "jurisdiction_code",
+        "jurisdiction_scope",
+        "source_doc_id"
+      ],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 5,
+      "defect_rate": 0.05
+    },
+    "SocialInsuranceRule": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 5,
+      "null_coverage_violations": [
+        "confidence",
+        "effective_from",
+        "jurisdiction_code",
+        "jurisdiction_scope",
+        "source_doc_id"
+      ],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 5,
+      "defect_rate": 0.05
+    },
+    "TaxAccountingGap": {
+      "sampled": 80,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 5,
+      "null_coverage_violations": [
+        "confidence",
+        "effective_from",
+        "jurisdiction_code",
+        "jurisdiction_scope",
+        "source_doc_id"
+      ],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 5,
+      "defect_rate": 0.0625
+    },
+    "TaxBasis": {
+      "sampled": 20,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 5,
+      "null_coverage_violations": [
+        "confidence",
+        "effective_from",
+        "jurisdiction_code",
+        "jurisdiction_scope",
+        "source_doc_id"
+      ],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 5,
+      "defect_rate": 0.25
+    },
+    "TaxCalculationRule": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 0.88,
+        "source_doc_id": 0.88,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 5,
+      "null_coverage_violations": [
+        "confidence",
+        "effective_from",
+        "jurisdiction_code",
+        "jurisdiction_scope",
+        "source_doc_id"
+      ],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 5,
+      "defect_rate": 0.05
+    },
+    "TaxEntity": {
+      "sampled": 17,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 5,
+      "null_coverage_violations": [
+        "confidence",
+        "effective_from",
+        "jurisdiction_code",
+        "jurisdiction_scope",
+        "source_doc_id"
+      ],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 5,
+      "defect_rate": 0.2941
+    },
+    "TaxIncentive": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 5,
+      "null_coverage_violations": [
+        "confidence",
+        "effective_from",
+        "jurisdiction_code",
+        "jurisdiction_scope",
+        "source_doc_id"
+      ],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 5,
+      "defect_rate": 0.05
+    },
+    "TaxItem": {
+      "sampled": 0,
+      "null_rate": {
+        "effective_from": 0.0,
+        "confidence": 0.0,
+        "source_doc_id": 0.0,
+        "jurisdiction_code": 0.0,
+        "jurisdiction_scope": 0.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 0,
+      "null_coverage_violations": [],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 0,
+      "defect_rate": 0.0
+    },
+    "TaxMilestoneEvent": {
+      "sampled": 20,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 5,
+      "null_coverage_violations": [
+        "confidence",
+        "effective_from",
+        "jurisdiction_code",
+        "jurisdiction_scope",
+        "source_doc_id"
+      ],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 5,
+      "defect_rate": 0.25
+    },
+    "TaxRate": {
+      "sampled": 100,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 5,
+      "null_coverage_violations": [
+        "confidence",
+        "effective_from",
+        "jurisdiction_code",
+        "jurisdiction_scope",
+        "source_doc_id"
+      ],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 5,
+      "defect_rate": 0.05
+    },
+    "TaxType": {
+      "sampled": 19,
+      "null_rate": {
+        "effective_from": 1.0,
+        "confidence": 1.0,
+        "source_doc_id": 1.0,
+        "jurisdiction_code": 1.0,
+        "jurisdiction_scope": 1.0
+      },
+      "duplicate_id_count": 0,
+      "stale_count": 0,
+      "stale_rate": 0.0,
+      "integrity_violations": 0,
+      "jurisdiction_mismatches": 0,
+      "prohibited_role_count": 0,
+      "invalid_chain_count": 0,
+      "inconsistent_scope_count": 0,
+      "null_coverage_violation_count": 5,
+      "null_coverage_violations": [
+        "confidence",
+        "effective_from",
+        "jurisdiction_code",
+        "jurisdiction_scope",
+        "source_doc_id"
+      ],
+      "null_coverage_threshold": 0.5,
+      "placeholder_string_count": 0,
+      "placeholder_per_field": {
+        "source_doc_id": 0,
+        "extracted_by": 0,
+        "reviewed_by": 0,
+        "jurisdiction_code": 0,
+        "override_chain_id": 0
+      },
+      "defects_total": 5,
+      "defect_rate": 0.2632
+    }
+  },
+  "overall": {
+    "canonical_types_surveyed": 31,
+    "total_sampled": 2053,
+    "total_defects": 143,
+    "defect_rate": 0.0697,
+    "verdict": "PASS",
+    "target_defect_rate": 0.1
+  }
+}

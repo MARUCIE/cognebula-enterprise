@@ -1,10 +1,31 @@
 ---
 initiative: cognebula_sota
-last_session_utc: 2026-04-28T23:30:00Z
+last_session_utc: 2026-04-28T23:55:00Z
 status: ACTIVE
 ---
 
 # HANDOFF — CogNebula SOTA
+
+> **2026-04-28 §20 — Session closeout receipt (anti-amnesia artifact)**:
+> Maurice signaled "继续" a 5th time. The honest answer was that the marginal
+> code surface was exhausted; the highest-leverage remaining ship was a
+> session-level closeout document that captures tacit knowledge in a form that
+> survives `/compact` and grep.
+>
+> - **Closeout `<HEAD>`** — `outputs/audits/2026-04-28-prod-kg-session-receipt.md`
+>   (263 lines, 8 sections). Documents: (1) the 5 framing falsifications
+>   chronologically with claim/probe/reality/commit/lesson; (2) the
+>   probe-before-assertion methodology that crystallized this session
+>   (when it pays, when it doesn't, library produced); (3) the 13-commit chain;
+>   (4) what is NOT done — separated into authorization-gated (none remain) vs
+>   physically-gated (backup window, 7-day soak); (5) open questions surfaced
+>   but not answered; (6) 5-step next-session start protocol; (7) Hickey
+>   synthesis target progress; (8) honest stop signal — diminishing returns
+>   reached, further "继续" should prompt exhaustion report not manufactured work.
+>
+> Closeout chain (3 commits): `fe04748 (C5g) → 26ca38b (HANDOFF) → <HEAD> (receipt)`.
+> Net session: 5 framing falsifications, 8/9 Phase C atomic items shipped,
+> 1 reusable methodology (probe-before-assertion) crystallized.
 
 > **2026-04-28 §20 Phase C — C5g ship: 5th Munger validation under "继续"**:
 > Maurice signaled "继续" again with "全部授权" still in force.

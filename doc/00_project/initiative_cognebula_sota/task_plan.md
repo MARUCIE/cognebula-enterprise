@@ -737,3 +737,38 @@ For B1 (line 1708):
 
 For B3 (schema-validation gate):
 - [ ] Authorize grace-period strategy for the 80 grandfathered undeclared tables
+
+## §21. 2026-04-28 — Frontend Surface Topology symmetric-write (cross-project contract sync)
+
+> **Trigger** — Maurice's directive in `30-lingque-agent` session: "wiki.hegui.cn 是内部研发文档管理系统，不要混进来；yiclaw.hegui.io 拿出去，是单独的我自己的项目，不是公司的项目". Lingque-side ARCH was authoring a frontend topology that incorrectly drew in `wiki.hegui.cn` (internal R&D tooling) and `yiclaw.hegui.io` (Maurice's personal project) as company surfaces. Boundary corrected to **2 frontends** (hegui.io + hegui.app). This §21 entry records the symmetric-write commits that landed on this repo so future cognebula sessions don't drift back to the wrong topology.
+>
+> **Phase milestone target** — `27-cognebula-enterprise` ARCH .md/.html acknowledge: (a) CogNebula is exactly **1 of 2** frontends (`hegui.io` = KG console) ; (b) `hegui.app` (Lingque agent platform) is the other ; (c) `wiki.hegui.cn` and `yiclaw.hegui.io` are explicitly out-of-scope with WHY each ; (d) M5 is the only migration backlog item touching this repo (referer-allowlist sweep on CF Pages, scope shrunk to single customer-tier surface).
+
+### 21.1 Symmetric-write commits landed on this repo
+
+- [x] 21.1.S1 — `49b83c2` (pass 1, 4-frontend topology, since superseded) — `doc/00_project/initiative_cognebula_sota/SYSTEM_ARCHITECTURE.md` Frontend Surface Topology section + `.html` companion (TOC + section)
+- [x] 21.1.S2 — `58a98d0` (pass 2, boundary correction → 2-frontend) — `SYSTEM_ARCHITECTURE.md` retitled "Two-Frontend Topology (CogNebula 持有 1 个)" + Out-of-Scope block naming wiki + yiclaw with rationale + KG invisibility scope narrowed + M1 retired ; `.html` § 5 retitled + alert-amber Boundary correction block + tables updated
+
+### 21.2 Authoring split (canonical vs symmetric)
+
+- [x] 21.2.A1 — Canonical authoring lives at `30-lingque-agent/doc/00_project/initiative_lingque_agent/SYSTEM_ARCHITECTURE.md` §1.3 Two-Frontend Topology (DO NOT author here — only mirror)
+- [x] 21.2.A2 — Both repos' ARCH carry an explicit Out-of-Scope block naming wiki + yiclaw with WHY each is excluded ; both repos updated in the same task to maintain symmetric-write invariant
+- [s] 21.2.A3 — Future updates to the topology contract MUST update BOTH repos in the same task (not separately) — this §21 entry acts as the audit anchor for that rule
+
+### 21.3 Migration backlog impact on this repo (corrected after M1 retirement)
+
+- [s] 21.3.M5 — Audit `hegui.io` for inbound links from `hegui.app` non-operator views (referer-allowlist sweep on CF Pages config). Scope shrank from "all customer surfaces" to "single customer-tier surface" because yiclaw is no longer a company surface. **Trigger**: Maurice greenlights an M5 atomic queue. Engineering shape: 1 PR adding referer-allowlist headers + `audit_inbound_links.py` + post-deploy probe. Estimated 0.5 day.
+- [ ] 21.3.M2 — Cross-root JWT-exchange middleware (CF Worker bridging `hegui.io` ↔ `hegui.app`). NOT in this repo's ownership ; lingque side owns ; this repo only consumes the JWT for token validation. **Trigger**: lingque ships M2 ; this repo wires the JWT verifier into CF Worker entrypoint.
+
+### 21.4 Closeout
+
+- [x] 21.4.C1 — `task_plan.md` §21 written (this section) — atomic queue retroactive for the 2 symmetric-write commits already landed
+- [x] 21.4.C2 — `state/memory/2026-04-28.md` (lingque-side tracker) carries 5 log entries covering the full 2-pass narrative ; cognebula side reflected via this §21 entry
+- [ ] 21.4.C3 — Commit + push this §21 entry to cognebula main
+
+**Phase milestone**: cognebula task_plan now mirrors lingque-side §15 atomic queue ; both repos symmetric on the boundary contract ; M1 retired ; M5 reduced to single customer-tier sweep ; future cognebula sessions can read §21 to understand WHY ARCH §5 (Frontend Surface Topology) says what it says.
+
+**Stages explicitly NOT in this repo's queue** (preserved):
+- §17/§18/§19/§20 — independent ontology + LaunchAgent + KG remediation work, unaffected by topology contract
+- M2 cross-root SSO middleware — owned by lingque side
+- M3 (`?return_to=`) and M4 (header «Go to» links) — owned by lingque side and 25-yiclaw side respectively (not this repo)

@@ -279,16 +279,22 @@ status: ACTIVE
 
 ## Current state (2026-04-28)
 
-**Active sprint**: SOP 3.2 API contract drift probe — **CLOSED** with commit `90aa691`.
-**Cumulative deliverable**: 6 capabilities flipped LACKING→PRESENT across G1+G2+G3+H. Audit gate now wired into nightly tier as `tests/test_api_contract_drift.py` (7 tests).
+**Active sprints**:
+- SOP 3.2 API contract drift probe — **CLOSED** with commit `90aa691` (G1+G2+G3+H, 2026-04-28 morning)
+- Frontend Surface Topology symmetric-write — **CLOSED** with commit `58a98d0` (boundary correction, 2026-04-28 evening). Audit anchor in `task_plan.md` §21. Canonical authoring lives in `30-lingque-agent` ; this repo only mirrors.
 
-### Last 3 commits on `main`
+**Cumulative deliverable**: 6 capabilities flipped LACKING→PRESENT across G1+G2+G3+H ; topology contract pinned across both repos with explicit Out-of-Scope blocks naming `wiki.hegui.cn` (internal R&D doc tooling) + `yiclaw.hegui.io` (Maurice's personal project) ; M1 retired ; M5 scope shrunk to single customer-tier surface.
+
+### Last 5 commits on `main`
 
 | SHA | Sprint | Date |
 |---|---|---|
+| `58a98d0` | symmetric-write boundary correction — 4-frontend → 2-frontend | 2026-04-28 |
+| `49b83c2` | symmetric-write Frontend Surface Topology section (later superseded by `58a98d0`) | 2026-04-28 |
+| `00bf856` | hegui-deploy cross-account verdict + smoke test + custom domain attached | 2026-04-28 |
+| `1631ecd` | hegui-deploy runbook + HANDOFF for CogNebula web → hegui.io | 2026-04-28 |
+| `875d3ff` | wire CogNebula web frontend to hegui-site CF Pages via tunnel proxy | 2026-04-28 |
 | `90aa691` | sop-3.2 SOTA closure — reachability + MCP coverage + PDCA artifacts (G3+H+closeout) | 2026-04-28 |
-| `8c5acc2` | sop-3.2 deploy-manifest layer added to drift probe (G2) | 2026-04-27 |
-| `abbc78c` | sop-3.2 API contract drift probe — advisory→enforcing (G1) | 2026-04-26 |
 
 ### Probe metrics (current)
 

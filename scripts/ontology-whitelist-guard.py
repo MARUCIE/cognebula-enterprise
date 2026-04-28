@@ -46,6 +46,7 @@ Exit codes:
 
 from __future__ import annotations
 
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -133,6 +134,83 @@ def files_from_git_staged() -> list[Path]:
     return [REPO_ROOT / ln.strip() for ln in out.splitlines() if ln.strip()]
 
 
+# Sweep-5 / S18.22 — diff-only scan helpers.
+# Failure mode this prevents (Munger inversion): an unrelated edit to a file
+# that ALREADY contains a pre-existing unauthorized table declaration (left
+# behind by a historical commit) gets falsely rejected — training the team
+# to whitelist that table to make commits go through. Whitelist creep.
+# Diff-mode complains only about NEWLY ADDED `CREATE NODE TABLE` lines.
+
+_DIFF_FILE_HEADER_RE = re.compile(r"^\+\+\+ b/(.+)$")
+_DIFF_HUNK_HEADER_RE = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@")
+
+
+def _parse_unified_diff(diff_text: str) -> list[tuple[str, int, str]]:
+    """Yield (relative_path, new_lineno, added_line_content) tuples for every
+    `+` line in a unified diff (-U0 form). Skips removed (`-`) and context
+    lines (which don't appear with `-U0` anyway). Path-prefix whitelist is
+    applied separately by the caller, not here.
+    """
+    out: list[tuple[str, int, str]] = []
+    current_path: str | None = None
+    current_new_lineno = 0
+    in_hunk = False
+    for raw in diff_text.splitlines():
+        if raw.startswith("+++ "):
+            m = _DIFF_FILE_HEADER_RE.match(raw)
+            current_path = m.group(1) if m else None
+            in_hunk = False
+            continue
+        if raw.startswith("@@"):
+            m = _DIFF_HUNK_HEADER_RE.match(raw)
+            if m and current_path:
+                current_new_lineno = int(m.group(1))
+                in_hunk = True
+            else:
+                in_hunk = False
+            continue
+        if not in_hunk or current_path is None:
+            continue
+        if raw.startswith("+++") or raw.startswith("---"):
+            continue
+        if raw.startswith("+"):
+            out.append((current_path, current_new_lineno, raw[1:]))
+            current_new_lineno += 1
+        # `-` lines do not advance new_lineno; `-U0` produces no context lines
+    return out
+
+
+def scan_staged_diff(canonical: set[str]) -> list[tuple[str, int, str]]:
+    """Scan only ADDED lines in `git diff --cached -U0` for unauthorized
+    `CREATE NODE TABLE` declarations. Returns [(rel_path, lineno, name)].
+
+    Path-prefix whitelist is applied. Extension filter same as file-mode.
+    """
+    try:
+        diff_out = subprocess.check_output(
+            ["git", "diff", "--cached", "-U0"],
+            cwd=REPO_ROOT,
+            text=True,
+        )
+    except subprocess.CalledProcessError:
+        return []
+
+    findings: list[tuple[str, int, str]] = []
+    for rel_path, lineno, content in _parse_unified_diff(diff_out):
+        # Extension + whitelist filter (same rules as file-mode).
+        suffix = Path(rel_path).suffix
+        if suffix not in {".py", ".cypher", ".sql", ".sh", ".md"}:
+            continue
+        if is_whitelisted(REPO_ROOT / rel_path):
+            continue
+        for m in CREATE_NODE_TABLE_RE.finditer(content):
+            name = m.group(1)
+            if name in canonical:
+                continue
+            findings.append((rel_path, lineno, name))
+    return findings
+
+
 def selftest() -> int:
     """§18.14 — verify the guard's three expected behaviors against fixture
     strings. Catches the failure mode where the guard silently no-ops
@@ -198,6 +276,21 @@ def main(argv: list[str]) -> int:
     if argv and argv[0] == "--selftest":
         return selftest()
 
+    # Sweep-5 / S18.22 — `--diff-mode` forces diff-only scan even with argv
+    # present (useful for CI to opt in to PR-diff scanning). `--file-mode`
+    # forces file scan even with no argv (useful for ad-hoc whole-repo
+    # scans). Default: argv present → file-mode (legacy CI path);
+    # argv empty → diff-mode (new pre-commit default that prevents
+    # whitelist-creep from pre-existing rogue declarations).
+    force_diff = False
+    force_file = False
+    if argv and argv[0] == "--diff-mode":
+        force_diff = True
+        argv = argv[1:]
+    elif argv and argv[0] == "--file-mode":
+        force_file = True
+        argv = argv[1:]
+
     canonical = parse_canonical_types(CANONICAL_SCHEMA)
     if not canonical:
         print(
@@ -205,6 +298,27 @@ def main(argv: list[str]) -> int:
             file=sys.stderr,
         )
         return 2
+
+    use_diff_mode = force_diff or (not argv and not force_file)
+    if use_diff_mode:
+        diff_findings = scan_staged_diff(canonical)
+        if not diff_findings:
+            return 0
+        for rel_path, lineno, name in diff_findings:
+            print(
+                f"REJECTED {rel_path}:{lineno}: "
+                f"+CREATE NODE TABLE {name!r} (newly added) — not in canonical "
+                f"{CANONICAL_SCHEMA.relative_to(REPO_ROOT)}",
+                file=sys.stderr,
+            )
+        print(
+            f"\nontology-whitelist-guard (diff-mode): {len(diff_findings)} "
+            f"newly-added violation(s). To add a new canonical type, first "
+            f"edit {CANONICAL_SCHEMA.relative_to(REPO_ROOT)} in the same "
+            f"PR, then re-stage. Pass `--file-mode` to scan whole files.",
+            file=sys.stderr,
+        )
+        return 1
 
     if argv:
         files = [Path(a) for a in argv]

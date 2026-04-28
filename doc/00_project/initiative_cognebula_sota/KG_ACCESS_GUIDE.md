@@ -56,7 +56,7 @@ print(r.get_next()[0])
 "'
 ```
 
-The local `~/.ssh/config` entry for `contabo` forces `tmux` for interactive use. For non-interactive scripts always pass `-o RemoteCommand=none -o RequestTTY=no`.
+The local `~/.ssh/config` entry for `contabo` forces `tmux` for interactive use. For non-interactive scripts always pass `-o RemoteCommand=none -o RequestTTY=no`. **If your `~/.ssh/config` has no `contabo` alias at all, those two flags still do the right thing — do not omit them.** Without them the script will hang silently when the server-side login banner tries to attach a tmux session.
 
 **When to use**: ad-hoc Cypher queries, schema introspection, file-handle inspection, anything that needs Python `kuzu` library directly against the prod DB.
 
@@ -93,7 +93,6 @@ removed from the working tree to prevent accidental runtime use.
 Read-only:
 - `GET /api/v1/health` — liveness probe (cheap)
 - `GET /api/v1/quality` — node/edge totals + per-type coverage + gate
-- `GET /api/v1/stats` — *broken endpoint, returns malformed JSON* (use `/quality` instead)
 - `GET /api/v1/ontology-audit` — schema-vs-live drift, brooks_ceiling, intersection
 - `GET /api/v1/nodes?type=X&limit=N` — list nodes of a type
 - `GET /api/v1/search?q=X&limit=N` — free-text
@@ -111,9 +110,9 @@ Mutating (do NOT call from local dev):
 
 ## Known issues
 
-- **`/` returns a leaked local path**: `{"error":"Web UI not found at /Users/mauricewen/Projects/27-cognebula-enterprise/src/web/unified.html"}`. The deployed kg-api has Maurice's local mac path embedded in a config; harmless but ugly. Fix is on the deploy side, not the client side.
-- **`/api/v1/stats` returns malformed JSON**: do not parse it. The healthy alternative is `/api/v1/quality`.
-- **`/api/v1/.well-known/capabilities`**: the OPTIONS endpoint introduced in S15.1+S15.2+S18.26 is not yet deployed on contabo — that work is local. Will appear after next prod deploy.
+- **Never use `/` as a health check**: the deployed kg-api leaks Maurice's local mac path in the 404 body (`{"error":"Web UI not found at /Users/mauricewen/Projects/...unified.html"}`). Use `/api/v1/health` instead — that is what `prod_kg_client.health()` calls.
+- **`/api/v1/stats` is not an endpoint**: it returns malformed JSON. If you find it referenced in an old script, replace the call with `/api/v1/quality`.
+- **`/api/v1/.well-known/capabilities` is not deployed on prod.** It will return 404 until the endpoint is shipped. If you need to know whether it's live, probe with `curl -sS --max-time 3 http://100.88.170.57:8400/api/v1/.well-known/capabilities` before relying on it; do not assume it's there because the local code defines it.
 
 ---
 

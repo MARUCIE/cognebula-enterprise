@@ -60,3 +60,18 @@ def test_api_server_refuses_demo_or_empty_database_paths() -> None:
     assert "finance-tax-graph.archived" in server
     assert "empty_database_directory" in server
     assert "Refusing to open KG DB" in server
+
+
+def test_api_server_enforces_db_size_floor_against_drift() -> None:
+    """Semantic guard: even a name-clean directory must exceed a size floor.
+
+    Closes the Munger inversion gap (symlink to small legacy snapshot, fixture
+    renamed without a forbidden marker, bind-mount substitution) — these all
+    pass the syntactic blocklist but fail a content-volume check.
+    """
+    server = _read("kg-api-server.py")
+
+    assert "DB_SIZE_FLOOR_BYTES" in server
+    assert "COGNEBULA_DB_SIZE_FLOOR_BYTES" in server
+    assert "database_below_size_floor" in server
+    assert "_dir_top_level_size" in server

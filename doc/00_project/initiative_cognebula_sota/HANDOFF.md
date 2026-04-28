@@ -1,6 +1,6 @@
 ---
 initiative: cognebula_sota
-last_session_utc: 2026-04-28T11:42:00Z
+last_session_utc: 2026-04-28T15:30:00Z
 status: ACTIVE
 ---
 
@@ -22,8 +22,13 @@ status: ACTIVE
 > canonical reference for future local-to-prod access.
 > §19 queue: Phase A (discovery) DONE · Phase B (cleanup) DONE · Phase C (wire-up)
 > DONE · Phase D (doc sync) DONE · E1-E2 commit DONE (`e74aafe`) · E3 swarm review
-> DEFERRED — org monthly limit hit on Round 1 dispatch. Self-test passes; design is
-> reversible; logged as residual at `task_plan.md §19 Phase E3 Residual`.
+> **DONE** — 3/3 advisor consensus across 3 rounds (Hara/Orwell/Munger) after quota
+> reset. Patches landed: `_results()` server-contract comment + `selftest()` →
+> `_selftest()` private + `/api/v1/stats` removed from inventory + capabilities
+> sentence rewritten as executable curl probe + SSH alias missing-config warning +
+> **`DB_SIZE_FLOOR_BYTES` semantic guard** (1 GiB floor closes Munger's
+> symlink/stale-dir/bind-mount bypass paths past the syntactic blocklist) + 4th
+> regression test. Trace: `outputs/reports/auto-swarm-trace/2026-04-28-prod-kg-client-review.md`.
 >
 > **2026-04-28 §18 prior milestone (Sweeps 4-9, earlier this continuation)**:
 > All agent-actionable §18 atomic queue items are CLOSED.

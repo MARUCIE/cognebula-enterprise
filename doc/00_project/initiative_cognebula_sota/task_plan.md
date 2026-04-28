@@ -637,16 +637,7 @@ If milestone reached (Tier 0 + ≥6 P0 closed), pause and report. If blocker hit
 - [x] F4 Added regression test `tests/test_real_kg_runtime_config.py` to keep runtime config from reintroducing demo KG paths.
 - [x] F5 Verified real API: prod path `/home/kg/cognebula-enterprise/data/finance-tax-graph`, Lance path `/home/kg/data/lancedb`, `368,910` nodes, `1,014,862` edges, search hit `TT_VAT`.
 - [x] F6 Targeted tests passed: `tests/test_search_api.py`, `tests/test_reasoning_chain_api.py`, `tests/test_real_kg_runtime_config.py` → 18 passed. `ai check` remains red due pre-existing harness/doc-contract mismatch (`initiative_27_cognebula_enterprise` path expected, `tests/test_all.py` missing, historical emoji hits).
-- [-] E3 Final 3-advisor swarm review (Hickey + Hara + Munger) — DEFERRED. Round 1 dispatch at 2026-04-28 ~11:42 CST returned "You've hit your org's monthly usage limit" on all three Agent calls. Self-test passes; design is reversible (git revert + re-create test fixtures via `tests/test_real_kg_runtime_config.py` pattern); admin endpoints excluded by design so no destructive prod calls possible from client. Logged as residual; retry when org quota resets.
-
-### Phase E3 Residual — Deferred swarm review
-
-- **Status**: DEFERRED until org quota resets
-- **What was meant to be reviewed**: `scripts/_lib/prod_kg_client.py` (~170 lines post-linter) + `doc/00_project/initiative_cognebula_sota/KG_ACCESS_GUIDE.md` (~135 lines) + audit Rev. 3 banner + Phase F guardrails in `kg-api-server.py`
-- **Why deferred**: Anthropic API monthly limit hit on all 3 advisor dispatches at 2026-04-28 ~11:42 CST
-- **Why not blocking**: client is read-only (admin endpoints excluded by design), self-test verifies live behavior, all changes are reversible, no prod state mutated, regression test `tests/test_real_kg_runtime_config.py` keeps the runtime from regressing
-- **Pickup signal**: when org limit resets, dispatch 3 advisor prompts (Hickey/Hara/Munger) following the Rev. 2/3 audit swarm pattern in `outputs/reports/auto-swarm-trace/2026-04-28-deep-system-audit.md`. Trace file should be `outputs/reports/auto-swarm-trace/2026-04-28-prod-kg-client-review.md`
-- **Owner**: Maurice (or any future agent that hits this branch with quota available)
+- [x] E3 Final 3-advisor swarm review (Hara + Orwell + Munger) — DONE 2026-04-28. Originally deferred at ~11:42 CST on org quota; re-dispatched after quota reset. Round 1 → 3/3 REVISE (Hara LOW: 3 cosmetic patches; Orwell TARGETED: 3 sentence rewrites; Munger MEDIUM: name-based blocklist needs semantic complement). Round 2 → 3/3 patches landed; Orwell flagged one residual dead sentence ("Do not use it until after the next prod deploy"). Round 3 → 3/3 APPROVE final after Orwell's executable-curl rewrite. Patches: `_results()` server-contract comment + `selftest()` → `_selftest()` private + `/api/v1/stats` removed from inventory + capabilities sentence rewritten as executable probe + SSH alias missing-config warning + `DB_SIZE_FLOOR_BYTES` semantic guard (1 GiB floor catches symlink/stale-dir/bind-mount bypass paths Munger named) + 4th regression test `test_api_server_enforces_db_size_floor_against_drift`. Trace: `outputs/reports/auto-swarm-trace/2026-04-28-prod-kg-client-review.md`.
 
 ### Stopping rules
 

@@ -34,6 +34,36 @@ FORBIDDEN_DB_PATH_MARKERS = (
     ".phase1d-test",
     ".phase4-test",
 )
+# Semantic guard against the failure class the syntactic blocklist cannot catch
+# (symlink to small legacy snapshot, freshly-seeded fixture renamed without a
+# forbidden marker, bind-mount substitution to an unrelated small Kuzu DB).
+# Production is 102 GB; the deleted .demo sandbox was 109 MB — three orders of
+# magnitude separation, so a 1 GiB floor cleanly partitions them.
+# Override at deploy time with COGNEBULA_DB_SIZE_FLOOR_BYTES (set to 0 to disable
+# the check entirely; only do this for offline-fixture test runs).
+DEFAULT_DB_SIZE_FLOOR_BYTES = 1 * 1024 * 1024 * 1024  # 1 GiB
+DB_SIZE_FLOOR_BYTES = int(os.environ.get("COGNEBULA_DB_SIZE_FLOOR_BYTES", DEFAULT_DB_SIZE_FLOOR_BYTES))
+
+
+def _dir_top_level_size(p: _Path) -> int:
+    """Sum size of immediate children files (non-recursive).
+
+    Kuzu DB layouts have a small set of top-level files (catalog, metadata,
+    data, wal). Summing them is a cheap O(N children) probe that captures the
+    bulk of a real database without a full recursive du-style scan that would
+    slow startup on a 102 GB tree.
+    """
+    total = 0
+    try:
+        for child in p.iterdir():
+            try:
+                if child.is_file():
+                    total += child.stat().st_size
+            except OSError:
+                continue
+    except OSError:
+        return 0
+    return total
 
 
 def _path_state(path: str, *, reject_fixture: bool = False) -> dict:
@@ -46,6 +76,7 @@ def _path_state(path: str, *, reject_fixture: bool = False) -> dict:
     size_bytes = None
     empty_dir = False
     rejected_reason = None
+    below_floor_bytes = None
 
     if reject_fixture and any(marker in lowered for marker in FORBIDDEN_DB_PATH_MARKERS):
         rejected_reason = "demo_or_fixture_database_path"
@@ -58,6 +89,11 @@ def _path_state(path: str, *, reject_fixture: bool = False) -> dict:
             empty_dir = False
         if empty_dir:
             rejected_reason = "empty_database_directory"
+        elif reject_fixture and DB_SIZE_FLOOR_BYTES > 0:
+            size_bytes = _dir_top_level_size(p)
+            if size_bytes < DB_SIZE_FLOOR_BYTES:
+                below_floor_bytes = size_bytes
+                rejected_reason = "database_below_size_floor"
     elif is_file:
         try:
             size_bytes = p.stat().st_size
@@ -65,6 +101,9 @@ def _path_state(path: str, *, reject_fixture: bool = False) -> dict:
             size_bytes = None
         if size_bytes == 0:
             rejected_reason = "empty_database_file"
+        elif reject_fixture and DB_SIZE_FLOOR_BYTES > 0 and size_bytes is not None and size_bytes < DB_SIZE_FLOOR_BYTES:
+            below_floor_bytes = size_bytes
+            rejected_reason = "database_below_size_floor"
 
     return {
         "path": raw,
@@ -74,6 +113,8 @@ def _path_state(path: str, *, reject_fixture: bool = False) -> dict:
         "size_bytes": size_bytes,
         "empty_dir": empty_dir,
         "rejected_reason": rejected_reason,
+        "below_floor_bytes": below_floor_bytes,
+        "size_floor_bytes": DB_SIZE_FLOOR_BYTES,
     }
 
 

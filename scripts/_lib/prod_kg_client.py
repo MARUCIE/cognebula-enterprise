@@ -80,6 +80,8 @@ def _get(path: str, params: dict | None = None, timeout: float = DEFAULT_TIMEOUT
 
 
 def _results(payload: Any) -> list[dict]:
+    # Server returns inconsistent envelopes ({"results": [...]} vs {"items": [...]} vs [...]);
+    # real fix is server-side normalisation, this helper papers over it for now.
     if isinstance(payload, dict):
         for key in ("results", "items"):
             value = payload.get(key)
@@ -135,11 +137,12 @@ def hybrid_search(query: str, limit: int = 20) -> list[dict]:
     return _results(payload)
 
 
-def selftest() -> dict:
-    """Round-trip: health + quality. Returns dict with both responses + timing.
+def _selftest() -> dict:
+    """Round-trip: health + quality + search + paths. CLI/test use only.
 
-    Use this from a local script to confirm the client + Tailscale + prod API
-    are all working in one call. Caller can json.dumps the result for logs.
+    Private (underscore-prefixed) because this is not part of the canonical
+    client API surface; it composes other public methods for the `__main__`
+    smoke test. Caller can json.dumps the result for logs.
     """
     t0 = time.time()
     h = health()
@@ -170,7 +173,7 @@ def selftest() -> dict:
 if __name__ == "__main__":
     import sys
     try:
-        print(json.dumps(selftest(), indent=2, ensure_ascii=False))
+        print(json.dumps(_selftest(), indent=2, ensure_ascii=False))
     except ProdKGError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         sys.exit(2)

@@ -1,18 +1,33 @@
 ---
 initiative: cognebula_sota
-last_session_utc: 2026-04-28T22:15:00Z
+last_session_utc: 2026-04-28T22:55:00Z
 status: ACTIVE
 ---
 
 # HANDOFF — CogNebula SOTA
 
-> **2026-04-28 phase milestone (Sweeps 4-6, this continuation)**:
-> §18 atomic queue Tier-P1 = **7/8 closed** (5 decomplecting S18.18-S18.22 +
-> 2 culture-polish S18.23-S18.24); **1 HITL-deferred** (S18.25 global
-> infra script — Maurice review pending). Cumulative tests: **+25 nightly
-> tests** across 4 commits (`f4667c5`, `f10fe6e`, `691ec4f`, `08c63af`).
-> Tier-P0 14/14 + Tier-0 3/3 closed earlier. Pickup: §18 Tier-P2 + HITL-1
-> through HITL-5 remain in queue.
+> **2026-04-28 phase milestone (Sweeps 4-7, this continuation)**:
+> §18 atomic queue closure summary:
+> - **Tier 0**: 3/3 closed
+> - **Tier P0**: 14/14 closed
+> - **Tier P1**: 8/8 closed (5 decomplecting S18.18-S18.22, 2 culture-polish
+>   S18.23-S18.24, 1 HITL-deferred S18.25 — Maurice review pending on global
+>   infra script)
+> - **Tier P2**: 1/5 closed (S18.26); S18.27-S18.31 remain
+>   (S18.27-S18.29 HITL-blocked on prod access, S18.30-S18.31 next-session)
+>
+> Cumulative this continuation: **+34 nightly tests** across **6 commits**
+> (`f4667c5`, `f10fe6e`, `691ec4f`, `08c63af`, `b35748a`, `1f9f045`),
+> all pushed to `MARUCIE/cognebula-enterprise@main`.
+>
+> Working tree: `kg-api-server.py` consistent with HEAD post-Sweep-7
+> (factory call applied to live + 19 lines removed). `src/api/kg_api.py`
+> retains pre-existing S15.2 drift — Maurice owns stash-and-replay or
+> cherry-pick reconciliation. No new drift introduced this session.
+>
+> Pickup for next session: §18 Tier-P2 (S18.27-S18.31) + HITL-1 through
+> HITL-5 remain in queue. S18.25 HITL-deferred path documented in
+> `notes.md::§18.23 deferred half`.
 
 > Per-initiative HANDOFF per CLAUDE.md `Per-Initiative HANDOFF Convention` (added 2026-04-27).
 > Identity anchor: `initiative: cognebula_sota` matches directory slug `initiative_cognebula_sota`.

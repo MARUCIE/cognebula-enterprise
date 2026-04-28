@@ -1,10 +1,36 @@
 ---
 initiative: cognebula_sota
-last_session_utc: 2026-04-28T17:45:00Z
+last_session_utc: 2026-04-28T19:00:00Z
 status: ACTIVE
 ---
 
 # HANDOFF — CogNebula SOTA
+
+> **2026-04-28 §20 Phase B5 receipt — third Munger validation this session**:
+> User directive "启动完全修复" Path 1 continued autonomously. B5 (KU fragmentation root
+> cause) executed as read-only investigation while waiting on Maurice authorization
+> for B1/B2-exec/B3/B4-exec.
+> - **F3 framing FALSIFIED**: direct probe (n=2500, paged 5×500 via `/api/v1/nodes`)
+>   shows max content length **193 chars** (no `==200` spike), median 137, smooth bell
+>   distribution. The KU storage layer is NOT truncating; KUs are chapter-level
+>   abstracts from CPA-textbook JSON ingest (e.g. `financial_mgmt_key_points.json`
+>   = 400 KUs from one source file). 100% have `source_doc_id`; 100% have empty
+>   `extracted_by` (small F4 reverse-drift instance).
+> - **Reframed problem**: granularity mismatch (chapter-summary vs fact-atom)
+>   reduces RAG precision; not a clamp bug.
+> - **Three remediation paths** (A keep+rename / B full re-extract / C hybrid +
+>   `KnowledgeAtom` table) with cost/risk/best-when. **Analyst recommendation**:
+>   Path A + `extracted_by` micro-fix (preserves 185k-row ingest asset, zero
+>   migration, retrieval-precision fix lives at re-ranker layer not data layer).
+> - **Scoreboard**: this session's three Munger validations: (1) KnowledgeFact /
+>   CPAKnowledge (R1 framing → tables don't exist), (2) LegalDocument zero-content
+>   (R1 framing → metadata-only by design), (3) KU 200-cap (R1 framing → naturally
+>   short by ingest design). The HIGH-RISK confirmation-bias warning has now caught
+>   3 of 6 audit findings as framing errors.
+>
+> Deliverable: `outputs/audits/2026-04-28-prod-kg-ku-fragmentation-investigation.md`.
+> Phase B5 marked `[s]` in task_plan §20. **Authorization gate now 9 decisions**
+> (added B5 path-choice A/B/C). No prod changes; no schema changes.
 
 > **2026-04-28 §20 Phase A receipts (depth × breadth audit remediation kickoff)**:
 > User directive "启动完全修复" → §20 atomic queue materialized in `task_plan.md`. Phase A

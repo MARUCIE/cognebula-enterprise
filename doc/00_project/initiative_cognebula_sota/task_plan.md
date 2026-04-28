@@ -678,7 +678,7 @@ If milestone reached (Tier 0 + ≥6 P0 closed), pause and report. If blocker hit
 - [s] **B2 — V2 lineage merge design (NOT consolidation)** — DESIGN PROPOSAL written 2026-04-28: `outputs/audits/2026-04-28-prod-kg-v1v2-unification-design.md`. Replaces obsolete `phase1_v1_v2_rename.cypher`. Three V1+V2 pairs designed for unified schema with `_lineage_present` array tag. Migration shape sketched (8 steps); execution blocked on Maurice authorizations: (1) approve unified schema shape, (2) approve `_Unified` migration table pattern, (3) author conflict-resolution precedence map per pair, (4) authorize backup window, (5) authorize cutover gate criteria.
 - [-] **B3 — Schema-validation gate at `/api/v1/admin/execute-ddl` and `/api/v1/admin/migrate-table`** — pending. Reject `CREATE TABLE` for types not declared in canonical ontology, OR allow with explicit `_experimental` namespace prefix. With A4's 80-undeclared-table list, the initial enforcement would block 80 existing tables — needs grace-period strategy (mark all 80 as `_grandfathered`, then enforce only on NEW tables).
 - [s] **B4 — `Source` node schema declaration + writes** — DRAFT written 2026-04-28: `outputs/audits/2026-04-28-prod-kg-source-schema-draft.md`. 9-field schema + per-table coverage matrix + 3-phase backfill plan. Execution blocked on: (a) `source_type` enum-vs-open decision; (b) Phase 1 vs all-phases ordering; (c) `_lineage_present` (B2) vs `source_id` (B4) consolidation.
-- [-] **B5 — KU fragmentation root cause** — pending separate investigation (ingest path enumeration).
+- [s] **B5 — KU fragmentation root cause investigation** — INVESTIGATION COMPLETE 2026-04-28: `outputs/audits/2026-04-28-prod-kg-ku-fragmentation-investigation.md`. **F3 framing FALSIFIED — third Munger validation this session.** Direct probe (n=2500, paged 5×500) shows: max content length **193 chars** (no `==200` spike → no truncation cap), median 137, smooth bell distribution, `source_doc_id` 100% populated, `extracted_by` 100% empty. The 185,455-KU population reflects **chapter-level granularity choice at ingest** (CPA-textbook JSON files with one entry per chapter/section), not a clamp bug. Reframed problem: granularity mismatch reduces RAG precision; KUs are nav/topic-discovery, not fact atoms. Three remediation paths (A keep + rename, B full re-extract, C hybrid + new KnowledgeAtom table) each with cost/risk/best-when. Analyst recommendation: **Path A + extracted_by micro-fix** (preserves 185k-row ingest asset, zero migration, retrieval-precision fix lives at re-ranker layer not data layer). Execution blocked on Maurice path-choice decision.
 
 ### Phase C — Remediation execution — DEFERRED
 
@@ -700,17 +700,18 @@ Session 2 (Path 1 continuation):
 - A5: `Source` schema draft (9 fields) + per-table source-coverage matrix. V2-lineage tables already have `sourceUrl` (LOW backfill); V1-lineage has partial provenance fields (MEDIUM); hash-ID tables need ingest rewrite (HIGH). Phase-1 backfill closes ~70% of F5.
 - B2 design proposal written: unified schema + `_lineage_present` tag realizes Hickey synthesis target. Execution blocked on 5 Maurice authorizations.
 - B4 design proposal written: `Source` schema + 3-phase backfill plan. Execution blocked on 3 Maurice decisions.
+- B5 investigation complete + **F3 framing FALSIFIED**: max content 193 chars (not 200-cap), KUs are chapter-level by design from CPA-textbook JSON ingest. Analyst-recommended Path A (keep + rename + extracted_by micro-fix) blocked on Maurice path-choice (A vs B vs C).
 
-### Stopping rules (post Phase A + B-design)
+### Stopping rules (post Phase A + B-design + B5-investigation)
 
-- B1 / B2 exec / B3 / B4 exec / B5 / Phase C all blocked on Maurice authorization (8 decisions total: 5 for B2, 3 for B4, plus B1 REMOVE-vs-PARAMETRIZE choice and B3 grace-period strategy).
+- B1 / B2 exec / B3 / B4 exec / B5 exec / Phase C all blocked on Maurice authorization (9 decisions total: 5 for B2, 3 for B4, plus B1 REMOVE-vs-PARAMETRIZE choice and B3 grace-period strategy and B5 path-choice A/B/C).
 - If Maurice directs "ship B1 only" (line 1708 [:500] removal), that is a 5-line patch with regression test; smallest sprint inside §20.
 - If Maurice directs "ship B4 Phase 1 backfill only" (~70% F5 closure via LOW-cost mappings on V2-lineage tables + LegalClause), that is a separate atomic queue from full B2 lineage merge.
 - B2 + B4 + B3 are mutually independent; can ship in any order after authorizations.
 
 ### Loop-execute order
 
-`A1+A2+A3 (Session 1 DONE) → A4+A5+B2-design+B4-design (Session 2 DONE) → Maurice authorization gate → B1 / B2 exec / B3 / B4 exec / B5 → C1-C5`
+`A1+A2+A3 (Session 1 DONE) → A4+A5+B2-design+B4-design (Session 2 DONE) → B5-investigation (Session 3 DONE) → Maurice authorization gate → B1 / B2 exec / B3 / B4 exec / B5 exec → C1-C5`
 
 ### Authorization gate (Maurice owns)
 

@@ -667,17 +667,17 @@ If milestone reached (Tier 0 + ≥6 P0 closed), pause and report. If blocker hit
   - V2 schema: canonical normalized metadata (`description`, `effectiveDate`, `expiryDate`, `regulationNumber`, `regulationType`, `sourceUrl`, `fullText`, `hierarchyLevel`, `createdAt`)
   - Common base: 5-6 fields only (`id`, `name`, `_id`, `_label`, `_display_label`, sometimes `effectiveDate`)
   - **Verdict**: V1 = LLM-extracted argument-structure pipeline; V2 = crawler-direct canonical-metadata pipeline. Two distinct data lineages, not version bumps. Munger R2 "V1+V2 separation CAN be correct" vindicated — these are correct separations.
-- [-] **A4 — Enumerate the 62 undeclared live tables (93 live - 31 declared)** — DEFERRED to next session. Owner: Maurice or next agent. Deliverable: list of 62 with classification (legitimate-undeclared / experimental / abandoned).
-- [-] **A5 — Source node schema draft + back-of-envelope audit of which tables already carry implicit source info** — DEFERRED. Deliverable: `Source(id, label, url, ingest_ts, ingest_pipeline)` schema declaration + per-table source-coverage matrix.
+- [x] **A4 — Enumerate the undeclared live tables** — DONE 2026-04-28. Diff between `schemas/ontology_v4.2.cypher` + extensions (16 declared via parser pattern; base file uses different syntax not captured) vs 93 live tables = **80 live-but-undeclared** + **3 declared-but-not-live** (`ResponseStrategy`, `TaxLiabilityTrigger`, `TaxTreaty`). Discrepancy with API's `over_ceiling_by:56` is parser-coverage limitation; the canonical schema-discipline gap is real regardless. **Critical archeological find**: `deploy/contabo/migrations/phase1_v1_v2_rename.cypher` (Session 69, 2026-04-17) shows V1+V2 was diagnosed 11 days ago with a STAGED-NOT-EXECUTED rename plan; that plan is now obsolete because V1 tables have since been repopulated by a different ingest pipeline.
+- [x] **A5 — `Source` node schema draft + per-table source-coverage matrix** — DONE 2026-04-28. Deliverable: `outputs/audits/2026-04-28-prod-kg-source-schema-draft.md`. 9-field `Source` schema (5 required + 4 optional). Per-table coverage matrix shows V2-lineage tables already have `sourceUrl` (LOW backfill cost), V1-lineage has partial structured provenance via `source_doc_id`/`extracted_by` (MEDIUM cost), hash-ID tables (`TaxRate*`, `Industry*`) need ingest rewrite (HIGH cost). Phase-1 backfill alone closes ~70% of F5 gap.
 
-### Phase B — Reversible patches (gated on Phase A outcomes) — DEFERRED
+### Phase B — Reversible patches (designs landed; execution gated on Maurice authorization)
 
-**Reframed by A3 findings**: F1 is no longer a consolidation problem. The right next-round work is "unified schema design that absorbs V1's semantic richness AND V2's canonical metadata, then back-populate both halves from each lineage". Specific patches stay deferred until that schema is drafted.
+**Reframed by A3 findings + B2 design**: F1 is a lineage-unification problem, not consolidation. B2 design proposal landed at `outputs/audits/2026-04-28-prod-kg-v1v2-unification-design.md` (replaces obsolete `phase1_v1_v2_rename.cypher`). B4 schema draft at `outputs/audits/2026-04-28-prod-kg-source-schema-draft.md`. Both await Maurice authorizations.
 
-- [-] **B1 — Decide line 1708 disposition** — pending A1 outcome interpretation. Recommended path (per A1): **REMOVE** the `[:500]` clamp, since the M3 migration that justified it is past. Risk: a future migrate-table call with non-text-fitting data could regress, but the protection should live at the per-field schema level (e.g., `MAX_LENGTH` constraint declared on the column), not at a global migration-mechanism clamp. Patch scope ~5 lines.
-- [-] **B2 — V2 lineage merge design (NOT consolidation)** — pending. For each of 3 V1+V2 pairs: declare a unified target schema combining V1 semantic + V2 canonical fields, then define migration scripts populating both halves from the existing V1 and V2 sources. Treat schema-version as a VALUE on the canonical entity (Hickey synthesis target). Owner: Maurice or design session.
-- [-] **B3 — Schema-validation gate at `/api/v1/admin/execute-ddl` and `/api/v1/admin/migrate-table`** — pending. Reject `CREATE TABLE` for types not declared in canonical ontology, OR allow with explicit `_experimental` namespace prefix.
-- [-] **B4 — `Source` node schema declaration + writes** — pending A5.
+- [-] **B1 — Decide line 1708 disposition** — pending A1 outcome interpretation. Recommended path (per A1): **REMOVE** the `[:500]` clamp, since the M3 migration that justified it is past. Risk: a future migrate-table call with non-text-fitting data could regress, but the protection should live at the per-field schema level (e.g., `MAX_LENGTH` constraint declared on the column), not at a global migration-mechanism clamp. Patch scope ~5 lines. Single-session work item; can run independently of B2 if user prefers minimum-viable path.
+- [s] **B2 — V2 lineage merge design (NOT consolidation)** — DESIGN PROPOSAL written 2026-04-28: `outputs/audits/2026-04-28-prod-kg-v1v2-unification-design.md`. Replaces obsolete `phase1_v1_v2_rename.cypher`. Three V1+V2 pairs designed for unified schema with `_lineage_present` array tag. Migration shape sketched (8 steps); execution blocked on Maurice authorizations: (1) approve unified schema shape, (2) approve `_Unified` migration table pattern, (3) author conflict-resolution precedence map per pair, (4) authorize backup window, (5) authorize cutover gate criteria.
+- [-] **B3 — Schema-validation gate at `/api/v1/admin/execute-ddl` and `/api/v1/admin/migrate-table`** — pending. Reject `CREATE TABLE` for types not declared in canonical ontology, OR allow with explicit `_experimental` namespace prefix. With A4's 80-undeclared-table list, the initial enforcement would block 80 existing tables — needs grace-period strategy (mark all 80 as `_grandfathered`, then enforce only on NEW tables).
+- [s] **B4 — `Source` node schema declaration + writes** — DRAFT written 2026-04-28: `outputs/audits/2026-04-28-prod-kg-source-schema-draft.md`. 9-field schema + per-table coverage matrix + 3-phase backfill plan. Execution blocked on: (a) `source_type` enum-vs-open decision; (b) Phase 1 vs all-phases ordering; (c) `_lineage_present` (B2) vs `source_id` (B4) consolidation.
 - [-] **B5 — KU fragmentation root cause** — pending separate investigation (ingest path enumeration).
 
 ### Phase C — Remediation execution — DEFERRED
@@ -688,18 +688,48 @@ If milestone reached (Tier 0 + ≥6 P0 closed), pause and report. If blocker hit
 - [-] **C4 — KU fragmentation remediation** — pending B5.
 - [-] **C5 — `ai check` + regression suite + commit + push** — final gate for the §20 closeout.
 
-### Phase A receipts (this session)
+### Phase A receipts (this session — Path 1 complete remediation, sessions 1-2)
 
+Session 1 (afternoon):
 - A1: `kg-api-server.py:1708` git blame → `ea83f033` "feat(m3): comprehensive graph remediation" (2026-03-20). Stale Chesterton fence. Safe to remove for future migrations; cannot reverse past truncation.
 - A2: 4 V2 tables (`ComplianceRuleV2`, `FilingFormV2`, `TaxIncentiveV2`, `RiskIndicatorV2`). 3/4 with V1 counterpart; 1/4 orphan after M3.
 - A3: All 3 V1+V2 pairs are TWO LINEAGES (LLM-extraction vs crawler-canonical), not version bumps. F1 reframed from "consolidation problem" to "lineage unification problem".
 
-### Stopping rules
+Session 2 (Path 1 continuation):
+- A4: 80 live-but-undeclared tables + 3 declared-but-not-live. Critical archeological find: `phase1_v1_v2_rename.cypher` from 2026-04-17 Session 69 — STAGED-NOT-EXECUTED migration plan. Plan is now obsolete because V1 was repopulated between 2026-04-17 and 2026-04-28.
+- A5: `Source` schema draft (9 fields) + per-table source-coverage matrix. V2-lineage tables already have `sourceUrl` (LOW backfill); V1-lineage has partial provenance fields (MEDIUM); hash-ID tables need ingest rewrite (HIGH). Phase-1 backfill closes ~70% of F5.
+- B2 design proposal written: unified schema + `_lineage_present` tag realizes Hickey synthesis target. Execution blocked on 5 Maurice authorizations.
+- B4 design proposal written: `Source` schema + 3-phase backfill plan. Execution blocked on 3 Maurice decisions.
 
-- Phase A4 / A5 require active investigation work (62-table enumeration + Source schema design). Out of scope for this minimal-viable-sprint slice. Resume next session.
-- Phase B / C blocked on A4 + A5 + design session for unified schema. Do NOT start B1-B5 without those gates.
-- If user explicitly directs "skip A4/A5 and proceed to B1 only", that is a smaller sprint that drops the line 1708 clamp without touching V2 lineages — acceptable but not a complete §20.
+### Stopping rules (post Phase A + B-design)
+
+- B1 / B2 exec / B3 / B4 exec / B5 / Phase C all blocked on Maurice authorization (8 decisions total: 5 for B2, 3 for B4, plus B1 REMOVE-vs-PARAMETRIZE choice and B3 grace-period strategy).
+- If Maurice directs "ship B1 only" (line 1708 [:500] removal), that is a 5-line patch with regression test; smallest sprint inside §20.
+- If Maurice directs "ship B4 Phase 1 backfill only" (~70% F5 closure via LOW-cost mappings on V2-lineage tables + LegalClause), that is a separate atomic queue from full B2 lineage merge.
+- B2 + B4 + B3 are mutually independent; can ship in any order after authorizations.
 
 ### Loop-execute order
 
-`A1+A2+A3 (DONE this session) → A4+A5 (next session) → B1+B2 design → B3+B4 → C1-C5`
+`A1+A2+A3 (Session 1 DONE) → A4+A5+B2-design+B4-design (Session 2 DONE) → Maurice authorization gate → B1 / B2 exec / B3 / B4 exec / B5 → C1-C5`
+
+### Authorization gate (Maurice owns)
+
+Path 1 complete remediation cannot proceed past this point without Maurice's decisions:
+
+For B2 (V1+V2 lineage unification):
+- [ ] Approve unified schema shape (single canonical + L1 fields + L2 fields + `_lineage_present` tag)
+- [ ] Approve `_Unified` migration table pattern vs in-place ALTER ADD COLUMN
+- [ ] Author conflict-resolution precedence map per pair (which lineage wins per overlapping field)
+- [ ] Authorize backup window before migration
+- [ ] Authorize cutover gate criteria (consumer audit + soak window length)
+
+For B4 (`Source` node + backfill):
+- [ ] `source_type` strict enum vs open string
+- [ ] Phase 1 only vs Phase 1+2+3 ordering
+- [ ] `_lineage_present` (B2) vs `source_id` (B4) consolidation strategy
+
+For B1 (line 1708):
+- [ ] Authorize REMOVE vs PARAMETRIZE the `[:500]` clamp (single-session work; reversible)
+
+For B3 (schema-validation gate):
+- [ ] Authorize grace-period strategy for the 80 grandfathered undeclared tables

@@ -1,10 +1,38 @@
 ---
 initiative: cognebula_sota
-last_session_utc: 2026-04-28T23:55:00Z
+last_session_utc: 2026-04-29T00:30:00Z
 status: ACTIVE
 ---
 
 # HANDOFF — CogNebula SOTA
+
+> **2026-04-28/29 — Hegui.io frontend deploy (parallel track)**:
+> Maurice signaled "把原来这个页面下架，将知识图谱前端部署在这个域名下".
+>
+> **What shipped**: CogNebula web UI (Next.js static export, 389 files, 5.8 MB)
+> deployed to CF Pages project `hegui-site` on the active account. Pages
+> Function `web/functions/api/v1/[[path]].ts` adapts `worker/src/index.ts` for
+> same-origin `/api/v1` proxy. Tunnel layer added on contabo (cloudflared
+> quick-tunnel) to bypass CF's bare-IP fetch block (validated empirically:
+> `fetch(http://IP)` → 1003, `fetch(https://*.trycloudflare.com)` → real data).
+> End-to-end live at `https://hegui-site.pages.dev/api/v1/stats` returning
+> {"total_nodes":518498,...}.
+>
+> **What did NOT ship**: `hegui.io` custom domain itself. The zone is on a
+> different CF account than `alphameta010@gmail.com` (verified by API call:
+> `zones?name=hegui.io` → 0 results). PPT gallery on hegui.io is unchanged.
+> Maurice-side action required — see `HEGUI_DEPLOY_STATUS.md` for 3 paths
+> (CNAME from owning account / migrate zone / credential handoff).
+>
+> **Commit**: `875d3ff` on `main`. **Runbook**: `HEGUI_DEPLOY_STATUS.md`.
+>
+> **Operational notes**:
+> - Quick tunnel URL `https://halifax-drop-college-oliver.trycloudflare.com`
+>   is stable for the cloudflared process lifetime; rotates on restart.
+> - Systemd unit `cloudflared-kg-quick.service` installed on contabo for
+>   boot persistence (URL will differ post-reboot — graduate to named tunnel
+>   when CF auth available).
+> - Worker public alias: `https://cognebula-kg-proxy.maoyuan-wen-683.workers.dev`.
 
 > **2026-04-28 §20 — Session closeout receipt (anti-amnesia artifact)**:
 > Maurice signaled "继续" a 5th time. The honest answer was that the marginal

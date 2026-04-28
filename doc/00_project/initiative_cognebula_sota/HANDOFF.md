@@ -1,10 +1,62 @@
 ---
 initiative: cognebula_sota
-last_session_utc: 2026-04-28T19:00:00Z
+last_session_utc: 2026-04-28T20:30:00Z
 status: ACTIVE
 ---
 
 # HANDOFF — CogNebula SOTA
+
+> **2026-04-28 §20 Phase C atomic queue — 5 commits shipped under Maurice "全部授权"**:
+> User directive "全部授权，继续推进" granted full authorization on 9 audit-gate
+> decisions. Phase C executed as 5 independent atomic commits (each isolated +
+> reversible + tested), stopping at the natural milestone where remaining work
+> physically requires multi-day backup/soak windows.
+>
+> Commit chain (all pushed to MARUCIE/cognebula-enterprise@main):
+> - **C1 `846c8a3`** — kg-api-server.py line 1868 `[:500]` clamp REMOVED.
+>   Stale Chesterton fence from M3 batch migration (commit ea83f033, 2026-03-20).
+>   Per-field length now lives at schema level only. Regression test added.
+> - **C5a `f685834`** — extracted_by micro-fix on 3 KU ingest scripts
+>   (ingest_all_matrix-v1, ingest_chinaacc-v1, flk_pipeline-v2). Forward-looking
+>   only; existing 185k empty rows backfilled separately in C3. Regex-based
+>   regression guard added.
+> - **C5b `0afe1a5`** — schema-discipline gate at /api/v1/admin/execute-ddl +
+>   /api/v1/admin/migrate-table. Rejects new CREATE TABLE for names not in
+>   canonical schema, grandfather snapshot (62 tables, frozen 2026-04-28),
+>   or `_experimental_` namespace. Closes audit B3.
+> - **C5c `a02220b`** — Source node declared in canonical schemas/ontology_v4.2.cypher
+>   as Tier 5 Provenance Cross-cut (1 type). Brings count 35→36 (Brooks ceiling 37,
+>   headroom 1). 9-field schema per B4. Closes audit B4 (declaration only;
+>   backfill C3 separately gated).
+> - **C5d `0efab53`** — B2 execution readiness doc.
+>   `outputs/audits/2026-04-28-prod-kg-b2-execution-readiness.md`.
+>   **Critical empirical finding**: open question (3) "author conflict-
+>   resolution precedence map" SELF-RESOLVED BY DATA. Direct probe shows:
+>   ComplianceRule (162+84, 0 ID overlap → pure UNION), FilingForm
+>   (14+121, 0 ID overlap → pure UNION), TaxIncentive (109/109/109 full
+>   intersection BUT fully disjoint field sets per row, 0 real-field conflicts).
+>   Migration is 100% deterministic on existing data. No precedence-map
+>   authoring required.
+>
+> Verification status: tests/test_real_kg_runtime_config.py 9/9 PASS at
+> commit 0efab53. ontology-whitelist-guard pre-commit hook accepts all
+> shipped commits.
+>
+> Authorization scoreboard (post-session): 8/9 decisions resolved by analyst
+> defaults under "全部授权"; 9th (B2 conflict resolution) self-resolved by
+> data. Remaining gates are PHYSICAL not authorization:
+>   (a) Maurice schedules contabo backup window (5-60min downtime).
+>   (b) Maurice picks 7-day soak start (consumer audit feasibility).
+>   (c) C2 execution session writes probe_v2_edges.py + migrate_v1v2_unified.py.
+>
+> What stays deferred to next session:
+>   - C2 prod migration run (additive: create _Unified, populate; reversible)
+>   - C2 cutover (drop V1+V2 + rename _Unified → canonical; IRREVERSIBLE,
+>     7-day soak required by design)
+>   - C3 backfill of source_id (12 fact-bearing tables ALTER TABLE; multi-day
+>     coordination)
+>   - C4 KU rename (KnowledgeUnit → KnowledgeChapter per B5 Path A)
+>   - C5 final regression + Phase C closeout
 
 > **2026-04-28 §20 Phase B5 receipt — third Munger validation this session**:
 > User directive "启动完全修复" Path 1 continued autonomously. B5 (KU fragmentation root

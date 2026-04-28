@@ -183,13 +183,33 @@ CREATE NODE TABLE IF NOT EXISTS TaxMilestoneEvent(
     taxTypeId STRING,
     PRIMARY KEY (id));
 
+// ------------------ Tier 5: Provenance Cross-cut (1 type) ------------------
+// Source closes audit F5 (source-attribution gap). Every fact-bearing node should
+// eventually carry a source_id foreign key pointing at a Source row. Backfill is
+// phased per outputs/audits/2026-04-28-prod-kg-source-schema-draft.md (B4):
+//   Phase 1 (LOW cost, ~70% coverage): LegalClause via CL_* prefix; KnowledgeUnit
+//     via source_doc_id; LegalDocument direct; all V2-lineage tables via sourceUrl.
+//   Phase 2 (MEDIUM): FAQEntry, ComplianceRule (L1) triangulation.
+//   Phase 3 (HIGH): TaxIncentive (L1), TaxRate*, Industry* — needs ingest rewrite.
+// `source_type` is open STRING (not enum) because KuzuDB lacks enum support and
+// new ingest paths must add freely; recommended values are
+// 'crawler' | 'llm-extracted' | 'manual' | 'imported'. Tighten via app-layer
+// validation when the set stabilizes (post-Phase 3).
+CREATE NODE TABLE IF NOT EXISTS Source(
+    id STRING, label STRING, url STRING,
+    source_type STRING, ingest_pipeline STRING,
+    ingest_ts STRING, publication_ts STRING,
+    jurisdiction STRING, authority STRING,
+    PRIMARY KEY (id));
+
 // ----------------------------------------------------------------------------
-// Total canonical v4.2 node types: 35
+// Total canonical v4.2 node types: 36
 //   Tier 1 Legal Backbone:           7
 //   Tier 2 Tax Domain Primitives:    9
 //   Tier 3 Operational Rules:       10
 //   Tier 4 Accounting + Reporting:   9
-// Brooks ceiling: 37 — headroom of 2 remaining.
+//   Tier 5 Provenance Cross-cut:     1   (added 2026-04-28 audit B4/C5c)
+// Brooks ceiling: 37 — headroom of 1 remaining.
 // ----------------------------------------------------------------------------
 
 // ============================================================================

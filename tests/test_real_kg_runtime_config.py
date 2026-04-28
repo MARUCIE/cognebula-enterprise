@@ -77,6 +77,26 @@ def test_api_server_enforces_db_size_floor_against_drift() -> None:
     assert "_dir_top_level_size" in server
 
 
+def test_source_node_declared_in_canonical_schema() -> None:
+    """C5c (audit B4) regression: the Source node type must be declared in
+    schemas/ontology_v4.2.cypher with the 9-field shape from the B4 design.
+
+    Source is the provenance anchor for closing audit F5. Removing the
+    declaration would re-open the source-attribution gap and make
+    Phase 1 backfill (C3) impossible.
+    """
+    schema = _read("schemas/ontology_v4.2.cypher")
+    assert "CREATE NODE TABLE IF NOT EXISTS Source(" in schema
+    # 5 required + 4 optional fields per B4 design
+    for required_field in ("id", "label", "url", "source_type", "ingest_pipeline"):
+        assert required_field in schema, f"required Source field '{required_field}' missing"
+    for optional_field in ("ingest_ts", "publication_ts", "jurisdiction", "authority"):
+        assert optional_field in schema, f"optional Source field '{optional_field}' missing"
+    # Brooks ceiling tracker must reflect 36 types now (was 35)
+    assert "Total canonical v4.2 node types: 36" in schema
+    assert "headroom of 1 remaining" in schema
+
+
 def test_grandfathered_tables_snapshot_is_present_and_stable() -> None:
     """C5b schema-discipline gate depends on schemas/grandfathered_tables.json.
 

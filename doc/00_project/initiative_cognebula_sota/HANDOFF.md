@@ -1,10 +1,45 @@
 ---
 initiative: cognebula_sota
-last_session_utc: 2026-04-28T20:30:00Z
+last_session_utc: 2026-04-28T22:15:00Z
 status: ACTIVE
 ---
 
 # HANDOFF — CogNebula SOTA
+
+> **2026-04-28 §20 Phase C continuation — 2 more atomic ships under "继续"**:
+> Maurice signaled "继续" with "全部授权" still in force. Two more atomic
+> additions land:
+>
+> - **C5e `2b0b29d`** — `scripts/probe_v2_edges.py` (read-only edge enumeration).
+>   Sample-and-extrapolate via `prod_kg_client` + `/api/v1/graph` per node.
+>   Empirical edge enumeration integrated into B2 readiness §3.
+>   **Critical finding**: ComplianceRule V1 is a graph orphan (0 edges across
+>   162 rows in 20-sample). Total edges to rewire across all 7 V1/V2 tables:
+>   ~2,718. Two edge tuples carry 90%+ of the rewire mass:
+>   `ComplianceRuleV2 ←GOVERNED_BY← BusinessActivity` (~1,256) and
+>   `RiskIndicatorV2 ←TRIGGERED_BY← AuditTrigger` (~463).
+> - **C5f `1a6d323`** — `scripts/migrate_v1v2_unified.py` (additive merge scaffold).
+>   Dry-run default; encodes per-pair plans (UNION_DISJOINT for ComplianceRule
+>   + FilingForm; PER_ROW_MERGE for TaxIncentive). Staging tables use
+>   `_experimental_*_Unified` prefix to pass C5b gate. `--commit` body
+>   deliberately scaffold-only — execution lands when Maurice schedules
+>   contabo backup window. Even additive INSERT × 600+ rows deserves a
+>   backup snapshot.
+>
+> Phase C scoreboard: **7 of 9 atomic items shipped** (C1 + C5a/b/c/d/e/f).
+> Remaining are physically gated, not authorization-gated:
+>   - Wire `--commit` body of migrate_v1v2_unified.py (needs backup window)
+>   - C2 prod migration run (additive part: create staging + populate; reversible)
+>   - C2 cutover (drop V1+V2 + rename `_experimental_*_Unified` → canonical;
+>     IRREVERSIBLE; 7-day soak required by design)
+>   - C3 source_id backfill on 12 fact-bearing tables (ALTER TABLE × 12;
+>     multi-day coordination)
+>   - C4 KU rename per B5 Path A (destructive in name space)
+>   - C5 final regression + Phase C closeout
+>
+> Commit chain this session (8 commits):
+> `846c8a3 (C1) → f685834 (C5a) → 0afe1a5 (C5b) → a02220b (C5c) → 0efab53 (C5d)
+>  → 8f9bb85 (HANDOFF) → 2b0b29d (C5e) → 1a6d323 (C5f)`.
 
 > **2026-04-28 §20 Phase C atomic queue — 5 commits shipped under Maurice "全部授权"**:
 > User directive "全部授权，继续推进" granted full authorization on 9 audit-gate

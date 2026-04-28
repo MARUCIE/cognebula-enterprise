@@ -5,6 +5,23 @@ import Link from "next/link";
 import { listNodes, getGraph, getStats, type KGNeighbor, type KGStats, LAYER_GROUPS, NODE_COLORS, EDGE_LABELS_ZH, EDGE_COLORS } from "../../lib/kg-api";
 import { CN, cnCard, cnBadge, cnInput, cnBtn, cnBtnPrimary } from "../../lib/cognebula-theme";
 
+/* ── Prod physical-table aliasing ──
+   The frontend lists tables by canonical v4.2 names. Production on contabo
+   is still on v4.1/v4.2 mixed naming — until Phase 1d (B1D) lands the final
+   renames, resolve canonical → physical here so counts + queries actually hit
+   data. Canonical types without a prod equivalent stay unmapped; their count
+   renders as 0 and the row is visually disabled. */
+const PROD_ALIAS: Record<string, string> = {
+  ComplianceRule: "ComplianceRuleV2",
+  RiskIndicator: "RiskIndicatorV2",
+  FilingForm: "FilingFormV2",
+  DeductionRule: "DeductionStandard",
+  TaxBasis: "TaxBase",
+};
+function resolveTable(table: string): string {
+  return PROD_ALIAS[table] ?? table;
+}
+
 /* ── v4.2 ontology: 35 node types across 4 layers ── */
 const BROWSABLE_TYPES = [
   // L1 法规层
@@ -327,20 +344,34 @@ function LargeTableGuide({ type, total, label, onSearch, onBrowse, pageSize }: {
 }) {
   const categories = LARGE_TABLE_CATEGORIES[type];
   const [counts, setCounts] = useState<Record<string, number>>({});
+  const [probed, setProbed] = useState(false);
 
   // Async fetch counts for each category item
   useEffect(() => {
     if (!categories) return;
     const queries = categories.flatMap((g) => g.items.map((i) => i.query));
     const unique = [...new Set(queries)];
-    // Batch: fetch count for each query (limit=1 just to get count header)
-    unique.forEach(async (q) => {
+    const physical = resolveTable(type);
+    Promise.all(unique.map(async (q) => {
       try {
-        const res = await listNodes(type, 1, 0, q);
-        setCounts((prev) => ({ ...prev, [q]: (res as Record<string, unknown>).total as number || res.count || 0 }));
-      } catch { /* skip */ }
+        const res = await listNodes(physical, 1, 0, q);
+        const n = (res as Record<string, unknown>).total as number || res.count || 0;
+        return [q, n] as [string, number];
+      } catch { return [q, 0] as [string, number]; }
+    })).then((pairs) => {
+      setCounts(Object.fromEntries(pairs));
+      setProbed(true);
     });
   }, [type, categories]);
+
+  // Detect "backend q mostly broken" state: fewer than 30% of categories have
+  // any matches. Happens on LegalDocument (0%) and TaxRate (~16%) where the
+  // backend's q param doesn't match name/title. Hide the sparse grid and
+  // promote direct browse instead — showing mostly-zero tiles is worse UX
+  // than a clean "use browse" CTA.
+  const allCategoriesEmpty = probed && Object.keys(counts).length > 0 &&
+    Object.values(counts).filter((v) => v > 0).length <
+      Object.keys(counts).length * 0.3;
 
   return (
     <div style={{ padding: "32px 40px", overflowY: "auto" }}>
@@ -354,8 +385,9 @@ function LargeTableGuide({ type, total, label, onSearch, onBrowse, pageSize }: {
         </div>
       </div>
 
-      {/* Category grid */}
-      {categories ? (
+      {/* Category grid — suppressed when backend q returns 0 for every category
+          (LegalDocument/TaxRate). Fall through to the browse-direct action below. */}
+      {categories && !allCategoriesEmpty ? (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16, maxWidth: 960, margin: "0 auto" }}>
           {categories.map((group) => (
             <div key={group.title} style={{
@@ -412,16 +444,35 @@ function LargeTableGuide({ type, total, label, onSearch, onBrowse, pageSize }: {
         </div>
       )}
 
-      {/* Browse all link */}
-      <div style={{ textAlign: "center", marginTop: 24, fontSize: 11, color: CN.textMuted }}>
-        或{" "}
-        <button
-          onClick={onBrowse}
-          style={{ background: "none", border: "none", color: CN.blue, cursor: "pointer", fontSize: 11, textDecoration: "underline" }}
-        >
-          直接浏览前 {pageSize} 条
-        </button>
-      </div>
+      {/* Browse all — promoted to a primary button when the category grid was
+          suppressed (backend q broken); otherwise a secondary link. */}
+      {allCategoriesEmpty ? (
+        <div style={{ textAlign: "center", marginTop: 8, maxWidth: 560, margin: "0 auto" }}>
+          <div style={{ fontSize: 12, color: CN.textSecondary, marginBottom: 18, lineHeight: 1.7 }}>
+            该类型当前不支持按分类筛选（后端 <code style={{ fontSize: 11, background: CN.bgElevated, padding: "1px 5px", borderRadius: 3 }}>q=</code> 字段索引不覆盖 <code style={{ fontSize: 11, background: CN.bgElevated, padding: "1px 5px", borderRadius: 3 }}>{resolveTable(type)}</code>），请直接浏览或使用上方搜索。
+          </div>
+          <button
+            onClick={onBrowse}
+            style={{
+              padding: "10px 28px", fontSize: 13, fontWeight: 600,
+              background: CN.blue, color: "#fff", border: "none",
+              borderRadius: 6, cursor: "pointer",
+            }}
+          >
+            浏览前 {pageSize} 条 →
+          </button>
+        </div>
+      ) : (
+        <div style={{ textAlign: "center", marginTop: 24, fontSize: 11, color: CN.textMuted }}>
+          或{" "}
+          <button
+            onClick={onBrowse}
+            style={{ background: "none", border: "none", color: CN.blue, cursor: "pointer", fontSize: 11, textDecoration: "underline" }}
+          >
+            直接浏览前 {pageSize} 条
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -640,10 +691,11 @@ export default function RulesPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await listNodes(type, PAGE_SIZE, pageNum * PAGE_SIZE, (q && q !== "__BROWSE__") ? q : undefined);
+      const physical = resolveTable(type);
+      const res = await listNodes(physical, PAGE_SIZE, pageNum * PAGE_SIZE, (q && q !== "__BROWSE__") ? q : undefined);
       const mapped = (res.results || []).map((n) => mapNodeRow(n, type));
       setNodes(mapped);
-      setTotal(q ? res.count || mapped.length : stats?.nodes_by_type?.[type] || res.count || mapped.length);
+      setTotal(q ? res.count || mapped.length : stats?.nodes_by_type?.[physical] || res.count || mapped.length);
 
       // For clause types, batch-resolve parent document names
       if (type === "LegalClause" || type === "RegulationClause") {
@@ -668,7 +720,7 @@ export default function RulesPage() {
 
   // Large tables (>1000 nodes) require explicit search or "browse" action
   const LARGE_TABLE_THRESHOLD = 1000;
-  const isLargeTable = (type: string) => (stats?.nodes_by_type?.[type] || 0) > LARGE_TABLE_THRESHOLD;
+  const isLargeTable = (type: string) => (stats?.nodes_by_type?.[resolveTable(type)] || 0) > LARGE_TABLE_THRESHOLD;
   const [browseConfirmed, setBrowseConfirmed] = useState(false);
 
   useEffect(() => {
@@ -677,7 +729,7 @@ export default function RulesPage() {
     // Skip auto-load for large tables unless user confirmed browsing or has a search query
     if (isLargeTable(activeType) && !serverQuery && !browseConfirmed) {
       setNodes([]);
-      setTotal(stats?.nodes_by_type?.[activeType] || 0);
+      setTotal(stats?.nodes_by_type?.[resolveTable(activeType)] || 0);
       setLoading(false);
       setError(null);
       return;
@@ -722,7 +774,7 @@ export default function RulesPage() {
       })
     : nodes;
 
-  const typeCount = (table: string) => stats?.nodes_by_type?.[table] || 0;
+  const typeCount = (table: string) => stats?.nodes_by_type?.[resolveTable(table)] || 0;
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
@@ -751,17 +803,21 @@ export default function RulesPage() {
               {types.map((t) => {
                 const count = typeCount(t.table);
                 const active = activeType === t.table;
+                const empty = stats !== null && count === 0;
                 return (
                   <button key={t.table}
                     onClick={() => switchType(t.table)}
+                    disabled={empty}
+                    title={empty ? "该类型在当前生产库中暂无数据（v4.2 待迁移）" : undefined}
                     style={{
                       display: "flex", alignItems: "center", justifyContent: "space-between",
                       width: "100%", padding: "7px 16px", fontSize: 12,
-                      color: active ? CN.blue : CN.text,
+                      color: active ? CN.blue : empty ? CN.textMuted : CN.text,
+                      opacity: empty ? 0.5 : 1,
                       background: active ? CN.blueBg : "transparent",
                       borderLeft: `2px solid ${active ? CN.blue : "transparent"}`,
                       border: "none", borderBottom: "none",
-                      cursor: "pointer", textAlign: "left",
+                      cursor: empty ? "not-allowed" : "pointer", textAlign: "left",
                     }}
                   >
                     <span style={{ display: "flex", alignItems: "center", gap: 8 }}>

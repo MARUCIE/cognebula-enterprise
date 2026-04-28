@@ -45,80 +45,134 @@ function getCardFields(data: Record<string, unknown>, type: string): [string, st
   }
 }
 
-/* ── Knowledge Card Node Component (compact ↔ expanded) ── */
+/* ── Knowledge Card Node Component — Heptabase-style rich card ── */
+const NODE_ZH_INLINE: Record<string, string> = {
+  TaxType: "税种", TaxIncentive: "税收优惠", ComplianceRule: "合规规则", TaxRate: "税率",
+  TaxAccountingGap: "税会差异", SocialInsuranceRule: "社保", InvoiceRule: "发票",
+  IndustryBenchmark: "基准", AuditTrigger: "审计", RiskIndicator: "风险", Penalty: "处罚",
+  LegalDocument: "法规", LegalClause: "条款", IssuingBody: "机构", KnowledgeUnit: "知识",
+  AccountingSubject: "科目", Classification: "分类", TaxEntity: "主体", Region: "地区",
+  FilingForm: "申报", BusinessActivity: "业务",
+};
+
+// Convert a node-type accent color into a very-light tinted card background
+// by appending an alpha hex. Input is "#RRGGBB" → returns "#RRGGBB0C" (≈5% tint).
+function tintBackground(hex: string): string {
+  return hex.length === 7 ? `${hex}0C` : CN.bgCard;
+}
+
 function KnowledgeCardNode({ data }: NodeProps) {
-  const [expanded, setExpanded] = React.useState(false);
+  const [hover, setHover] = React.useState(false);
   const nodeData = data as { label: string; nodeType: string; raw: Record<string, unknown>; onSelect?: (id: string) => void };
   const color = NODE_COLORS[nodeData.nodeType] || "#94A3B8";
   const layer = getNodeLayer(nodeData.nodeType);
-  const fields = getCardFields(nodeData.raw || {}, nodeData.nodeType);
+  const fields = getCardFields(nodeData.raw || {}, nodeData.nodeType).filter(([, v]) => v);
   const ft = String(nodeData.raw?.fullText || nodeData.raw?.content || nodeData.raw?.description || "");
-  const NODE_ZH_INLINE: Record<string, string> = {
-    TaxType: "税种", TaxIncentive: "税收优惠", ComplianceRule: "合规规则", TaxRate: "税率",
-    TaxAccountingGap: "税会差异", SocialInsuranceRule: "社保", InvoiceRule: "发票",
-    IndustryBenchmark: "基准", AuditTrigger: "审计", RiskIndicator: "风险", Penalty: "处罚",
-    LegalDocument: "法规", LegalClause: "条款", IssuingBody: "机构", KnowledgeUnit: "知识",
-    AccountingSubject: "科目", Classification: "分类", TaxEntity: "主体", Region: "地区",
-    FilingForm: "申报", BusinessActivity: "业务",
-  };
+  const typeZh = NODE_ZH_INLINE[nodeData.nodeType] || layer.slice(0, 5);
+
+  const openDetail = () => nodeData.onSelect?.(String(nodeData.raw?.id || ""));
 
   return (
     <div
-      onClick={(e) => {
-        if (e.detail === 2) {
-          // Double click → open detail panel
-          nodeData.onSelect?.(String(nodeData.raw?.id || ""));
-        } else {
-          // Single click → toggle expand
-          setExpanded(!expanded);
-        }
-      }}
+      onClick={(e) => { if (e.detail === 2) openDetail(); }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
       style={{
-        background: CN.bgCard,
-        border: `1px solid ${expanded ? color : CN.border}`,
-        borderLeft: `3px solid ${color}`,
-        borderRadius: 6,
-        padding: expanded ? "12px 14px" : "6px 10px",
-        width: expanded ? 300 : 180,
+        background: tintBackground(color),
+        border: `1px solid ${hover ? color : CN.border}`,
+        borderLeft: `4px solid ${color}`,
+        borderRadius: 8,
+        padding: "12px 14px 10px",
+        width: 280,
+        minHeight: 110,
         cursor: "pointer",
         fontSize: 12,
-        transition: "all 0.2s ease",
-        boxShadow: expanded ? `0 4px 16px ${color}22` : "none",
+        transition: "box-shadow 140ms ease, transform 140ms ease, border-color 140ms ease",
+        boxShadow: hover
+          ? `0 8px 22px ${color}26, 0 1px 3px rgba(15,23,42,0.06)`
+          : `0 1px 3px rgba(15,23,42,0.06)`,
+        transform: hover ? "translateY(-1px)" : "none",
+        display: "flex",
+        flexDirection: "column",
+        gap: 8,
       }}
+      title="双击查看完整详情"
     >
-      <Handle type="target" position={Position.Left} style={{ background: color, width: 6, height: 6 }} />
-      <Handle type="source" position={Position.Right} style={{ background: color, width: 6, height: 6 }} />
+      <Handle type="target" position={Position.Left} style={{ background: color, width: 8, height: 8, border: "none" }} />
+      <Handle type="source" position={Position.Right} style={{ background: color, width: 8, height: 8, border: "none" }} />
 
-      {/* Header: always visible */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 6 }}>
-        <div style={{ fontWeight: 700, fontSize: expanded ? 14 : 12, color: CN.text, lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: expanded ? "normal" : "nowrap" }}>
-          {String(nodeData.label).slice(0, expanded ? 60 : 20)}
-        </div>
+      {/* Top bar: type badge (like Heptabase's NOTE pill, aligned right) */}
+      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
         <span style={{
-          fontSize: 9, fontWeight: 600, color, background: color + "18",
-          padding: "1px 5px", borderRadius: 3, flexShrink: 0, whiteSpace: "nowrap",
+          fontSize: 9,
+          fontWeight: 700,
+          color,
+          background: CN.bg,
+          border: `1px solid ${color}40`,
+          padding: "2px 8px",
+          borderRadius: 10,
+          letterSpacing: "0.8px",
+          textTransform: "uppercase",
         }}>
-          {NODE_ZH_INLINE[nodeData.nodeType] || layer.slice(0, 5)}
+          {typeZh}
         </span>
       </div>
 
-      {/* Expanded: show all fields + fullText */}
-      {expanded && (
-        <div style={{ marginTop: 8, borderTop: `1px solid ${CN.border}`, paddingTop: 6 }}>
-          {fields.map(([label, value]) => value ? (
-            <div key={label} style={{ display: "flex", gap: 6, lineHeight: 1.6, color: CN.textSecondary }}>
-              <span style={{ color: CN.textMuted, minWidth: 32, flexShrink: 0, fontSize: 11 }}>{label}</span>
-              <span style={{ color: CN.text }}>{value}</span>
+      {/* Title — always visible, up to two lines */}
+      <div style={{
+        fontWeight: 700,
+        fontSize: 14,
+        color: CN.text,
+        lineHeight: 1.35,
+        display: "-webkit-box",
+        WebkitBoxOrient: "vertical",
+        WebkitLineClamp: 2,
+        overflow: "hidden",
+      }}>
+        {String(nodeData.label)}
+      </div>
+
+      {/* Key fields — always visible, up to 2 rows */}
+      {fields.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+          {fields.slice(0, 2).map(([label, value]) => (
+            <div key={label} style={{ display: "flex", gap: 8, fontSize: 11.5, lineHeight: 1.5 }}>
+              <span style={{ color: CN.textMuted, minWidth: 36, flexShrink: 0 }}>{label}</span>
+              <span style={{ color: CN.textSecondary, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{value}</span>
             </div>
-          ) : null)}
-          {ft && ft.length > 5 && (
-            <div style={{ marginTop: 6, fontSize: 11, color: CN.textMuted, lineHeight: 1.5, borderTop: `1px solid ${CN.bgElevated}`, paddingTop: 6, maxHeight: 120, overflowY: "auto" }}>
-              {ft.slice(0, 300)}{ft.length > 300 ? "..." : ""}
-            </div>
-          )}
-          <div style={{ marginTop: 4, fontSize: 9, color: CN.textMuted, textAlign: "right" }}>双击查看完整详情</div>
+          ))}
         </div>
       )}
+
+      {/* Full-text preview snippet — shown if the card has body text */}
+      {ft && ft.length > 8 && (
+        <div style={{
+          fontSize: 11,
+          color: CN.textMuted,
+          lineHeight: 1.55,
+          display: "-webkit-box",
+          WebkitBoxOrient: "vertical",
+          WebkitLineClamp: 2,
+          overflow: "hidden",
+          borderTop: `1px dashed ${CN.border}`,
+          paddingTop: 6,
+        }}>
+          {ft.slice(0, 160)}
+        </div>
+      )}
+
+      {/* Footer hint — always visible so users know double-click opens detail */}
+      <div style={{
+        marginTop: "auto",
+        fontSize: 10,
+        color: hover ? color : CN.textMuted,
+        textAlign: "right",
+        fontWeight: 500,
+        letterSpacing: "0.3px",
+        transition: "color 140ms ease",
+      }}>
+        双击查看完整详情 →
+      </div>
     </div>
   );
 }
@@ -152,10 +206,10 @@ function layoutNodes(nodes: CardGraphNode[], edges: CardGraphEdge[]): Node[] {
   const Dagre = require("@dagrejs/dagre");
   const g = new Dagre.graphlib.Graph();
   g.setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: "LR", nodesep: 24, ranksep: 120, marginx: 20, marginy: 20 });
+  g.setGraph({ rankdir: "LR", nodesep: 36, ranksep: 160, marginx: 24, marginy: 24 });
 
-  const CARD_W = 220;
-  const CARD_H = 90;
+  const CARD_W = 280;
+  const CARD_H = 130;
 
   for (const n of nodes) {
     g.setNode(n.id, { width: CARD_W, height: CARD_H });
@@ -187,12 +241,13 @@ function layoutEdges(edges: CardGraphEdge[]): Edge[] {
     label: e.label,
     type: "smoothstep",
     animated: false,
-    style: { stroke: "#60A5FA", strokeWidth: 2 },
-    labelStyle: { fontSize: 10, fill: "#93C5FD", fontWeight: 600 },
-    labelBgStyle: { fill: "#1E293B", fillOpacity: 0.9 },
-    labelBgPadding: [6, 3] as [number, number],
-    labelBgBorderRadius: 4,
-    markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14, color: "#60A5FA" },
+    // Dashed connector, Heptabase-reference style
+    style: { stroke: "#94A3B8", strokeWidth: 1.5, strokeDasharray: "4 4" },
+    labelStyle: { fontSize: 11, fill: "#475569", fontWeight: 600 },
+    labelBgStyle: { fill: "#F8FAFC", fillOpacity: 0.95, stroke: "#CBD5E1", strokeWidth: 0.5 },
+    labelBgPadding: [6, 4] as [number, number],
+    labelBgBorderRadius: 6,
+    markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14, color: "#94A3B8" },
   }));
 }
 

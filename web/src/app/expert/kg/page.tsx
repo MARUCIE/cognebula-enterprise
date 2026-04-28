@@ -3,13 +3,14 @@
 import React, { useState, useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
 import {
-  getStats, getGraph, searchNodes, getNodeDetail, listNodes, getConstellation, getConstellationByType,
+  getStats, getGraph, searchNodes, hybridSearch, getNodeDetail, listNodes, getConstellation, getConstellationByType,
   NODE_COLORS, EDGE_LABELS_ZH, EDGE_COLORS, LAYER_GROUPS,
   type KGStats, type KGNeighbor, type KGNodeDetail,
 } from "../../lib/kg-api";
 import { CN, cnInput, cnBtn, cnBtnPrimary, cnBadge } from "../../lib/cognebula-theme";
 const KnowledgeCardGraph = dynamic(() => import("../../components/KnowledgeCardGraph"), { ssr: false });
 const SigmaGraph = dynamic(() => import("../../components/SigmaGraph"), { ssr: false });
+const ReasoningChainPanel = dynamic(() => import("../../components/ReasoningChainPanel"), { ssr: false });
 import type { CardGraphNode, CardGraphEdge } from "../../components/KnowledgeCardGraph";
 import type { SigmaGraphData } from "../../components/SigmaGraph";
 
@@ -68,6 +69,7 @@ export default function KGExplorerPage() {
   const [selectedNode, setSelectedNode] = useState<{ id: string; label: string; type: string; neighbors: KGNeighbor[] } | null>(null);
   const [stats, setStats] = useState<KGStats | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchMode, setSearchMode] = useState<"exact" | "hybrid">("exact");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [leftOpen, setLeftOpen] = useState(true);
@@ -209,12 +211,13 @@ export default function KGExplorerPage() {
         return;
       }
 
-      const searchResult = await searchNodes(q, 10);
-      const results = searchResult.results || [];
+      const results = searchMode === "hybrid"
+        ? (await hybridSearch(q, 10, { expand: false })).results
+        : (await searchNodes(q, 10)).results || [];
       if (!results.length) { setError(`未找到: ${q}`); setLoading(false); return; }
 
       // Select the first result and show its detail
-      const first = results[0];
+      const first = results[0] as unknown as Record<string, string | undefined>;
       const nodeId = first.id || first.node_id || "";
       const nodeTable = first.table || first.source_table || "";
       const nodeLabel = first.text || first.title || first.name || nodeId;
@@ -228,7 +231,7 @@ export default function KGExplorerPage() {
       }
     } catch (e) { setError(e instanceof Error ? e.message : "搜索失败"); }
     setLoading(false);
-  }, [searchQuery]);
+  }, [searchQuery, searchMode]);
 
   // Browse a node type: switch card type or highlight in sigma
   const [sigmaFocusType, setSigmaFocusType] = useState<string | null>(null);
@@ -299,6 +302,17 @@ export default function KGExplorerPage() {
           style={{ ...cnBtnPrimary, opacity: loading ? 0.5 : 1, cursor: loading ? "wait" : "pointer" }}>
           {loading ? "..." : "搜索"}
         </button>
+        <div style={{ display: "flex", gap: 0, border: `1px solid ${CN.border}`, borderRadius: 4, overflow: "hidden" }}
+          title="精确 = Cypher 名称匹配；语义 = LanceDB 向量 + 文本 RRF 融合">
+          {(["exact", "hybrid"] as const).map((m) => (
+            <button key={m} onClick={() => setSearchMode(m)}
+              style={{ padding: "4px 10px", fontSize: 11, fontWeight: 600, border: "none", cursor: "pointer",
+                background: searchMode === m ? CN.blue : "transparent",
+                color: searchMode === m ? "#fff" : CN.textSecondary }}>
+              {m === "exact" ? "精确" : "语义"}
+            </button>
+          ))}
+        </div>
         {/* View mode switcher: 星图 / 卡片 */}
         <div style={{ display: "flex", gap: 0, border: `1px solid ${CN.border}`, borderRadius: 4, overflow: "hidden" }}>
           {(["sigma", "cards"] as const).map((m) => (
@@ -773,6 +787,11 @@ export default function KGExplorerPage() {
                 </div>
               ))}
             </div>
+
+            <ReasoningChainPanel
+              nodeId={selectedNode.id}
+              onNavigate={(id, type) => type && handleNodeSelect(id, type)}
+            />
 
             <button
               onClick={() => handleNodeSelect(selectedNode.id, selectedNode.type)}

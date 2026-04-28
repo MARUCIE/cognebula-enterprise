@@ -1073,3 +1073,32 @@ Two zombie LaunchAgents removed from active scope; project shell preserved pendi
 - Quarantine bundle: `~/.ai-fleet/disabled-launchagents/20260428-cognebula-orphan/`
 - Audit grid trace: this section
 - Reference for VPS-side rclone investigation (next session if Maurice asks): `~/Library/CloudStorage/GoogleDrive-alphameta010@gmail.com/My Drive/VPS-Backups/{cognebula-corpus, cognebula-snapshots}/2026-04-27/` (mtime 12:35 + 13:37)
+
+---
+
+## 2026-04-28 — Real KG API wiring, no demo runtime data
+
+The API runtime path has been tightened so local/demo KG data cannot be mistaken for production. The remaining local archived snapshot and empty KG placeholder were removed, Compose no longer has a demo fallback, and `kg-api-server.py` now refuses demo/archived/missing/empty database paths before opening Kuzu.
+
+Changed files:
+- `kg-api-server.py` — adds DB path validation plus `/health` and `/debug/paths` path-state disclosure.
+- `docker-compose.yml` — requires explicit real `COGNEBULA_GRAPH_PATH` and `COGNEBULA_LANCE_PATH`; mounts both read-only.
+- `.env`, `web/.env.local` — remove local demo path/key defaults; local web now targets the real Tailscale API.
+- `scripts/_lib/prod_kg_client.py` — self-test now verifies health, quality, search, and runtime paths.
+- `README.md`, `KG_ACCESS_GUIDE.md`, PDCA docs, rolling ledger — document real-KG-only runtime behavior.
+- `tests/test_real_kg_runtime_config.py` — locks runtime config against demo path regression.
+
+Deleted runtime demo artifacts:
+- `data/finance-tax-graph.archived.157nodes`
+- `data/finance-tax-graph/` (empty placeholder)
+- `scripts/bootstrap_local_demo_graph.py`
+
+Verification:
+- `./.venv/bin/python scripts/_lib/prod_kg_client.py` → `status=healthy`, `total_nodes=368910`, `total_edges=1014862`, `search_ids=["TT_VAT","TT_LAND_VAT"]`, `db_path=/home/kg/cognebula-enterprise/data/finance-tax-graph`, `lance_path=/home/kg/data/lancedb`.
+- Direct `curl` against `http://100.88.170.57:8400/api/v1/search?q=增值税&limit=2` returned live `TaxType` hits.
+- `python3 -m py_compile ...` passed for touched Python runtime/scripts.
+- `./.venv/bin/python -m pytest tests/test_search_api.py tests/test_reasoning_chain_api.py tests/test_real_kg_runtime_config.py -q` → 18 passed.
+- `ai check` still fails on pre-existing/project-harness issues: docs validator expects `doc/00_project/initiative_27_cognebula_enterprise/*` while this project uses `initiative_cognebula_sota`; no-emoji gate flags historical files; test gate invokes missing `tests/test_all.py`. These are outside the runtime KG wiring change and logged here to avoid a false green claim.
+
+Remaining risk:
+- Frontend prototype pages outside the KG expert/API path still contain static operational sample arrays (`clients`, `reports`, `workbench`). They are not used by `kg-api-server.py` or the KG API verification path, but they should be replaced by real product APIs before those pages are claimed production-ready.

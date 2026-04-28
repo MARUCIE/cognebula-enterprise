@@ -118,14 +118,16 @@ graph TB
 The v1.0 diagram above describes the original code intelligence prototype. The actual production system is a **finance/tax domain knowledge graph**:
 
 ```
-Local self-hosted package (`docker compose`)
+Local self-hosted package (`docker compose`, explicit real mounts only)
   ├── Static web app: http://localhost:3001/
   ├── Browser-safe local proxy: http://localhost:3001/api/v1/*
   └── Protected KG API: http://localhost:8400/api/v1/*
+      └── Requires COGNEBULA_GRAPH_PATH + COGNEBULA_LANCE_PATH; no demo default
 
 Static frontend (`web/`, Next.js `output: export`)
   ├── Browser uses HTTPS only
   ├── KG client targets `https://cognebula-kg-proxy.workers.dev/api/v1`
+  ├── Local dev target defaults to real Tailscale API: `http://100.88.170.57:8400/api/v1`
   ├── `/expert/data-quality` consumes `/stats` + `/quality` + `/ontology-audit`
   └── No browser-side storage of `KG_API_KEY`
 
@@ -135,11 +137,10 @@ Cloudflare Worker proxy (`worker/src/index.ts`)
   └── Preserves static export deployment model while keeping auth server-side
 
 kg-api-server.py (108K lines, FastAPI, port 8400)
-  ├── Kuzu/Vela DB: 856K nodes / 2.0M+ edges (52 node types, 34 rel types)
-  ├── Node types: RegulationClause(645K), LawOrRegulation(53K),
-  │               DocumentSection(42K), KnowledgeUnit(32K), MindmapNode(28K), HSCode(23K), ...
-  ├── Edge types: CLAUSE_OF(645K), NEXT_CLAUSE(628K), SEMANTIC_SIMILAR(570K),
-  │               HS_PARENT_OF(45K), CLAUSE_REFERENCES(41K), NEXT_SECTION(40K), ...
+  ├── Production DB path: /home/kg/cognebula-enterprise/data/finance-tax-graph
+  ├── Production LanceDB path: /home/kg/data/lancedb
+  ├── Live verified state (2026-04-28): 368,910 nodes / 1,014,862 edges / 118,011 LanceDB rows
+  ├── Runtime guard: refuses demo, archived, missing, or empty DB paths before opening Kuzu
   ├── Endpoints: /stats, /quality, /ontology-audit, /search, /hybrid-search, /nodes, /neighbors, /admin/*
   ├── Auth: `KG_API_KEY` middleware on non-exempt API routes
   ├── Hygiene Gate: `/quality` (title/content coverage + edge density inside curated tables)

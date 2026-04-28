@@ -71,7 +71,10 @@ def mock_kg_response():
     return {"status": "healthy", "kuzu": True, "lancedb": True, "lancedb_rows": 118011}
 ```
 
-Or pin against the small archived backup `data/finance-tax-graph.archived.157nodes` (22 MB, 157-node snapshot — still on disk, NOT deleted) for tests that need a real KuzuDB instance.
+For tests that need a real KuzuDB instance, seed a temporary Kuzu DB inside the
+test fixture. Do not pin runtime code or Compose to local demo/archived KG
+files. The old `data/finance-tax-graph.archived.157nodes` snapshot has been
+removed from the working tree to prevent accidental runtime use.
 
 **When to use**: pytest unit tests, CI matrix runs, anywhere the test must succeed in a network-isolated environment.
 
@@ -118,12 +121,12 @@ Mutating (do NOT call from local dev):
 
 Scripts that previously defaulted `--db data/finance-tax-graph.demo` (e.g.
 `scripts/migrate_phase1d_taxincentive_merge.py`, `scripts/check_ontology_conformance.py`)
-are now broken by file deletion. Two options:
+are now broken by file deletion. Use the real KG instead:
 
-1. **Don't run them locally.** They were sandbox-only utilities. Run on contabo against real prod path: `--db /home/kg/cognebula-enterprise/data/finance-tax-graph`.
-2. **Recreate sandbox if needed.** `scripts/bootstrap_local_demo_graph.py` will rebuild a small `.demo` from seed data — but only do this if you need an isolated test fixture, not as a standin for prod.
-
-The `bootstrap_local_demo_graph.py` script was kept on disk; running it is opt-in.
+1. Prefer the Tailscale REST surface through `scripts/_lib/prod_kg_client.py`.
+2. For raw Cypher or file-level inspection, run on contabo against
+   `/home/kg/cognebula-enterprise/data/finance-tax-graph`.
+3. For CI/unit tests, create a temporary seeded Kuzu DB in the test itself.
 
 ---
 

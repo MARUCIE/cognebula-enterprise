@@ -1364,3 +1364,26 @@ line in `ROLLING_REQUIREMENTS_AND_PROMPTS.md::Promoted Design Rules`
   + emit per-initiative log line) before merging. Tagged HITL-pending,
   not abandoned.
 - S18.26+ (P2 deferred): Tier-P2 items remain in queue per task_plan.md.
+
+---
+
+## 2026-04-28 — Runtime demo KG removal + real API proof
+
+Trigger: Maurice asked to check whether the API calls a real database, clear demo data, and ensure the API is truly connected end to end.
+
+Findings:
+- Direct `kg-api-server.py` defaulted to `data/finance-tax-graph`, but the local path was an empty directory, so it could create or report against a non-real local DB if run directly.
+- `docker-compose.yml` still defaulted to `data/finance-tax-graph.archived.157nodes`, and `.env` pointed at `data/finance-tax-graph.demo` even though `.demo` had already been deleted.
+- The real source of truth is the contabo KG: `/home/kg/cognebula-enterprise/data/finance-tax-graph`, exposed over Tailscale at `http://100.88.170.57:8400`.
+
+Actions:
+- Deleted runtime demo artifacts: `data/finance-tax-graph.archived.157nodes`, empty `data/finance-tax-graph/`, and `scripts/bootstrap_local_demo_graph.py`.
+- Changed Compose to require explicit `COGNEBULA_GRAPH_PATH` + `COGNEBULA_LANCE_PATH`; no demo or archived fallback remains.
+- Added API path guardrails and health/debug path disclosure so demo/archived/missing/empty DB paths fail audibly.
+- Updated local web env to point at the real Tailscale API.
+
+Verification evidence:
+- `scripts/_lib/prod_kg_client.py`: `health.status=healthy`, `total_nodes=368910`, `total_edges=1014862`, `search_ids=["TT_VAT","TT_LAND_VAT"]`.
+- `curl /api/v1/debug/paths`: `DB_PATH=/home/kg/cognebula-enterprise/data/finance-tax-graph`, `LANCE_PATH=/home/kg/data/lancedb`.
+- Targeted regression: `tests/test_search_api.py`, `tests/test_reasoning_chain_api.py`, and `tests/test_real_kg_runtime_config.py` passed 18/18.
+- `ai check` remains red for existing harness/doc-contract mismatch, not this runtime change: missing `tests/test_all.py`, docs expected under `initiative_27_cognebula_enterprise`, and historical emoji hits in unrelated files.

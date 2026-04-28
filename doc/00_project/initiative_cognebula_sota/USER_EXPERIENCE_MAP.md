@@ -1,6 +1,6 @@
 # CogNebula Enterprise -- User Experience Map
 
-> Version: 0.4 | Last updated: 2026-04-22
+> Version: 0.5 | Last updated: 2026-04-23
 
 <!-- AI-TOOLS:PROJECT_DIR:BEGIN -->
 PROJECT_DIR: /Users/mauricewen/Projects/27-cognebula-enterprise
@@ -28,13 +28,16 @@ PROJECT_DIR: /Users/mauricewen/Projects/27-cognebula-enterprise
 ### Journey 1: First-Time Setup (Persona 2)
 ```
 1. git clone cognebula-enterprise
-2. Place repos in ./data/ or use the bundled baseline graph
+2. On the production host, export real KG mounts:
+   COGNEBULA_GRAPH_PATH=/home/kg/cognebula-enterprise/data/finance-tax-graph
+   COGNEBULA_LANCE_PATH=/home/kg/data/lancedb
+   KG_API_KEY=<real key>
 3. docker compose up -d --build
 4. Visit http://localhost:3001/ (packaged static web app)
 5. Visit http://localhost:8400/docs (Swagger)
 6. Run `GET /api/v1/search` or `GET /api/v1/hybrid-search` with `X-API-Key`, or use the packaged `:3001` proxy path
 ```
-**Quality Gate**: Time-to-first-insight < 5 minutes
+**Quality Gate**: Runtime health reports `runtime_database=production` or an explicit real mount, never demo/archived/empty KG data.
 
 ### Journey 2: Agent Integration (Persona 1)
 ```
@@ -113,7 +116,7 @@ The original personas targeted code intelligence users. Actual users are in the 
 | Tax query accuracy | 100 curated Q&A pairs vs KG answers | > 90% match |
 | Graph freshness | Days since last successful crawl per source | < 7 days |
 | MCP latency | p99 response time for graph traversal queries | < 500ms |
-| Content quality | Quality Gate score (6-dimension) | > 80/100 |
+| Data quality | Structural gate PASS + hygiene score > 80 | `/api/v1/ontology-audit` + `/api/v1/quality` both trustworthy |
 | Agent performance lift | Agent task completion with vs without CogNebula | > 30% improvement |
 
 ---
@@ -122,32 +125,42 @@ Maurice | maurice_wen@proton.me
 
 ## Journey D: Clause Semantic Inspection (Persona D — Finance/Tax Operator)
 
-**Entry point (production)**: `/expert/data-quality` section "条款语义审核 — Clause Inspector"
+**Entry point (production)**: `/expert/data-quality` page-level "结构质量 / 基础卫生" summary, then section "条款语义审核 — Clause Inspector"
 (Next.js page `web/src/app/expert/data-quality/page.tsx` mounting component
 `web/src/app/components/ClauseInspector.tsx`). Operator reaches it from the
 sidebar "数据质量" tab of the main CogNebula expert workbench.
+
+**Validation surface (release smoke / visual regression)**:
+`/expert/data-quality/fixture` (Next.js page
+`web/src/app/expert/data-quality/fixture/page.tsx`) preloads a real production
+snapshot captured from `app.hegui.org` on 2026-04-23. Purpose: stable desktop /
+mobile screenshots, CTA path smoke, keyboard smoke, and Lighthouse without
+depending on the protected `ops.hegui.org` shell or live API availability.
 
 **Dev self-test surface**: `http://<backend>:8400/inspect` (FastAPI-served
 `src/web/inspect.html`). Purpose: per-endpoint smoke test for the POST
 `/api/v1/inspect/clause[/batch]` routes without spinning up the Next.js
 frontend. NOT the product UI — do not link from customer-facing docs.
 
-**Primary task**: Operator on-call gets alerted about a clause row showing anomalous behaviour in UI batch; needs to verify what semantic defect is present without spinning up a new debugging harness.
+**Primary task**: Operator on-call gets alerted that the graph is becoming unusable (ontology drift, catch-all node buckets, or clause-row anomalies). They first need to decide whether the problem is structural data quality or clause semantics, without spinning up a new debugging harness.
 
 **Key task → Main path**:
 
 ```
 1. Operator opens the CogNebula expert workbench and clicks "数据质量" (Sidebar)
-2. Scrolls to "条款语义审核 — Clause Inspector" section at the bottom of the page
-3. Single row mode: selects argument_role / strength / jurisdiction_code / scope
-4. Clicks "审核" (Primary Action)
-5. Verdict card appears within ~100 ms:
+2. Reads the hero verdict and "发布门 / 最大桶 / 结构漂移 / 卫生分" four-card summary
+3. Clicks the page primary action (e.g. "先处理 KnowledgeUnit") to jump to the governance lane
+4. Reviews the治理优先级 list and node-distribution panel to spot catch-all buckets such as oversized `KnowledgeUnit` or legacy/rogue tables
+5. Scrolls to "条款语义审核 — Clause Inspector" section at the bottom of the page
+6. Single row mode: selects argument_role / strength / jurisdiction_code / scope
+7. Clicks "审核" (Primary Action)
+8. Verdict card appears within ~100 ms:
    - CLEAN (green) — no defect
    - DEFECTS (red) — list of flag chips: 税收法定禁止 / 辖区代码与作用域不一致 / ...
-6. KV table below shows role label (ZH + prohibition marker) + strength tier + chain
+9. KV table below shows role label (ZH + prohibition marker) + strength tier + chain
    breadcrumb + consistency verdict + reason (if inconsistent)
-7. For batch: switch tab, paste NDJSON (one row per line), click "批量审核"
-8. Summary card: total / clean / defect counts + scrollable per-row list
+10. For batch: switch tab, paste NDJSON (one row per line), click "批量审核"
+11. Summary card: total / clean / defect counts + scrollable per-row list
 ```
 
 **Failure paths**:
@@ -167,12 +180,21 @@ frontend. NOT the product UI — do not link from customer-facing docs.
 
 **Quality Gates (verified 2026-04-22)**:
 
+- Data-quality shell surfaces structural FAIL/PASS, rogue counts, and dominant-bucket share before the inspector so operators do not mistake `/quality` 100/100 for whole-graph usability
+- Page-level primary action scrolls to the governance lane; secondary action scrolls to the inspector
 - Browser console: 0 errors, 0 warnings (favicon + font + POST only)
 - Network: only `POST /api/v1/inspect/clause[/batch]` submitted; no PII / secrets / token in URL
 - Responsive: 2-column at ≥860 px, single-column mobile at 375 × 667 (screenshot evidence)
 - Keyboard a11y: tab order ok, arrow keys switch tabs, `role="alert"` on errors, skip-link to main
 - E2E golden path: clean row → CLEAN verdict; defect row (analogy + CN-FTZ-SHA/municipal) → 2 flags rendered with ZH labels
 - Primary action single (单行) + single (批量) — no decision ambiguity
+
+**Validation evidence (2026-04-24 fixture route)**:
+- `outputs/reports/ontology-audit-swarm/screens/2026-04-24-data-quality-fixture-desktop.png`
+- `outputs/reports/ontology-audit-swarm/screens/2026-04-24-data-quality-fixture-mobile.png`
+- `outputs/reports/ontology-audit-swarm/2026-04-24-data-quality-fixture-smoke.json`
+- `outputs/reports/ontology-audit-swarm/2026-04-24-data-quality-fixture-lighthouse.report.html`
+- `outputs/reports/ontology-audit-swarm/2026-04-24-data-quality-fixture-lighthouse.report.json`
 
 **Screenshot evidence (production integration, 2026-04-22)**:
 - `outputs/reports/ontology-audit-swarm/screens/2026-04-22-data-quality-with-inspector.png` — Clause Inspector rendered inside the real Data Quality page, under CogNebula sidebar + "514K nodes / 1.1M edges / API OK" header

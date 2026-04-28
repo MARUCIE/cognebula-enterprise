@@ -8,17 +8,22 @@ status: ACTIVE
 
 > **2026-04-28 §19 closure — Real Prod KG Wiring**:
 > Local `.demo` sandbox deleted (166 MB freed: `.demo` 109 MB + `.demo.work` 57 MB).
+> `.archived.157nodes` (22 MB) also removed — KG_ACCESS_GUIDE.md now points test
+> fixtures at "seed a temporary Kuzu DB inside the test fixture" instead of any
+> on-disk pin to prevent runtime/test code from accidentally re-binding to a stale
+> snapshot. Test forks `.phase1d-test` (118 MB) + `.phase4-test` (114 MB) preserved.
 > Local code now reaches prod via Tailscale REST: `scripts/_lib/prod_kg_client.py`.
 > Default base URL `http://100.88.170.57:8400` (env override `COGNEBULA_KG_URL`).
 > Live prod measurement: **368,910 nodes / 1,014,862 edges / quality 100/100 / gate PASS**.
+> DB path verified via `/api/v1/debug/paths`: `/home/kg/cognebula-enterprise/data/finance-tax-graph`.
 > Schema-vs-live drift on prod: 93 live types vs 31 declared (over-ceiling 56) — this
 > is HITL-2 already on the queue, not a new finding.
 > Audit upgraded to Rev. 3 with measured numbers; `KG_ACCESS_GUIDE.md` is the
 > canonical reference for future local-to-prod access.
-> Test fixtures preserved (NOT deleted): `.archived.157nodes` (22 MB), `.phase1d-test`
-> (118 MB), `.phase4-test` (114 MB).
 > §19 queue: Phase A (discovery) DONE · Phase B (cleanup) DONE · Phase C (wire-up)
-> DONE · Phase D (doc sync) DONE · E1-E2 commit · E3 → 3-advisor swarm review (final).
+> DONE · Phase D (doc sync) DONE · E1-E2 commit DONE (`e74aafe`) · E3 swarm review
+> DEFERRED — org monthly limit hit on Round 1 dispatch. Self-test passes; design is
+> reversible; logged as residual at `task_plan.md §19 Phase E3 Residual`.
 >
 > **2026-04-28 §18 prior milestone (Sweeps 4-9, earlier this continuation)**:
 > All agent-actionable §18 atomic queue items are CLOSED.

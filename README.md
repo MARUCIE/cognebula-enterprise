@@ -62,31 +62,69 @@ Completely self-contained. Air-gapped ready. Built for enterprise commercializat
 
 ## One-Click Deployment
 
-### 1. Mount your data
+### 1. Mount the real KG data
 ```bash
-# Place repos in ./data
-cp -r ~/my-java-backend ./data/
-cp -r ~/my-react-frontend ./data/
+# On the production host:
+export COGNEBULA_GRAPH_PATH=/home/kg/cognebula-enterprise/data/finance-tax-graph
+export COGNEBULA_LANCE_PATH=/home/kg/data/lancedb
+export KG_API_KEY=your-key
 ```
 
 ### 2. Start the cluster
 ```bash
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
 ### 3. Access
-- **Visual Control Plane (WebGL 3D)**: http://localhost:8766/
-- **Swagger/OpenAPI Docs**: http://localhost:8766/docs
+- **Static Web App**: http://localhost:3001/
+- **Protected KG API**: http://localhost:8400/
+- **Swagger/OpenAPI Docs**: http://localhost:8400/docs
 
-## Agent Integration (Graph RAG)
+The Docker Compose package now runs the API and a static web container separately.
+The web container proxies `/api/v1/*` to `cognebula-api` and injects `KG_API_KEY`
+server-side, so the browser never needs the secret.
+
+The packaged stack has no demo database default. `COGNEBULA_GRAPH_PATH` and
+`COGNEBULA_LANCE_PATH` are required, and `kg-api-server.py` refuses known demo,
+archived, or empty KG paths before opening Kuzu. For local development, prefer
+the real Tailscale API instead of mirroring the 102 GB production graph:
 
 ```bash
-curl -X POST http://localhost:8766/api/rag \
-  -H "Content-Type: application/json" \
-  -d '{"repo": "/data/my-java-backend", "query": "Where is JWT auth handled?"}'
+COGNEBULA_KG_URL=http://100.88.170.57:8400 ./.venv/bin/python scripts/_lib/prod_kg_client.py
 ```
 
-Returns hyper-dense, markdown-formatted structural context optimized for LLM context windows.
+The packaged web container defaults to `3001` to avoid the very common `3000`
+collision with other local dev stacks. If you need a different port, override it:
+
+```bash
+COGNEBULA_WEB_PORT=3001 KG_API_KEY=your-key docker compose up -d --build
+```
+
+## Agent Integration (Packaged API)
+
+The packaged local stack exposes the protected KG API on `http://localhost:8400`
+and the browser-safe proxy on `http://localhost:3001/api/v1/*`.
+
+Search example:
+
+```bash
+curl -H "X-API-Key: your-key" \
+  "http://localhost:8400/api/v1/search?q=%E5%A2%9E%E5%80%BC%E7%A8%8E&limit=5"
+```
+
+Hybrid search example:
+
+```bash
+curl -H "X-API-Key: your-key" \
+  "http://localhost:8400/api/v1/hybrid-search?q=%E5%A2%9E%E5%80%BC%E7%A8%8E&limit=5&expand=true"
+```
+
+If you are using the packaged web container locally, the same endpoints are
+available without passing the secret in the browser path:
+
+```bash
+curl "http://localhost:3001/api/v1/search?q=%E5%A2%9E%E5%80%BC%E7%A8%8E&limit=5"
+```
 
 ## Screenshots
 

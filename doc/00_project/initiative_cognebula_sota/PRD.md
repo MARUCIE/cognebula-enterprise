@@ -1,44 +1,57 @@
-# CogNebula SOTA Enterprise Context Brain - PRD
+# CogNebula Enterprise -- PRD
 
-> v2.0 -- Updated 2026-03-03 based on SOTA Product SOP Benchmarking (20+ products, 4 domains, 60+ sources)
+> v3.1 -- Updated 2026-04-23 based on 2-round SOTA benchmarking (25+ products, 4 domains, 80+ sources)
 
 ## 1. Objective
 
-Transform CogNebula from a high-performance local developer tool into the industry-standard, out-of-the-box **Enterprise Context Brain for AI Agents**. It will serve as the structural memory and blast-radius analysis engine for any LLM-powered software engineering agent, enabling them to operate safely in large corporate codebases.
+CogNebula is a **domain knowledge graph for AI agents** — currently serving the finance/tax compliance domain from the live production KG (**368,910 nodes, 1,014,862 edges, 118,011 LanceDB rows verified 2026-04-28**). It provides structured regulatory knowledge (laws, regulations, interpretations, tax rates, compliance rules) to LLM-powered agents via REST API, a browser-safe HTTPS proxy for static web surfaces, with MCP Server as the priority integration path.
+
+Unlike code intelligence platforms (Sourcegraph, Augment, Cursor), CogNebula applies the same validated architecture (graph + RAG + MCP) to **regulated domain knowledge** — a market with zero direct competitors.
 
 ## 2. Scope
 
 ### In Scope
-- Graph engine migration (KuzuDB -> Memgraph/Neo4j) due to KuzuDB archival
-- Hybrid RAG: LanceDB (vector entry) + Graph DB (structural traversal)
-- Universal Tree-sitter parsing (40+ languages, replacing regex/AST hybrid)
-- MCP Server for agent consumption (table stakes per SOTA benchmarking)
-- Real-time incremental indexing (<5s updates)
-- Multi-tenant shared-nothing isolation
-- RBAC + SSO/SAML + audit trails
-- Helm charts + Docker Compose deployment
+- MCP Server for agent consumption (P0 — competitive window closing)
+- KuzuDB sustainability assessment (archived Oct 2025; Vela fork or FalkorDB migration)
+- Hybrid RAG: vector entry + graph traversal for tax law retrieval
+- Published benchmarks for trust-building (query accuracy, latency, coverage)
+- Dual quality gates for compliance verification workflows: `/api/v1/quality` (content hygiene) + `/api/v1/ontology-audit` (canonical structure / drift)
+- Daily pipeline automation (M3 orchestrator, crawl, enrichment)
+- Validation surfaces for release readiness: responsive screenshots, fixture-backed visual regression, and browser smoke against a production snapshot
 
 ### Non-Goals
-- IDE plugin/extension (CogNebula is backend infrastructure, not UI)
-- Code generation (validation/context provider only, per Greptile's philosophy)
-- Autonomous agent orchestration (provide brain, not orchestrator)
-- Mobile/desktop client applications
+- Code intelligence (separate market; Sourcegraph/Augment/Cursor own this)
+- IDE plugin/extension (CogNebula is backend infrastructure)
+- Autonomous agent orchestration (provide knowledge brain, not orchestrator)
+- Generic graph DB product (domain-specific, not competing with Neo4j)
 
 ## 3. Competitive Positioning
 
-Based on SOTA benchmarking (Mar 2025 - Mar 2026):
+Based on SOTA benchmarking (Mar 2025 - Apr 2026, 25+ products):
 
-| Competitor | Their Strength | CogNebula Differentiation |
-|-----------|---------------|--------------------------|
-| Sourcegraph Cody | Legacy monorepo search (54B+ lines) | Graph-first (not search-first), blast radius analysis |
-| Greptile v3 | 82% bug catch rate, validation-only | Structural graph context (not just review), multi-tenant |
-| GitHub Copilot | Platform integration, agentic DevOps | Neutral backend brain (not GitHub-locked), self-hosted |
-| Augment Code | 400K+ file semantic indexing | Open-source, self-hosted, graph + vector hybrid |
-| Neo4j | Enterprise graph with RBAC | Code-specialized (not generic graph), embedded-first |
+**Market 1: Code Context Engines (reference, not competitors)**
 
-**Unique positioning**: API-first, neutral backend brain with graph-native code intelligence. Unlike Sourcegraph (closed UI) or Neo4j (generic graph, heavy Java), CogNebula is purpose-built for code structure and agent consumption.
+| Platform | Architecture | MCP | CogNebula Takeaway |
+|----------|-------------|-----|-------------------|
+| Augment Code | Semantic dependency graph | GA (Context Engine MCP) | Same architecture pattern, different knowledge domain |
+| Sourcegraph Amp | Code graph + vector hybrid | Not public | Graph+vector hybrid is validated at scale |
+| GitLab Duo | Knowledge Graph (Rust) | N/A | Enterprise code graph validates the approach |
+| Qodo | Context Engine + agentic RAG | N/A | Multi-agent + domain graph is the direction |
 
-## 4. Product Packaging & Out-of-the-box Experience
+**Market 2: Domain Knowledge Graphs (CogNebula's market)**
 
-- **Deployment Tiers**:
-  - MVP: Docker Compose for
+| Dimension | CogNebula | Nearest Analog |
+|-----------|-----------|---------------|
+| Domain | Finance/tax (856K nodes, 18 tax types, 2.0M+ edges) | None (greenfield) |
+| Architecture | KuzuDB embedded graph + Gemini enrichment | Snyk DeepCode (same pattern: domain AI + structured knowledge) |
+| Agent integration | REST API + HTTPS proxy + MCP | Neo4j Aura Agent (MCP GA, but generic graph) |
+| Content pipeline | Daily crawl + M3 orchestrator + quality gate | No equivalent in domain KG space |
+
+**Unique positioning**: The only structured, graph-native knowledge base for AI agents operating in Chinese finance/tax compliance. Competitors offer generic graph DBs (Neo4j) or code-specific graphs (Augment); none provides domain-specific regulatory knowledge with compliance semantics.
+
+## 4. Product Packaging
+
+- **Current**: FastAPI server (port 8400) + live Kuzu/Vela graph on contabo + static Next.js frontend + Cloudflare Worker HTTPS proxy + explicit-only `docker compose` package (`:8400` protected API, `:3001` static web/proxy) + daily pipeline on VPS. The packaged API no longer defaults to demo, archived, or empty local KG data; real DB/Lance mounts are required, and local development should use the Tailscale REST API at `http://100.88.170.57:8400`.
+- **Current**: The operator-facing data-quality page now treats ontology conformance as the primary gate and coverage metrics as secondary hygiene signals. A validation-only production-snapshot route keeps the page testable without depending on live auth/network.
+- **Next**: Harden the browser-safe proxy path, keep benchmark green, and align self-hosted packaging with the current auth model
+- **Target**: Customer-facing self-hosted package with protected API, static frontend, and documented proxy/auth bootstrap

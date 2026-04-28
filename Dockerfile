@@ -6,21 +6,24 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 WORKDIR /app
 
-# Install system dependencies for build
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install python dependencies
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-RUN pip install fastapi uvicorn kuzu lancedb pydantic numpy
+# Install the minimal runtime dependencies required by kg-api-server.py.
+# Do not install the repo-wide requirements set here: it drags in heavy
+# embedding / ML packages that are not needed for the API container.
+RUN pip install \
+    "fastapi>=0.110.0" \
+    "uvicorn>=0.29.0" \
+    "pydantic>=2.6.0" \
+    "kuzu>=0.11.3" \
+    "lancedb>=0.6.0"
 
 # Copy backend server
 COPY kg-api-server.py .
 
 # Copy frontend interfaces
 COPY src/web/ ./src/web/
+COPY src/audit/ ./src/audit/
+COPY src/reasoning/ ./src/reasoning/
+COPY schemas/ ./schemas/
 COPY design/ ./design/
 
 # Default environment variables

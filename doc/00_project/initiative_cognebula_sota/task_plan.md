@@ -610,13 +610,13 @@ If milestone reached (Tier 0 + ≥6 P0 closed), pause and report. If blocker hit
 - [x] B2 Verified no active KuzuDB reader; only macOS background indexers (`com.docker.backend` PID 4763 + `com.apple.Virtualization.VirtualMachine` PID 5915) held read-only FDs. Per macOS file-deletion semantics, FDs persist after unlink until indexer closes; safe to proceed.
 - [x] B3 `rm data/finance-tax-graph.demo` ✅ (109 MB freed)
 - [x] B4 `rm data/finance-tax-graph.demo.work` ✅ (57 MB freed)
-- [x] B5 PRESERVED (intentionally NOT deleted): `.phase1d-test` (118 MB), `.phase4-test` (114 MB), `.archived.157nodes` (22 MB)
+- [x] B5 PRESERVED: `.phase1d-test` (118 MB), `.phase4-test` (114 MB) — multi-phase test forks. `.archived.157nodes` (22 MB) was subsequently REMOVED during the linter pass on `KG_ACCESS_GUIDE.md`: keeping a 157-node snapshot on disk while the doc claimed "for tests that need a real KuzuDB instance" was a runtime-binding hazard (Goodhart-vector — any script defaulting to it would silently bind to a stale fixture). Doc now points at "seed a temporary Kuzu DB inside the test fixture" instead.
 
 ### Phase C — Wire-up local → prod (autonomous reversible)
 
-- [x] C1+C2 Created `scripts/_lib/prod_kg_client.py` — env-aware HTTP client (`COGNEBULA_KG_URL` defaulting `http://100.88.170.57:8400`) wrapping health/quality/nodes/search/hybrid-search/ontology-audit; admin endpoints intentionally NOT wrapped (require explicit opt-in)
-- [x] C3 Created `doc/00_project/initiative_cognebula_sota/KG_ACCESS_GUIDE.md` — three-mode access doc (REST / SSH / offline fixture), prerequisites, endpoint inventory, known issues
-- [x] C4 Self-test PASS: `python3 scripts/_lib/prod_kg_client.py` returns `total_nodes: 368910, total_edges: 1014862, quality_gate: PASS, health_ms: 557, stats_ms: 4886`
+- [x] C1+C2 Created `scripts/_lib/prod_kg_client.py` — env-aware HTTP client (`COGNEBULA_KG_URL` defaulting `http://100.88.170.57:8400`) wrapping health/quality/nodes/search/hybrid-search/ontology-audit/debug_paths; admin endpoints intentionally NOT wrapped (require explicit opt-in). Linter refactor extracted `_results()` helper (was 3-way duplicated in nodes/search/hybrid_search) and added `debug_paths()` so the selftest can verify prod's actual file-system wiring without re-using lsof.
+- [x] C3 Created `doc/00_project/initiative_cognebula_sota/KG_ACCESS_GUIDE.md` — three-mode access doc (REST / SSH / offline fixture), prerequisites, endpoint inventory, known issues. Linter pass tightened §3 "Offline fixture" to forbid pinning runtime/Compose to the archived snapshot and recommend in-test seeding instead.
+- [x] C4 Self-test PASS post-linter: `total_nodes=368910 / total_edges=1014862 / quality_gate=PASS / health_ms=830 / stats_ms=4913 / search_ms=965 / search('增值税')=[TT_VAT, TT_LAND_VAT] / db_path=/home/kg/cognebula-enterprise/data/finance-tax-graph / lance_path=/home/kg/data/lancedb`. The `debug_paths` round-trip confirms the client points at the real prod KG.
 
 ### Phase D — Memory + docs sync (autonomous)
 
@@ -626,9 +626,27 @@ If milestone reached (Tier 0 + ≥6 P0 closed), pause and report. If blocker hit
 
 ### Phase E — Verify + commit + swarm
 
-- [x] E1 Self-test of `prod_kg_client.py` PASS (Phase C4)
-- [ ] E2 `git add` Phases A1-A6 evidence + B1 inventory + B3+B4 deletions + C1-C3 new files + D1-D3 doc edits and commit with descriptive message
-- [ ] E3 Final 3-advisor swarm review covering: prod_kg_client.py code + KG_ACCESS_GUIDE.md + audit Rev. 3 banner
+- [x] E1 Self-test of `prod_kg_client.py` PASS — re-verified post-linter at 2026-04-28 11:50 CST (search '增值税' returned `[TT_VAT, TT_LAND_VAT]`, db_path confirmed via `/api/v1/debug/paths`)
+- [x] E2 Initial Phase A-D commit landed: `e74aafe` "feat(prod-wire/§19): real KG via Tailscale REST + delete .demo sandbox" (8 files, +1,175 / -2). Phase F follow-up (guardrails + regression test + PDCA sync + linter refinements to client/guide) committed as separate commit this turn.
+
+### Phase F — Runtime Demo Cutover Closure (2026-04-28)
+
+- [x] F1 Removed remaining runtime demo/archived DB artifacts: `data/finance-tax-graph.archived.157nodes`, empty `data/finance-tax-graph/`, and `scripts/bootstrap_local_demo_graph.py`.
+- [x] F2 Removed demo defaults from `.env`, `docker-compose.yml`, `README.md`, and `web/.env.local`; local dev now points at the real Tailscale API, while Compose requires explicit real DB/Lance mounts.
+- [x] F3 Added `kg-api-server.py` guardrails: demo/archived/missing/empty DB paths are refused before Kuzu opens them, and `/api/v1/health` / `/api/v1/debug/paths` expose path state for auditability.
+- [x] F4 Added regression test `tests/test_real_kg_runtime_config.py` to keep runtime config from reintroducing demo KG paths.
+- [x] F5 Verified real API: prod path `/home/kg/cognebula-enterprise/data/finance-tax-graph`, Lance path `/home/kg/data/lancedb`, `368,910` nodes, `1,014,862` edges, search hit `TT_VAT`.
+- [x] F6 Targeted tests passed: `tests/test_search_api.py`, `tests/test_reasoning_chain_api.py`, `tests/test_real_kg_runtime_config.py` → 18 passed. `ai check` remains red due pre-existing harness/doc-contract mismatch (`initiative_27_cognebula_enterprise` path expected, `tests/test_all.py` missing, historical emoji hits).
+- [-] E3 Final 3-advisor swarm review (Hickey + Hara + Munger) — DEFERRED. Round 1 dispatch at 2026-04-28 ~11:42 CST returned "You've hit your org's monthly usage limit" on all three Agent calls. Self-test passes; design is reversible (git revert + re-create test fixtures via `tests/test_real_kg_runtime_config.py` pattern); admin endpoints excluded by design so no destructive prod calls possible from client. Logged as residual; retry when org quota resets.
+
+### Phase E3 Residual — Deferred swarm review
+
+- **Status**: DEFERRED until org quota resets
+- **What was meant to be reviewed**: `scripts/_lib/prod_kg_client.py` (~170 lines post-linter) + `doc/00_project/initiative_cognebula_sota/KG_ACCESS_GUIDE.md` (~135 lines) + audit Rev. 3 banner + Phase F guardrails in `kg-api-server.py`
+- **Why deferred**: Anthropic API monthly limit hit on all 3 advisor dispatches at 2026-04-28 ~11:42 CST
+- **Why not blocking**: client is read-only (admin endpoints excluded by design), self-test verifies live behavior, all changes are reversible, no prod state mutated, regression test `tests/test_real_kg_runtime_config.py` keeps the runtime from regressing
+- **Pickup signal**: when org limit resets, dispatch 3 advisor prompts (Hickey/Hara/Munger) following the Rev. 2/3 audit swarm pattern in `outputs/reports/auto-swarm-trace/2026-04-28-deep-system-audit.md`. Trace file should be `outputs/reports/auto-swarm-trace/2026-04-28-prod-kg-client-review.md`
+- **Owner**: Maurice (or any future agent that hits this branch with quota available)
 
 ### Stopping rules
 

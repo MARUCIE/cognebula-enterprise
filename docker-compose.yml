@@ -7,17 +7,48 @@ services:
     ports:
       - "8400:8400"
     volumes:
-      - ./data/finance-tax-graph:/app/data/finance-tax-graph
-      - ./data/lancedb-build:/app/data/lancedb-build
+      - type: bind
+        source: ${COGNEBULA_GRAPH_PATH:?Set COGNEBULA_GRAPH_PATH to a real Kuzu database path. Demo and archived fixture DBs are refused by kg-api-server.py.}
+        target: /app/data/finance-tax-graph
+        read_only: true
+      - type: bind
+        source: ${COGNEBULA_LANCE_PATH:?Set COGNEBULA_LANCE_PATH to the real LanceDB directory.}
+        target: /app/data/lancedb-build
+        read_only: true
     environment:
       - HOST=0.0.0.0
       - PORT=8400
+      - DB_PATH=/app/data/finance-tax-graph
+      - LANCE_PATH=/app/data/lancedb-build
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - KG_API_KEY=${KG_API_KEY}
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8400/api/v1/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8400/api/v1/health', timeout=5)"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 30s
+
+  cognebula-web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+      args:
+        NEXT_PUBLIC_KG_API_BASE: /api/v1
+    container_name: cognebula-web
+    ports:
+      - "${COGNEBULA_WEB_PORT:-3001}:80"
+    environment:
+      - KG_API_UPSTREAM=http://cognebula-api:8400
+      - KG_API_KEY=${KG_API_KEY}
+    depends_on:
+      cognebula-api:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

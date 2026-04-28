@@ -2,7 +2,6 @@
 """CogNebula KG API Server — FastAPI query service on kg-node."""
 import os
 import json
-import hashlib
 
 # Load env vars from .env file (POE_API_KEY, GEMINI_API_KEY, etc.)
 for _env_path in ["/home/kg/.env.kg-api", os.path.join(os.path.dirname(__file__), ".env")]:
@@ -21,13 +20,77 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 import kuzu
 import lancedb
-import numpy as np
 
 # Config
-DB_PATH = os.path.join(os.path.dirname(__file__), "data", "finance-tax-graph")
-LANCE_PATH = os.path.join(os.path.dirname(__file__), "data", "lancedb-build")
+DB_PATH = os.environ.get("DB_PATH") or os.path.join(os.path.dirname(__file__), "data", "finance-tax-graph")
+LANCE_PATH = os.environ.get("LANCE_PATH") or os.path.join(os.path.dirname(__file__), "data", "lancedb-build")
 HOST = "0.0.0.0"
 PORT = 8400
+PROD_DB_PATH = "/home/kg/cognebula-enterprise/data/finance-tax-graph"
+PROD_LANCE_PATH = "/home/kg/data/lancedb"
+FORBIDDEN_DB_PATH_MARKERS = (
+    "finance-tax-graph.demo",
+    "finance-tax-graph.archived",
+    ".phase1d-test",
+    ".phase4-test",
+)
+
+
+def _path_state(path: str, *, reject_fixture: bool = False) -> dict:
+    p = _Path(path).expanduser()
+    raw = str(p)
+    lowered = raw.lower()
+    exists = p.exists()
+    is_dir = p.is_dir()
+    is_file = p.is_file()
+    size_bytes = None
+    empty_dir = False
+    rejected_reason = None
+
+    if reject_fixture and any(marker in lowered for marker in FORBIDDEN_DB_PATH_MARKERS):
+        rejected_reason = "demo_or_fixture_database_path"
+    elif not exists:
+        rejected_reason = "path_missing"
+    elif is_dir:
+        try:
+            empty_dir = not any(p.iterdir())
+        except OSError:
+            empty_dir = False
+        if empty_dir:
+            rejected_reason = "empty_database_directory"
+    elif is_file:
+        try:
+            size_bytes = p.stat().st_size
+        except OSError:
+            size_bytes = None
+        if size_bytes == 0:
+            rejected_reason = "empty_database_file"
+
+    return {
+        "path": raw,
+        "exists": exists,
+        "is_dir": is_dir,
+        "is_file": is_file,
+        "size_bytes": size_bytes,
+        "empty_dir": empty_dir,
+        "rejected_reason": rejected_reason,
+    }
+
+
+def _runtime_label(db_path: str) -> str:
+    if str(_Path(db_path)) == PROD_DB_PATH:
+        return "production"
+    return "explicit"
+
+
+def _validated_db_path() -> str:
+    state = _path_state(DB_PATH, reject_fixture=True)
+    if state["rejected_reason"]:
+        raise RuntimeError(
+            f"Refusing to open KG DB at {DB_PATH}: {state['rejected_reason']}. "
+            "Set DB_PATH/COGNEBULA_GRAPH_PATH to the real KG database."
+        )
+    return DB_PATH
 
 # ── Quality Gate Thresholds ──────────────────────────────────────────
 QG_TITLE_MIN_LEN = 2          # Minimum title length (chars) — lowered for CJK (增值税=3chars is valid)
@@ -144,7 +207,6 @@ app.add_middleware(
 # Chrome Private Network Access (PNA) preflight handler
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
-from starlette.responses import Response
 
 
 class PrivateNetworkMiddleware(BaseHTTPMiddleware):
@@ -177,7 +239,7 @@ class APIKeyMiddleware(BaseHTTPMiddleware):
         if request.method == "OPTIONS":
             return await call_next(request)  # CORS preflight
 
-        key = request.headers.get("X-API-Key") or request.query_params.get("api_key")
+        key = request.headers.get("X-API-Key")
         if key != _KG_API_KEY:
             return JSONResponse(
                 status_code=401,
@@ -189,6 +251,53 @@ class APIKeyMiddleware(BaseHTTPMiddleware):
 if _KG_API_KEY:
     app.add_middleware(APIKeyMiddleware)
     print(f"API key auth enabled (key prefix: {_KG_API_KEY[:8]}...)")
+
+
+# ---------------------------------------------------------------------------
+# Request logging + rate limiting middleware
+# ---------------------------------------------------------------------------
+import time as _time
+class RequestLogMiddleware(BaseHTTPMiddleware):
+    """Log every API request with timing. Simple in-memory rate limiter for chat."""
+
+    # Rate limit: max N chat requests per minute per IP
+    _CHAT_LIMIT = int(os.environ.get("KG_CHAT_RATE_LIMIT", "10"))
+    _chat_counts: dict = {}  # ip -> (count, window_start)
+
+    async def dispatch(self, request: Request, call_next):
+        start = _time.monotonic()
+        path = request.url.path
+        method = request.method
+        client_ip = request.client.host if request.client else "unknown"
+
+        # Rate limit chat endpoint (most expensive — calls Gemini LLM)
+        if path == "/api/v1/chat" and method == "POST" and self._CHAT_LIMIT > 0:
+            now = _time.time()
+            entry = self._chat_counts.get(client_ip, (0, now))
+            count, window_start = entry
+            if now - window_start > 60:
+                count, window_start = 0, now
+            count += 1
+            self._chat_counts[client_ip] = (count, window_start)
+            if count > self._CHAT_LIMIT:
+                elapsed = round((_time.monotonic() - start) * 1000, 1)
+                print(f"[REQ] {method} {path} 429 {elapsed}ms ip={client_ip} rate_limited")
+                return JSONResponse(
+                    status_code=429,
+                    content={"detail": f"Rate limit exceeded: max {self._CHAT_LIMIT} chat requests per minute"},
+                )
+
+        response = await call_next(request)
+        elapsed = round((_time.monotonic() - start) * 1000, 1)
+
+        # Log all API requests (skip static files)
+        if path.startswith("/api/"):
+            print(f"[REQ] {method} {path} {response.status_code} {elapsed}ms ip={client_ip}")
+
+        return response
+
+
+app.add_middleware(RequestLogMiddleware)
 
 
 # ---------------------------------------------------------------------------
@@ -221,7 +330,7 @@ _lance_table = None
 def get_kuzu():
     global _kuzu_db, _kuzu_conn
     if _kuzu_conn is None:
-        _kuzu_db = kuzu.Database(DB_PATH)  # auto buffer sizing
+        _kuzu_db = kuzu.Database(_validated_db_path())  # auto buffer sizing
         _kuzu_conn = kuzu.Connection(_kuzu_db)
     return _kuzu_conn
 
@@ -270,45 +379,63 @@ def kg_explorer_v2():
 # === Health ===
 @app.get("/api/v1/debug/paths") 
 def debug_paths(): 
-    return {"WEB_DIR": str(WEB_DIR), "DB_PATH": str(DB_PATH), "LANCE_PATH": str(LANCE_PATH)} 
+    return {
+        "WEB_DIR": str(WEB_DIR),
+        "DB_PATH": str(DB_PATH),
+        "LANCE_PATH": str(LANCE_PATH),
+        "runtime_database": _runtime_label(DB_PATH),
+        "db_path_state": _path_state(DB_PATH, reject_fixture=True),
+        "lance_path_state": _path_state(LANCE_PATH),
+    }
 
 @app.get("/api/v1/health")
 def health():
+    db_path_state = _path_state(DB_PATH, reject_fixture=True)
+    lance_path_state = _path_state(LANCE_PATH)
     try:
         conn = get_kuzu()
         conn.execute("RETURN 1")
         kuzu_ok = True
-    except:
+        kuzu_error = None
+    except Exception as exc:
         kuzu_ok = False
+        kuzu_error = str(exc)
 
     try:
         tbl = get_lance()
         lance_ok = tbl is not None
         lance_rows = len(tbl)
-    except:
+        lance_error = None
+    except Exception as exc:
         lance_ok = False
         lance_rows = 0
+        lance_error = str(exc)
 
     return {
         "status": "healthy" if kuzu_ok and lance_ok else "degraded",
         "kuzu": kuzu_ok,
         "lancedb": lance_ok,
         "lancedb_rows": lance_rows,
+        "runtime_database": _runtime_label(DB_PATH),
+        "db_path": DB_PATH,
+        "db_path_state": db_path_state,
+        "db_error": kuzu_error,
+        "lance_path": LANCE_PATH,
+        "lance_path_state": lance_path_state,
+        "lance_error": lance_error,
     }
 
 
 # === Sprint G4 / S15.1 — runtime capability introspection (well-known) ===
 # Audit endpoint consumed by `scripts/runtime_audit.sh` + `deploy/contabo/`
 # post-deploy hook. Reports parse-friendly route catalog + module identity +
-# deploy anchor. OPTIONS method per well-known capability negotiation
-# convention; APIKeyMiddleware already exempts all OPTIONS for CORS preflight.
-# Sweep-7 / S18.26: handler logic extracted to `src._lib.capabilities` shared
-# factory; same source serves both backends, eliminating the duplicate.
+# deploy anchor so static parse output (audit_api_contract.py) can be
+# cross-checked against the actually-running backend. OPTIONS method per
+# well-known capability negotiation convention; APIKeyMiddleware already
+# exempts all OPTIONS for CORS preflight, so no auth whitelist needed.
 from src._lib.capabilities import register_capabilities_endpoint  # noqa: E402
 
 register_capabilities_endpoint(app, module_name=__name__)
-
-
 # === Stats ===
 @app.get("/api/v1/stats")
 def stats():
@@ -543,6 +670,51 @@ def quality_audit():
         "issues": sorted(issues, key=lambda x: 0 if x["severity"] == "high" else 1),
         # "edge_debug": edge_debug,  # enable for diagnostics
     }
+
+
+# === Ontology Conformance Audit ===
+# Complements /quality (content quality inside 17 curated tables) with a
+# structural gate: how many node types live, how does that compare to the
+# canonical schemas/ontology_v4.2.cypher (35 types, Brooks ceiling 37), and
+# which rogue types fall into known drift buckets (V1/V2 bleed, semantic
+# duplicates, SaaS leak, legacy). Pure read — never writes.
+@app.get("/api/v1/ontology-audit")
+def ontology_audit():
+    """Diff live Kuzu against canonical v4.2 ontology. Read-only."""
+    import sys as _sys
+    from pathlib import Path as _Path
+
+    src_dir = str(_Path(__file__).resolve().parent / "src")
+    if src_dir not in _sys.path:
+        _sys.path.insert(0, src_dir)
+    from audit.ontology_conformance import audit as _audit
+
+    conn = get_kuzu()
+    return _audit(conn)
+
+
+# === Reasoning chain (explainability — SOTA Must #4) ===
+@app.get("/api/v1/reasoning-chain")
+def reasoning_chain(
+    node_id: str = Query(..., description="Node id to explain"),
+    include_2hop: bool = Query(True, description="Include 2-hop ripples"),
+):
+    """Return a structured justification chain rooted at `node_id`.
+
+    Walks outward through all REL tables in both directions and extracts
+    v4.2 edge provenance attributes (sourceClauseId / effectiveAt / supersededAt).
+    Pure read. Never raises on missing node (returns trace.node_resolved=False).
+    """
+    import sys as _sys
+    from pathlib import Path as _Path
+
+    src_dir = str(_Path(__file__).resolve().parent / "src")
+    if src_dir not in _sys.path:
+        _sys.path.insert(0, src_dir)
+    from reasoning.chain import build_reasoning_chain
+
+    conn = get_kuzu()
+    return build_reasoning_chain(conn, node_id, include_2hop=include_2hop)
 
 
 # === Constellation (single-call graph data for Sigma.js) ===
@@ -1021,6 +1193,29 @@ def _cypher_text_search(conn, query: str, limit: int = 10, table_filter: str = N
         "TaxClassificationCode", "HSCode",
     ]
 
+    # Column mapping for tables that don't have standard (name, title, fullText)
+    _TABLE_COLUMNS = {
+        "LawOrRegulation": ("title", "title", "fullText"),       # (search_col, title_col, text_col)
+        "RegulationClause": ("title", "title", "fullText"),
+        "MindmapNode": ("node_text", "node_text", "content"),
+        "DocumentSection": ("title", "title", "content"),
+    }
+
+    # Type-based score boost: authoritative domain tables rank higher
+    _TYPE_BOOST = {
+        # Tier 1: structured domain data (highest authority)
+        "TaxType": 25, "TaxRate": 25, "TaxIncentive": 20, "TaxCalculationRule": 20,
+        "ComplianceRule": 20, "SocialInsuranceRule": 20, "DeductionRule": 20,
+        "InvoiceRule": 20, "TaxAccountingGap": 20, "RiskIndicator": 15,
+        # Tier 2: legal/knowledge content
+        "LawOrRegulation": 15, "LegalDocument": 15, "RegulationClause": 10,
+        "KnowledgeUnit": 15, "AccountingStandard": 15, "PolicyChange": 15,
+        # Tier 3: Q&A and reference
+        "FAQEntry": 10, "CPAKnowledge": 10, "AccountingEntry": 10,
+        # Tier 4: bulk content (no boost)
+        "MindmapNode": 0, "DocumentSection": 0,
+    }
+
     if table_filter:
         SEARCH_TABLES = [t for t in SEARCH_TABLES if t == table_filter]
 
@@ -1030,57 +1225,94 @@ def _cypher_text_search(conn, query: str, limit: int = 10, table_filter: str = N
     for table in SEARCH_TABLES:
         if len(results) >= limit * 5:
             break
-        try:
-            # Primary: search across name, title, fullText
-            cypher = (
-                f"MATCH (n:{table}) "
-                f"WHERE n.name CONTAINS '{safe_q}' OR n.title CONTAINS '{safe_q}' "
-                f"OR (n.fullText IS NOT NULL AND n.fullText CONTAINS '{safe_q}') "
-                f"RETURN n.id, n.name, n.title, "
-                f"CASE WHEN n.fullText IS NOT NULL AND n.fullText <> '' "
-                f"THEN substring(n.fullText, 0, 500) ELSE '' END "
-                f"LIMIT {per_table}"
-            )
-            r = conn.execute(cypher)
-            while r.has_next():
-                row = r.get_next()
-                nid = str(row[0]) if row[0] is not None else ""
-                name = str(row[1]) if row[1] is not None else ""
-                title = str(row[2]) if row[2] is not None else ""
-                ft = str(row[3]) if row[3] is not None else ""
-                # Relevance scoring
-                score = 40
-                if name == query:
-                    score = 100
-                elif query in name:
-                    score = 80
-                elif title and query in title:
-                    score = 60
-                display = ft if ft else (title if title else name)
-                results.append({
-                    "id": nid, "text": display[:500], "table": table,
-                    "title": title or name, "name": name, "score": score,
-                })
-        except Exception:
-            # Fallback: table might lack title or fullText columns
+        type_boost = _TYPE_BOOST.get(table, 5)
+        cols = _TABLE_COLUMNS.get(table)  # None for standard tables
+
+        if cols:
+            # Non-standard table: use mapped columns (search_col, title_col, text_col)
+            scol, tcol, txtcol = cols
+            tbl_limit = 5 if table == "RegulationClause" else per_table
             try:
-                cypher2 = (
+                cypher = (
                     f"MATCH (n:{table}) "
-                    f"WHERE n.name CONTAINS '{safe_q}' "
-                    f"RETURN n.id, n.name LIMIT {per_table}"
+                    f"WHERE n.{scol} CONTAINS '{safe_q}' "
+                    f"OR (n.{txtcol} IS NOT NULL AND n.{txtcol} CONTAINS '{safe_q}') "
+                    f"RETURN n.id, n.{scol}, "
+                    f"CASE WHEN n.{txtcol} IS NOT NULL AND n.{txtcol} <> '' "
+                    f"THEN substring(n.{txtcol}, 0, 500) ELSE '' END "
+                    f"LIMIT {tbl_limit}"
                 )
-                r = conn.execute(cypher2)
+                r = conn.execute(cypher)
+                while r.has_next():
+                    row = r.get_next()
+                    nid = str(row[0]) if row[0] is not None else ""
+                    label = str(row[1]) if row[1] is not None else ""
+                    ft = str(row[2]) if row[2] is not None else ""
+                    score = 40
+                    if label == query:
+                        score = 100
+                    elif query in label:
+                        score = 80
+                    score += type_boost
+                    display = ft if ft else label
+                    results.append({
+                        "id": nid, "text": display[:500], "table": table,
+                        "title": label, "name": label, "score": score,
+                    })
+            except Exception:
+                continue
+        else:
+            # Standard table: search across name, title, fullText
+            try:
+                cypher = (
+                    f"MATCH (n:{table}) "
+                    f"WHERE n.name CONTAINS '{safe_q}' OR n.title CONTAINS '{safe_q}' "
+                    f"OR (n.fullText IS NOT NULL AND n.fullText CONTAINS '{safe_q}') "
+                    f"RETURN n.id, n.name, n.title, "
+                    f"CASE WHEN n.fullText IS NOT NULL AND n.fullText <> '' "
+                    f"THEN substring(n.fullText, 0, 500) ELSE '' END "
+                    f"LIMIT {per_table}"
+                )
+                r = conn.execute(cypher)
                 while r.has_next():
                     row = r.get_next()
                     nid = str(row[0]) if row[0] is not None else ""
                     name = str(row[1]) if row[1] is not None else ""
+                    title = str(row[2]) if row[2] is not None else ""
+                    ft = str(row[3]) if row[3] is not None else ""
+                    score = 40
+                    if name == query:
+                        score = 100
+                    elif query in name:
+                        score = 80
+                    elif title and query in title:
+                        score = 60
+                    score += type_boost
+                    display = ft if ft else (title if title else name)
                     results.append({
-                        "id": nid, "text": name[:500], "table": table,
-                        "title": name, "name": name,
-                        "score": 80 if query in name else 40,
+                        "id": nid, "text": display[:500], "table": table,
+                        "title": title or name, "name": name, "score": score,
                     })
             except Exception:
-                continue
+                # Fallback: table might lack title or fullText columns
+                try:
+                    cypher2 = (
+                        f"MATCH (n:{table}) "
+                        f"WHERE n.name CONTAINS '{safe_q}' "
+                        f"RETURN n.id, n.name LIMIT {per_table}"
+                    )
+                    r = conn.execute(cypher2)
+                    while r.has_next():
+                        row = r.get_next()
+                        nid = str(row[0]) if row[0] is not None else ""
+                        name = str(row[1]) if row[1] is not None else ""
+                        results.append({
+                            "id": nid, "text": name[:500], "table": table,
+                            "title": name, "name": name,
+                            "score": (80 if query in name else 40) + type_boost,
+                        })
+                except Exception:
+                    continue
 
     # If full-phrase search returned too few, try domain-aware term extraction
     DOMAIN_TERMS = [
@@ -1130,11 +1362,13 @@ def _cypher_text_search(conn, query: str, limit: int = 10, table_filter: str = N
                     continue
                 if len(results) >= limit * 3:
                     break
+                cols = _TABLE_COLUMNS.get(table)
+                scol = cols[0] if cols else "name"
                 try:
                     cypher = (
                         f"MATCH (n:{table}) "
-                        f"WHERE n.name CONTAINS '{safe_st}' OR n.title CONTAINS '{safe_st}' "
-                        f"RETURN n.id, n.name, n.title, '' LIMIT 5"
+                        f"WHERE n.{scol} CONTAINS '{safe_st}' "
+                        f"RETURN n.id, n.{scol} LIMIT 5"
                     )
                     r = conn.execute(cypher)
                     while r.has_next():
@@ -1142,12 +1376,12 @@ def _cypher_text_search(conn, query: str, limit: int = 10, table_filter: str = N
                         nid = str(row[0]) if row[0] is not None else ""
                         if nid in existing_ids:
                             continue
-                        name = str(row[1]) if row[1] is not None else ""
-                        title = str(row[2]) if row[2] is not None else ""
+                        label = str(row[1]) if row[1] is not None else ""
+                        tb = _TYPE_BOOST.get(table, 5)
                         results.append({
-                            "id": nid, "text": (title or name)[:500], "table": table,
-                            "title": title or name, "name": name,
-                            "score": 60 if st in name else 40,
+                            "id": nid, "text": label[:500], "table": table,
+                            "title": label, "name": label,
+                            "score": (60 if st in label else 40) + tb,
                         })
                         existing_ids.add(nid)
                 except Exception:
@@ -1183,13 +1417,16 @@ def search(
             for vr in vec_results:
                 vid = vr.get("id", "")
                 if vid and vid not in existing_ids:
+                    vtable = vr.get("table", "")
+                    vscore = max(0, 50 - float(vr.get("_distance", 50)))
+                    vscore += _TYPE_BOOST.get(vtable, 5)
                     results.append({
                         "id": vid,
                         "text": (vr.get("text", "") or "")[:500],
-                        "table": vr.get("table", ""),
+                        "table": vtable,
                         "title": "",
                         "name": "",
-                        "score": max(0, 50 - float(vr.get("_distance", 50))),
+                        "score": vscore,
                     })
                     existing_ids.add(vid)
     except Exception:
@@ -1218,7 +1455,26 @@ def search(
 # === Hybrid Search (RRF fusion: Cypher text + LanceDB vector + graph expand) ===
 
 def _rrf_merge(text_results: list, vec_results: list, k: int = 60) -> list:
-    """Reciprocal Rank Fusion: merge two ranked lists into one."""
+    """Reciprocal Rank Fusion: merge two ranked lists into one.
+
+    Applies type-authority boost: authoritative domain types get a small
+    additive bonus to RRF score, pushing TaxType/TaxRate above MindmapNode
+    when relevance is otherwise similar.
+    """
+    # RRF type boost (normalized to RRF scale ~0.001-0.03)
+    _RRF_TYPE_BOOST = {
+        # Tier 1: structured domain types (boosted to counter RC/LR vector dilution)
+        "TaxType": 0.012, "TaxRate": 0.012, "TaxIncentive": 0.004,
+        "TaxCalculationRule": 0.008, "ComplianceRule": 0.008,
+        "SocialInsuranceRule": 0.008, "DeductionRule": 0.008,
+        # Tier 2: knowledge content
+        "KnowledgeUnit": 0.010, "PolicyChange": 0.006,
+        "AccountingStandard": 0.006, "FAQEntry": 0.005, "CPAKnowledge": 0.005,
+        # Tier 3: legal (already dominant in vectors, minimal boost)
+        "LawOrRegulation": 0.001, "LegalDocument": 0.001,
+        # Tier 4: bulk content (no boost)
+        "RegulationClause": 0, "MindmapNode": 0, "DocumentSection": 0,
+    }
     scores = {}  # id -> rrf_score
     meta = {}    # id -> best metadata
 
@@ -1237,8 +1493,11 @@ def _rrf_merge(text_results: list, vec_results: list, k: int = 60) -> list:
     merged = []
     for rid, score in sorted(scores.items(), key=lambda x: -x[1]):
         entry = dict(meta[rid])
-        entry["rrf_score"] = round(score, 6)
+        table = entry.get("table", "")
+        entry["rrf_score"] = round(score + _RRF_TYPE_BOOST.get(table, 0.001), 6)
         merged.append(entry)
+    # Re-sort after boost
+    merged.sort(key=lambda x: -x["rrf_score"])
     return merged
 
 
@@ -1379,12 +1638,10 @@ def graph_traverse(
     try:
         result = conn.execute(f"MATCH (n:{safe_table}) WHERE n.{safe_field} = '{safe_val}' RETURN n")
         node = None
-        node_dict = None
         if result.has_next():
             row = result.get_next()
             raw = row[0] if row else None
             if isinstance(raw, dict):
-                node_dict = raw
                 # Return clean version with label (10K limit for full-text display)
                 node = {k: str(v)[:10000] if v is not None else None for k, v in raw.items()}
                 node["_label"] = _get_node_label(
@@ -1485,15 +1742,54 @@ def migrate_table(payload: dict):
 
     if not source or not target or not field_map:
         raise HTTPException(400, "source, target, field_map required")
+    if not isinstance(field_map, dict):
+        raise HTTPException(400, "field_map must be an object")
+
+    result = conn.execute("CALL show_tables() RETURN *")
+    valid_node_tables = set()
+    while result.has_next():
+        row = result.get_next()
+        if len(row) > 2 and row[2] == "NODE":
+            valid_node_tables.add(row[1])
+
+    if source not in valid_node_tables:
+        raise HTTPException(400, f"Invalid source table '{source}'")
+    if target not in valid_node_tables:
+        raise HTTPException(400, f"Invalid target table '{target}'")
+
+    import re as _re
+    target_fields = set()
+    int_fields = set()
+    double_fields = set()
+    try:
+        schema_r = conn.execute(f"CALL table_info('{target}') RETURN *")
+        while schema_r.has_next():
+            sr = schema_r.get_next()
+            col_name = sr[1] if len(sr) > 1 else ""
+            col_type = str(sr[2]).upper() if len(sr) > 2 else ""
+            if col_name:
+                target_fields.add(col_name)
+            if "INT" in col_type:
+                int_fields.add(col_name)
+            elif "DOUBLE" in col_type or "FLOAT" in col_type:
+                double_fields.add(col_name)
+    except Exception as e:
+        raise HTTPException(400, f"Target schema lookup failed: {str(e)[:200]}")
 
     # Build SELECT clause from field_map
     # field_map: {new_field: "n.old_field" or "'literal'"}
     # Each column gets an alias to avoid KuzuDB "duplicate column name" error
     return_cols = []
     for i, (new_field, expr) in enumerate(field_map.items()):
-        if expr.startswith("'") and expr.endswith("'"):
+        if new_field not in target_fields:
+            raise HTTPException(400, f"Invalid target field '{new_field}'")
+        if isinstance(expr, str) and expr.startswith("'") and expr.endswith("'"):
+            if not _re.fullmatch(r"'[^']{0,200}'", expr):
+                raise HTTPException(400, f"Invalid literal expression for '{new_field}'")
             return_cols.append(f"{expr} AS col_{i}")
         else:
+            if not isinstance(expr, str) or not _re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", expr):
+                raise HTTPException(400, f"Invalid source field expression for '{new_field}'")
             return_cols.append(f"n.{expr} AS col_{i}")
 
     query = f"MATCH (n:{source}) RETURN {', '.join(return_cols)} SKIP {offset} LIMIT {batch_size}"
@@ -1506,22 +1802,6 @@ def migrate_table(payload: dict):
     inserted = 0
     errors = 0
     new_fields = list(field_map.keys())
-
-    # Detect INT64/DOUBLE fields from target table schema
-    int_fields = set()
-    double_fields = set()
-    try:
-        schema_r = conn.execute(f"CALL table_info('{target}') RETURN *")
-        while schema_r.has_next():
-            sr = schema_r.get_next()
-            col_name = sr[1] if len(sr) > 1 else ""
-            col_type = str(sr[2]).upper() if len(sr) > 2 else ""
-            if "INT" in col_type:
-                int_fields.add(col_name)
-            elif "DOUBLE" in col_type or "FLOAT" in col_type:
-                double_fields.add(col_name)
-    except:
-        pass
 
     while r.has_next():
         row = r.get_next()
@@ -1751,7 +2031,7 @@ def fix_titles(payload: dict):
                     except:
                         pass
                 fixed = batch_fixed
-            except Exception as e:
+            except Exception:
                 # Field doesn't exist or other error — try next source
                 continue
 
@@ -1869,7 +2149,7 @@ def reset_table(payload: dict):
     # Drop if exists
     try:
         conn.execute("DROP TABLE IF EXISTS " + table)
-    except Exception as e:
+    except Exception:
         pass  # Table may not exist
 
     # Create with full schema
@@ -2036,7 +2316,6 @@ def _gemini_generate(prompt: str, system: str = "", model: str = "gemini-3.1-pro
     Falls back to Google Gemini API if POE_API_KEY is not set.
     """
     import urllib.request as _urlreq
-    import urllib.error as _urlerr
 
     poe_key = os.environ.get("POE_API_KEY", "")
     if poe_key:
@@ -2079,7 +2358,7 @@ def _gemini_generate(prompt: str, system: str = "", model: str = "gemini-3.1-pro
     }).encode()
     req = _urlreq.Request(url, data=payload, headers={"Content-Type": "application/json"})
     try:
-        with _urlreq.urlopen(req, timeout=30) as resp:
+        with _urlreq.urlopen(req, timeout=90) as resp:
             data = json.loads(resp.read())
             return data["candidates"][0]["content"]["parts"][0]["text"]
     except Exception as e:
@@ -2326,6 +2605,20 @@ def chat(req: ChatRequest):
     question = req.question.strip()
     if not question:
         raise HTTPException(400, "Question is required")
+
+    # Wrap entire chat in try/except to prevent server crash from LLM errors
+    try:
+        return _chat_inner(req, question)
+    except Exception as e:
+        print(f"[ERROR] chat endpoint crashed: {type(e).__name__}: {str(e)[:200]}")
+        return ChatResponse(
+            answer=f"服务暂时出错，请稍后重试。错误类型: {type(e).__name__}",
+            sources=[],
+            mode=req.mode,
+        )
+
+
+def _chat_inner(req: ChatRequest, question: str):
 
     if req.mode == "cypher":
         # Generate Cypher query from natural language

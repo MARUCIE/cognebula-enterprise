@@ -79,6 +79,17 @@ def _get(path: str, params: dict | None = None, timeout: float = DEFAULT_TIMEOUT
         raise ProdKGError(f"GET {url} -> network error: {e.reason}") from e
 
 
+def _results(payload: Any) -> list[dict]:
+    if isinstance(payload, dict):
+        for key in ("results", "items"):
+            value = payload.get(key)
+            if isinstance(value, list):
+                return value
+    if isinstance(payload, list):
+        return payload
+    return []
+
+
 def health() -> dict:
     """Return `/api/v1/health` payload. Cheapest reachability probe."""
     return _get("/api/v1/health", timeout=5.0)
@@ -99,36 +110,29 @@ def ontology_audit() -> dict:
     return _get("/api/v1/ontology-audit")
 
 
+def debug_paths() -> dict:
+    """Return runtime path disclosure for verifying real DB/Lance wiring."""
+    return _get("/api/v1/debug/paths", timeout=5.0)
+
+
 def nodes(node_type: str, limit: int = 100) -> list[dict]:
     """List nodes of a given type. Returns a list, possibly empty."""
     if limit < 1 or limit > 5000:
         raise ValueError(f"limit out of range [1,5000]: {limit}")
     payload = _get("/api/v1/nodes", params={"type": node_type, "limit": limit})
-    if isinstance(payload, dict) and "items" in payload:
-        return payload["items"]
-    if isinstance(payload, list):
-        return payload
-    return []
+    return _results(payload)
 
 
 def search(query: str, limit: int = 20) -> list[dict]:
     """Free-text search. Backed by /api/v1/search on the server."""
     payload = _get("/api/v1/search", params={"q": query, "limit": limit})
-    if isinstance(payload, dict) and "items" in payload:
-        return payload["items"]
-    if isinstance(payload, list):
-        return payload
-    return []
+    return _results(payload)
 
 
 def hybrid_search(query: str, limit: int = 20) -> list[dict]:
     """Vector + KG hybrid search. Backed by /api/v1/hybrid-search."""
     payload = _get("/api/v1/hybrid-search", params={"q": query, "limit": limit})
-    if isinstance(payload, dict) and "items" in payload:
-        return payload["items"]
-    if isinstance(payload, list):
-        return payload
-    return []
+    return _results(payload)
 
 
 def selftest() -> dict:
@@ -142,6 +146,12 @@ def selftest() -> dict:
     t1 = time.time()
     q = stats()
     t2 = time.time()
+    s = search("增值税", limit=2)
+    t3 = time.time()
+    try:
+        paths = debug_paths()
+    except ProdKGError:
+        paths = {}
     return {
         "base_url": base_url(),
         "health": h,
@@ -150,6 +160,10 @@ def selftest() -> dict:
         "total_nodes": q.get("metrics", {}).get("total_nodes"),
         "total_edges": q.get("metrics", {}).get("total_edges"),
         "stats_ms": round((t2 - t1) * 1000, 1),
+        "search_ms": round((t3 - t2) * 1000, 1),
+        "search_ids": [hit.get("id") for hit in s],
+        "db_path": paths.get("DB_PATH"),
+        "lance_path": paths.get("LANCE_PATH"),
     }
 
 

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Prod KG 深度 × 广度质量审计 · 2026-04-28</title>
+<style>
+  :root{
+    --ink:#121212;
+    --ink-soft:#454545;
+    --ink-mute:#9B9B9D;
+    --paper:#FAF7F2;
+    --rule:#1A1A1A;
+    --accent:#E3120B;
+    --accent-soft:#fcebea;
+    --serif:'Lyon Text','Georgia','Songti SC','SimSun',serif;
+    --sans:'Helvetica Neue','PingFang SC',sans-serif;
+    --mono:'SF Mono','Menlo','Consolas',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--serif);
+    font-size:16px;
+    line-height:1.7;
+    padding:60px 40px;
+  }
+  .wrap{max-width:880px;margin:0 auto}
+  .masthead{
+    border-top:6px solid var(--rule);
+    border-bottom:1px solid var(--rule);
+    padding:18px 0 14px;
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-family:var(--sans);
+    font-size:11px;letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .masthead .brand{font-weight:700;color:var(--accent)}
+  h1{
+    font-family:var(--serif);
+    font-size:42px;line-height:1.15;
+    font-weight:700;
+    margin:32px 0 10px;
+    letter-spacing:-0.01em;
+  }
+  .deck{
+    font-family:var(--serif);font-style:italic;
+    font-size:19px;line-height:1.5;
+    color:var(--ink-soft);
+    margin-bottom:34px;
+    border-bottom:1px solid var(--ink-mute);
+    padding-bottom:24px;
+  }
+  .scope{
+    background:#fff;
+    border:1px solid var(--ink-mute);
+    padding:14px 18px;
+    margin-bottom:36px;
+    font-size:14px;
+    line-height:1.6;
+    font-family:var(--sans);
+  }
+  .scope strong{color:var(--accent);letter-spacing:0.04em}
+  h2{
+    font-size:24px;
+    font-weight:700;
+    margin:46px 0 16px;
+    padding-bottom:8px;
+    border-bottom:2px solid var(--rule);
+    letter-spacing:-0.005em;
+  }
+  h3{
+    font-size:18px;font-weight:700;
+    margin:28px 0 10px;
+    color:var(--ink);
+  }
+  h3 .rank{
+    display:inline-block;
+    font-family:var(--sans);font-size:13px;font-weight:700;
+    color:var(--accent);
+    margin-right:8px;
+  }
+  p{margin:12px 0}
+  ul,ol{margin:12px 0 12px 24px}
+  li{margin:6px 0}
+  .summary{
+    background:#fff;
+    border-left:4px solid var(--accent);
+    padding:22px 26px;
+    margin:24px 0 32px;
+  }
+  .summary ol{margin-left:20px}
+  .summary li{margin:10px 0;line-height:1.7}
+  .retract{
+    background:var(--accent-soft);
+    border-left:4px solid var(--accent);
+    padding:18px 22px;
+    margin:18px 0 24px;
+    font-size:15px;
+  }
+  .retract h4{
+    font-family:var(--sans);
+    font-size:11px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin-bottom:8px;
+  }
+  .retract del{color:var(--ink-mute)}
+  table{
+    width:100%;
+    border-collapse:collapse;
+    margin:16px 0;
+    font-size:14px;
+    font-family:var(--sans);
+  }
+  th{
+    background:var(--ink-soft);color:#fff;
+    font-weight:600;
+    padding:10px 12px;text-align:left;
+    font-size:12px;letter-spacing:0.06em;text-transform:uppercase;
+  }
+  td{
+    padding:10px 12px;
+    border-bottom:1px solid #d4d2cc;
+    vertical-align:top;
+  }
+  tr:nth-child(even) td{background:#fff}
+  code{
+    font-family:var(--mono);
+    background:#fff;
+    border:1px solid #e2dfd9;
+    padding:1px 5px;
+    font-size:13px;
+  }
+  blockquote{
+    border-left:3px solid var(--accent);
+    background:#fff;
+    padding:14px 22px;
+    margin:32px 0;
+    font-family:var(--serif);font-style:italic;
+    font-size:17px;line-height:1.6;
+  }
+  .checklist{list-style:none;margin-left:0}
+  .checklist li{
+    padding-left:28px;
+    position:relative;
+  }
+  .checklist li:before{
+    content:"☐";
+    position:absolute;left:0;top:0;
+    color:var(--accent);font-weight:700;
+  }
+  footer{
+    margin-top:80px;
+    padding:40px 20px 30px;
+    border-top:1px solid var(--ink-mute);
+    text-align:center;
+    color:var(--ink-mute);
+    font-size:13px;line-height:2.2;
+    font-family:var(--sans);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="masthead">
+  <span class="brand">CogNebula Enterprise · Prod KG</span>
+  <span>2026 年 4 月 28 日 · 深度 × 广度审计</span>
+</div>
+
+<h1>当事实仍在迁移管线里被截断</h1>
+<div class="deck">在动 369,910 个节点之前，蜂群审计先做了一件 R1 没做的事：用反证探针把 API 层的观测和存储层的真相分开——发现 6 条原始 finding 中有 2 条是设计正确不是 bug，1 条根因定位到一行代码（line 1708），3 条是真实的结构性问题。</div>
+
+<div class="scope">
+  <strong>审计范围</strong> · 生产 KG（contabo-eu，<code>100.88.170.57:8400</code>，368,910 节点 / 1,014,862 边） &nbsp;·&nbsp;
+  <strong>方法</strong> · 200-node-per-type 采样（<code>/api/v1/nodes</code>）+ 反证探针（schema 枚举 + 代码 grep + valid_tables 列表） &nbsp;·&nbsp;
+  <strong>结果</strong> · 4 条 finding 留存 / 2 条 framing error 撤回 / 1 条新晋升至首位 / 3 轮蜂群 3/3 APPROVE 通过
+</div>
+
+<h2>执行摘要</h2>
+<div class="summary">
+  <ol>
+    <li><strong>V2 表族增殖</strong>是杠杆最高的缺口（<code>TaxIncentiveV2</code> / <code>ComplianceRuleV2</code> / <code>FilingFormV2</code> / <code>RiskIndicatorV2</code> 至少 5 张 V2 表与 V1 共存）。每对 V1+V2 都是 <em>identity-vs-occurrence</em> 在表层级的 complecting——本体在分叉，未来摄取会静默重复计数。</li>
+    <li><code>/api/v1/admin/migrate-table</code> <strong>line 1708 的 <code>props[field] = str(val)[:500]</code> 截断</strong>是过去迁移时硬冻结到数据上的损失。LegalClause 200 抽样里 24 个节点恰好命中 500 字（12% 截断 tell）就是这条代码的可见证据。<strong>不要盲拆——先做 Chesterton's fence 调查</strong>（embedding API token 限 / Kuzu 索引膨胀 / 历史 OOM / 防御编码）。</li>
+    <li><strong>KnowledgeUnit 内容在存储层是真碎片</strong>（200 抽样均值 136 字、最大 193 字、零节点 ≥ 500）。已通过 <code>/api/v1/nodes</code>（不截断的端点）确认。是设计意图还是上游来源限制还未定。</li>
+    <li><strong>56 条本体漂移</strong>仍在（93 张运行时表 vs 31 张声明表）。schema 在 prod 是 place 而不是 value，写入端没有验证 gate。</li>
+    <li><strong>Source 归因断链</strong>：除 LegalClause 用 <code>CL_*</code> ID 外，其他表都是 hash 风格 ID 且无 <code>source_id</code> 外键。检索质量与可信度都依赖来源可解析。</li>
+  </ol>
+</div>
+
+<div class="retract">
+  <h4>R1 已撤回的 framing 错误</h4>
+  <p><del>"KnowledgeFact 与 CPAKnowledge 不可达"</del>——这两张表在 prod schema 里<strong>根本不存在</strong>。valid_tables 列表（93 张表）里没有它们，HTTP 404 是正确响应。</p>
+  <p><del>"LegalDocument 内容为空"</del>——LegalDocument 按 schema 设计就是<strong>纯 metadata 节点</strong>。实际字段是 <code>name / type / issueDate / jurisdiction_code / source_doc_id / source_paragraph / issuingBodyId / override_chain_id / supersedes_id / argument_links_to ...</code>。内容存在 LegalClause 里——这是正确的 values-vs-places 分解，不是 bug。</p>
+  <p style="margin-top:14px;font-size:13px;color:var(--ink-soft);font-style:italic;">这两条撤回是本审计区别于"凑齐六个 finding"的诚实声明——把 framing 错误公开，比悄悄改 R2 更有信息价值。</p>
+</div>
+
+<h2>方法论</h2>
+<h3>探针栈</h3>
+<ol>
+  <li><strong>API 层采样</strong>：<code>scripts/_lib/prod_kg_client.py.nodes(type, limit=200)</code> 抽取每类型的内容长度分布</li>
+  <li><strong>schema 有效性探针</strong>：用 <code>/api/v1/nodes?type=&lt;X&gt;</code> 的 404 响应取出 valid_tables 完整清单</li>
+  <li><strong>字段枚举</strong>：检查代表性节点的原始响应字段名</li>
+  <li><strong>代码 grep</strong>：在 <code>kg-api-server.py</code> 里找 <code>[:500]</code> / <code>substring</code> / 截断逻辑</li>
+  <li><strong>端点行为验证</strong>：<code>/api/v1/nodes</code> 返回 <code>dict(row[0])</code> 不截断（line 1020-1040）；<code>/api/v1/search</code> 在显示层应用 <code>[:500]</code>（line 1123 / 1140 / 1154）</li>
+</ol>
+
+<h3>为什么反证不可省</h3>
+<p>R1 的蜂群里 Munger 标 HIGH-risk 的 confirmation bias："你测的是 API 表面，不是数据本身。" 不跑反证就 ship 的代价是把"重摄 369K 节点 = 3 周项目"误诊出来——而真相是：</p>
+<ul>
+  <li>2/6 finding 是 schema 设计正确，不是 bug</li>
+  <li>1/6 finding 是 5 行代码 fix（line 1708），不是 369K 节点项目</li>
+  <li>3/6 finding 才是真正的结构性问题</li>
+</ul>
+<p>这正是本会话刚刚晋升的记忆"Swarm verdict 必须验证目标文件"的同类错误——Rev. 1 把 <code>.demo</code> 当成 prod 是同一个错误模式。本审计在 R1 → R2 之间运行了反证探针，把这条规则真正用上了。</p>
+
+<h2>Findings（反证后留存）</h2>
+
+<h3><span class="rank">F1</span>V2 表族增殖</h3>
+<p><strong>症状</strong>：valid_tables 至少包含 <code>TaxIncentiveV2</code> / <code>ComplianceRuleV2</code> / <code>FilingFormV2</code> / <code>RiskIndicatorV2</code>。<code>RiskIndicatorV2</code> 存在但找不到 V1——命名一致性也已破。</p>
+<p><strong>诊断（Hickey）</strong>：schema 版本被当 PLACE 而不是 VALUE。新 schema → 新表 而不是同一规范化实体的新属性。Datomic 思路：fact 累积、schema 作为 fact 的属性附加。当前形状在说"schema 是 place"。</p>
+<p><strong>反向（Munger）</strong>：V1+V2 分离<strong>有合法场景</strong>——(a) V1 仍有无法原子迁移的下游消费者；(b) V2 schema 与 V1 在语义上分叉（不只是字段重命名）；(c) V2 是带回滚预案的实验。盲整合的本能在这三种情况下是错的。</p>
+<p><strong>下一轮工作</strong>：</p>
+<ul>
+  <li>枚举所有 V2 表（当前 ≥5，全量未知）</li>
+  <li>每对 V1+V2 分类为 (i) 仅字段重命名 → 整合 / (ii) 语义分叉 → 保持分离但写入文档 / (iii) 实验性 → 设 sunset 标准</li>
+  <li>对接受分离的对：在 schema 文档里声明整合策略（V2 何时吸收 V1）</li>
+</ul>
+
+<h3><span class="rank">F2</span>migrate-table line 1708 截断</h3>
+<p><strong>代码</strong>：<code>props[field] = str(val)[:500]</code>——对每个通过此端点迁移的节点的每个字段应用。</p>
+<p><strong>可见损害</strong>：LegalClause 200 抽样中 24 个节点恰好命中 500 字（12% 截断 tell）。所有经此路径的迁移，数据已被截至 500 字写死在库里。</p>
+<p><strong>Chesterton's fence</strong>（Munger 强调）：拆之前要查清楚为什么加上的。要证伪的假设：</p>
+<ul>
+  <li>Embedding API token limits（Poe / Gemini 单 chunk 有 token 上限）</li>
+  <li>Kuzu STRING 列索引大小限制</li>
+  <li>历史大批量迁移的 OOM 防御</li>
+  <li>来自一次无关事故的防御编码</li>
+</ul>
+<p><strong>下一轮工作</strong>：<code>git log -p</code> 查 line 1708 出生 commit + 邻域；审 migrate-table 历史调用站点；评估超 500 字源数据的重迁可行性（依 <code>source_doc_id</code> 是否仍可解析）；选择：升至 4000 安全裕度 / 按字段参数化 / 移除并替换为字段级声明。</p>
+
+<h3><span class="rank">F3</span>KnowledgeUnit 内容碎片化</h3>
+<p><strong>存储层真相</strong>：200 节点抽样 mean 136 字、max 193 字、0 节点 ≥ 500 字。<code>/api/v1/nodes</code> 不截断已确认。</p>
+<p><strong>开放问题</strong>：是 (a) 设计意图（一事一节点）/ (b) 上游来源限制（爬虫在摄取时把源文档切成块）/ (c) 意外？</p>
+<p><strong>下一轮工作</strong>：定位创建 KnowledgeUnit 的摄取路径；检查 5-10 个 <code>source_doc_id</code> 指向已知 chinatax / chinaacc 文章的节点；对比 KU 内容 vs 原段落长度；按结论选择 (a) 文档化设计意图、(b) 与爬虫负责人对齐、或 (c) 找截断站点。</p>
+
+<h3><span class="rank">F4</span>Schema 与 runtime 漂移</h3>
+<p><strong>数字</strong>：93 张 prod 实表 vs 31 张声明表。漂移 = 62 张表。</p>
+<p><strong>诊断</strong>：摄取管线缺少 schema 验证 gate。新表可经 ad-hoc DDL 创建而无需更新 ontology 声明。schema 当文档用，没当 runtime 合约用。</p>
+<p><strong>Hickey 重构</strong>：schema-as-value vs schema-as-place。当前是被写入端 mutate 的 place；应该是系统持有并验证的 value。</p>
+<p><strong>下一轮工作</strong>：枚举 62 张未声明的实表；分类为 (i) 合法但未声明 → 加入 schema / (ii) 实验 → 标 <code>_experimental</code> 命名空间 / (iii) 已弃 → 标 sunset；在 <code>/api/v1/admin/execute-ddl</code> 与 <code>/api/v1/admin/migrate-table</code> 加 schema 验证 gate，新表必须有声明条目。</p>
+
+<h3><span class="rank">F5</span>Source 归因缺失</h3>
+<p><strong>症状</strong>：只有 LegalClause 用语义 ID（<code>CL_*</code>）。其他表用 hash 风格自动生成 ID 且无 <code>source_id</code> 字段。valid_tables 没有 <code>Source</code> 节点类型。</p>
+<p><strong>后果</strong>：KG 对大多数节点回答不了"这条事实从哪来？"。Lineage 与 recall trust 都依赖 source 可解析。一旦下游 agent 想用引用回答用户问题，没有 source_id 的节点等同于无法引用——内容在库里，但说不出出处。</p>
+<p><strong>下一轮工作</strong>：声明 <code>Source</code> 节点类型，schema 含 <code>(id, label, url, ingest_ts, ingest_pipeline)</code>；在 KnowledgeUnit / FAQEntry / TaxRate / TaxIncentive 等加 <code>source_id</code> 外键；在确定可映射处回填（例如 LegalClause <code>CL_*</code> 已编码 source；KU 可能已有 <code>source_doc_id</code>；FAQEntry 子集有 <code>12366_qa_*</code> 前缀）。</p>
+
+<h2>杠杆排序（Meadows 轴 · R2 共识）</h2>
+<table>
+  <thead><tr><th>Rank</th><th>Finding</th><th>Meadows LP</th><th>排此位的原因</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>F1 — V2 增殖整合</td><td>#4 系统结构</td><td>主动分叉无平衡环；本体在分裂</td></tr>
+    <tr><td>2</td><td>F2 — line 1708 拆除（先做 Chesterton 检查）</td><td>#10 stock-flow</td><td>主动腐蚀机制；未来迁移仍在丢数</td></tr>
+    <tr><td>3</td><td>F4 — schema-runtime gate</td><td>#5 规则</td><td>F1 与 F4 自身的再生产源</td></tr>
+    <tr><td>4</td><td>F5 — source-attribution gate</td><td>#6 信息流</td><td>质量可观测性的前置条件</td></tr>
+    <tr><td>5</td><td>F3 — KU 碎片化</td><td>#12 参数</td><td>杠杆最低但症状最显眼——在 F1-F4 之后修，避免叠加干预</td></tr>
+  </tbody>
+</table>
+
+<h2>Complecting 地图（Hickey 轴 · R2 共识）</h2>
+<ol>
+  <li><strong>Identity-vs-occurrence 在表层级</strong>（V2 增殖）——schema 版本与表身份被绑死</li>
+  <li><strong>迁移机制与数据语义被绑死</strong>（line 1708）——transport 端对"应保留多少"的意见属于 schema，不属于 <code>migrate-table</code></li>
+  <li><strong>Schema-as-place</strong>（runtime 漂移）——声明集与实际集分叉因为 schema 是 place 不是 value</li>
+</ol>
+<p>R1 的"content-role split"complecting（preview / summary / body）已在 R2 撤回——LegalDocument-as-metadata + LegalClause-as-content 实际上是正确的 values-vs-places 思路，原 framing 是误读。</p>
+
+<h2>反向 checklist（Munger 轴 · 下一轮启动前必须过）</h2>
+<ul class="checklist">
+  <li><strong>Pendulum bias 检查</strong>：2 条 R1 finding 死了，但<strong>不能</strong>因此低估剩下 3 条真实结构性 finding</li>
+  <li><strong>Line 1708 的 Chesterton's fence</strong>：动 clamp 之前用 git blame + commit message + 历史 issue 找到加它的理由</li>
+  <li><strong>V2 分离的 Chesterton's fence</strong>：每对 V1+V2 在整合前先分类——有合法分离场景</li>
+  <li><strong>样本量问题</strong>：当前 200/368,910 = 0.054%。任何要动 ≥1000 节点的修复必须先做分层随机 1000 抽样复测</li>
+  <li><strong>API ↔ 存储层纪律</strong>：每条数字 finding 必须声明它测的是哪一层</li>
+</ul>
+
+<h2>下一轮 queue 的综合目标</h2>
+<blockquote>把 schema 版本视为附加在单一规范化实体上的 value，把迁移视为纯粹身份保持的函数。</blockquote>
+<p>这把 F1（V2 整合）与 F2（migrate-table 去截断）绑成同一个设计意图，而不是两条平行的清理流。F4（schema-runtime gate）成为该意图的执行机制。F3 与 F5 在其后排队。</p>
+
+<h2>本审计明确不做的事</h2>
+<ul>
+  <li>不为 F1 提具体的表整合 patch</li>
+  <li>不动 line 1708——必须先做 Chesterton 调查</li>
+  <li>不重摄任何数据</li>
+  <li>不评判先前 <code>.demo</code> / Rev. 4 审计——那覆盖的是不同 surface</li>
+  <li>不估算修复时间表（取决于 Chesterton 调查结果）</li>
+</ul>
+<p>本审计的工作是 ship <strong>修正后的 framing</strong>。修复是 separate atomic queue，排在 framing ship 之后。</p>
+
+<h2>蜂群轨迹</h2>
+<p>3 advisor × 3 round。Round 1：3/3 REVISE（Meadows 杠杆 / Hickey complecting / Munger inversion + HIGH 风险）。反证探针在 R1 与 R2 之间撤回了 6 条 finding 中的 2 条 framing error、把 1 条根因定位到 line 1708、并新发现 1 条（V2 增殖）晋升首位。Round 2：2/3 REVISE on R1-as-shipped + 1/3 APPROVE-MEDIUM on R2-corrected framing。Round 3：3/3 APPROVE on this deliverable。</p>
+<p>Trace artifact：<code>outputs/reports/auto-swarm-trace/2026-04-28-prod-kg-depth-breadth-audit.md</code></p>
+
+<footer>
+  <p>CogNebula Enterprise · Prod KG 深度 × 广度审计</p>
+  <p>Maurice | maurice_wen@proton.me</p>
+  <p style="font-size:12px; margin-top:8px;">2026-04-28 生成 · 数据来源：prod KG via Tailscale REST 100.88.170.57:8400 · 蜂群 3 轮共识 3/3 APPROVE</p>
+</footer>
+
+</div>
+</body>
+</html>

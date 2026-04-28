@@ -577,3 +577,66 @@ Phase 2: Synthesis + Gap Analysis (Steps 3-4)
 `S18.0.1 → S18.0.2 → S18.0.3 → S18.13 (push) → S18.5 (DNA validate) → S18.7 (pin orphan whitelist) → S18.6 (pin schema baseline) → S18.11 (Debt Ledger backfill) → S18.12 (escalation criteria) → S18.9 (HITL decide_by) → milestone check`.
 
 If milestone reached (Tier 0 + ≥6 P0 closed), pause and report. If blocker hit (hook bug regression, push permission, etc.), pause and name blocker.
+
+---
+
+## §19. Atomic Execution Queue — Real Prod KG Wiring (2026-04-28)
+
+> Trigger: Maurice directive after Rev. 2 audit revealed `.demo` ≠ prod. Cuts the local sandbox dead-weight, wires local code to read live prod via Tailscale REST, and updates memory with measured numbers.
+>
+> Discovery state captured before queue authored:
+> - Prod path: `/home/kg/cognebula-enterprise/data/finance-tax-graph` (102 GB)
+> - Service: `kg-api.service` PID 1859701, uvicorn on port 8400, user root
+> - API base URL (Tailscale): `http://100.88.170.57:8400`
+> - Live stats: **368,910 nodes / 1,014,862 edges / quality 100/100 / gate PASS**
+> - Live ontology: 93 types live, 31 in schema → **62-type drift on prod** (worse than `.demo`'s 45)
+> - LanceDB: 118,011 rows (live)
+> - Local sandbox: `data/finance-tax-graph.demo` (109 MB, 6,219 nodes — dead weight)
+>
+> Strategy: REST API via Tailscale (NOT rsync — 102 GB DB is untenable for daily local dev). Local code talks to prod through a thin client + canonical env var. `.demo` deleted. `.phase1d-test` / `.phase4-test` / `.archived.157nodes` preserved as test fixtures (HITL).
+
+### Phase A — Discovery (CLOSED inline during this session)
+
+- [x] A1 Verify SSH connectivity to contabo (`ssh -o RemoteCommand=none contabo 'echo OK'` returns OK)
+- [x] A2 Discover prod KG path via lsof on running kg-api process — `/home/kg/cognebula-enterprise/data/finance-tax-graph` (102 GB)
+- [x] A3 Discover prod LanceDB path — `/home/kg/data/lancedb/kg_nodes.lance`
+- [x] A4 Confirm kg-api service: systemd unit `kg-api.service`, uvicorn `kg-api-server:app` on port 8400
+- [x] A5 Test API reachability via Tailscale: `curl http://100.88.170.57:8400/api/v1/health` returns `{"status":"healthy","kuzu":true,"lancedb":true,"lancedb_rows":118011}`
+- [x] A6 Capture prod KG state via `/api/v1/quality` + `/api/v1/ontology-audit` endpoints
+
+### Phase B — Cleanup (authorized destructive)
+
+- [x] B1 Pre-delete inventory captured at `outputs/audits/2026-04-28-demo-pre-delete-inventory.txt` (55 lines, table-by-table node counts)
+- [x] B2 Verified no active KuzuDB reader; only macOS background indexers (`com.docker.backend` PID 4763 + `com.apple.Virtualization.VirtualMachine` PID 5915) held read-only FDs. Per macOS file-deletion semantics, FDs persist after unlink until indexer closes; safe to proceed.
+- [x] B3 `rm data/finance-tax-graph.demo` ✅ (109 MB freed)
+- [x] B4 `rm data/finance-tax-graph.demo.work` ✅ (57 MB freed)
+- [x] B5 PRESERVED (intentionally NOT deleted): `.phase1d-test` (118 MB), `.phase4-test` (114 MB), `.archived.157nodes` (22 MB)
+
+### Phase C — Wire-up local → prod (autonomous reversible)
+
+- [x] C1+C2 Created `scripts/_lib/prod_kg_client.py` — env-aware HTTP client (`COGNEBULA_KG_URL` defaulting `http://100.88.170.57:8400`) wrapping health/quality/nodes/search/hybrid-search/ontology-audit; admin endpoints intentionally NOT wrapped (require explicit opt-in)
+- [x] C3 Created `doc/00_project/initiative_cognebula_sota/KG_ACCESS_GUIDE.md` — three-mode access doc (REST / SSH / offline fixture), prerequisites, endpoint inventory, known issues
+- [x] C4 Self-test PASS: `python3 scripts/_lib/prod_kg_client.py` returns `total_nodes: 368910, total_edges: 1014862, quality_gate: PASS, health_ms: 557, stats_ms: 4886`
+
+### Phase D — Memory + docs sync (autonomous)
+
+- [x] D1 Updated `~/.claude/projects/-Users-mauricewen-00-AI-Fleet/memory/project_kg_node.md`: header rewritten with measured numbers; DigitalOcean SFO3 specs marked HISTORY; contabo-eu specs added; new "KG Stats (2026-04-28 LIVE)" section with per-type breakdown. Also updated `MEMORY.md` index entry.
+- [x] D2 Audit `outputs/audits/2026-04-28-deep-system-audit.{md,html}` upgraded to Rev. 3: green Rev. 3 closure banner added with measured numbers; .md title bumped to Rev. 3; closure paragraph documents the cumulative 620K → 368K gap (multi-event, not single-prune).
+- [x] D3 `HANDOFF.md` for cognebula_sota top section now leads with §19 closure summary, with §18 milestone preserved below.
+
+### Phase E — Verify + commit + swarm
+
+- [x] E1 Self-test of `prod_kg_client.py` PASS (Phase C4)
+- [ ] E2 `git add` Phases A1-A6 evidence + B1 inventory + B3+B4 deletions + C1-C3 new files + D1-D3 doc edits and commit with descriptive message
+- [ ] E3 Final 3-advisor swarm review covering: prod_kg_client.py code + KG_ACCESS_GUIDE.md + audit Rev. 3 banner
+
+### Stopping rules
+
+- Phase A failure (SSH / API unreachable) → only B1 (inventory) executes; B2-E pause as HITL
+- Phase B finds active reader of `.demo` → abort B3/B4, log reader for Maurice
+- Phase D2 audit-rewrite reveals prod numbers contradict measured A6 → pause for re-probe
+- Otherwise: continuous queue execution to E3 swarm
+
+### Loop-execute order
+
+`A1-A6 (DONE) → B1 → B2 → B3+B4 → C1+C2+C3 → C4 → D1+D2+D3 → E1+E2 → E3`

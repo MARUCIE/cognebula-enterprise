@@ -1,0 +1,55 @@
+# Pre-delete inventory: data/finance-tax-graph.demo + .demo.work
+# Captured: 2026-04-28T01:40:38Z
+# Per task_plan.md §19 Phase B1
+
+## File metadata
+-rw-r--r--@ 1 mauricewen  staff  114970624 Apr 24 10:59 data/finance-tax-graph.demo
+-rw-r--r--@ 1 mauricewen  staff   59973632 Apr 16 19:27 data/finance-tax-graph.demo.work
+
+## .demo node table count + per-table totals
+node_tables: 56
+rel_tables:  79
+  N:TaxAccountingGap=50
+  N:IndustryBenchmark=45
+  N:CPAKnowledge=649
+  N:TaxType=19
+  N:MindmapNode=990
+  N:SocialInsuranceRule=138
+  N:LawOrRegulation=431
+  N:FAQEntry=1152
+  N:AccountingStandard=43
+  N:IndustryBookkeeping=7
+  N:OP_StandardCase=1246
+  N:TaxCalendar=12
+  N:AccountEntry=10
+  N:TaxIncentive=109
+  N:EnterpriseType=6
+  N:InvoiceRule=40
+  N:FTIndustry=19
+  N:EntityTypeProfile=6
+  N:FormTemplate=109
+  N:AdministrativeRegion=477
+  N:TaxpayerStatus=5
+  N:TaxRateMapping=80
+  N:ComplianceRule=84
+  N:RiskIndicator=235
+  N:OP_BusinessScenario=43
+  N:ChartOfAccount=159
+  N:TaxRateSchedule=23
+  N:OP_SubAccount=17
+  N:OP_FilingStep=15
+  E:OP_DEBITS=10
+  E:FT_GOVERNED_BY=38
+  E:OP_SUB_OF=12
+  E:FT_APPLIES_TO=4
+  E:FT_INCENTIVE_TAX=109
+  E:OP_CREDITS=10
+  E:RELATED_TO=104
+  E:OP_FILING_NEXT=12
+  E:FT_RATE_SCHEDULE=23
+  E:OP_TAX_ACCOUNT=12
+  E:OP_SUB_OF_SUB=5
+  E:OP_FILING_FOR_TAX=15
+  E:REGION_PARENT_OF=442
+  E:OP_MAPS_TO_RATE=80
+TOTAL nodes=6219, edges=876

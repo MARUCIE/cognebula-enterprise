@@ -1,5 +1,9 @@
 # CogNebula Enterprise -- Documentation Index
 
+> PROJECT_DIR: `/Users/mauricewen/Projects/27-cognebula-enterprise`
+>
+> **Last topology contract update**: 2026-04-28 — `SYSTEM_ARCHITECTURE.md` §5 **Two-Frontend Topology** (symmetric-write mirror of canonical authoring at `MARUCIE/30-lingque-agent` SYSTEM_ARCHITECTURE.md §1.3 ; CogNebula owns 1 of 2 frontends, `hegui.io`). Boundary correction commits: `49b83c2` (.md) + `58a98d0` (.html) + `e44ddcf` (deliverable.md symmetric-write). Future updates to the topology contract MUST update both repos in the same task per `task_plan.md` §21.2.A3.
+
 ## Project Path Index
 
 | Path | Description |
@@ -20,7 +24,7 @@
 | Document | Path | Status |
 |----------|------|--------|
 | PRD | `doc/00_project/initiative_cognebula_sota/PRD.md` | Updated + HTML companion |
-| System Architecture | `doc/00_project/initiative_cognebula_sota/SYSTEM_ARCHITECTURE.md` | Updated + HTML companion |
+| System Architecture | `doc/00_project/initiative_cognebula_sota/SYSTEM_ARCHITECTURE.md` | Active + HTML companion ; §5 **Two-Frontend Topology** mirrored from lingque-agent §1.3 (boundary correction 2026-04-28, see header note above) |
 | User Experience Map | `doc/00_project/initiative_cognebula_sota/USER_EXPERIENCE_MAP.md` | Updated + HTML companion |
 | Platform Optimization | `doc/00_project/initiative_cognebula_sota/PLATFORM_OPTIMIZATION_PLAN.md` | Updated + HTML companion |
 | Task Plan | `doc/00_project/initiative_cognebula_sota/task_plan.md` | Active |

@@ -1316,3 +1316,51 @@ Two design rules surface across G2 + G3 + H — both worth promoting to `knowled
 - Full nginx config grammar parser (current parser is regex-narrow on `proxy_pass` directives only — out of MVS budget)
 - Backend merge / split-formalize / deprecate decision (Maurice HITL — unchanged)
 - Generalize the audit_api_contract.py pattern into a shared AI-Fleet skill (after a 2nd consumer surfaces, per Skill design rule "do it manually 3-10 times before codifying")
+
+---
+
+## §18.23 — Capability Ledger Evidence-Link Convention (added 2026-04-28, Sweep-6)
+
+When flipping a capability from LACKING → PRESENT in any of the bootstrap-
+evolution ledger tables above, the row MUST carry an `evidence_test_sha:`
+field pointing at the commit SHA that landed the test gate verifying the
+capability. Without this anchor, the ledger inflates with claims that
+have no enforcement code behind them (Taleb fragility: "we said it works"
+without "here is the test that fails if it stops working").
+
+**Field template** (append to the PRESENT cell):
+
+```
+| `<capability_id>` | LACKING | **PRESENT** (`<source_path>`, evidence_test_sha=`<7-hex SHA>`) |
+```
+
+**Example** (this session, after Sweep-4 Batch A landed):
+
+```
+| `ontology_parser_extracted` | LACKING | **PRESENT** (`scripts/_lib/ontology_parser.py`, evidence_test_sha=`f4667c5`) |
+```
+
+**Why the SHA, not the file path alone**: file paths drift over time
+(rename, move, delete). A commit SHA is immutable and links the
+capability claim to the exact moment of code-enforced verification. If
+someone later asks "where did we prove this works?" the SHA replays
+the test invocation that originally passed.
+
+**Audit cost**: one per flip, ~10 sec ceremony. Prevents ledger inflation,
+which has measurable downstream cost (false-positive capability claims
+in handoffs, agents acting on phantom guarantees).
+
+**Promotion path**: when a capability has been PRESENT across ≥3 sessions
+without regression, demote the `evidence_test_sha:` field to a single
+line in `ROLLING_REQUIREMENTS_AND_PROMPTS.md::Promoted Design Rules`
+(captured form).
+
+### Out of scope (Sweep-6 deferred half, logged not asked)
+
+- S18.25 wire `handoff-distortion-check.sh` to per-initiative HANDOFF
+  paths — touches global AI-Fleet infra script with cross-project blast
+  radius. Recommended path: Maurice reviews the proposed extension
+  (discover `${PROJECT_DIR}/doc/00_project/initiative_*/HANDOFF.md` glob
+  + emit per-initiative log line) before merging. Tagged HITL-pending,
+  not abandoned.
+- S18.26+ (P2 deferred): Tier-P2 items remain in queue per task_plan.md.

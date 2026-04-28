@@ -16,7 +16,7 @@
 |---|----------|---------|----------|
 | 1 | Are crawlers stopped? | **YES — fully dormant since 2026-04-21** | NEUTRAL |
 | 2 | KG depth/breadth status? | **Production not audited from here. Local `.demo` shows 6,219 nodes — pre-Round-4-prune dev sandbox, not prod.** | YELLOW (pending prod probe) |
-| 3 | Is crawled fiscal/tax knowledge full-text? | **In `.demo`: NO — `fullText` is mislabeled, 78% are mis-classified report templates. Prod state unverified.** | YELLOW (pending prod probe) |
+| 3 | Is crawled fiscal/tax knowledge full-text? | **NO — prod KG is fragments, not full text** (Rev. 4 measured): KnowledgeUnit content avg 144 / max 181 chars; LegalClause avg 116 / max 465; `content_coverage` 0.508. The `.demo` 78% report_template mis-classification was dev-only, not on prod. | RED |
 
 **Root cause of the audit-vs-memory gap**: A Round-4 prune (-35,897 nodes) shipped to contabo yesterday. Local `.demo` is pre-prune dev state and has never tracked prod 1:1. Memory was correct at the time it was written. The audit error was assuming the local file system held production state.
 

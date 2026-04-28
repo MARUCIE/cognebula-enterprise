@@ -223,13 +223,14 @@ footer {
 <strong>Rev. 3 闭环（§19 原子队列执行后，2026-04-28 19:42 CST）</strong>：动作 #1 已执行——SSH 至 contabo 实测生产态。<strong>真实数字：368,910 节点 / 1,014,862 边 / quality_score 100/100 / gate PASS</strong>（不是历史 620K，也不是 Rev.2 估算的 584K——多次历史剪枝累计削减更多）。生产 KG 路径 <code>/home/kg/cognebula-enterprise/data/finance-tax-graph</code>（102 GB）。本地 <code>.demo</code> 沙箱已删除（166 MB 释放）。本地代码现通过 Tailscale REST API <code>http://100.88.170.57:8400</code> 访问真实生产，客户端 <code>scripts/_lib/prod_kg_client.py</code>。详见 <code>doc/00_project/initiative_cognebula_sota/KG_ACCESS_GUIDE.md</code>。Schema vs Live 漂移在 prod 上更严重（93 live vs 31 declared，over-ceiling 56）——HITL-2 已知。
 </div>
 
+
 <h2>一句话结论</h2>
 <table>
 <thead><tr><th style="width: 40px;">#</th><th>问题</th><th>结论</th><th style="width: 130px;">严重度</th></tr></thead>
 <tbody>
 <tr><td>1</td><td>爬虫任务都已经停了吗？</td><td><strong>是，自 4 月 21 日起完全休眠</strong>。无活进程、无 cron、无 launchd。</td><td><span class="tag tag-neutral">中性</span></td></tr>
 <tr><td>2</td><td>知识图谱深度广度怎么样？</td><td><strong>生产态未在本次审计中测量</strong>。本地 <code>.demo</code> 显示 6,219 节点——这是 Round-4 剪枝前的开发沙箱，不是生产。</td><td><span class="tag tag-amber">YELLOW</span><br><span style="font-size:11px;color:var(--muted);">待生产复测</span></td></tr>
-<tr><td>3</td><td>所有爬取的财税知识是否都是全文？</td><td><code>.demo</code> 中：<strong>否</strong>，<code>fullText</code> 名实不符，78% 是误分类的报告模板。生产态待复测。</td><td><span class="tag tag-amber">YELLOW</span><br><span style="font-size:11px;color:var(--muted);">待生产复测</span></td></tr>
+<tr><td>3</td><td>所有爬取的财税知识是否都是全文？</td><td><strong>否——生产是片段集，不是全文库</strong>。生产 KnowledgeUnit (185K) <code>content</code> 均值 144 字 / 最长 181 字；LegalClause (83K) 均值 116 / 最长 465；<code>content_coverage</code> 0.508。<code>.demo</code> 78% 误分类报告模板的问题是开发侧伪迹，未进生产。</td><td><span class="tag tag-red">RED</span></td></tr>
 </tbody>
 </table>
 
@@ -335,8 +336,23 @@ E:           Audit endpoint redeployed with C1+ axis on contabo</code></pre>
 
 <p>提交 <code>98f3c79</code> 提到 "embedding rebuild complete (336K vectors)"——这个状态比本地任一存储都大得多。生产 LanceDB 未测量。</p>
 
-<h3>探针 C 修订结论</h3>
-<p><span class="tag tag-amber">YELLOW</span> · <code>.demo</code> 中的发现是真的，但范围限定。"全文"在这个沙箱里是名实不符的元数据；生产态可能不同。任何重分类或回填决策都应等待生产复测。</p>
+<h3>生产端复测（Rev. 4，2026-04-28，<code>prod_kg_client</code> 抽样）</h3>
+
+<p>在 §19 原子队列闭环后，用新打通的 Tailscale REST 客户端对生产做了三轨抽样，给问题 #3 的答案配上实测证据。</p>
+
+<table>
+<thead><tr><th>类型</th><th>样本</th><th>字段</th><th>min/max/mean/median (chars)</th><th>含义</th></tr></thead>
+<tbody>
+<tr><td><code>KnowledgeUnit</code> (185K)</td><td>50</td><td><code>content</code></td><td>0 / 181 / 144 / 152</td><td>知识卡片，不是教材</td></tr>
+<tr><td><code>LegalClause</code> (83K)</td><td>50</td><td><code>content</code></td><td>32 / 465 / 116 / 94</td><td>条款片段，不是法规全文</td></tr>
+<tr><td>全局</td><td>—</td><td><code>content_coverage</code></td><td>0.508</td><td>半数节点根本无 content</td></tr>
+</tbody>
+</table>
+
+<p>另一类 drift：<code>LR_PDF_*</code> ID 表明 20+ 份 PDF 参考资料被存为 <code>LawOrRegulation</code>——比 <code>.demo</code> 的 78% 报告模板误分类轻得多，但仍是放错表的内容。</p>
+
+<h3>探针 C 修订结论（Rev. 4）</h3>
+<p><span class="tag tag-red">RED</span> · 生产 KG 是片段集，不是全文库。<code>.demo</code> 78% 误分类的问题是开发侧伪迹，没进生产；问题 #2 / #3 闭环——不再"待复测"。剩余动作：HITL-2 schema-vs-PROD reconciliation（Maurice 拥有，已在 §18 task_plan）。</p>
 
 <hr>
 

@@ -674,7 +674,7 @@ If milestone reached (Tier 0 + ≥6 P0 closed), pause and report. If blocker hit
 
 **Reframed by A3 findings + B2 design**: F1 is a lineage-unification problem, not consolidation. B2 design proposal landed at `outputs/audits/2026-04-28-prod-kg-v1v2-unification-design.md` (replaces obsolete `phase1_v1_v2_rename.cypher`). B4 schema draft at `outputs/audits/2026-04-28-prod-kg-source-schema-draft.md`. Both await Maurice authorizations.
 
-- [-] **B1 — Decide line 1708 disposition** — pending A1 outcome interpretation. Recommended path (per A1): **REMOVE** the `[:500]` clamp, since the M3 migration that justified it is past. Risk: a future migrate-table call with non-text-fitting data could regress, but the protection should live at the per-field schema level (e.g., `MAX_LENGTH` constraint declared on the column), not at a global migration-mechanism clamp. Patch scope ~5 lines. Single-session work item; can run independently of B2 if user prefers minimum-viable path.
+- [x] **B1 — Decide line 1708 disposition** — DONE 2026-04-28 under Maurice "全部授权". Decision: **REMOVE**. Per A1 + analyst recommendation. Note: actual line of clamp drifted 1708 → **1868** between the diagnostic and execution sessions; the runtime location is what matters, not the historical line number. Per-field length now lives at the schema level only.
 - [s] **B2 — V2 lineage merge design (NOT consolidation)** — DESIGN PROPOSAL written 2026-04-28: `outputs/audits/2026-04-28-prod-kg-v1v2-unification-design.md`. Replaces obsolete `phase1_v1_v2_rename.cypher`. Three V1+V2 pairs designed for unified schema with `_lineage_present` array tag. Migration shape sketched (8 steps); execution blocked on Maurice authorizations: (1) approve unified schema shape, (2) approve `_Unified` migration table pattern, (3) author conflict-resolution precedence map per pair, (4) authorize backup window, (5) authorize cutover gate criteria.
 - [-] **B3 — Schema-validation gate at `/api/v1/admin/execute-ddl` and `/api/v1/admin/migrate-table`** — pending. Reject `CREATE TABLE` for types not declared in canonical ontology, OR allow with explicit `_experimental` namespace prefix. With A4's 80-undeclared-table list, the initial enforcement would block 80 existing tables — needs grace-period strategy (mark all 80 as `_grandfathered`, then enforce only on NEW tables).
 - [s] **B4 — `Source` node schema declaration + writes** — DRAFT written 2026-04-28: `outputs/audits/2026-04-28-prod-kg-source-schema-draft.md`. 9-field schema + per-table coverage matrix + 3-phase backfill plan. Execution blocked on: (a) `source_type` enum-vs-open decision; (b) Phase 1 vs all-phases ordering; (c) `_lineage_present` (B2) vs `source_id` (B4) consolidation.
@@ -682,7 +682,7 @@ If milestone reached (Tier 0 + ≥6 P0 closed), pause and report. If blocker hit
 
 ### Phase C — Remediation execution — DEFERRED
 
-- [-] **C1 — Apply B1 (line 1708 disposition)** — pending B1 decision.
+- [x] **C1 — Apply B1 (line 1868 disposition)** — DONE 2026-04-28. `kg-api-server.py` line 1868: `props[field] = str(val)[:500]` → `props[field] = str(val)` with provenance comment (B1/C1, ea83f033). Regression test added: `test_migrate_table_no_500_char_clamp_on_string_props`. Test suite 5/5 PASS (`tests/test_real_kg_runtime_config.py`).
 - [-] **C2 — Apply B2 unified schemas + migration scripts** — pending B2 design.
 - [-] **C3 — Backfill `source_id` for KnowledgeUnit / FAQEntry / TaxRate / etc. where deterministic mapping exists** — pending.
 - [-] **C4 — KU fragmentation remediation** — pending B5.

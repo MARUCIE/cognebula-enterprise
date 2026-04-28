@@ -1865,7 +1865,11 @@ def migrate_table(payload: dict):
             elif isinstance(val, (int, float)):
                 props[field] = val
             else:
-                props[field] = str(val)[:500]
+                # No truncation: per-field length is the schema's job (declare MAX_LENGTH
+                # on the column), not the migration mechanism's. The previous [:500] clamp
+                # was a stale Chesterton's fence from M3 batch migration (commit ea83f033,
+                # 2026-03-20). Removed 2026-04-28 (audit F2; B1/C1).
+                props[field] = str(val)
 
         # Build parameterized CREATE
         param_names = [f"p{i}" for i in range(len(new_fields))]

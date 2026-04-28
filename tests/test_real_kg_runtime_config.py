@@ -75,3 +75,24 @@ def test_api_server_enforces_db_size_floor_against_drift() -> None:
     assert "COGNEBULA_DB_SIZE_FLOOR_BYTES" in server
     assert "database_below_size_floor" in server
     assert "_dir_top_level_size" in server
+
+
+def test_migrate_table_no_500_char_clamp_on_string_props() -> None:
+    """Regression: the migrate-table inner loop must NOT silently truncate
+    string values to 500 chars. That clamp was a stale Chesterton's fence
+    from M3 batch migration (commit ea83f033, 2026-03-20). Removed
+    2026-04-28 per audit F2 / B1.
+
+    The audit found this clamp had silently truncated LegalClause content
+    during migrations. Per-field length is the schema's job; the migration
+    mechanism must not have opinions about value length.
+    """
+    server = _read("kg-api-server.py")
+
+    # The exact clamp pattern we removed
+    assert "props[field] = str(val)[:500]" not in server
+    # The replacement contract
+    assert "props[field] = str(val)" in server
+    # The receipt comment must remain so future readers know why
+    assert "stale Chesterton's fence" in server
+    assert "ea83f033" in server

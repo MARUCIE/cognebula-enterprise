@@ -1144,3 +1144,67 @@ DNA Capsule Candidates (cross-project):
 - `cross-repo-symmetric-write-invariant`
 - `topology-2pass-boundary-correction`
 - `pdca-quartet-cross-project-sweep`
+
+---
+
+## 2026-04-28 — hegui.io/expert/ audit-fix sprint (6/11 punch-list items shipped)
+
+Closes 6 of the 11 items from the pm-strategy-swarm audit at `state/outputs/reports/pm-strategy-swarm/2026-04-28-hegui-expert-audit.md` (3-advisor verdict 3/3 FAIL: Hara structural / Hickey complecting / Munger inversion). The original failure was "authored-not-probed" anti-pattern — 6 hardcoded status rows + READY pill + 100.0% score sat next to live KPI cards with no visual or semantic distinction.
+
+### Shipped (curl-verified live on hegui.io at 2026-04-28T10:33Z)
+
+| Audit item | Fix | Curl evidence |
+|---|---|---|
+| **P0.1** 6 hardcoded status rows | 3 wired to `/api/v1/health` (KG API / KuzuDB / LanceDB) with `ProbedStatusRow` + 30s polling; 2 explicit `UnprobedStatusRow` "无健康端点" (Know-Arc / Edge Engine); 1 deleted (CF Worker) | `live probe` 1×, `composite gate` 1×, `发布门` 6×, OLD `质量评分/待部署/API OK` all 0× |
+| **P0.2** READY top-bar pill hardcoded green | Tri-state PROBING/READY/DOWN wired to `/health`, 30s polling | `PROBING` 1×, `System A` 4×, `Internal Console` 1×, `/api/v1 same-origin` 1×, OLD `514K nodes/1.1M edges` 0× |
+| **P0.3** 100.0% single-number quality score | Replaced with `发布门 (composite gate)` card binding to `/api/v1/ontology-audit` verdict + breakdown (title%/content%/rogue/over-Brooks); data-quality dashboard fully rewritten (+1445 net LOC) with co-located CSS module + `prodSnapshot.ts` for fixture route | new component live, no `100.0%` regression |
+| **P0.4** Curl-verify discipline | `UnprobedStatusRow` with "无健康端点" detail eats own dogfood — refuses to claim 在线 without probe binding | structural |
+| **P1.5** 6 System B boundary directories leaking on hegui.io | `_redirects` 301s for `/workbench/*`, `/dashboard/*`, `/clients/*`, `/reports/*`, `/settings/*`, `/skills/*` → `/expert/bridge/` (interim until Stage 38 two-bundle split) | `/workbench/` HTTP 301 → `/expert/bridge/`, same for `/dashboard/` and `/skills/` |
+| **P1.6** "← 返回灵阙产品端" link in expert layout | Deleted from `expert/layout.tsx` aside footer | `返回灵阙产品端` 0× in HTML |
+| **P3.10** 4 Quick Access Cards duplicating sidebar nav | Deleted (Hara emptiness) | structural |
+
+### Bonus (not in punch list, audit-adjacent)
+
+- `expert/bridge/page.tsx` CogNebula System A header gains `hegui.io · LIVE` monospace badge (applies the "Curl 前再写外部状态 UI claim" memory rule).
+
+### Deferred halves (next sprint)
+
+| Audit item | Why deferred | Trigger to pull |
+|---|---|---|
+| **P2.7** `/stats` vs `/quality` node-count drift (518K vs 369K) | Backend rename in `kg-api-server.py` (renaming `total_nodes` → `total_nodes_full` / `total_nodes_curated`); 90-min slice budget exceeded | Stand-alone backend sprint |
+| **P2.8** Sidebar `知识问答` ↔ route `/expert/reasoning` mismatch | Naming decision (rename label vs rename route) requires Maurice product call | Maurice greenlight |
+| **P2.9** `V4 test` / `Daily pipeline test` fixtures in prod KG | Backend KG cleanup; unrelated to UI surface | Stand-alone KG sprint |
+| **P3.11** `架构说明` prose card on overview | Hara emptiness, optional; left for next polish pass | Optional |
+
+### Cross-repo + within-project consistency closure
+
+- Symmetric-write invariant (per `feedback_cross_repo_symmetric_write.md` Rule 1): no lingque-side change needed (audit was hegui.io-only, scope = System A only)
+- Within-project doc/index.md status: SYSTEM_ARCHITECTURE row already updated in `77f43ff`; no further sync needed
+- HEGUI_DEPLOY_STATUS.md updated with audit-fix deploy entry (this commit)
+
+### Commit ledger
+
+- `91cf66c` `fix(audit/expert): P0 closed-loop honesty + P1.6 + P3.10`
+- `cdab111` `fix(audit/expert,boundary): P0.3 quality breakdown + P1.5 System B 301s`
+- `5bc4df4` `feat(expert): hybridSearch + ReasoningChainPanel + rules prod-aliasing` (non-audit feature work bundled to avoid ghost work)
+- (this commit) `docs(deliverable,deploy-status): record 2026-04-28 audit-fix sprint`
+
+### Release Readiness Verdict
+
+- `Spec`: pass (6/11 punch-list items shipped, 4 explicit deferred halves)
+- `Build`: pass (`npm run build` exported 39 routes, including 6 boundary routes that are 301-intercepted by `_redirects` at edge)
+- `Test`: pass (curl evidence above)
+- `Security`: pass (no schema change, no destructive ops, all changes reversible via `git revert` + redeploy)
+- `Observe`: pass (HEGUI_DEPLOY_STATUS.md updated)
+- `Release`: pass (CF Pages preview alias `f976e5cc.hegui-site.pages.dev` + prod `hegui.io` LIVE)
+
+### Rollback
+
+- `git revert 5bc4df4 cdab111 91cf66c` + `wrangler pages deploy out --project-name=hegui-site` returns prod to pre-audit state (`875d3ff`)
+- CF Pages dashboard rollback to previous deploy is also available as one-click
+
+### DNA Capsule Candidates
+
+- `audit-fix-vertical-slice-under-90min` (commit-grouped audit P0/P1/P3 + curl-verify + status-doc + deliverable, all in one slice)
+- `redirects-as-route-guard-interim` (CF Pages `_redirects` 301 as the minimal-viable boundary fix when "two-builds" split is multi-day work)
+- `unprobed-status-row-honesty` (when a service has no health endpoint, render "未探测/无健康端点" instead of fake "在线" — concrete instance of the curl-before-claim rule)

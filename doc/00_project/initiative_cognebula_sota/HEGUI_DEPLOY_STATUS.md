@@ -3,6 +3,9 @@
 > **2026-04-28** · CogNebula Enterprise web UI deploy to hegui.io
 > Owner: Maurice · Author: session pickup from §20 KG audit closeout
 > Scope: bring the React/Next.js KG explorer live at hegui.io
+> **STATUS: LIVE on hegui.io as of 2026-04-28T08:41Z**
+>
+> **Last audit-fix deploy**: 2026-04-28T10:33Z · preview alias `https://f976e5cc.hegui-site.pages.dev` · prod commit `5bc4df4` (3 audit-fix commits: `91cf66c` P0+P1.6+P3.10, `cdab111` P0.3+P1.5, `5bc4df4` non-audit feature work). Closes 6/11 items from `state/outputs/reports/pm-strategy-swarm/2026-04-28-hegui-expert-audit.md` (P0.1 6 status rows wired → /health · P0.2 READY pill tri-state · P0.3 100% replaced with composite-gate breakdown · P0.4 curl-discipline · P1.5 boundary 301s for 6 System B leak directories · P1.6 返回灵阙产品端 link removed · P3.10 quick cards deleted). Curl-verified: `/workbench/`→301→`/expert/bridge/`, `发布门` 6× present, `质量评分` 0×, `返回灵阙产品端` 0×, `PROBING/System A/Internal Console` all present. Deferred next sprint: P2.7 stats/quality drift rename, P2.8 知识问答 ↔ /reasoning, P3.11 架构说明 prose card.
 
 ---
 
@@ -10,28 +13,160 @@
 
 | Layer | URL | State |
 |---|---|---|
-| Frontend (Next.js static) | `https://hegui-site.pages.dev` | LIVE — production deploy `875d3ff` |
+| **Frontend on apex domain** | `https://hegui.io` | **LIVE — DNS swap completed 2026-04-28T08:40Z** |
+| **Frontend on www subdomain** | `https://www.hegui.io` | **LIVE — same Pages project** |
+| Frontend (Pages canonical) | `https://hegui-site.pages.dev` | LIVE — production deploy `875d3ff` |
 | Frontend preview (per-deploy alias) | `https://5b934ed8.hegui-site.pages.dev` | LIVE — same artifact |
-| API proxy (Pages Function) | `https://hegui-site.pages.dev/api/v1/*` | LIVE — returns real KG stats |
+| API proxy (Pages Function) | `https://hegui.io/api/v1/*` | LIVE — returns real KG stats |
+| API proxy (Pages canonical) | `https://hegui-site.pages.dev/api/v1/*` | LIVE — same Pages Function |
 | API proxy (standalone Worker) | `https://cognebula-kg-proxy.maoyuan-wen-683.workers.dev/api/v1/*` | LIVE — alternate path |
 | Tunnel (cloudflared on contabo) | `https://halifax-drop-college-oliver.trycloudflare.com` | LIVE — ephemeral hostname |
 | KG API (uvicorn on contabo) | `localhost:8400` (private) | LIVE — 518,498 nodes / 1,293,535 edges |
 
-**End-to-end sanity check (verified 2026-04-28T07:50Z)**:
+**End-to-end sanity check (verified 2026-04-28T08:41Z, post-swap)**:
 
 ```
-$ curl https://hegui-site.pages.dev/api/v1/stats
+$ /usr/bin/curl -sS https://hegui.io | grep -oE '<title>[^<]+</title>'
+<title>灵阙财税 | AI 虚拟财税公司</title>
+
+$ /usr/bin/curl -sS https://hegui.io/api/v1/stats
 {"total_nodes":518498,"total_edges":1293535,...}
+
+$ dig @1.1.1.1 hegui.io +short
+172.67.190.6
+104.21.73.123
+
+$ BASE=https://hegui.io bash scripts/smoke_test_hegui_deploy.sh
+summary
+  total:  16
+  PASS:   13
+  FAIL:   3   # all 3 = pre-existing contabo backend gaps (reasoning-chain, inspect/clause, inspect/clause/batch), NOT swap regressions
 ```
+
+**Captures (4K + Mobile 3x DPI, 2026-04-28T08:43Z)**:
+- `outputs/screenshots/hegui-io-pc-4k-2026-04-28T08-43.png` — 4320×2700, 738K
+- `outputs/screenshots/hegui-io-mobile-4k-2026-04-28T08-43.png` — 1179×1980, 159K
 
 ---
 
-## What is NOT achieved — and the corrected diagnosis
+## Default-route swap to /expert/ (2026-04-28T09:00Z)
+
+**Trigger**: post-DNS-swap, the homepage at `hegui.io/` was rendering the
+Lingque B2B SaaS landing (`/dashboard`, `/workbench`, `/clients`, `/reports`
+routes), not the KG explorer + expert workbench. Maurice confirmed the wrong
+default route — original directive was to surface KG/expert content.
+
+**Discovery**: same Next.js bundle contains TWO products:
+- Lingque B2B routes: `/`, `/dashboard`, `/workbench/*`, `/clients/*`, `/reports/*`
+- CogNebula expert routes: `/expert/`, `/expert/kg`, `/expert/reasoning`,
+  `/expert/data-quality`, `/expert/rules`, `/expert/bridge`
+
+The deploy was correct; the IA was wrong. Fix is a single redirect, not a
+rebuild of the wrong artifact.
+
+**Fix applied**:
+
+1. Created `web/public/_redirects` with `/  /expert/  302` (CF Pages native
+   syntax; Next.js `redirects()` config doesn't work in `output: "export"` mode)
+2. Rebuilt: `npm run build` → 39 static pages exported with `_redirects` copied to `out/_redirects`
+3. Deployed: `wrangler pages deploy out --project-name=hegui-site` → preview alias `https://0f9c65e4.hegui-site.pages.dev`, production `hegui.io` updated within seconds
+
+**Verification (2026-04-28T09:00Z)**:
+
+```
+$ /usr/bin/curl -sS -I https://hegui.io/ | head -5
+HTTP/2 302
+location: /expert/
+server: cloudflare
+
+$ /usr/bin/curl -sSL https://hegui.io/ | grep -E "(System A 总览|节点总数|KG 基础设施)" | wc -l
+3   # all 3 expert markers present after follow-redirect
+
+$ /usr/bin/curl -sS https://hegui.io/dashboard/ | grep -E "(月度仪表盘|服务客户)" | wc -l
+2   # legacy lingque routes still accessible (no breakage)
+
+$ playwright → final URL: https://hegui.io/expert/   # browser-level confirmation
+```
+
+**Captures (post-redirect, 2026-04-28T09:01Z)**:
+- `outputs/screenshots/hegui-io-root-after-redirect-pc-4k-2026-04-28T09-01.png` — 4320×2700, 568K
+- `outputs/screenshots/hegui-io-root-after-redirect-mobile-2026-04-28T09-01.png` — 575K
+
+**Status note**: B2B routes (`/dashboard`, `/workbench/*`, etc) remain
+accessible by URL but no longer have entry-link navigation from the new
+`/expert/` homepage. If B2B content needs to be hidden from `hegui.io`
+entirely, that's a separate IA decision (Option D in the route map): fork the
+build to drop those routes. For now, redirect is sufficient.
+
+---
+
+## Upgrade to URL-stable rewrite (Option B, 2026-04-28T09:10Z)
+
+Maurice picked Option B from the route-map: keep the homepage URL at `/`
+(no visible `/expert/` in address bar), but render the expert dashboard there.
+
+**Approach taken — minimalist**: instead of refactoring the app structure
+with Next.js route groups (~30 min), changed the `_redirects` rule from
+`302 redirect` to `200 rewrite`. CF Pages serves `/expert/index.html` content
+when `/` is requested while preserving the URL bar.
+
+**Diff applied**:
+
+```diff
+- /  /expert/  302
++ /  /expert/  200
+```
+
+**Why this works without refactor**: CF Pages `_redirects` accepts status `200`
+as a server-side proxy directive (Netlify-compatible syntax). The browser
+sees a single `HTTP/2 200` response; no redirect chain; URL bar stays at `/`.
+Source code untouched, no route groups, no layout changes.
+
+**Verification (2026-04-28T09:10Z)**:
+
+```
+$ /usr/bin/curl -sS -I https://hegui.io/ | head -2
+HTTP/2 200                                 # NOT 302 — direct response
+content-type: text/html; charset=utf-8
+
+$ /usr/bin/curl -sS https://hegui.io/ | grep -E "(System A 总览|节点总数|KG 基础设施)" | wc -l
+3                                          # all expert markers in body, no follow needed
+
+$ playwright (real browser) → final URL = https://hegui.io/   # URL bar confirmed stable
+```
+
+**Captures (Option B verification, 2026-04-28T09:10Z)**:
+- `outputs/screenshots/hegui-io-rewrite-200-pc-4k-2026-04-28T09-10.png` — 4320×2700, 579K
+- `outputs/screenshots/hegui-io-rewrite-200-mobile-2026-04-28T09-10.png` — 459K
+
+**Cosmetic follow-up (not blocking)**: the CogNebula sidebar in
+`expert/layout.tsx` uses `href="/expert"` for the "总览" item. Clicking it from
+`/` navigates to `/expert/` (URL bar changes from `/` to `/expert/`). If strict
+URL/content coherence is desired, change that nav link to `href="/"`. Logged
+as deferred work.
+
+**Deploy alias**: `https://dc861b92.hegui-site.pages.dev`
+
+---
+
+## What was achieved this session — original directive resolved
 
 The original directive was "把原来这个页面下架，将知识图谱前端部署在这个域名下" —
 take down the PPT gallery on `hegui.io` and serve the KG frontend there.
 
-### CORRECTED diagnosis (2026-04-28T08:01Z)
+**RESOLVED 2026-04-28T08:41Z**: Maurice executed the DNS swap manually in the
+Cloudflare dashboard (deleted 4 A records, added 2 CNAMEs). Frontend went live
+on `https://hegui.io` and `https://www.hegui.io` within 30 seconds of the
+last DNS write. CF Pages auto-issued the TLS cert (Google Trust Services CA),
+HTTP/3 + anycast routing both confirmed via `cf-ray: 9f34c42e0b5378ef-LAX`.
+
+The smoke test (16 endpoints, 14 pulled from frontend's `kg-api.ts`) returned
+13 PASS / 3 FAIL. All 3 failures are pre-existing contabo backend gaps
+(`reasoning-chain`, `inspect/clause`, `inspect/clause/batch`) that the frontend
+calls but kg-api-server.py never implemented; identical failure profile against
+`hegui-site.pages.dev` confirms these are not introduced by today's swap.
+
+### Historical CORRECTED diagnosis (2026-04-28T08:01Z, kept for record)
 
 A previous version of this doc claimed `hegui.io` zone was on a different CF
 account. **That was wrong.** The earlier `zones?name=hegui.io` API call returned

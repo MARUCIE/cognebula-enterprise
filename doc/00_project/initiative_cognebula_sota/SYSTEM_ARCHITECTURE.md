@@ -174,6 +174,24 @@ Data sources: chinatax.gov.cn, cctaa.cn, cicpa.org.cn, law datasets, CPA knowled
 | Graph engine | KuzuDB (or Vela fork/FalkorDB) | Neo4j Aura (over-engineered for 620K nodes) |
 | Hosting | Single VPS (8GB, self-managed) | Cloud-native / Kubernetes (future) |
 
+## Frontend Surface Topology (cross-project contract, 2026-04-28)
+
+> **Symmetric write** — canonical authoring lives in `30-lingque-agent/doc/00_project/initiative_lingque_agent/SYSTEM_ARCHITECTURE.md` §1.3 Four-Frontend Topology. This section pins CogNebula Enterprise's role in that topology so the two repos do not drift.
+
+CogNebula Enterprise (System A) ships **one frontend** in this topology:
+
+| # | Frontend | Domain | Audience | Status (2026-04-28) | Routing enforcement |
+|---|---|---|---|---|---|
+| 1 | **CogNebula KG Console** (System A internal infrastructure) | `hegui.io` (root) | Internal infra engineers + KG ops | **LIVE** — 518,498 nodes / 1,293,535 edges, 100% quality score visible at `hegui.io/` | CF Pages, internal IP allowlist + Cloudflare Access (advisory until SSO middleware ships in Stage 38 of the lingque side) |
+
+The other three surfaces (`hegui.app` Lingque Agent Platform, `yiclaw.hegui.io` business frontend, `wiki.hegui.cn` public docs) are owned by `30-lingque-agent`, `25-yiclaw`, and the wiki repo respectively. CogNebula does **not** own DNS for those domains; it only honors the cross-domain contract for inbound calls from agents (via CF Worker proxy, not human navigation).
+
+**KG invisibility principle**: customer-tier surfaces (`yiclaw.hegui.io`, `hegui.app` non-operator users) MUST NEVER expose a human-clickable link to `hegui.io`. The KG is consumed by agents through the MCP server / CF Worker proxy, not navigated by humans. Audit obligation lives on each customer-facing repo; CogNebula's obligation is to refuse non-agent UA via Cloudflare Access (advisory until enforcement middleware ships).
+
+**Migration backlog impact on this repo**: M5 (audit `hegui.io` for inbound links from customer surfaces) is the only item in the lingque-side M1-M5 backlog that touches CogNebula directly — when M5 fires, this repo's CF Pages config gets a referer-allowlist sweep. Other items (M1 yiclaw subdomain split, M2 SSO middleware, M3 `?return_to=` parsing, M4 header links) are owned outside this repo.
+
+**Why this section exists**: a 2026-04-28 audit identified that decisions written to `30-lingque-agent/SYSTEM_ARCHITECTURE.md` could silently drift from `27-cognebula-enterprise/SYSTEM_ARCHITECTURE.md` because both repos describe overlapping surfaces. This symmetric-write paragraph is the failure-mode mitigation; canonical edits still happen on the lingque side.
+
 ## Key Risks (from SOTA Research)
 
 1. **KuzuDB archived** (Oct 2025): Evaluate Vela Partners fork stability or migrate to FalkorDB (Cypher-compatible)

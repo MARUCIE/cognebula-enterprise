@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CogNebula 系统架构</title>
+  <style>
+  *, *::before, *::after { box-sizing: border-box; }
+  :root {
+    --bg: #f4efe6;
+    --paper: #ffffff;
+    --paper-2: #fbf8f3;
+    --ink: #222222;
+    --muted: #666666;
+    --line: #e7dfd2;
+    --accent: #c45c3d;
+    --accent-2: #2f6f88;
+    --code-bg: #1f2430;
+    --code-ink: #d6deeb;
+    --shadow: 0 10px 30px rgba(34, 34, 34, 0.08);
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(circle at top left, rgba(196, 92, 61, 0.10), transparent 32%),
+      radial-gradient(circle at top right, rgba(47, 111, 136, 0.08), transparent 30%),
+      var(--bg);
+    color: var(--ink);
+    font: 17px/1.8 "Iowan Old Style", "Palatino Linotype", "Noto Serif SC", serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 40px 24px 72px;
+  }
+  .hero {
+    background: linear-gradient(135deg, rgba(196, 92, 61, 0.96), rgba(152, 66, 39, 0.96));
+    color: #fff;
+    border-radius: 18px;
+    padding: 28px 32px;
+    box-shadow: var(--shadow);
+    margin-bottom: 28px;
+  }
+  .hero h1 {
+    margin: 0 0 8px;
+    font-size: 2.15rem;
+    line-height: 1.25;
+    letter-spacing: 0.01em;
+  }
+  .hero p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 0.98rem;
+  }
+  .toc, .content {
+    background: var(--paper);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+  }
+  .toc {
+    padding: 24px 28px;
+    margin-bottom: 24px;
+  }
+  .toc h2 {
+    margin: 0 0 12px;
+    font-size: 1.1rem;
+    color: var(--accent);
+    border: none;
+    padding: 0;
+  }
+  .toc ol {
+    margin: 0;
+    padding-left: 1.3em;
+  }
+  .toc li { margin: 6px 0; }
+  .toc a {
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+  }
+  .toc a:hover { color: var(--accent); border-color: var(--accent); }
+  .content {
+    padding: 32px 36px 44px;
+  }
+  .content h1 { display: none; }
+  .content h2, .content h3, .content h4 {
+    scroll-margin-top: 24px;
+    color: var(--accent);
+    font-family: "Avenir Next", "Segoe UI", "Noto Sans SC", sans-serif;
+  }
+  .content h2 {
+    font-size: 1.55rem;
+    margin: 32px 0 14px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--line);
+  }
+  .content h3 {
+    color: var(--accent-2);
+    font-size: 1.2rem;
+    margin: 26px 0 10px;
+  }
+  .content h4 {
+    color: var(--ink);
+    font-size: 1rem;
+    margin: 20px 0 8px;
+  }
+  .content p, .content li { color: var(--ink); }
+  .content a { color: var(--accent-2); }
+  .content blockquote {
+    margin: 18px 0;
+    padding: 14px 18px;
+    background: var(--paper-2);
+    border-left: 4px solid var(--accent);
+    border-radius: 10px;
+    color: #444;
+  }
+  .content pre {
+    background: var(--code-bg);
+    color: var(--code-ink);
+    padding: 18px 20px;
+    border-radius: 14px;
+    overflow-x: auto;
+    font: 13px/1.7 "JetBrains Mono", "SFMono-Regular", monospace;
+  }
+  .content code {
+    font-family: "JetBrains Mono", "SFMono-Regular", monospace;
+    font-size: 0.88em;
+    background: rgba(47, 111, 136, 0.08);
+    padding: 0.15em 0.4em;
+    border-radius: 6px;
+  }
+  .content pre code {
+    background: transparent;
+    padding: 0;
+  }
+  .table-wrap {
+    overflow-x: auto;
+    margin: 18px 0 22px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+    background: #fff;
+  }
+  th, td {
+    border-bottom: 1px solid var(--line);
+    padding: 10px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  thead th {
+    background: var(--paper-2);
+    font-family: "Avenir Next", "Segoe UI", "Noto Sans SC", sans-serif;
+  }
+  ul, ol { padding-left: 1.4em; }
+  hr {
+    border: none;
+    border-top: 1px solid var(--line);
+    margin: 28px 0;
+  }
+  .footer {
+    margin-top: 18px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .mermaid-wrap {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 14px;
+    margin: 18px 0 22px;
+    overflow-x: auto;
+  }
+  .mermaid {
+    min-width: 680px;
+    white-space: pre;
+    font: 13px/1.7 "JetBrains Mono", "SFMono-Regular", monospace;
+  }
+  @media (max-width: 800px) {
+    body { font-size: 16px; }
+    .page { padding: 18px 14px 48px; }
+    .hero, .toc, .content { border-radius: 14px; }
+    .hero, .content { padding: 22px 18px; }
+    .toc { padding: 18px; }
+    .hero h1 { font-size: 1.72rem; }
+    .mermaid { min-width: 560px; }
+  }
+</style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <h1>CogNebula 系统架构</h1>
+      <p>真实生产数据库、Tailscale API 与显式 Compose 挂载架构</p>
+    </section>
+    <div class="toc"><h2>目录</h2><ol>
+<li><a href="#historical-prototype-architecture-v10">Historical Prototype Architecture (v1.0)</a></li>
+<li style="margin-left:1.1em"><a href="#pipeline-phases">Pipeline Phases</a></li>
+<li style="margin-left:1.1em"><a href="#storage-model">Storage Model</a></li>
+<li><a href="#target-architecture-v20----sota">Target Architecture (v2.0 -- SOTA)</a></li>
+<li style="margin-left:1.1em"><a href="#key-architecture-decisions">Key Architecture Decisions</a></li>
+<li><a href="#actual-current-architecture-2026-04-10">Actual Current Architecture (2026-04-10)</a></li>
+<li><a href="#system-boundaries-refined-post-sota">System Boundaries (refined post-SOTA)</a></li>
+<li><a href="#frontend-surface-topology">前端表面拓扑（cross-project contract · 2026-04-28）</a></li>
+<li><a href="#key-risks-from-sota-research">Key Risks (from SOTA Research)</a></li>
+</ol></div>
+    <section class="content">
+      <h1 id="cognebula-enterprise----system-architecture">CogNebula
+Enterprise -- System Architecture</h1>
+<blockquote>
+<p>Version: 0.3 (Updated) | Last updated: 2026-04-23</p>
+<p><strong>2026-04-27 audit pointer</strong>: SOP 3.2 front-back
+consistency audit found a P0 dual-backend drift
+(<code>kg-api-server.py</code> vs <code>src/api/kg_api.py</code> both
+targeting port 8400 with mostly disjoint route sets). Findings logged at
+<code>outputs/reports/consistency-audit/2026-04-27-sop-3.2-audit.md</code>.
+Fix is HITL-pending (3 options: merge / formalize-split /
+deprecate-one). Do not rely on this doc's backend description until that
+audit is closed.</p>
+<p><strong>2026-04-28 update</strong>: Sprint G1 turned the hand audit
+into a reproducible probe — <code>scripts/audit_api_contract.py</code>
+parses both backends + all frontend HTML, emits JSON drift report, and
+<code>tests/test_api_contract_drift.py</code> (4 tests) is wired into
+the nightly tier (5,860 → 5,864). Probe corrected the original "ZERO
+route overlap" claim to <strong>3 overlap</strong> (<code>/</code>,
+<code>/api/v1/ingest</code>, <code>/api/v1/quality</code>); P0
+dual-backend signal still holds
+(<code>dual_backend_drift_ratio = 0.12</code>, well below 0.25
+threshold). Frontend orphan set locked at <code>{/api/v1/ka/}</code> —
+any new orphan triggers a nightly fail.</p>
+</blockquote>
+<p>&lt;!-- AI-TOOLS:PROJECT_DIR:BEGIN --&gt; PROJECT_DIR:
+/Users/mauricewen/Projects/27-cognebula-enterprise &lt;!--
+AI-TOOLS:PROJECT_DIR:END --&gt;</p>
+<h2 id="historical-prototype-architecture-v10">Historical Prototype
+Architecture (v1.0)</h2>
+<div class="mermaid-wrap"><div class="mermaid">graph TB
+    subgraph "Client Layer"
+        CLI[CLI 14 cmds]
+        MCP[MCP stdio 7 tools]
+        WEB[D3.js WebGL UI]
+        API[REST /api/v1/*]
+    end
+
+    subgraph "Engine Layer"
+        PIPE[6-Phase AST Pipeline]
+        COMM[Community Detection]
+        QE[Cypher Query Engine]
+    end
+
+    subgraph "Storage Layer"
+        KUZU[(KuzuDB per-repo)]
+        REG[Registry JSON]
+    end
+
+    CLI --> PIPE
+    MCP --> QE
+    WEB --> QE
+    API --> QE
+    PIPE --> KUZU
+    PIPE --> COMM
+    COMM --> KUZU
+    QE --> KUZU
+    PIPE --> REG</div></div>
+<h3 id="pipeline-phases">Pipeline Phases</h3>
+<ol type="1">
+<li><strong>Extract</strong> -- discover source files (<code>.py</code>,
+<code>.ts</code>, <code>.tsx</code>, <code>.js</code>,
+<code>.jsx</code>)</li>
+<li><strong>Structure</strong> -- build folder/file hierarchy nodes</li>
+<li><strong>Parse</strong> -- AST (Python) / regex (JS/TS) symbol
+extraction</li>
+<li><strong>Imports</strong> -- resolve import/require edges</li>
+<li><strong>Calls</strong> -- resolve function/method call edges</li>
+<li><strong>Heritage</strong> -- resolve class
+inheritance/implementation edges</li>
+<li><strong>Community</strong> -- simplified Leiden community
+detection</li>
+</ol>
+<h3 id="storage-model">Storage Model</h3>
+<ul>
+<li>Per-repo KuzuDB at <code>&lt;repo&gt;/.cognebula/graph/</code></li>
+<li>Node tables: Module, File, Folder, Function, Class, Interface,
+Method, ArrowFunction, External, Community</li>
+<li>Edge types: CONTAINS, DEFINES, IMPORTS, CALLS, EXTENDS, IMPLEMENTS,
+MEMBER_OF (+ variants)</li>
+</ul>
+<h2 id="target-architecture-v20----sota">Target Architecture (v2.0 --
+SOTA)</h2>
+<div class="mermaid-wrap"><div class="mermaid">graph TB
+    subgraph "Client Layer"
+        CLI2[CLI]
+        MCP2[MCP Expanded]
+        REST2[REST API Gateway]
+        SDK[Client SDKs Python/TS]
+    end
+
+    subgraph "Gateway Layer"
+        GW[API Gateway + JWT]
+        TENANT[Tenant Router]
+    end
+
+    subgraph "Processing Layer"
+        TS[Tree-sitter Parser]
+        SYNC[Event-Driven Sync Worker]
+        NL2G[NL2Graph Engine]
+    end
+
+    subgraph "Hybrid RAG Layer"
+        LANCE[(LanceDB Vector)]
+        KUZU2[(KuzuDB Graph per-tenant)]
+        ORCH[RAG Orchestrator]
+    end
+
+    subgraph "Infrastructure"
+        REDIS[(Redis Queue)]
+        WEBHOOK[Webhook Receiver]
+    end
+
+    CLI2 --> GW
+    MCP2 --> GW
+    REST2 --> GW
+    SDK --> GW
+    GW --> TENANT
+    TENANT --> ORCH
+    ORCH --> LANCE
+    ORCH --> KUZU2
+    WEBHOOK --> REDIS
+    REDIS --> SYNC
+    SYNC --> TS
+    TS --> KUZU2
+    TS --> LANCE
+    NL2G --> ORCH</div></div>
+<h3 id="key-architecture-decisions">Key Architecture Decisions</h3>
+<ol type="1">
+<li><strong>Shared-Nothing</strong>: One KuzuDB directory per
+repo/tenant (hardware isolation)</li>
+<li><strong>Late-Binding Hybrid RAG</strong>: LanceDB finds semantic
+entry point -&gt; KuzuDB maps blast radius</li>
+<li><strong>Tree-sitter</strong>: Universal parser with error recovery
+(replaces regex for JS/TS)</li>
+<li><strong>Event-Driven</strong>: Webhook -&gt; Redis -&gt;
+Single-threaded ingester per repo</li>
+<li><strong>API Gateway</strong>: JWT validation + tenant routing before
+any DB access</li>
+</ol>
+<h2 id="actual-current-architecture-2026-04-10">Actual Current
+Architecture (2026-04-10)</h2>
+<p>The v1.0 diagram above describes the original code intelligence
+prototype. The actual production system is a <strong>finance/tax domain
+knowledge graph</strong>:</p>
+<pre><code>Local self-hosted package (`docker compose`, explicit real mounts only)
+  ├── Static web app: http://localhost:3001/
+  ├── Browser-safe local proxy: http://localhost:3001/api/v1/*
+  └── Protected KG API: http://localhost:8400/api/v1/*
+      └── Requires COGNEBULA_GRAPH_PATH + COGNEBULA_LANCE_PATH; no demo default
+
+Static frontend (`web/`, Next.js `output: export`)
+  ├── Browser uses HTTPS only
+  ├── KG client targets `https://cognebula-kg-proxy.workers.dev/api/v1`
+  ├── Local dev target defaults to real Tailscale API: `http://100.88.170.57:8400/api/v1`
+  ├── `/expert/data-quality` consumes `/stats` + `/quality` + `/ontology-audit`
+  └── No browser-side storage of `KG_API_KEY`
+
+Cloudflare Worker proxy (`worker/src/index.ts`)
+  ├── Bridges static web HTTPS requests to the protected KG API
+  ├── Injects `X-API-Key` from Worker secret / env binding
+  └── Preserves static export deployment model while keeping auth server-side
+
+kg-api-server.py (108K lines, FastAPI, port 8400)
+  ├── Production DB path: /home/kg/cognebula-enterprise/data/finance-tax-graph
+  ├── Production LanceDB path: /home/kg/data/lancedb
+  ├── Live verified state (2026-04-28): 368,910 nodes / 1,014,862 edges / 118,011 LanceDB rows
+  ├── Runtime guard: refuses demo, archived, missing, or empty DB paths before opening Kuzu
+  ├── Endpoints: /stats, /quality, /ontology-audit, /search, /hybrid-search, /nodes, /neighbors, /admin/*
+  ├── Auth: `KG_API_KEY` middleware on non-exempt API routes
+  ├── Hygiene Gate: `/quality` (title/content coverage + edge density inside curated tables)
+  ├── Structural Gate: `/ontology-audit` (canonical conformance, rogue types, over-ceiling drift)
+  └── Embedding: LanceDB 869,882 vectors (~100% coverage)
+
+M3 Orchestrator (cron 02:00 UTC daily)
+  ├── Step 1: QA Generation (Gemini 2.5 Flash, 2K QA pairs/run)
+  ├── Step 2: KU Content Backfill (batch-size=15)
+  ├── Step 2b: FAQ Content Fill
+  ├── Step 2c: Content Cleanup Pipeline
+  ├── Step 3: Edge Engine (AI-generated relationships)
+  ├── Step 4: Batch Edge Enrichment (keyword-based)
+  ├── Step 5-6: API restart + quality check
+  ├── Step 7-8: Daily + deep crawl (chinatax, cctaa, cicpa, etc.)
+  └── Step 9: Incremental embedding rebuild
+
+Daily Pipeline (cron 10:00 UTC)
+  └── Crawl + ingest from tax authority websites
+
+Data sources: chinatax.gov.cn, cctaa.cn, cicpa.org.cn, law datasets, CPA knowledge</code></pre>
+<h2 id="system-boundaries-refined-post-sota">System Boundaries (refined
+post-SOTA)</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Boundary</th>
+<th>Inside</th>
+<th>Outside</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Knowledge domain</td>
+<td>Chinese finance/tax regulation</td>
+<td>Other jurisdictions, code intelligence</td>
+</tr>
+<tr>
+<td>Data ingestion</td>
+<td>Crawl + parse + enrich (Gemini)</td>
+<td>Real-time user transaction data</td>
+</tr>
+<tr>
+<td>Agent interface</td>
+<td>REST API + MCP Server + HTTPS browser proxy</td>
+<td>IDE plugins and unrelated third-party frontends</td>
+</tr>
+<tr>
+<td>Graph engine</td>
+<td>KuzuDB (or Vela fork/FalkorDB)</td>
+<td>Neo4j Aura (over-engineered for 620K nodes)</td>
+</tr>
+<tr>
+<td>Hosting</td>
+<td>Single VPS (8GB, self-managed)</td>
+<td>Cloud-native / Kubernetes (future)</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="frontend-surface-topology">前端表面拓扑（cross-project contract · 2026-04-28）</h2>
+<blockquote>
+<p><strong>对称写入</strong>（symmetric write）— 标准编辑位置在 <code>30-lingque-agent/doc/00_project/initiative_lingque_agent/SYSTEM_ARCHITECTURE.md</code> §1.3 Four-Frontend Topology。本节固化 CogNebula Enterprise 在该拓扑中的角色，防止两个仓库出现声明漂移。</p>
+</blockquote>
+<p>CogNebula Enterprise（System A · 知识引擎）在 4 前端拓扑中只承担<strong>一个前端</strong>：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>前端</th>
+<th>域名</th>
+<th>观众</th>
+<th>状态（2026-04-28）</th>
+<th>路由强制</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>CogNebula KG 控制台</strong>（System A 内部基建）</td>
+<td><code>hegui.io</code>（根）</td>
+<td>内部基建工程师 + KG 运维</td>
+<td><strong>LIVE</strong> — 518,498 节点 / 1,293,535 条边，质量分 100%，<code>hegui.io/</code> 可见</td>
+<td>CF Pages · 内网 IP 白名单 + Cloudflare Access（Stage 38 SSO 中间件上线前 advisory）</td>
+</tr>
+</tbody>
+</table></div>
+<p>另外三个表面——<code>hegui.app</code>（灵阙智能体平台）、<code>yiclaw.hegui.io</code>（业务前端）、<code>wiki.hegui.cn</code>（公开文档）——分别归属 <code>30-lingque-agent</code>、<code>25-yiclaw</code>、wiki 仓。CogNebula 不持有这些域名 DNS，仅遵守跨域契约处理 agent 入站调用（CF Worker 代理 + MCP，不是人类导航）。</p>
+<p><strong>KG 不可见性原则</strong>：客户层表面（<code>yiclaw.hegui.io</code> 用户、<code>hegui.app</code> 非操作员用户）<strong>绝不</strong>暴露指向 <code>hegui.io</code> 的人类可点链接。KG 由 agent 经 MCP server / CF Worker 代理消费，不由人类导航。审计义务在每个客户面仓库；CogNebula 的义务是通过 Cloudflare Access 拒绝非 agent UA（Stage 38 中间件上线前 advisory）。</p>
+<p><strong>迁移 backlog 对本仓的影响</strong>：lingque 侧 M1-M5 backlog 中只有 M5（审计 <code>hegui.io</code> 是否被任一客户面前端入链）直接触本仓——M5 触发时本仓 CF Pages 配置需做 referer 白名单扫描。其他项（M1 yiclaw 子域分裂、M2 SSO 中间件、M3 <code>?return_to=</code> 解析、M4 header 链接）归属本仓之外。</p>
+<p><strong>本节存在的原因</strong>：2026-04-28 审计发现写入 <code>30-lingque-agent/SYSTEM_ARCHITECTURE.md</code> 的决策可能与 <code>27-cognebula-enterprise/SYSTEM_ARCHITECTURE.md</code> 静默漂移，因为两个仓库描述的表面有重叠。本对称写入段是<strong>失效模式（failure mode）的缓解措施</strong>；标准编辑仍然在 lingque 侧进行。</p>
+<h2 id="key-risks-from-sota-research">Key Risks (from SOTA
+Research)</h2>
+<ol type="1">
+<li><strong>KuzuDB archived</strong> (Oct 2025): Evaluate Vela Partners
+fork stability or migrate to FalkorDB (Cypher-compatible)</li>
+<li><strong>No MCP Server</strong>: All major platforms (Neo4j, Augment,
+Copilot, CrewAI) have MCP. Window closing</li>
+<li><strong>Benchmark maintenance</strong>: published hybrid benchmark
+exists (79% overall / 100 pass), but it must stay green after each
+retrieval or schema change</li>
+</ol>
+<hr />
+<p>Maurice | <a
+href="mailto:maurice_wen@proton.me">maurice_wen@proton.me</a></p>
+
+    </section>
+    <div class="footer">CogNebula Enterprise · Human-facing companion generated from SYSTEM_ARCHITECTURE.md</div>
+  </main>
+</body>
+</html>

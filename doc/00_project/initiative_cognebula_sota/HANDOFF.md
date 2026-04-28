@@ -1,10 +1,27 @@
 ---
 initiative: cognebula_sota
-last_session_utc: 2026-04-28T15:30:00Z
+last_session_utc: 2026-04-28T17:45:00Z
 status: ACTIVE
 ---
 
 # HANDOFF — CogNebula SOTA
+
+> **2026-04-28 §20 Phase A receipts (depth × breadth audit remediation kickoff)**:
+> User directive "启动完全修复" → §20 atomic queue materialized in `task_plan.md`. Phase A
+> (Munger inversion gates / Chesterton's fences) executed read-only:
+> - **A1**: `kg-api-server.py:1708` `[:500]` clamp = stale M3-batch-migration guard,
+>   commit `ea83f033` (Maurice 2026-03-20). Safe to remove for future migrations.
+> - **A2**: 4 V2 tables total (audit guessed ≥5). 3/4 with V1 counterpart;
+>   `RiskIndicatorV2` is orphan-after-M3-cleanup, not anticipatory naming.
+> - **A3**: All 3 V1+V2 pairs are DIVERGENT — V1 = LLM semantic-extraction lineage,
+>   V2 = crawler canonical-metadata lineage. NOT redundant. F1 reframed from
+>   "consolidation problem" to "lineage unification problem".
+> - **A4 (62-table enum) + A5 (Source schema draft) DEFERRED** to next session.
+> - **Phase B / C blocked** until A4+A5 close + unified-schema design session.
+>
+> Deliverable artifact: `outputs/audits/2026-04-28-prod-kg-depth-breadth-audit.{md,html}`
+> + swarm trace `outputs/reports/auto-swarm-trace/2026-04-28-prod-kg-depth-breadth-audit.md`.
+> Commit: `1154578` (audit + trace), Phase A discoveries appended to task_plan §20.
 
 > **2026-04-28 §19 closure — Real Prod KG Wiring**:
 > Local `.demo` sandbox deleted (166 MB freed: `.demo` 109 MB + `.demo.work` 57 MB).

@@ -649,3 +649,57 @@ If milestone reached (Tier 0 + ≥6 P0 closed), pause and report. If blocker hit
 ### Loop-execute order
 
 `A1-A6 (DONE) → B1 → B2 → B3+B4 → C1+C2+C3 → C4 → D1+D2+D3 → E1+E2 → E3`
+
+---
+
+## §20. Atomic Execution Queue — Prod KG Depth × Breadth Remediation (2026-04-28)
+
+> **Scope**: act on the 5 surviving findings from `outputs/audits/2026-04-28-prod-kg-depth-breadth-audit.md`.
+> **Synthesis target**: treat schema-version as a value attached to a single canonical entity, and make migration a pure identity-preserving function.
+> **Non-negotiable order**: Phase A (Munger inversion gates / Chesterton's fences) MUST close before any Phase B patch lands. Munger R2 risk warning: HIGH if skipped.
+
+### Phase A — Inversion gates (read-only investigation)
+
+- [x] **A1 — Chesterton's fence on `kg-api-server.py` line 1708 (`props[field] = str(val)[:500]`)** — DONE 2026-04-28. `git blame` resolved to commit `ea83f033025583e6134b5adfabcbb02bab91e926` (Maurice, 2026-03-20) "feat(m3): comprehensive graph remediation". Line was added as a defensive guard for the M3 batch migration (V2 ghost table cleanup + LR→KU 33K migration + dedup). Rationale was sprint-specific, not a permanent policy. **The Chesterton fence is now stale — the migration that justified it completed in March.** Future migrate-table calls inherit the clamp without needing it.
+- [x] **A2 — Enumerate ALL V2 tables in valid_tables list** — DONE 2026-04-28. 4 tables only (audit guessed ≥5): `ComplianceRuleV2`, `FilingFormV2`, `TaxIncentiveV2` (3 with V1 counterpart), and `RiskIndicatorV2` (orphan — V1 was deleted in M3 commit `ea83f033`). No V3 tables exist. Naming-inconsistency hypothesis on `RiskIndicatorV2` confirmed: it's the survivor after V1 cleanup, not an anticipatory rename.
+- [x] **A3 — Schema-diff each V1+V2 pair via API field enumeration** — DONE 2026-04-28. ALL 3 pairs are DIVERGENT, not redundant. Pattern is consistent across pairs:
+  - V1 schema: rich semantic extraction (`argument_role`, `argument_links_to`, `jurisdiction_code/scope`, `source_paragraph`, `extracted_by`, `confidence`, `effective_from/to`, `override_chain_id`, `supersedes_id`, plus per-table semantic fields like `eligibilityCriteria`, `calculationRules`, `severityLevel`)
+  - V2 schema: canonical normalized metadata (`description`, `effectiveDate`, `expiryDate`, `regulationNumber`, `regulationType`, `sourceUrl`, `fullText`, `hierarchyLevel`, `createdAt`)
+  - Common base: 5-6 fields only (`id`, `name`, `_id`, `_label`, `_display_label`, sometimes `effectiveDate`)
+  - **Verdict**: V1 = LLM-extracted argument-structure pipeline; V2 = crawler-direct canonical-metadata pipeline. Two distinct data lineages, not version bumps. Munger R2 "V1+V2 separation CAN be correct" vindicated — these are correct separations.
+- [-] **A4 — Enumerate the 62 undeclared live tables (93 live - 31 declared)** — DEFERRED to next session. Owner: Maurice or next agent. Deliverable: list of 62 with classification (legitimate-undeclared / experimental / abandoned).
+- [-] **A5 — Source node schema draft + back-of-envelope audit of which tables already carry implicit source info** — DEFERRED. Deliverable: `Source(id, label, url, ingest_ts, ingest_pipeline)` schema declaration + per-table source-coverage matrix.
+
+### Phase B — Reversible patches (gated on Phase A outcomes) — DEFERRED
+
+**Reframed by A3 findings**: F1 is no longer a consolidation problem. The right next-round work is "unified schema design that absorbs V1's semantic richness AND V2's canonical metadata, then back-populate both halves from each lineage". Specific patches stay deferred until that schema is drafted.
+
+- [-] **B1 — Decide line 1708 disposition** — pending A1 outcome interpretation. Recommended path (per A1): **REMOVE** the `[:500]` clamp, since the M3 migration that justified it is past. Risk: a future migrate-table call with non-text-fitting data could regress, but the protection should live at the per-field schema level (e.g., `MAX_LENGTH` constraint declared on the column), not at a global migration-mechanism clamp. Patch scope ~5 lines.
+- [-] **B2 — V2 lineage merge design (NOT consolidation)** — pending. For each of 3 V1+V2 pairs: declare a unified target schema combining V1 semantic + V2 canonical fields, then define migration scripts populating both halves from the existing V1 and V2 sources. Treat schema-version as a VALUE on the canonical entity (Hickey synthesis target). Owner: Maurice or design session.
+- [-] **B3 — Schema-validation gate at `/api/v1/admin/execute-ddl` and `/api/v1/admin/migrate-table`** — pending. Reject `CREATE TABLE` for types not declared in canonical ontology, OR allow with explicit `_experimental` namespace prefix.
+- [-] **B4 — `Source` node schema declaration + writes** — pending A5.
+- [-] **B5 — KU fragmentation root cause** — pending separate investigation (ingest path enumeration).
+
+### Phase C — Remediation execution — DEFERRED
+
+- [-] **C1 — Apply B1 (line 1708 disposition)** — pending B1 decision.
+- [-] **C2 — Apply B2 unified schemas + migration scripts** — pending B2 design.
+- [-] **C3 — Backfill `source_id` for KnowledgeUnit / FAQEntry / TaxRate / etc. where deterministic mapping exists** — pending.
+- [-] **C4 — KU fragmentation remediation** — pending B5.
+- [-] **C5 — `ai check` + regression suite + commit + push** — final gate for the §20 closeout.
+
+### Phase A receipts (this session)
+
+- A1: `kg-api-server.py:1708` git blame → `ea83f033` "feat(m3): comprehensive graph remediation" (2026-03-20). Stale Chesterton fence. Safe to remove for future migrations; cannot reverse past truncation.
+- A2: 4 V2 tables (`ComplianceRuleV2`, `FilingFormV2`, `TaxIncentiveV2`, `RiskIndicatorV2`). 3/4 with V1 counterpart; 1/4 orphan after M3.
+- A3: All 3 V1+V2 pairs are TWO LINEAGES (LLM-extraction vs crawler-canonical), not version bumps. F1 reframed from "consolidation problem" to "lineage unification problem".
+
+### Stopping rules
+
+- Phase A4 / A5 require active investigation work (62-table enumeration + Source schema design). Out of scope for this minimal-viable-sprint slice. Resume next session.
+- Phase B / C blocked on A4 + A5 + design session for unified schema. Do NOT start B1-B5 without those gates.
+- If user explicitly directs "skip A4/A5 and proceed to B1 only", that is a smaller sprint that drops the line 1708 clamp without touching V2 lineages — acceptable but not a complete §20.
+
+### Loop-execute order
+
+`A1+A2+A3 (DONE this session) → A4+A5 (next session) → B1+B2 design → B3+B4 → C1-C5`

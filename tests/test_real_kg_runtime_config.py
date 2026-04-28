@@ -77,6 +77,54 @@ def test_api_server_enforces_db_size_floor_against_drift() -> None:
     assert "_dir_top_level_size" in server
 
 
+def test_grandfathered_tables_snapshot_is_present_and_stable() -> None:
+    """C5b schema-discipline gate depends on schemas/grandfathered_tables.json.
+
+    The file is a frozen 2026-04-28 snapshot of tables present in live KG but not
+    declared in canonical schemas/. It must:
+    - exist
+    - be valid JSON
+    - declare an `as_of` date and a non-empty `tables` array
+    - NOT auto-grow (this is enforced by review, not test, but the test asserts
+      the as_of marker is present so any change is visible in diff)
+    """
+    import json
+    grandfather = REPO_ROOT / "schemas/grandfathered_tables.json"
+    assert grandfather.exists(), "schemas/grandfathered_tables.json missing — C5b gate cannot enforce"
+    payload = json.loads(grandfather.read_text(encoding="utf-8"))
+    assert payload.get("as_of") == "2026-04-28", "grandfather snapshot date must remain frozen at 2026-04-28"
+    tables = payload.get("tables", [])
+    assert isinstance(tables, list) and len(tables) >= 50, (
+        f"grandfather list seems truncated (got {len(tables)} entries; expected ~62)"
+    )
+    # Sanity-check a few names that must be in the snapshot per A4 receipt
+    for sentinel in ("AccountEntry", "ChartOfAccount", "ComplianceRuleV2", "FilingFormV2"):
+        assert sentinel in tables, f"expected grandfathered table '{sentinel}' missing from snapshot"
+
+
+def test_admin_endpoints_have_c5b_schema_discipline_gate() -> None:
+    """C5b code-presence regression: kg-api-server.py must carry the C5b gate
+    helpers and apply them on both /api/v1/admin/execute-ddl and
+    /api/v1/admin/migrate-table.
+
+    Loss of either site re-opens the rogue-table-creation hole that
+    /api/v1/ontology-audit currently surfaces as 62 rogue tables.
+    """
+    server = _read("kg-api-server.py")
+
+    # Helper presence
+    assert "_load_canonical_table_names" in server
+    assert "_load_grandfathered_tables" in server
+    assert "_check_table_declared" in server
+    # execute-ddl gate site
+    assert "C5b schema-discipline gate" in server
+    assert "experimental_namespace" in server
+    assert "grandfathered_2026_04_28" in server
+    # migrate-table gate site (the second occurrence — there must be at least
+    # two distinct comment markers so both endpoints carry the check)
+    assert server.count("C5b schema-discipline gate") >= 2
+
+
 def test_all_ku_creators_populate_extracted_by_field() -> None:
     """Regression: every script that runs `CREATE (k:KnowledgeUnit ...)` must
     set the `extracted_by` field. The schema declares this field; B5 found

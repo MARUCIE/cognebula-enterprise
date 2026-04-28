@@ -1798,6 +1798,18 @@ def migrate_table(payload: dict):
     if target not in valid_node_tables:
         raise HTTPException(400, f"Invalid target table '{target}'")
 
+    # C5b schema-discipline gate (audit B3, 2026-04-28): target must be canonical or
+    # grandfathered. New rogue tables for migration targets are rejected at the
+    # CREATE TABLE step (see /api/v1/admin/execute-ddl gate); this check covers the
+    # case where the table already exists in DB but isn't declared anywhere.
+    target_allowed, target_reason = _check_table_declared(target)
+    if not target_allowed:
+        raise HTTPException(
+            403,
+            f"target '{target}' {target_reason}; declare in schemas/ontology_v4.2.cypher "
+            "or add to schemas/grandfathered_tables.json before migrating data into it.",
+        )
+
     import re as _re
     target_fields = set()
     int_fields = set()
@@ -1892,11 +1904,85 @@ def migrate_table(payload: dict):
     }
 
 
+# C5b schema-discipline helpers (audit B3) — added 2026-04-28.
+#
+# The execute-ddl + migrate-table admin endpoints accept arbitrary table names. Without
+# discipline, ad-hoc migrations create new tables that drift away from the canonical
+# ontology declared in schemas/ontology_v4.2.cypher (+ extensions). The /api/v1/ontology-audit
+# endpoint surfaces this as `rogue_in_prod` (62 tables as of 2026-04-28).
+#
+# This gate ENFORCES that all new CREATE TABLE statements name a table that is either:
+#   (a) declared in the canonical schema files, OR
+#   (b) listed in schemas/grandfathered_tables.json (snapshot 2026-04-28, legacy exceptions), OR
+#   (c) prefixed with `_experimental_` (developer namespace).
+#
+# Existing rogue tables in prod do not regress because they're already created — the gate
+# only fires on NEW CREATE statements. The grandfather list is intentionally a frozen
+# snapshot: it does not auto-grow.
+import re as _re_gate
+import glob as _glob_gate
+
+_CANONICAL_TABLES_CACHE: "set[str] | None" = None
+_GRANDFATHERED_TABLES_CACHE: "set[str] | None" = None
+_DDL_NAME_PATTERN = _re_gate.compile(
+    r"CREATE\s+(?:NODE|REL)\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(\w+)",
+    _re_gate.IGNORECASE,
+)
+
+
+def _load_canonical_table_names() -> "set[str]":
+    """Parse schemas/*.cypher (+ schemas/extensions/*.cypher) for declared NODE/REL TABLE
+    names. Cached after first call.
+    """
+    global _CANONICAL_TABLES_CACHE
+    if _CANONICAL_TABLES_CACHE is not None:
+        return _CANONICAL_TABLES_CACHE
+    names: "set[str]" = set()
+    for path in _glob_gate.glob("schemas/*.cypher") + _glob_gate.glob("schemas/extensions/*.cypher"):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                names.update(_DDL_NAME_PATTERN.findall(f.read()))
+        except Exception:
+            continue
+    _CANONICAL_TABLES_CACHE = names
+    return names
+
+
+def _load_grandfathered_tables() -> "set[str]":
+    """Read schemas/grandfathered_tables.json snapshot. Cached after first call."""
+    global _GRANDFATHERED_TABLES_CACHE
+    if _GRANDFATHERED_TABLES_CACHE is not None:
+        return _GRANDFATHERED_TABLES_CACHE
+    try:
+        with open("schemas/grandfathered_tables.json", "r", encoding="utf-8") as f:
+            payload = json.load(f)
+        _GRANDFATHERED_TABLES_CACHE = set(payload.get("tables", []))
+    except Exception:
+        _GRANDFATHERED_TABLES_CACHE = set()
+    return _GRANDFATHERED_TABLES_CACHE
+
+
+def _check_table_declared(name: str) -> "tuple[bool, str]":
+    """Return (allowed, reason) for the C5b admin gate."""
+    if name.startswith("_experimental_"):
+        return True, "experimental_namespace"
+    if name in _load_canonical_table_names():
+        return True, "canonical"
+    if name in _load_grandfathered_tables():
+        return True, "grandfathered_2026_04_28"
+    return False, "not_in_canonical_schema_or_grandfathered_or_experimental"
+
+
 @app.post("/api/v1/admin/execute-ddl")
 def execute_ddl(payload: dict):
     """Execute schema DDL statements (CREATE/DROP TABLE).
 
     Used by migration scripts. Only allows CREATE/DROP NODE/REL TABLE.
+
+    C5b schema-discipline gate (audit B3, 2026-04-28): CREATE NODE/REL TABLE
+    statements naming a table that is neither canonical nor grandfathered nor
+    `_experimental_` prefixed are REJECTED with a hint to declare in
+    schemas/ontology_v4.2.cypher first.
     """
     conn = get_kuzu()
     statements = payload.get("statements", [])
@@ -1917,6 +2003,23 @@ def execute_ddl(payload: dict):
         if not any(upper.startswith(p) for p in ALLOWED_PREFIXES):
             results.append({"statement": stmt[:80], "status": "REJECTED", "reason": "Not in allowed prefix list"})
             continue
+        # C5b schema-discipline gate
+        if upper.startswith("CREATE NODE TABLE") or upper.startswith("CREATE REL TABLE"):
+            m = _DDL_NAME_PATTERN.search(stmt)
+            if m:
+                tname = m.group(1)
+                allowed, reason = _check_table_declared(tname)
+                if not allowed:
+                    results.append({
+                        "statement": stmt[:80],
+                        "status": "REJECTED",
+                        "reason": (
+                            f"C5b schema-discipline gate: '{tname}' {reason}. "
+                            "Add to schemas/ontology_v4.2.cypher (or extension file) first, "
+                            "OR rename with '_experimental_' prefix for developer use."
+                        ),
+                    })
+                    continue
         try:
             conn.execute(stmt)
             results.append({"statement": stmt[:80], "status": "OK"})

@@ -35,9 +35,13 @@ export default function SystemBridgePage() {
             <div style={{ width: 36, height: 36, background: CN.blueBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <span style={{ fontSize: 18, fontWeight: 900, color: CN.blue }}>A</span>
             </div>
-            <div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: CN.blue }}>CogNebula</div>
-              <div style={{ fontSize: 10, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1px" }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                <div style={{ fontSize: 15, fontWeight: 800, color: CN.blue }}>CogNebula</div>
+                <div style={{ fontSize: 11, fontFamily: "ui-monospace, 'JetBrains Mono', monospace", color: CN.green, fontWeight: 600 }}>hegui.io</div>
+                <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 6px", borderRadius: 3, background: CN.greenBg, color: CN.green, letterSpacing: "0.5px" }}>LIVE</span>
+              </div>
+              <div style={{ fontSize: 10, color: CN.textMuted, textTransform: "uppercase", letterSpacing: "1px", marginTop: 2 }}>
                 内部 KG 基础设施
               </div>
             </div>
@@ -100,7 +104,7 @@ export default function SystemBridgePage() {
               </defs>
               <line x1="10" y1="16" x2="100" y2="16" stroke={CN.blue} strokeWidth="2" markerEnd="url(#arrowR)" strokeDasharray="6,3" />
             </svg>
-            <div style={{ fontSize: 9, color: CN.textMuted }}>经 CF Worker 代理</div>
+            <div style={{ fontSize: 9, color: CN.textMuted }}>经 Pages Function + Tunnel</div>
           </div>
 
           <div style={{ width: 1, height: 24, background: CN.border }} />
@@ -129,9 +133,13 @@ export default function SystemBridgePage() {
             <div style={{ width: 36, height: 36, background: "rgba(0,58,112,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <span style={{ fontSize: 18, fontWeight: 900, color: "#003A70" }}>B</span>
             </div>
-            <div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: "#003A70" }}>灵阙</div>
-              <div style={{ fontSize: 10, color: "#6B7280", textTransform: "uppercase", letterSpacing: "1px" }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                <div style={{ fontSize: 15, fontWeight: 800, color: "#003A70" }}>灵阙</div>
+                <div style={{ fontSize: 11, fontFamily: "ui-monospace, 'JetBrains Mono', monospace", color: CN.green, fontWeight: 600 }}>hegui.app</div>
+                <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 6px", borderRadius: 3, background: CN.greenBg, color: CN.green, letterSpacing: "0.5px" }}>LIVE</span>
+              </div>
+              <div style={{ fontSize: 10, color: "#6B7280", textTransform: "uppercase", letterSpacing: "1px", marginTop: 2 }}>
                 客户产品端
               </div>
             </div>
@@ -182,19 +190,19 @@ export default function SystemBridgePage() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1px", background: CN.border }}>
         <div style={{ padding: "10px 16px", background: CN.bgCard, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <span style={{ fontSize: 12, color: CN.textSecondary }}>KG API</span>
-          <span style={cnBadge(kgOk ? CN.green : CN.red, kgOk ? CN.greenBg : CN.redBg)}>{kgOk ? "在线" : "离线"}</span>
+          <span style={cnBadge(kgOk === null ? CN.textMuted : kgOk ? CN.green : CN.red, kgOk === null ? CN.bgElevated : kgOk ? CN.greenBg : CN.redBg)}>{kgOk === null ? "探测中" : kgOk ? "在线" : "离线"}</span>
         </div>
         <div style={{ padding: "10px 16px", background: CN.bgCard, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontSize: 12, color: CN.textSecondary }}>CF Worker 代理</span>
-          <span style={cnBadge(CN.textMuted, CN.bgElevated)}>待部署</span>
+          <span style={{ fontSize: 12, color: CN.textSecondary }}>Pages Function</span>
+          <span style={cnBadge(kgOk === null ? CN.textMuted : kgOk ? CN.green : CN.red, kgOk === null ? CN.bgElevated : kgOk ? CN.greenBg : CN.redBg)}>{kgOk === null ? "探测中" : kgOk ? "代理在线" : "代理离线"}</span>
         </div>
         <div style={{ padding: "10px 16px", background: CN.bgCard, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontSize: 12, color: CN.textSecondary }}>灵阙前端</span>
-          <span style={cnBadge(CN.green, CN.greenBg)}>在线</span>
+          <span style={{ fontSize: 12, color: CN.textSecondary }}>灵阙前端 (hegui.app)</span>
+          <span style={cnBadge(CN.textMuted, CN.bgElevated)}>外部 · 未跨域探测</span>
         </div>
         <div style={{ padding: "10px 16px", background: CN.bgCard, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <span style={{ fontSize: 12, color: CN.textSecondary }}>Agent 引擎</span>
-          <span style={cnBadge(CN.green, CN.greenBg)}>在线</span>
+          <span style={cnBadge(CN.textMuted, CN.bgElevated)}>外部 · 未跨域探测</span>
         </div>
       </div>
     </div>

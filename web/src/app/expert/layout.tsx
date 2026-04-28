@@ -6,7 +6,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { CN } from "../lib/cognebula-theme";
+import { getHealth } from "../lib/kg-api";
 
 const navItems = [
   { href: "/expert", label: "总览", icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4" },
@@ -19,6 +21,18 @@ const navItems = [
 
 export default function ExpertLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [healthOk, setHealthOk] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const probe = () => {
+      getHealth()
+        .then((h) => setHealthOk(h.status === "healthy" && h.kuzu && h.lancedb))
+        .catch(() => setHealthOk(false));
+    };
+    probe();
+    const id = setInterval(probe, 30_000);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", width: "100%", background: CN.bg }}>
@@ -80,27 +94,9 @@ export default function ExpertLayout({ children }: { children: React.ReactNode }
         {/* System info */}
         <div style={{ padding: "12px 16px", borderTop: "1px solid rgba(255,255,255,0.08)", fontSize: 10, color: CN.textOnDarkMuted }}>
           <div>System A -- 仅内部使用</div>
-          <div style={{ marginTop: 2 }}>KG API: 100.75.77.112:8400</div>
+          <div style={{ marginTop: 2 }}>KG API: /api/v1 (同源)</div>
         </div>
 
-        {/* Back to System B */}
-        <div style={{ padding: 8 }}>
-          <Link
-            href="/workbench/"
-            style={{
-              display: "block",
-              padding: "8px 12px",
-              color: CN.textOnDarkMuted,
-              textDecoration: "none",
-              fontSize: 11,
-              textAlign: "center",
-              border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: 4,
-            }}
-          >
-            &larr; 返回灵阙产品端
-          </Link>
-        </div>
       </aside>
 
       {/* Main content */}
@@ -124,11 +120,15 @@ export default function ExpertLayout({ children }: { children: React.ReactNode }
             CogNebula 知识图谱平台
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 11, color: CN.textMuted }}>
-            <span>514K nodes</span>
+            <span>System A</span>
             <span style={{ color: CN.border }}>|</span>
-            <span>1.1M edges</span>
+            <span>Internal Console</span>
             <span style={{ color: CN.border }}>|</span>
-            <span style={{ color: CN.green, fontWeight: 600 }}>API OK</span>
+            <span>/api/v1 same-origin</span>
+            <span style={{ color: CN.border }}>|</span>
+            <span style={{ color: healthOk === null ? CN.textMuted : healthOk ? CN.green : CN.red, fontWeight: 600 }}>
+              {healthOk === null ? "PROBING" : healthOk ? "READY" : "DOWN"}
+            </span>
           </div>
         </div>
 

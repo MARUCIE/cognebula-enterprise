@@ -2,18 +2,52 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { getStats, getQuality, type KGStats, type KGQuality } from "../lib/kg-api";
+import {
+  getStats,
+  getQuality,
+  getHealth,
+  getOntologyAudit,
+  type KGStats,
+  type KGQuality,
+  type KGHealth,
+  type OntologyAudit,
+} from "../lib/kg-api";
 import { CN, cnCard, cnLabel, cnValue, cnBadge } from "../lib/cognebula-theme";
 
 export default function ExpertDashboardPage() {
   const [stats, setStats] = useState<KGStats | null>(null);
   const [quality, setQuality] = useState<KGQuality | null>(null);
+  const [health, setHealth] = useState<KGHealth | null>(null);
+  const [healthErr, setHealthErr] = useState<string | null>(null);
+  const [audit, setAudit] = useState<OntologyAudit | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [lastProbed, setLastProbed] = useState<Date | null>(null);
 
   useEffect(() => {
-    Promise.all([getStats(), getQuality()])
-      .then(([s, q]) => { setStats(s); setQuality(q); })
-      .catch((e) => setError(e.message));
+    const fetchAll = () => {
+      Promise.allSettled([getStats(), getQuality(), getHealth(), getOntologyAudit()])
+        .then(([sR, qR, hR, aR]) => {
+          if (sR.status === "fulfilled") setStats(sR.value);
+          if (qR.status === "fulfilled") setQuality(qR.value);
+          if (hR.status === "fulfilled") {
+            setHealth(hR.value);
+            setHealthErr(null);
+          } else {
+            setHealthErr(hR.reason?.message || "probe failed");
+          }
+          if (aR.status === "fulfilled") setAudit(aR.value);
+          setLastProbed(new Date());
+          // Surface KG-API-down only if stats AND health both fail
+          if (sR.status === "rejected" && hR.status === "rejected") {
+            setError("KG API 无法连接");
+          } else {
+            setError(null);
+          }
+        });
+    };
+    fetchAll();
+    const id = setInterval(fetchAll, 30_000);
+    return () => clearInterval(id);
   }, []);
 
   return (
@@ -52,34 +86,58 @@ export default function ExpertDashboardPage() {
           <div style={{ fontSize: 11, color: CN.textMuted, marginTop: 4 }}>边数 / 节点数</div>
         </div>
         <div style={cnCard}>
-          <div style={cnLabel}>质量评分</div>
-          <div style={cnValue(quality && (quality.quality_score || 0) >= 80 ? CN.green : CN.amber)}>
-            {quality ? `${(quality.quality_score || 0).toFixed(1)}%` : "..."}
+          <div style={cnLabel}>发布门 (composite gate)</div>
+          <div style={cnValue(audit ? (audit.verdict === "PASS" ? CN.green : CN.red) : CN.textMuted)}>
+            {audit ? audit.verdict : "..."}
           </div>
-          <div style={{ fontSize: 11, color: CN.textMuted, marginTop: 4 }}>综合质量</div>
+          <div style={{ fontSize: 10, color: CN.textMuted, marginTop: 4, lineHeight: 1.5 }}>
+            {quality ? (
+              <>
+                title <span style={{ color: quality.title_coverage >= 95 ? CN.green : CN.amber, fontWeight: 600 }}>{quality.title_coverage.toFixed(1)}%</span>
+                {" · "}
+                content <span style={{ color: quality.content_coverage >= 80 ? CN.green : CN.amber, fontWeight: 600 }}>{quality.content_coverage.toFixed(1)}%</span>
+              </>
+            ) : "..."}
+            {audit ? <><br />rogue <span style={{ color: audit.rogue_in_prod.length === 0 ? CN.green : CN.red, fontWeight: 600 }}>{audit.rogue_in_prod.length}</span> · over Brooks <span style={{ color: audit.over_ceiling_by === 0 ? CN.green : CN.red, fontWeight: 600 }}>+{audit.over_ceiling_by}</span></> : null}
+          </div>
         </div>
       </div>
 
-      {/* Quick Access Grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16, marginBottom: 24 }}>
-        <QuickCard href="/expert/kg" title="知识图谱探索器" desc="基于 Cytoscape.js fcose 布局的交互式图谱可视化。支持搜索、展开邻居节点、分层着色。" tag="核心工具" tagColor={CN.blue} />
-        <QuickCard href="/expert/data-quality" title="数据质量仪表盘" desc="实时监控标题覆盖率、内容覆盖率、节点类型分布。已对接 KG API /quality 接口。" tag="监控" tagColor={CN.green} />
-        <QuickCard href="/expert/reasoning" title="知识问答" desc="基于知识图谱的智能问答。输入业财税问题，AI 结合 KG 实时检索回答，返回来源和关联图谱。" tag="核心工具" tagColor={CN.blue} />
-        <QuickCard href="/expert/rules" title="合规规则调试器" desc="8 条合规规则状态监控 (生效/预警/严重/废弃)、命中次数、最近触发日志。" tag="诊断" tagColor={CN.purple} />
-      </div>
-
-      {/* System Status */}
+      {/* System Status — wired to live /api/v1/health probe (every 30s) */}
       <div style={{ marginBottom: 24 }}>
-        <h2 style={{ fontSize: 11, fontWeight: 700, color: CN.blue, letterSpacing: "2px", marginBottom: 12 }}>
-          系统状态
-        </h2>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12 }}>
+          <h2 style={{ fontSize: 11, fontWeight: 700, color: CN.blue, letterSpacing: "2px" }}>
+            系统状态 · live probe
+          </h2>
+          <span style={{ fontSize: 10, color: CN.textMuted }}>
+            {lastProbed ? `last probed ${formatProbedAgo(lastProbed)}` : "probing..."}
+          </span>
+        </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
-          <StatusRow label="KG API (FastAPI :8400)" status="ok" detail="100.75.77.112 经 Tailscale 连接" />
-          <StatusRow label="KuzuDB" status="warn" detail="已归档 -- 计划 2026-09 前评估迁移" />
-          <StatusRow label="LanceDB (向量库)" status="ok" detail="语义搜索运行中" />
-          <StatusRow label="Know-Arc 管线" status="ok" detail="三元组生成 + 专家审核" />
-          <StatusRow label="Edge Engine" status="ok" detail="SUPERSEDES 边关系，上次运行 107 条" />
-          <StatusRow label="CF Worker 代理" status="pending" detail="尚未部署" />
+          <ProbedStatusRow
+            label="KG API (FastAPI :8400)"
+            ok={!!health && !healthErr}
+            detail={health ? `${health.status} · 经 nginx /api/v1 同源代理` : (healthErr ?? "probing...")}
+          />
+          <ProbedStatusRow
+            label="KuzuDB"
+            ok={!!health?.kuzu}
+            warn={!!health?.kuzu}
+            detail={health ? `runtime ${health.kuzu ? "OK" : "DOWN"} · upstream archived 2025-10 (EOL 2026-09)` : "probing..."}
+          />
+          <ProbedStatusRow
+            label="LanceDB (向量库)"
+            ok={!!health?.lancedb}
+            detail={health ? `runtime OK · ${health.lancedb_rows?.toLocaleString() ?? "?"} rows` : "probing..."}
+          />
+          <UnprobedStatusRow
+            label="Know-Arc 管线"
+            detail="无健康端点 · 三元组生成 + 专家审核 (上次写入 2026-04-28)"
+          />
+          <UnprobedStatusRow
+            label="Edge Engine"
+            detail="无健康端点 · SUPERSEDES 边关系 (上次写入 2026-04-28)"
+          />
         </div>
       </div>
 
@@ -100,34 +158,38 @@ export default function ExpertDashboardPage() {
   );
 }
 
-function QuickCard({ href, title, desc, tag, tagColor }: { href: string; title: string; desc: string; tag: string; tagColor: string }) {
-  return (
-    <Link href={href} style={{ textDecoration: "none" }}>
-      <div style={{
-        ...cnCard, borderTop: `2px solid ${tagColor}`,
-        transition: "border-color 0.15s",
-      }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-          <span style={{ fontSize: 14, fontWeight: 700, color: CN.text }}>{title}</span>
-          <span style={cnBadge(tagColor, `${tagColor}15`)}>{tag}</span>
-        </div>
-        <div style={{ fontSize: 12, color: CN.textSecondary, lineHeight: 1.6 }}>{desc}</div>
-      </div>
-    </Link>
-  );
-}
-
-function StatusRow({ label, status, detail }: { label: string; status: "ok" | "warn" | "pending" | "error"; detail: string }) {
-  const colors = { ok: CN.green, warn: CN.amber, pending: CN.textMuted, error: CN.red };
-  const bgs = { ok: CN.greenBg, warn: CN.amberBg, pending: CN.bgElevated, error: CN.redBg };
-  const labels = { ok: "在线", warn: "警告", pending: "待部署", error: "错误" };
+function ProbedStatusRow({ label, ok, warn, detail }: { label: string; ok: boolean; warn?: boolean; detail: string }) {
+  const color = !ok ? CN.red : warn ? CN.amber : CN.green;
+  const bg = !ok ? CN.redBg : warn ? CN.amberBg : CN.greenBg;
+  const text = !ok ? "DOWN" : warn ? "RUNNING · EOL" : "在线";
   return (
     <div style={{ ...cnCard, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
       <div>
         <div style={{ fontSize: 13, fontWeight: 600, color: CN.text }}>{label}</div>
         <div style={{ fontSize: 11, color: CN.textMuted, marginTop: 2 }}>{detail}</div>
       </div>
-      <span style={cnBadge(colors[status], bgs[status])}>{labels[status]}</span>
+      <span style={cnBadge(color, bg)}>{text}</span>
     </div>
   );
 }
+
+function UnprobedStatusRow({ label, detail }: { label: string; detail: string }) {
+  return (
+    <div style={{ ...cnCard, display: "flex", justifyContent: "space-between", alignItems: "center", borderStyle: "dashed" }}>
+      <div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: CN.textSecondary }}>{label}</div>
+        <div style={{ fontSize: 11, color: CN.textMuted, marginTop: 2 }}>{detail}</div>
+      </div>
+      <span style={cnBadge(CN.textMuted, CN.bgElevated)}>未探测</span>
+    </div>
+  );
+}
+
+function formatProbedAgo(t: Date): string {
+  const sec = Math.max(0, Math.floor((Date.now() - t.getTime()) / 1000));
+  if (sec < 5) return "just now";
+  if (sec < 60) return `${sec}s ago`;
+  if (sec < 3600) return `${Math.floor(sec / 60)}m ago`;
+  return t.toLocaleString();
+}
+

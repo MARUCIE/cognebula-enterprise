@@ -53,10 +53,54 @@ export interface KGQuality {
   details?: Record<string, unknown>[];
 }
 
+export interface OntologyAudit {
+  schema_source: string;
+  canonical_count: number;
+  live_count: number;
+  brooks_ceiling: number;
+  over_ceiling: boolean;
+  over_ceiling_by: number;
+  intersection: string[];
+  missing_from_prod: string[];
+  rogue_in_prod: string[];
+  rogue_buckets: {
+    v1_v2_bleed: string[];
+    duplicate_clusters: Record<string, string[]>;
+    saas_leak: string[];
+    legacy: string[];
+    other: string[];
+  };
+  edges?: {
+    canonical_count: number;
+    live_count: number;
+    intersection: string[];
+    missing_from_prod: string[];
+    rogue_in_prod: string[];
+    rogue_buckets: {
+      code_analysis_residue: string[];
+      legacy_prefixes: string[];
+      other: string[];
+    };
+  };
+  verdict: "PASS" | "FAIL";
+  severity: "low" | "medium" | "high";
+}
+
 async function kgFetch<T>(path: string): Promise<T> {
   const resp = await fetch(`${KG_API_BASE}${path}`);
   if (!resp.ok) throw new Error(`KG API ${resp.status}: ${resp.statusText}`);
   return resp.json();
+}
+
+export interface KGHealth {
+  status: string;
+  kuzu: boolean;
+  lancedb: boolean;
+  lancedb_rows?: number;
+}
+
+export async function getHealth(): Promise<KGHealth> {
+  return kgFetch("/health");
 }
 
 export async function getStats(): Promise<KGStats> {
@@ -83,6 +127,10 @@ export async function getQuality(): Promise<KGQuality> {
     grade: raw.gate === "PASS" ? (m.quality_score >= 90 ? "A" : m.quality_score >= 70 ? "B" : "C") : "F",
     details: raw.issues as Record<string, unknown>[],
   };
+}
+
+export async function getOntologyAudit(): Promise<OntologyAudit> {
+  return kgFetch("/ontology-audit");
 }
 
 export async function getGraph(

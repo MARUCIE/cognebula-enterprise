@@ -1,10 +1,18 @@
 ---
 initiative: cognebula_sota
-last_session_utc: 2026-04-28T20:30:00Z
+last_session_utc: 2026-04-28T22:15:00Z
 status: ACTIVE
 ---
 
 # HANDOFF — CogNebula SOTA
+
+> **2026-04-28 phase milestone (Sweeps 4-6, this continuation)**:
+> §18 atomic queue Tier-P1 = **7/8 closed** (5 decomplecting S18.18-S18.22 +
+> 2 culture-polish S18.23-S18.24); **1 HITL-deferred** (S18.25 global
+> infra script — Maurice review pending). Cumulative tests: **+25 nightly
+> tests** across 4 commits (`f4667c5`, `f10fe6e`, `691ec4f`, `08c63af`).
+> Tier-P0 14/14 + Tier-0 3/3 closed earlier. Pickup: §18 Tier-P2 + HITL-1
+> through HITL-5 remain in queue.
 
 > Per-initiative HANDOFF per CLAUDE.md `Per-Initiative HANDOFF Convention` (added 2026-04-27).
 > Identity anchor: `initiative: cognebula_sota` matches directory slug `initiative_cognebula_sota`.

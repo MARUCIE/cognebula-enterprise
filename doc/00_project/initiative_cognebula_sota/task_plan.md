@@ -557,7 +557,7 @@ Phase 2: Synthesis + Gap Analysis (Steps 3-4)
 
 ### Tier P2 — Defer, capture only (drop into next-cycle queue)
 
-- [ ] S18.26 Extract S15.1+S15.2 OPTIONS handler into `src/_lib/capabilities.py` shared module (Hickey P0 alternative; deferred until S15.2 written first to expose the dup).
+- [x] S18.26 Extract S15.1+S15.2 OPTIONS handler into `src/_lib/capabilities.py` shared module (Hickey P0 alternative; deferred until S15.2 written first to expose the dup). **Closed** 2026-04-28 (Sweep-7): new module `src/_lib/capabilities.py` with `register_capabilities_endpoint(app, module_name)` factory + `CAPABILITIES_PATH` / `DEFAULT_DEPLOY_ANCHOR_ENV` constants. Both backends now call the factory at registration site; inline `async def capabilities()` blocks removed. Surgical-extract pattern used (working tree had 372+/911+ pre-existing diff vs HEAD; live backups at `/tmp/kg-server-live-1777334856.py` + `/tmp/kg_api-live-1777334856.py`). Compile + import OK; audit baselines preserved (route registration semantics unchanged by extraction). New nightly test: `tests/test_capabilities_factory.py` +9 (path constant, env constant, route binding, payload shape, route enumeration, module_name honored, env var read, env default, no-duplicate-inline regression guard).
 - [ ] S18.27 KuzuDB tested restore drill (`scripts/restore_drill.sh`) (Taleb P0 strict; requires prod-access HITL).
 - [ ] S18.28 `--require-snapshot` precondition flag on migration scripts (Taleb P0; depends S18.27).
 - [ ] S18.29 Migration partial-apply rollback fixture test (Taleb P0; depends S18.27).

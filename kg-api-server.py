@@ -300,30 +300,13 @@ def health():
 # === Sprint G4 / S15.1 — runtime capability introspection (well-known) ===
 # Audit endpoint consumed by `scripts/runtime_audit.sh` + `deploy/contabo/`
 # post-deploy hook. Reports parse-friendly route catalog + module identity +
-# deploy anchor so static parse output (audit_api_contract.py) can be
-# cross-checked against the actually-running backend. OPTIONS method per
-# well-known capability negotiation convention; APIKeyMiddleware already
-# exempts all OPTIONS for CORS preflight, so no auth whitelist needed.
-@app.api_route("/api/v1/.well-known/capabilities", methods=["OPTIONS"])
-async def capabilities():
-    try:
-        routes = []
-        for r in app.routes:
-            if hasattr(r, "path") and hasattr(r, "methods") and r.methods:
-                methods = sorted(m for m in r.methods if m not in {"HEAD"})
-                if methods and r.path:
-                    routes.append({"path": r.path, "methods": methods})
-        return JSONResponse(content={
-            "module": __name__,
-            "deploy_anchor": os.environ.get("CN_DEPLOY_ANCHOR", "unknown"),
-            "route_count": len(routes),
-            "routes": sorted(routes, key=lambda x: x["path"]),
-        })
-    except Exception as e:
-        return JSONResponse(status_code=500, content={
-            "error": "capabilities_introspection_failed",
-            "detail": str(e)[:200],
-        })
+# deploy anchor. OPTIONS method per well-known capability negotiation
+# convention; APIKeyMiddleware already exempts all OPTIONS for CORS preflight.
+# Sweep-7 / S18.26: handler logic extracted to `src._lib.capabilities` shared
+# factory; same source serves both backends, eliminating the duplicate.
+from src._lib.capabilities import register_capabilities_endpoint  # noqa: E402
+
+register_capabilities_endpoint(app, module_name=__name__)
 
 
 # === Stats ===

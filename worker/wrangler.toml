@@ -1,3 +1,6 @@
 name = "cognebula-kg-proxy"
 main = "src/index.ts"
 compatibility_date = "2024-12-01"
+
+[vars]
+KG_API_ORIGIN = "https://halifax-drop-college-oliver.trycloudflare.com"

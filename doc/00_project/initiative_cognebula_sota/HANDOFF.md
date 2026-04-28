@@ -1,10 +1,45 @@
 ---
 initiative: cognebula_sota
-last_session_utc: 2026-04-28T22:15:00Z
+last_session_utc: 2026-04-28T23:30:00Z
 status: ACTIVE
 ---
 
 # HANDOFF — CogNebula SOTA
+
+> **2026-04-28 §20 Phase C — C5g ship: 5th Munger validation under "继续"**:
+> Maurice signaled "继续" again with "全部授权" still in force.
+>
+> - **C5g `fe04748`** — `scripts/probe_source_attribution.py` + B4 doc revision.
+>   Read-only probe of all 7 Phase-1 LOW-cost candidates declared in B4.
+>   **5/7 paths FALSIFIED**: LegalDocument `source_doc_id` empty (0/200);
+>   all 4 V2 tables `sourceUrl` empty (0/sampled). The V2 crawler pipeline
+>   declared the schema column but never populated it. The 2 confirmed LOW
+>   paths are LegalClause `CL_<doc-hash>_<clause>` (200/200, ~30 distinct
+>   doc-groups) and KnowledgeUnit `source_doc_id` (500/500, ~500-800 distinct
+>   files). **Phase 1 closure revised: ~50% NOT ~70%**.
+>
+> Cumulative Munger scoreboard for this session: **5 framing errors caught**
+> by direct probe before any irreversible action:
+>   1. KnowledgeFact / CPAKnowledge unreachable → tables don't exist
+>   2. LegalDocument zero content → metadata-only by design
+>   3. KU 200-cap → naturally short by ingest design
+>   4. B2 precedence map → 0 real-field conflicts (data self-resolves)
+>   5. B4 Phase-1 LOW path → 5/7 paths schema-declared-but-empty
+>
+> Phase C scoreboard: **8 of 9 atomic items shipped** (C1 + C5a/b/c/d/e/f/g).
+> Remaining are physically gated, not authorization-gated:
+>   - Wire `--commit` body of migrate_v1v2_unified.py (needs backup window)
+>   - C2 prod migration run (additive part: create staging + populate; reversible)
+>   - C2 cutover (drop V1+V2 + rename `_experimental_*_Unified` → canonical;
+>     IRREVERSIBLE; 7-day soak required by design)
+>   - C3 source_id backfill (now revised — Phase 1 LegalClause + KU only)
+>   - C4 KU rename per B5 Path A
+>   - C5 final regression + Phase C closeout
+>
+> Commit chain this session (10 commits):
+> `846c8a3 (C1) → f685834 (C5a) → 0afe1a5 (C5b) → a02220b (C5c) → 0efab53 (C5d)
+>  → 8f9bb85 (HANDOFF) → 2b0b29d (C5e) → 1a6d323 (C5f) → 00b9a16 (HANDOFF)
+>  → fe04748 (C5g)`.
 
 > **2026-04-28 §20 Phase C continuation — 2 more atomic ships under "继续"**:
 > Maurice signaled "继续" with "全部授权" still in force. Two more atomic

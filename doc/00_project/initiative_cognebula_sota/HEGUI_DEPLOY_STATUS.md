@@ -26,26 +26,95 @@ $ curl https://hegui-site.pages.dev/api/v1/stats
 
 ---
 
-## What is NOT achieved (Maurice-side actions required)
+## What is NOT achieved — and the corrected diagnosis
 
 The original directive was "把原来这个页面下架，将知识图谱前端部署在这个域名下" —
-take down the PPT gallery on `hegui.io` and serve the KG frontend there. The
-frontend is built and deployed on this CF account, but the **`hegui.io` domain
-itself is on a different CF account** that is not authenticated in the current
-session.
+take down the PPT gallery on `hegui.io` and serve the KG frontend there.
 
-### Diagnosis
+### CORRECTED diagnosis (2026-04-28T08:01Z)
 
-- `dig hegui.io` resolves to CF anycast IPs via `kim.ns.cloudflare.com`
-- API call `GET /zones?name=hegui.io` against the active token (account
-  `683392e016d0a9c5446a8c648da62ce6` = `alphameta010@gmail.com-Account`)
-  returns `{"result": []}` — **the zone is not on this account**
-- The PPT gallery currently served at `hegui.io` is therefore on another
-  CF account or another infrastructure that this session cannot reach
-- Cached `wrangler/pages.json` pointing to `hegui-site` on this account
-  was historical context, not a custom-domain binding
+A previous version of this doc claimed `hegui.io` zone was on a different CF
+account. **That was wrong.** The earlier `zones?name=hegui.io` API call returned
+empty because it was made with `CLOUDFLARE_API_TOKEN` (a custom token without
+`Zone:Read` scope). When re-issued with the OAuth token (which has `zone:read`),
+the same call returns the zone:
 
-### Three paths Maurice can take
+```json
+{"id":"0f9ab49d3f3bab8e31609afdca6de1f1","name":"hegui.io","status":"active",
+ "account":{"id":"683392e016d0a9c5446a8c648da62ce6",
+            "name":"alphameta010@gmail.com-Account"}}
+```
+
+**The zone is on this account.** The earlier verdict was a token-scope-disguise
+failure — same family as the memorized "Wrangler OAuth env var precedence trap"
+(custom token shadows OAuth for curl, but wrangler's own calls refresh OAuth
+internally; when only one of them works, the wrong inference is "permission
+denied = resource doesn't exist" rather than "permission denied = wrong token").
+
+### What is now done (autonomously)
+
+- Custom domain `hegui.io` attached to Pages project `hegui-site` (status:
+  `initializing`, awaiting DNS verification)
+- Custom domain `www.hegui.io` attached to `hegui-site` (same status)
+- Both wait on a single signal: a CNAME record pointing to `hegui-site.pages.dev`
+
+### What is still blocked
+
+The current OAuth token has `zone:read` but not `dns_records:edit`. DNS write
+returns `code: 10000 Authentication error`. So the four DNS-record edits
+required to flip `hegui.io` from PPT gallery to KG frontend cannot be done
+from this session.
+
+### Maurice action — 4 clicks, ~1 min
+
+Open Cloudflare dashboard → `hegui.io` zone → DNS → Records:
+
+1. **Delete** the A record `@ → 104.21.73.123` (and the second A record `@ → 172.67.190.6`)
+2. **Add** CNAME `@ → hegui-site.pages.dev` (proxied = ON, orange cloud)
+3. **Delete** the A records for `www`
+4. **Add** CNAME `www → hegui-site.pages.dev` (proxied = ON)
+
+Within ~30 seconds of step 4, CF Pages auto-issues a cert (Google CA, already
+configured) and `hegui.io` starts serving the KG frontend. PPT gallery stops
+serving automatically because the DNS no longer points to its upstream.
+
+To verify after the swap:
+
+```
+$ curl -sS https://hegui.io | grep -oE '<title>[^<]+</title>'
+<title>灵阙财税 | AI 虚拟财税公司</title>     # KG frontend served
+$ curl -sS https://hegui.io/api/v1/stats
+{"total_nodes":518498,"total_edges":1293535,...}     # API chain still works
+```
+
+Or run the smoke test:
+
+```
+$ BASE=https://hegui.io bash scripts/smoke_test_hegui_deploy.sh
+```
+
+### Alternative — give the agent DNS edit access
+
+If Maurice prefers not to click in the dashboard, options:
+
+1. Create a CF API token with **Zone DNS:Edit** for `hegui.io`, set as
+   `CLOUDFLARE_API_TOKEN`, and the agent can finish DNS in 30 seconds
+2. Run `wrangler login` interactively in the browser — the OAuth flow can
+   be set to include DNS scope, and the agent can finish from the new token
+
+### Where the PPT page actually comes from
+
+(Answers Maurice's question "怎么没部署到 hegui.io" implicitly: the deploy
+went to the right Pages project, but the DNS records on `hegui.io` zone were
+never updated to point to that project. The current A records target some
+other CF infrastructure — possibly an older Pages project that has been
+deleted but whose anycast routing is still cached, or a Workers for Platforms
+hostname that doesn't show up in the standard project/worker enumeration.
+Without DNS-records read access, the exact upstream cannot be identified
+from this session, but the fix is the same regardless: replace the A
+records with the CNAME above.)
+
+### Three paths Maurice can take (legacy section, kept for context)
 
 **A. CNAME from owning account (5 min, lowest disruption)**
 1. Log into the CF account that owns `hegui.io` zone
@@ -56,7 +125,8 @@ session.
 5. (Optional) confirm the custom domain in the Pages dashboard on this account
    so the cert is issued automatically
 
-**B. Migrate the zone (clean long-term, ~1-2 h)**
+**B. Migrate the zone (clean long-term, ~1-2 h)** — *(no longer needed since
+the zone IS on this account; kept for historical reference)*
 1. Change `hegui.io` registrar nameservers from current account's CF NS to the
    alphameta010 account's CF NS pair
 2. Re-import the DNS records on the alphameta010 account

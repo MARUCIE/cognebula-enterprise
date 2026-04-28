@@ -687,6 +687,7 @@ If milestone reached (Tier 0 + ≥6 P0 closed), pause and report. If blocker hit
 - [-] **C3 — Backfill `source_id` for KnowledgeUnit / FAQEntry / TaxRate / etc. where deterministic mapping exists** — pending.
 - [-] **C4 — KU fragmentation remediation** — pending B5.
 - [-] **C5 — `ai check` + regression suite + commit + push** — final gate for the §20 closeout.
+- [x] **C5e — `scripts/probe_v2_edges.py` edge rewire enumeration** — DONE 2026-04-28 under "全部授权". Read-only probe via `prod_kg_client` + `/api/v1/graph` per node. Supports `--sample-size`, `--tables`, `--csv-only`. Results integrated into `outputs/audits/2026-04-28-prod-kg-b2-execution-readiness.md` §3. **Critical empirical finding**: ComplianceRule V1 is a graph orphan (0 edges across 20-sample); all 162 rows have no incident edges. Total extrapolated edges to rewire across all 7 V1/V2 tables: **~2,718** (well within a single migration window). Two edge tuples carry 90%+ of the rewire mass: `ComplianceRuleV2 ←GOVERNED_BY← BusinessActivity` (~1,256) and `RiskIndicatorV2 ←TRIGGERED_BY← AuditTrigger` (~463).
 
 ### Phase A receipts (this session — Path 1 complete remediation, sessions 1-2)
 

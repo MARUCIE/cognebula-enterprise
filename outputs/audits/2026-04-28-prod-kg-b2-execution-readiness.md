@@ -120,35 +120,48 @@ Primary key: `id`.
 
 ---
 
-## 3. Edge rewire enumeration
+## 3. Edge rewire enumeration — empirical results
 
 The migration must rewire every relationship pointing at `ComplianceRule`,
-`ComplianceRuleV2`, `FilingForm`, `FilingFormV2`, `TaxIncentive`, or
-`TaxIncentiveV2` to point at the corresponding `_Unified` table.
+`ComplianceRuleV2`, `FilingForm`, `FilingFormV2`, `TaxIncentive`,
+`TaxIncentiveV2`, or `RiskIndicatorV2` to point at the corresponding
+`_Unified` (or, for `RiskIndicatorV2`, the canonical-rename target).
 
-**Probe to enumerate** (read-only, run before C2 execution session):
+**Probe**: `scripts/probe_v2_edges.py` (read-only, sample-and-extrapolate).
+Run with `python3 scripts/probe_v2_edges.py --sample-size 20` to reproduce.
 
-```sql
--- Cypher equivalent: for each V1/V2 endpoint, find every REL TABLE
--- where it's FROM or TO; count edges; record edge name + cardinality.
-```
+**Probe results** (sample=20 per table, 2026-04-28):
 
-Per `schemas/ontology_v4.2.cypher` lines 203-365, declared edges that reference
-these tables (manual scan):
+| Source table | Rows | Edges/row | Extrap. total | Edge tuples (direction → type → target) |
+|---|---:|---:|---:|---|
+| ComplianceRule | 162 | 0.00 | **0** | (graph-orphan; L1 LLM-extracted rules have no incident edges) |
+| ComplianceRuleV2 | 84 | 19.15 | ~1,609 | incoming GOVERNED_BY → BusinessActivity (78%); outgoing PENALIZED_BY → Penalty (21%); outgoing RULE_FOR_TAX → TaxType (1%) |
+| FilingForm | 14 | 6.29 | ~88 | incoming FIELD_OF → FilingFormField (100%) |
+| FilingFormV2 | 121 | 2.00 | ~242 | incoming REQUIRES_FILING → BusinessActivity (100%) |
+| TaxIncentive | 109 | 1.00 | ~109 | outgoing FT_INCENTIVE_TAX → TaxType (100%) |
+| TaxIncentiveV2 | 109 | 1.90 | ~207 | outgoing INCENTIVE_BASED_ON → LegalClause (53%); outgoing INCENTIVE_FOR_TAX → TaxType (47%) |
+| RiskIndicatorV2 | 463 | 1.00 | ~463 | incoming TRIGGERED_BY → AuditTrigger (100%) |
 
-| Edge | FROM | TO |
-|---|---|---|
-| (none of the canonical edges declare ComplianceRule/V2/etc. as endpoints) | | |
+**Grand total extrapolated edges to rewire: ~2,718.**
 
-The canonical schema's edge declarations are at the v4.2 layer; `_V2` tables
-aren't declared in canonical at all (they're in the 62 grandfathered set). So
-edges incoming to V2 tables are likely created by ad-hoc migration scripts and
-will need empirical enumeration via `CALL show_tables() RETURN *` + a join probe.
+### What this changes for C2 execution
 
-**Action item for C2 execution**: write `scripts/probe_v2_edges.py` that uses
-`prod_kg_client` to enumerate REL TABLES with V1/V2 endpoints. Read-only probe;
-output is a CSV `edge_table | from_type | to_type | row_count`. This is the
-input to the rewire script. **Not needed for the readiness doc itself**.
+Three planning consequences:
+
+1. **ComplianceRule V1 is a graph orphan.** All 162 rows have zero incident
+   edges in the 20-sample probe. The post-merge `ComplianceRule_Unified`
+   inherits zero V1 edges. Edge rewire effort is concentrated on V2 only.
+2. **Edge rewire is small.** Total ~2,718 edges across 7 tables — well within
+   a single migration window. Cypher MATCH-MERGE rewire of 2,718 edges runs
+   in seconds, not minutes.
+3. **Two edge tuples carry 90%+ of the rewire mass** (per V1+V2 source):
+   `ComplianceRuleV2 ←GOVERNED_BY← BusinessActivity` (~1,256 edges) and
+   `RiskIndicatorV2 ←TRIGGERED_BY← AuditTrigger` (~463 edges). Sanity-check
+   these two during C2 execution; the remaining edge classes are small
+   enough to verify by row-count diff alone.
+
+The probe output is intentionally NOT committed (prod data shouldn't enter
+git). Re-run before C2 to refresh against current state.
 
 ---
 
@@ -220,12 +233,12 @@ What still requires Maurice physical action (not authorization):
 
 ## 7. What stays deferred to C2 execution session
 
-- Writing `scripts/probe_v2_edges.py` (edge rewire enumeration)
-- Writing `scripts/migrate_v1v2_unified.py` (population script)
+- ~~Writing `scripts/probe_v2_edges.py` (edge rewire enumeration)~~ **DONE 2026-04-28** — see §3 above for empirical results.
+- Writing `scripts/migrate_v1v2_unified.py` (population script; additive only)
 - Declaring 3 `_Unified` types in canonical schema (transitional excess marked)
-- Running migration against contabo prod
+- Running migration against contabo prod (additive: create + populate; reversible)
 - 7-day consumer soak
-- Cutover (drop V1+V2 + rename `_Unified` → canonical)
+- Cutover (drop V1+V2 + rename `_Unified` → canonical) — **only physically irreversible step**
 - Final regression + commit + Phase C closeout
 
 ---

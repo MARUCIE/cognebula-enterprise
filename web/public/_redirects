@@ -1,0 +1,17 @@
+# System B (lingque B2B) routes — moved to hegui.app per SYSTEM_ARCHITECTURE §5
+# Boundary correction 2026-04-28: hegui.io serves System A (CogNebula KG) only
+/workbench  /expert/bridge/  301
+/workbench/*  /expert/bridge/  301
+/dashboard  /expert/bridge/  301
+/dashboard/*  /expert/bridge/  301
+/clients  /expert/bridge/  301
+/clients/*  /expert/bridge/  301
+/reports  /expert/bridge/  301
+/reports/*  /expert/bridge/  301
+/settings  /expert/bridge/  301
+/settings/*  /expert/bridge/  301
+/skills  /expert/bridge/  301
+/skills/*  /expert/bridge/  301
+
+# Default: hegui.io root rewrites to expert console (URL bar stays at /)
+/  /expert/  200

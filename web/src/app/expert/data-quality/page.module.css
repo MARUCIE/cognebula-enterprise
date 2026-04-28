@@ -1,0 +1,508 @@
+.page {
+  padding: 24px 32px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.heroGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(320px, 0.95fr);
+  gap: 20px;
+}
+
+.panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+.heroPanel {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.heroTitle {
+  margin: 0;
+  font-size: 32px;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: #0f172a;
+}
+
+.heroLead {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.8;
+  color: #334155;
+  max-width: 70ch;
+}
+
+.actionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.statusFacts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.factCard {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 14px 16px;
+}
+
+.factLabel {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+
+.factValue {
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.factSub {
+  font-size: 11px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.railPanel {
+  padding: 24px;
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.railTitle {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.3;
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.railText {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #475569;
+}
+
+.laneList {
+  display: grid;
+  gap: 10px;
+}
+
+.laneItem {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 14px 16px;
+}
+
+.laneHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.laneLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.laneBody {
+  font-size: 12px;
+  line-height: 1.7;
+  color: #475569;
+}
+
+.metricStrip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.metricCard {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 16px 18px;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.04);
+}
+
+.mainGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.85fr);
+  gap: 20px;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sectionCard {
+  padding: 20px 22px;
+}
+
+.sectionHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.25;
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.sectionDesc {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #64748b;
+}
+
+.queueList {
+  display: grid;
+  gap: 10px;
+}
+
+.queueItem {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: #ffffff;
+}
+
+.queueTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.queueMeta {
+  font-size: 11px;
+  line-height: 1.6;
+  color: #64748b;
+}
+
+.queueAction {
+  min-width: 110px;
+  text-align: right;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #475569;
+}
+
+.distributionNote {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #e2e8f0;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #475569;
+}
+
+.distList {
+  display: grid;
+  gap: 6px;
+}
+
+.distRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.distLabel {
+  min-width: 180px;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.distName {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #475569;
+  font-size: 11px;
+}
+
+.distBarTrack {
+  flex: 1;
+  height: 14px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.distBarFill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.distCount {
+  min-width: 70px;
+  text-align: right;
+  font-size: 11px;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+}
+
+.riskList {
+  display: grid;
+  gap: 10px;
+}
+
+.riskItem {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: #ffffff;
+}
+
+.riskHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.riskLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.riskValueWrap {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.riskValue {
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.riskDesc {
+  font-size: 11px;
+  line-height: 1.6;
+  color: #64748b;
+}
+
+.healthGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.detailsCard {
+  padding: 0;
+  overflow: hidden;
+}
+
+.detailsSummary {
+  list-style: none;
+  cursor: pointer;
+  padding: 18px 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.detailsSummary::-webkit-details-marker {
+  display: none;
+}
+
+.detailsBody {
+  padding: 0 22px 20px;
+  border-top: 1px solid #e2e8f0;
+  font-size: 12px;
+  line-height: 1.8;
+  color: #475569;
+}
+
+.inspectorShell {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.inspectorIntro {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.inspectorHint {
+  max-width: 58ch;
+  font-size: 13px;
+  line-height: 1.8;
+  color: #475569;
+}
+
+.loadingGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.skeleton {
+  border-radius: 12px;
+  background: linear-gradient(90deg, rgba(226, 232, 240, 0.9) 25%, rgba(241, 245, 249, 0.95) 50%, rgba(226, 232, 240, 0.9) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s linear infinite;
+}
+
+.skeletonTall {
+  height: 220px;
+}
+
+.skeletonMetric {
+  height: 112px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (max-width: 1280px) {
+  .heroGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .mainGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .statusFacts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 960px) {
+  .page {
+    padding: 20px 20px 32px;
+  }
+
+  .metricStrip,
+  .loadingGrid,
+  .healthGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .queueItem {
+    grid-template-columns: 1fr;
+    align-items: flex-start;
+  }
+
+  .queueAction {
+    text-align: left;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 16px 16px 28px;
+    gap: 16px;
+  }
+
+  .heroPanel,
+  .railPanel,
+  .sectionCard,
+  .inspectorShell {
+    padding: 18px;
+  }
+
+  .heroTitle {
+    font-size: 26px;
+  }
+
+  .actionRow,
+  .statusFacts,
+  .metricStrip,
+  .loadingGrid,
+  .healthGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .sectionHead,
+  .inspectorIntro,
+  .laneHead,
+  .riskHead {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .distRow {
+    align-items: flex-start;
+  }
+
+  .distLabel {
+    min-width: 108px;
+  }
+}

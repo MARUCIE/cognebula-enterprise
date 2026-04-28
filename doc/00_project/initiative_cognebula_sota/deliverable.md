@@ -1102,3 +1102,45 @@ Verification:
 
 Remaining risk:
 - Frontend prototype pages outside the KG expert/API path still contain static operational sample arrays (`clients`, `reports`, `workbench`). They are not used by `kg-api-server.py` or the KG API verification path, but they should be replaced by real product APIs before those pages are claimed production-ready.
+
+---
+
+## 2026-04-28 — Frontend Surface Topology contract (symmetric-write from MARUCIE/30-lingque-agent)
+
+CogNebula is one of two participants in a cross-project topology contract that was authored canonically in `MARUCIE/30-lingque-agent` and mirrored here in the same task to preserve the symmetric-write invariant. CogNebula owns 1 of the 2 declared frontends (`hegui.io`, the KG explorer / company website surface); Lingque owns the other (`hegui.app`).
+
+Boundary correction (2026-04-28, 2-pass authoring):
+- Pass 1 drift: an earlier pass on the lingque side authored a 4-frontend topology by inferring scope from URL screenshots, incorrectly pulling `wiki.hegui.cn` (internal R&D doc tooling) and `yiclaw.hegui.io` (Maurice's personal project, not a company project) into the company architecture document.
+- Pass 2 correction: Maurice issued a direct boundary correction. Topology collapsed to 2 frontends (`hegui.io` + `hegui.app`); explicit Out-of-Scope blocks added on BOTH repos naming wiki + yiclaw; SSO mechanism corrected from "shared `.hegui.io` cookie" to JWT-exchange middleware (the two roots are independent registrable domains, cookies cannot span them).
+
+Changed files (cognebula side):
+- `doc/00_project/initiative_cognebula_sota/SYSTEM_ARCHITECTURE.md` §5 — section retitled "Two-Frontend Topology (CogNebula 持有 1 个)"; Out-of-Scope block added; KG-invisibility scope narrowed; M1 retirement note.
+- `doc/00_project/initiative_cognebula_sota/SYSTEM_ARCHITECTURE.html` §5 — Chinese companion with alert-amber "边界更正 (2026-04-28)" warning block.
+- `doc/00_project/initiative_cognebula_sota/task_plan.md` §21 — added "Frontend Surface Topology symmetric-write (cross-project contract sync)" with 4 sub-sections (21.1 commits / 21.2 authoring split / 21.3 backlog impact / 21.4 closeout). Mirrors lingque task_plan §15.
+- `doc/00_project/initiative_cognebula_sota/HANDOFF.md` — "Current state (2026-04-28)" updated to list 2 active sprints (SOP 3.2 + Frontend Surface Topology); "Last 3 commits" expanded to "Last 5".
+
+Cross-project authoring split (encoded in §21.2):
+- A1: canonical authoring of the topology contract lives in `MARUCIE/30-lingque-agent/doc/00_project/initiative_lingque_agent/SYSTEM_ARCHITECTURE.md` §1.3.
+- A2: cognebula `SYSTEM_ARCHITECTURE.md` §5 is the mirror; cross-references lingque §1.3 as canonical.
+- A3: future updates to the topology contract MUST update BOTH repos in the same task. Unilateral updates create a divergence window where each side can silently "win" and the loser becomes accidental source of truth. CI guard candidate for Stage 39+ (cross-repo contract diff).
+
+Verification:
+- `git log --oneline -5` (cognebula main) — `49b83c2` boundary-correction commits visible.
+- Lingque cross-reference: `MARUCIE/30-lingque-agent/doc/00_project/initiative_lingque_agent/SYSTEM_ARCHITECTURE.md` §1.3 (canonical) at `5b2d8ef` on PR #2.
+- 2份制 pair shipped on cognebula side (.md + .html boundary-correction note).
+- No runtime/code change in this delivery window; documentation-side contract sync only.
+
+Release Readiness:
+- `Spec`: pass (2-frontend topology agreed by both repos)
+- `Symmetric-write invariant`: closed (this entry is the eat-dog-food check on the rule promoted in lingque deliverable.md DNA capsule candidates list at `5b2d8ef`)
+
+Rollback:
+- `git revert` the boundary-correction commits on cognebula main; symmetric reversal must hit lingque PR #2 in the same task.
+
+Remaining risk:
+- Future drift if a third surface is added without symmetric write — owner: Maurice + topology contract maintainer; mitigation: §21.2.A3 dual-repo update rule + Stage 39+ CI guard candidate.
+
+DNA Capsule Candidates (cross-project):
+- `cross-repo-symmetric-write-invariant`
+- `topology-2pass-boundary-correction`
+- `pdca-quartet-cross-project-sweep`

@@ -77,6 +77,36 @@ def test_api_server_enforces_db_size_floor_against_drift() -> None:
     assert "_dir_top_level_size" in server
 
 
+def test_all_ku_creators_populate_extracted_by_field() -> None:
+    """Regression: every script that runs `CREATE (k:KnowledgeUnit ...)` must
+    set the `extracted_by` field. The schema declares this field; B5 found
+    100% of 2,500 sampled production KUs had it empty because no ingest
+    script wrote it. Forward-looking patches (B5 micro-fix, 2026-04-28) added
+    `extracted_by` to all three identified KU creators. This test prevents
+    regressions when new ingest scripts are added.
+
+    A new KU-creator that does not name `extracted_by` will fail this gate.
+    """
+    import re
+
+    ku_creator_scripts = [
+        "scripts/ingest_all_matrix.py",
+        "scripts/ingest_chinaacc.py",
+        "scripts/flk_pipeline_v2.py",
+    ]
+    create_pattern = re.compile(r"CREATE\s*\(\s*\w+\s*:\s*KnowledgeUnit\s*\{[^}]*\}", re.IGNORECASE | re.DOTALL)
+
+    for path in ku_creator_scripts:
+        text = _read(path)
+        creates = create_pattern.findall(text)
+        assert creates, f"{path}: expected to find at least one CREATE (k:KnowledgeUnit ...) statement"
+        for stmt in creates:
+            assert "extracted_by" in stmt, (
+                f"{path}: CREATE (k:KnowledgeUnit ...) missing extracted_by field. "
+                f"Statement: {stmt[:200]}"
+            )
+
+
 def test_migrate_table_no_500_char_clamp_on_string_props() -> None:
     """Regression: the migrate-table inner loop must NOT silently truncate
     string values to 500 chars. That clamp was a stale Chesterton's fence

@@ -9,7 +9,12 @@ Run on VPS (needs direct kuzu access, kg-api must be stopped):
     systemctl stop kg-api
     python3 scripts/flk_pipeline_v2.py [--phase 1|2|3|all] [--limit 100]
 """
-import json, os, sys, time, re
+
+import json
+import os
+import sys
+import time
+import re
 
 DB_PATH = "/home/kg/cognebula-enterprise/data/finance-tax-graph"
 DETAILS = "/home/kg/cognebula-enterprise/data/recrawl/flk_details.jsonl"
@@ -52,6 +57,7 @@ def load_details():
 def phase1_create_nodes():
     """Create KnowledgeUnit nodes for items not yet in KG."""
     import kuzu
+
     db = kuzu.Database(DB_PATH)
     conn = kuzu.Connection(db)
 
@@ -60,7 +66,9 @@ def phase1_create_nodes():
 
     # Check existing nodes
     existing = set()
-    r = conn.execute("MATCH (k:KnowledgeUnit) WHERE k.id STARTS WITH 'KU_flk_' RETURN k.id")
+    r = conn.execute(
+        "MATCH (k:KnowledgeUnit) WHERE k.id STARTS WITH 'KU_flk_' RETURN k.id"
+    )
     while r.has_next():
         existing.add(r.get_next()[0])
     print(f"  Existing KU_flk_ nodes: {len(existing)}")
@@ -93,8 +101,8 @@ def phase1_create_nodes():
         try:
             conn.execute(
                 "CREATE (k:KnowledgeUnit {id: $nid, title: $t, content: '', "
-                "source: 'flk_npc', type: $tp})",
-                {"nid": node_id, "t": title, "tp": flxz}
+                "source: 'flk_npc', type: $tp, extracted_by: 'flk_pipeline-v2'})",
+                {"nid": node_id, "t": title, "tp": flxz},
             )
             created += 1
         except Exception as e:
@@ -103,7 +111,9 @@ def phase1_create_nodes():
                 print(f"  err: {str(e)[:80]}")
 
         if (i + 1) % 1000 == 0:
-            print(f"  {i+1}/{len(to_create)}: {created} ok, {errors} err ({time.time()-t0:.0f}s)")
+            print(
+                f"  {i+1}/{len(to_create)}: {created} ok, {errors} err ({time.time()-t0:.0f}s)"
+            )
 
     print(f"  Phase 1 done: {created} created, {errors} errors ({time.time()-t0:.0f}s)")
     return created
@@ -137,7 +147,9 @@ def phase2_generate_content():
     print(f"  Already generated: {len(done)}")
 
     # Filter to items needing content
-    pending = [it for it in items if it["bbbs"] not in done and not it.get("has_content")]
+    pending = [
+        it for it in items if it["bbbs"] not in done and not it.get("has_content")
+    ]
     if limit:
         pending = pending[:limit]
     print(f"  Pending: {len(pending)}")
@@ -152,7 +164,7 @@ def phase2_generate_content():
     n_batches = (len(pending) + BATCH_SIZE - 1) // BATCH_SIZE
 
     for bi in range(n_batches):
-        batch = pending[bi * BATCH_SIZE:(bi + 1) * BATCH_SIZE]
+        batch = pending[bi * BATCH_SIZE : (bi + 1) * BATCH_SIZE]
         if not batch:
             break
 
@@ -175,14 +187,16 @@ def phase2_generate_content():
             "4. 用 [1] [2] [3] ... 编号分隔\n"
             "5. 直接输出，不加额外标题"
         )
-        raw = llm_generate(prompt, model="gemini-3.1-pro", max_tokens=8000, temperature=0.3)
+        raw = llm_generate(
+            prompt, model="gemini-3.1-pro", max_tokens=8000, temperature=0.3
+        )
         if raw.startswith("[ERROR]"):
             if total <= 3:
                 print(f"  LLM error: {raw[:100]}")
             time.sleep(1)
             continue
 
-        sections = re.split(r'\[(\d+)\]', raw)
+        sections = re.split(r"\[(\d+)\]", raw)
         for k in range(1, len(sections) - 1, 2):
             try:
                 idx = int(sections[k]) - 1
@@ -216,6 +230,7 @@ def phase2_generate_content():
 def phase3_ingest():
     """Ingest generated content into KG."""
     import kuzu
+
     db = kuzu.Database(DB_PATH)
     conn = kuzu.Connection(db)
 
@@ -258,7 +273,7 @@ def phase3_ingest():
             try:
                 conn.execute(
                     "MATCH (k:KnowledgeUnit {id: $nid}) SET k.content = $c",
-                    {"nid": node_id, "c": content}
+                    {"nid": node_id, "c": content},
                 )
                 ok += 1
             except Exception:
@@ -271,7 +286,9 @@ def phase3_ingest():
         total_ok += ok
 
     # Final stats
-    r = conn.execute("MATCH (k:KnowledgeUnit) WHERE k.content IS NOT NULL AND size(k.content) >= 50 RETURN count(k)")
+    r = conn.execute(
+        "MATCH (k:KnowledgeUnit) WHERE k.content IS NOT NULL AND size(k.content) >= 50 RETURN count(k)"
+    )
     while r.has_next():
         print(f"\nKU with content >= 50 chars: {r.get_next()[0]}")
     r = conn.execute("MATCH (k:KnowledgeUnit) RETURN count(k)")

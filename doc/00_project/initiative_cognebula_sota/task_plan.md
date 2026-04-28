@@ -561,7 +561,7 @@ Phase 2: Synthesis + Gap Analysis (Steps 3-4)
 - [ ] S18.27 KuzuDB tested restore drill (`scripts/restore_drill.sh`) (Taleb P0 strict; requires prod-access HITL).
 - [ ] S18.28 `--require-snapshot` precondition flag on migration scripts (Taleb P0; depends S18.27).
 - [ ] S18.29 Migration partial-apply rollback fixture test (Taleb P0; depends S18.27).
-- [ ] S18.30 Working-tree triage manifest (Taleb P1; ~M effort, defer to next session under quieter context).
+- [x] S18.30 Working-tree triage manifest (Taleb P1; ~M effort, defer to next session under quieter context). **Closed** 2026-04-28 (Sweep-8): `scripts/working_tree_triage.py` (~270 LOC) buckets `git status` output into 6 reviewable categories (critical_code / tests / docs / configs / data_or_cache / other), each with top-5 by churn. Outputs JSON + Markdown to `outputs/working-tree-triage.json` + `.md`. Initial run captured: **766 dirty entries** (222 M / 315 D / 229 ??), bucketed as docs=367 / critical_code=162 / other=161 / tests=47 / data_or_cache=26 / configs=3. Manifest committed as evidence anchor; re-run anytime via `python3 scripts/working_tree_triage.py`. New nightly tests: `tests/test_working_tree_triage.py` +34 (parametrized bucketing for 24 path patterns + 7 status-line forms + schema shape + end-to-end + markdown structure).
 - [ ] S18.31 Cross-session parallel-write detector via post-commit session-id stamp (Taleb P2).
 
 ### HITL — Out of agent scope (Maurice owns)

@@ -1,0 +1,284 @@
+{
+  "schema_version": 1,
+  "run_utc": "2026-04-28T00:59:53Z",
+  "git_head_sha": "f581e2c",
+  "git_branch": "main",
+  "summary": {
+    "total_dirty_entries": 766,
+    "status_breakdown": {
+      " M": 222,
+      " D": 315,
+      "??": 229
+    },
+    "bucket_counts": {
+      "configs": 3,
+      "critical_code": 162,
+      "data_or_cache": 26,
+      "docs": 367,
+      "other": 161,
+      "tests": 47
+    }
+  },
+  "buckets": {
+    "configs": {
+      "count": 3,
+      "status_breakdown": {
+        " M": 3
+      },
+      "total_added": 40,
+      "total_deleted": 11,
+      "top_5_by_churn": [
+        {
+          "path": "docker-compose.yml",
+          "status": " M",
+          "added": 25,
+          "deleted": 2,
+          "churn": 27
+        },
+        {
+          "path": "Dockerfile",
+          "status": " M",
+          "added": 12,
+          "deleted": 9,
+          "churn": 21
+        },
+        {
+          "path": "worker/wrangler.toml",
+          "status": " M",
+          "added": 3,
+          "deleted": 0,
+          "churn": 3
+        }
+      ]
+    },
+    "docs": {
+      "count": 367,
+      "status_breakdown": {
+        " M": 6,
+        " D": 315,
+        "??": 46
+      },
+      "total_added": 1420,
+      "total_deleted": 20561,
+      "top_5_by_churn": [
+        {
+          "path": "HANDOFF.md",
+          "status": " M",
+          "added": 1221,
+          "deleted": 1374,
+          "churn": 2595
+        },
+        {
+          "path": "doc/00_project/initiative_finance_tax_kb/FINANCE_TAX_SKILL_TEAM_ARCHITECTURE-zh.html",
+          "status": " D",
+          "added": 0,
+          "deleted": 717,
+          "churn": 717
+        },
+        {
+          "path": "doc/00_project/initiative_finance_tax_kb/COGNEBULA_ONTOLOGY_V4-zh.html",
+          "status": " D",
+          "added": 0,
+          "deleted": 705,
+          "churn": 705
+        },
+        {
+          "path": "skills/team-finance-tax/SKILL.md",
+          "status": " D",
+          "added": 0,
+          "deleted": 162,
+          "churn": 162
+        },
+        {
+          "path": "skills/ft-tax-incentive/SKILL.md",
+          "status": " D",
+          "added": 0,
+          "deleted": 134,
+          "churn": 134
+        }
+      ]
+    },
+    "other": {
+      "count": 161,
+      "status_breakdown": {
+        " M": 88,
+        "??": 73
+      },
+      "total_added": 14299,
+      "total_deleted": 4703,
+      "top_5_by_churn": [
+        {
+          "path": "src/inject_tax_incentives.py",
+          "status": " M",
+          "added": 1661,
+          "deleted": 675,
+          "churn": 2336
+        },
+        {
+          "path": "src/inject_tax_rates.py",
+          "status": " M",
+          "added": 1558,
+          "deleted": 409,
+          "churn": 1967
+        },
+        {
+          "path": "src/cognebula.py",
+          "status": " M",
+          "added": 1478,
+          "deleted": 397,
+          "churn": 1875
+        },
+        {
+          "path": "web/src/app/expert/data-quality/page.tsx",
+          "status": " M",
+          "added": 655,
+          "deleted": 203,
+          "churn": 858
+        },
+        {
+          "path": "src/seed_data.py",
+          "status": " M",
+          "added": 763,
+          "deleted": 94,
+          "churn": 857
+        }
+      ]
+    },
+    "critical_code": {
+      "count": 162,
+      "status_breakdown": {
+        " M": 125,
+        "??": 37
+      },
+      "total_added": 9998,
+      "total_deleted": 3774,
+      "top_5_by_churn": [
+        {
+          "path": "scripts/seed_v42_phase6_expand_cr_pen.py",
+          "status": " M",
+          "added": 886,
+          "deleted": 349,
+          "churn": 1235
+        },
+        {
+          "path": "src/api/kg_api.py",
+          "status": " M",
+          "added": 765,
+          "deleted": 126,
+          "churn": 891
+        },
+        {
+          "path": "scripts/migrate_v4.1.py",
+          "status": " M",
+          "added": 539,
+          "deleted": 344,
+          "churn": 883
+        },
+        {
+          "path": "scripts/seed_v42_phase3.py",
+          "status": " M",
+          "added": 599,
+          "deleted": 186,
+          "churn": 785
+        },
+        {
+          "path": "scripts/seed_v42_phase5_expand_rs_pc.py",
+          "status": " M",
+          "added": 505,
+          "deleted": 238,
+          "churn": 743
+        }
+      ]
+    },
+    "data_or_cache": {
+      "count": 26,
+      "status_breakdown": {
+        "??": 26
+      },
+      "total_added": 0,
+      "total_deleted": 0,
+      "top_5_by_churn": [
+        {
+          "path": "outputs/reports/ontology-audit-swarm/2026-04-20-kg-sota-gap.html",
+          "status": "??",
+          "added": 0,
+          "deleted": 0,
+          "churn": 0
+        },
+        {
+          "path": "outputs/reports/ontology-audit-swarm/2026-04-20-v4.2-sota-gap-analysis.html",
+          "status": "??",
+          "added": 0,
+          "deleted": 0,
+          "churn": 0
+        },
+        {
+          "path": "outputs/reports/ontology-audit-swarm/2026-04-21-enterprise-readiness-status.html",
+          "status": "??",
+          "added": 0,
+          "deleted": 0,
+          "churn": 0
+        },
+        {
+          "path": "outputs/reports/ontology-audit-swarm/2026-04-21-session-quality-audit.html",
+          "status": "??",
+          "added": 0,
+          "deleted": 0,
+          "churn": 0
+        },
+        {
+          "path": "outputs/reports/ontology-audit-swarm/2026-04-22-session-delta-audit.html",
+          "status": "??",
+          "added": 0,
+          "deleted": 0,
+          "churn": 0
+        }
+      ]
+    },
+    "tests": {
+      "count": 47,
+      "status_breakdown": {
+        "??": 47
+      },
+      "total_added": 0,
+      "total_deleted": 0,
+      "top_5_by_churn": [
+        {
+          "path": "tests/e2e/",
+          "status": "??",
+          "added": 0,
+          "deleted": 0,
+          "churn": 0
+        },
+        {
+          "path": "tests/fixtures/",
+          "status": "??",
+          "added": 0,
+          "deleted": 0,
+          "churn": 0
+        },
+        {
+          "path": "tests/golden/",
+          "status": "??",
+          "added": 0,
+          "deleted": 0,
+          "churn": 0
+        },
+        {
+          "path": "tests/integration/",
+          "status": "??",
+          "added": 0,
+          "deleted": 0,
+          "churn": 0
+        },
+        {
+          "path": "tests/performance/",
+          "status": "??",
+          "added": 0,
+          "deleted": 0,
+          "churn": 0
+        }
+      ]
+    }
+  }
+}

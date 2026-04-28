@@ -12,7 +12,7 @@ status: ACTIVE
 > session-level closeout document that captures tacit knowledge in a form that
 > survives `/compact` and grep.
 >
-> - **Closeout `<HEAD>`** — `outputs/audits/2026-04-28-prod-kg-session-receipt.md`
+> - **Closeout `a80e16e`** — `outputs/audits/2026-04-28-prod-kg-session-receipt.md`
 >   (263 lines, 8 sections). Documents: (1) the 5 framing falsifications
 >   chronologically with claim/probe/reality/commit/lesson; (2) the
 >   probe-before-assertion methodology that crystallized this session
@@ -23,7 +23,7 @@ status: ACTIVE
 >   synthesis target progress; (8) honest stop signal — diminishing returns
 >   reached, further "继续" should prompt exhaustion report not manufactured work.
 >
-> Closeout chain (3 commits): `fe04748 (C5g) → 26ca38b (HANDOFF) → <HEAD> (receipt)`.
+> Closeout chain (3 commits): `fe04748 (C5g) → 26ca38b (HANDOFF) → a80e16e (receipt)`.
 > Net session: 5 framing falsifications, 8/9 Phase C atomic items shipped,
 > 1 reusable methodology (probe-before-assertion) crystallized.
 
